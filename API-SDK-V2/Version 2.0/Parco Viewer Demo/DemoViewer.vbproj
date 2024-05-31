@@ -1,0 +1,403 @@
+<VisualStudioProject>
+    <VisualBasic
+        ProjectType = "Local"
+        ProductVersion = "7.10.3077"
+        SchemaVersion = "2.0"
+        ProjectGuid = "{568A5C5A-E6D8-49D2-A934-F8AC719C3C0D}"
+    >
+        <Build>
+            <Settings
+                ApplicationIcon = "parco.ico"
+                AssemblyKeyContainerName = ""
+                AssemblyName = "DemoViewer"
+                AssemblyOriginatorKeyFile = ""
+                AssemblyOriginatorKeyMode = "None"
+                DefaultClientScript = "JScript"
+                DefaultHTMLPageLayout = "Grid"
+                DefaultTargetSchema = "IE50"
+                DelaySign = "false"
+                OutputType = "WinExe"
+                OptionCompare = "Binary"
+                OptionExplicit = "On"
+                OptionStrict = "On"
+                RootNamespace = "DemoViewer"
+                StartupObject = "DemoViewer.Form1"
+            >
+                <Config
+                    Name = "Debug"
+                    BaseAddress = "285212672"
+                    ConfigurationOverrideFile = ""
+                    DefineConstants = ""
+                    DefineDebug = "true"
+                    DefineTrace = "true"
+                    DebugSymbols = "true"
+                    IncrementalBuild = "true"
+                    Optimize = "false"
+                    OutputPath = "bin\"
+                    RegisterForComInterop = "false"
+                    RemoveIntegerChecks = "false"
+                    TreatWarningsAsErrors = "false"
+                    WarningLevel = "1"
+                />
+                <Config
+                    Name = "Release"
+                    BaseAddress = "285212672"
+                    ConfigurationOverrideFile = ""
+                    DefineConstants = ""
+                    DefineDebug = "false"
+                    DefineTrace = "true"
+                    DebugSymbols = "false"
+                    IncrementalBuild = "false"
+                    Optimize = "true"
+                    OutputPath = "bin\"
+                    RegisterForComInterop = "false"
+                    RemoveIntegerChecks = "false"
+                    TreatWarningsAsErrors = "false"
+                    WarningLevel = "1"
+                />
+            </Settings>
+            <References>
+                <Reference
+                    Name = "System"
+                    AssemblyName = "System"
+                />
+                <Reference
+                    Name = "System.Data"
+                    AssemblyName = "System.Data"
+                />
+                <Reference
+                    Name = "System.Drawing"
+                    AssemblyName = "System.Drawing"
+                />
+                <Reference
+                    Name = "System.Windows.Forms"
+                    AssemblyName = "System.Windows.Forms"
+                />
+                <Reference
+                    Name = "System.XML"
+                    AssemblyName = "System.Xml"
+                />
+                <Reference
+                    Name = "ucBlink"
+                    AssemblyName = "ucBlink"
+                    HintPath = "..\ucBlink\bin\ucBlink.dll"
+                />
+                <Reference
+                    Name = "Microsoft.DirectX"
+                    AssemblyName = "Microsoft.DirectX"
+                    HintPath = "..\..\..\..\WINDOWS\Microsoft.NET\Managed DirectX\v9.00.0900\Microsoft.DirectX.dll"
+                    AssemblyFolderKey = "hklm\dn\managed directx 9.0"
+                />
+                <Reference
+                    Name = "Microsoft.DirectX.Direct3D"
+                    AssemblyName = "Microsoft.DirectX.Direct3D"
+                    HintPath = "..\..\..\..\WINDOWS\Microsoft.NET\Managed DirectX\v9.00.0900\Microsoft.DirectX.Direct3D.dll"
+                    AssemblyFolderKey = "hklm\dn\managed directx 9.0"
+                />
+                <Reference
+                    Name = "Microsoft.DirectX.Direct3DX"
+                    AssemblyName = "Microsoft.DirectX.Direct3DX"
+                    HintPath = "..\..\..\..\WINDOWS\Microsoft.NET\Managed DirectX\v9.00.0900\Microsoft.DirectX.Direct3DX.dll"
+                    AssemblyFolderKey = "hklm\dn\managed directx 9.0"
+                />
+                <Reference
+                    Name = "SIO3DViewer"
+                    AssemblyName = "SIO3DViewer"
+                    HintPath = "..\ParcoRTLSViewer\Direct3D\SIO3DViewer\bin\SIO3DViewer.dll"
+                />
+                <Reference
+                    Name = "ParcoRTLS"
+                    AssemblyName = "ParcoRTLS"
+                    HintPath = "..\ParcoRTLS\bin\ParcoRTLS.dll"
+                />
+            </References>
+            <Imports>
+                <Import Namespace = "Microsoft.VisualBasic" />
+                <Import Namespace = "System" />
+                <Import Namespace = "System.Collections" />
+                <Import Namespace = "System.Data" />
+                <Import Namespace = "System.Drawing" />
+                <Import Namespace = "System.Diagnostics" />
+                <Import Namespace = "System.Windows.Forms" />
+            </Imports>
+        </Build>
+        <Files>
+            <Include>
+                <File
+                    RelPath = "App.config"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "AssemblyInfo.vb"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "Form1.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "Form1.resx"
+                    DependentUpon = "Form1.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "frmTag.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "frmTag.resx"
+                    DependentUpon = "frmTag.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "frmTagInfo.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "frmTagInfo.resx"
+                    DependentUpon = "frmTagInfo.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "frmTagTrigger.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "frmTagTrigger.resx"
+                    DependentUpon = "frmTagTrigger.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "frmTrigger.vb"
+                    SubType = "Form"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "frmTrigger.resx"
+                    DependentUpon = "frmTrigger.vb"
+                    BuildAction = "EmbeddedResource"
+                />
+                <File
+                    RelPath = "Module1.vb"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "MyMenuClickedArgs.vb"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "parco.ico"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "TagPlus.vb"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "TagSerial.vb"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "TrigObj3D.vb"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "TrigSerial.vb"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "Media\3DNav.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow.x"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\arrow_backward_1.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_down_1.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_forward_1.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_in_1.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_left_1.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_out_1.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_right_1.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_rotate_backward_1.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_rotate_forward_1.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_turn_left.gif"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_turn_right.gif"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrow_up_1.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\arrowhead.x"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\camera_bottom.gif"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\camera_left.gif"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\camera_right.gif"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\camera_top.gif"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\circle_yellow.dds"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\figure1.dds"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\glass.dds"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\grid_box.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\line.x"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\mipac.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\pix.dds"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\pix2.dds"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\ring_yellow.dds"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\seafloor.bmp"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\SeaFloor.vsh"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\seafloor.x"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\SeaFloor2.vsh"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\seatosky1.jpg"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\seatosky2.jpg"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\seatosky3.jpg"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\seatosky4.jpg"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\seatosky5.jpg"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\skybox_back.JPG"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\skybox_bottom.JPG"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\skybox_front.JPG"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\skybox_left.JPG"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\skybox_right.JPG"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\skybox_top.JPG"
+                    BuildAction = "Content"
+                />
+                <File
+                    RelPath = "Media\skybox2.x"
+                    BuildAction = "None"
+                />
+                <File
+                    RelPath = "Media\vssver.scc"
+                    BuildAction = "None"
+                />
+            </Include>
+        </Files>
+    </VisualBasic>
+</VisualStudioProject>
+

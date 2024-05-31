@@ -1,0 +1,6 @@
+SAPWD="parco"
+InstanceName="value"
+DISABLENETWORKPROTOCOLS=0
+Use the following from the command prompt for correct installation settings:
+
+setup SAPWD="parco" DISABLENETWORKPROTOCOLS=0 SECURITYMODE=SQL

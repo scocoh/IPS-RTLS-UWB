@@ -1,0 +1,3201 @@
+<doc>
+   <assembly>SIO3DViewer.dll</assembly>
+   <members>
+      <member name="T:SIO3DViewer.Camera">
+
+ <summary>
+ Class representing a specific view into the 3D world.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveLookAtLeft(System.Single)">
+
+<summary>
+ Moves the LookAt position left by the given number of units.  returns
+ True if the move was limited by the current lookat position range specifications.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveLookAtRight(System.Single)">
+<summary>
+ Moves the LookAt position right by the given number of units.  returns
+ True if the move was limited by the current lookat position range specifications.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveLookAtForward(System.Single)">
+
+<summary>
+ Moves the LookAt position forward by the given number of units.  returns
+ True if the move was limited by the current lookat position range specifications.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveLookAtBackward(System.Single)">
+
+<summary>
+ Moves the LookAt position backward by the given number of units.  returns
+ True if the move was limited by the current lookat position range specifications.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveCameraLeft(System.Single)">
+
+<summary>
+ Moves the Camera position left by the given number of units.  returns
+ True if the move was limited by the current camera position range specifications.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveCameraRight(System.Single)">
+
+<summary>
+ Moves the Camera position right by the given number of units.  returns
+ True if the move was limited by the current camera position range specifications.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveCameraForward(System.Single)">
+
+<summary>
+ Moves the Camera position forward by the given number of units.  returns
+ True if the move was limited by the current camera position range specifications.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveCameraBackward(System.Single)">
+
+<summary>
+ Moves the Camera position backward by the given number of units.  returns
+ True if the move was limited by the current camera position range specifications.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveCameraCloser(System.Single)">
+
+<summary>
+ Moves the Camera position towards the lookat position by the given number of
+ units.  returns True if the move was limited by the current camera position
+ range specifications.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveCameraFurther(System.Single)">
+
+<summary>
+ Moves the Camera position away from the lookat position by the given number of
+ units.  returns True if the move was limited by the current camera position
+ range specifications.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.RotateCameraUpAboutLookat(System.Single)">
+
+<summary>
+ Rotates the camera up around the lookat point, increasing the angle of 
+ ascention.  returns true if the move is limited by the current range settings.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.RotateCameraDownAboutLookAt(System.Single)">
+
+<summary>
+ Rotates the camera down around the lookat point, decreasing the angle of 
+ ascention.  returns true if the move is limited by the current range settings.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveLeft(System.Single)">
+
+<summary>
+ Moves the camera and lookat positions left by the given number of units.
+ returns true if the move is limited by the current range settings.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveRight(System.Single)">
+
+<summary>
+ Moves the camera and lookat positions right by the given number of units.
+ returns true if the move is limited by the current range settings.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveUp(System.Single)">
+
+<summary>
+ Moves the camera and lookat positions up by the given number of units.
+ returns true if the move is limited by the current range settings.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveDown(System.Single)">
+
+<summary>
+ Moves the camera and lookat positions down by the given number of units.
+ returns true if the move is limited by the current range settings.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveForward(System.Single)">
+
+<summary>
+ Moves the camera and lookat positions forward by the given number of units.
+ returns true if the move is limited by the current range settings.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveBackward(System.Single)">
+
+<summary>
+ Moves the camera and lookat backward right by the given number of units.
+ returns true if the move is limited by the current range settings.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveLookAt(System.Single,System.Single,System.Single)">
+<summary>
+Moves the lookat point the specified distance on the X, Y, and Z axes.  Negative distance values will move the point left, down, and toward the user, while positive values will move the point right, up, and away from the user.  returns true if the movement is limited by the current range settings.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.MoveCamera(Microsoft.DirectX.Vector3)">
+<summary>
+Moves the camera the specified distance on the X, Y, and Z axes.  Negative distance values will move the camera left, down, and toward the user, while positive values will move the camera right, up, and away from the user.  returns true if the movement is limited by the current range settings.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.Move(System.Single,System.Single,System.Single)">
+<summary>
+ Moves the camera and lookat points the specified distance on the X, Y, and
+ Z axes.  
+</summary>
+<remarks>
+Negative distance values will move the points left, down, and toward
+ the user, while positive values will move the points right, up, and away from
+ the user.  returns true if the movement is limited by the current range settings.
+</remarks>
+</member>
+      <member name="M:SIO3DViewer.Camera.Zoom(System.Single)">
+
+<summary>
+ Moves the camera the specified distance along the line between the camera
+ position and the lookat position.  
+</summary>
+<remarks>
+Negative distance values will move the camera
+ out (towards the user), while positive values will move the camera in (away from
+ the user).  returns true if the movement was limited by the current range settings.
+</remarks>
+</member>
+      <member name="M:SIO3DViewer.Camera.Tilt(System.Single)">
+
+<summary>
+ Rotates the camera the specified angle around the lookat point.  
+</summary>
+<remarks>
+Negative 
+ angles will rotate the camera down (towards the floor), decreasing the angle 
+ of ascention, while positive angles will move the camera up (away from the 
+ floor), increasing the angle of ascention.  This will have the general visual 
+ effect of, in the case of negative distances, looking up, and in the case of
+ positive distances, looking down.  returns true if the movement is limited by 
+ the current range settings.
+</remarks>
+</member>
+      <member name="M:SIO3DViewer.Camera.RotateCameraLeftAboutLookat(System.Single)">
+
+<summary>
+ Rotates the camera left the given angle around the vertical axis through
+ the lookat point.  
+</summary>
+<remarks>
+returns true if the movement was limited by current
+ range settings.
+</remarks>
+</member>
+      <member name="M:SIO3DViewer.Camera.RotateCameraRightAboutLookat(System.Single)">
+
+<summary>
+ Rotates the camera right the given angle around the vertical axis through
+ the lookat point.  
+</summary>
+<remarks>
+returns true if the movement was limited by current
+ range settings.
+</remarks>
+</member>
+      <member name="M:SIO3DViewer.Camera.IntersectLineWithPlane(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3)"></member>
+      <member name="M:SIO3DViewer.Camera.LimitDelta(System.Single,SIO3DViewer.Range,System.Single@)"></member>
+      <member name="M:SIO3DViewer.Camera.RoundAngle(System.Double)"></member>
+      <member name="M:SIO3DViewer.Camera.NextPosition(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.MoveLookAtX(System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.MoveLookAtY(System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.MoveLookAtZ(System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.MoveCameraX(System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.MoveCameraY(System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.MoveCameraZ(System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.MoveX(System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.MoveY(System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.MoveZ(System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.AnimateViewDirection(System.Single)"></member>
+      <member name="M:SIO3DViewer.Camera.LookTowardsPositiveZ">
+
+<summary>
+ Rotates the camera around the lookat point horizontally until the line
+ of sight is parallel to the Z axis and the camera is facing the positive
+ Z direction.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.LookTowardsNegativeZ">
+
+<summary>
+ Rotates the camera around the lookat point horizontally until the line
+ of sight is parallel to the Z axis and the camera is facing the negative
+ Z direction.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.LookTowardsPositiveX">
+
+<summary>
+ Rotates the camera around the lookat point horizontally until the line
+ of sight is parallel to the X axis and the camera is facing the positive
+ X direction.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.LookTowardsNegativeX">
+
+<summary>
+ Rotates the camera around the lookat point horizontally until the line
+ of sight is parallel to the X axis and the camera is facing the negative
+ X direction.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Camera.SetView">
+
+ Initializes the transformation matrices for the given device to
+ view from this camera
+</member>
+      <member name="M:SIO3DViewer.Camera.ResetPlaneIntersection"></member>
+      <member name="P:SIO3DViewer.Camera.AxisOfRotation">
+ 
+ <summary>
+ Gets the current axis of rotation for rotating the axis of ascention
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.AngleOfAscention">
+<summary>
+Gets the current angle of ascention of the camera over the ZX plane intersecting the current lookat point.  
+</summary>
+<remarks>
+Positive values are above the plane - negative would be below the plane.
+</remarks>
+</member>
+      <member name="P:SIO3DViewer.Camera.Rotation">
+<summary>
+ Gets the current rotation about the Y axis (up direction) of the camera in radians.
+</summary>
+<remarks>
+0 coincides with the positive X axis, increasing towards the positive Z axis and decreasing towards the negative Z axis, with Pi coinciding with the negative X axis.
+</remarks>
+</member>
+      <member name="P:SIO3DViewer.Camera.FieldOfViewAngle">
+<summary>
+Gets/sets the field of view angle.
+</summary>
+<remarks>
+The default is Pi/4 (45 degrees)
+</remarks>
+</member>
+      <member name="P:SIO3DViewer.Camera.Position">
+<summary>
+ Gets/Sets the camera position in 3D space without affecting the lookat position.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.LookAt">
+<summary>
+ Gets/Sets the lookat points position in 3D space.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.ViewPlaneIntersection">
+<summary>
+ Gets the intersection with the floor plane of the current line of sight.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.UpDirection">
+<summary>
+ Gets the up direction vector.  Fixed at (0,1,0) = positive Y axis is the up axis.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.LookAtRangeX">
+<summary>
+ Gets/Sets the range of valid X coordinates for the lookat point.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.LookAtRangeY">
+<summary>
+ Gets/Sets the range of valid Y coordinates for the lookat point.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.LookAtRangeZ">
+<summary>
+ Gets/Sets the range of valid Z coordinates for the lookat point.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.CameraRangeX">
+<summary>
+ Gets/Sets the range of valid X coordinates for the camera position.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.CameraRangeY">
+<summary>
+ Gets/Sets the range of valid Y coordinates for the camera position.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.CameraRangeZ">
+<summary>
+ Gets/Sets the range of valid Z coordinates for the camera position.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.DistanceToLookAtRange">
+<summary>
+ Gets/Sets the range of valid distances from the lookat point to the
+ camera position.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Camera.AscentionAngleRange">
+<summary>
+ Gets/Sets the range of valid angles for the angle of ascention of the 
+ camera over the ZX plane intersecting the lookat point.  These values
+  must be between -PI/2 and PI/2, NOT inclusive.
+</summary>
+</member>
+      <member name="T:SIO3DViewer.Range"></member>
+      <member name="M:SIO3DViewer.Range.#ctor"></member>
+      <member name="M:SIO3DViewer.Range.#ctor(System.Single,System.Single)"></member>
+      <member name="P:SIO3DViewer.Range.Minimum"></member>
+      <member name="P:SIO3DViewer.Range.Maximum"></member>
+      <member name="T:SIO3DViewer.ColoredPlane">
+
+ <summary>
+ Simple colored plane
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.ColoredPlane.OnHitTest(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Direct3D.IntersectInformation@)"></member>
+      <member name="M:SIO3DViewer.ColoredPlane.#ctor(System.Single,System.Single,System.Single,System.Single,System.Single,System.Drawing.Color)"></member>
+      <member name="M:SIO3DViewer.ColoredPlane.OnCreateDeviceObjects"></member>
+      <member name="M:SIO3DViewer.ColoredPlane.OnDeleteDeviceObjects"></member>
+      <member name="M:SIO3DViewer.ColoredPlane.OnRender"></member>
+      <member name="P:SIO3DViewer.ColoredPlane.WireFrameOnly">
+
+ <summary>
+ Set to True to only show the wireframe of the plane, False to show it filled.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ColoredPlane.OmniDirectional">
+
+ <summary>
+ Set to True if the plane should be visible from both sides (above/below), False if only from above
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ColoredPlane.OriginX">
+
+ <summary>
+ X Coordinate of the Origin for this plane
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ColoredPlane.OriginY">
+
+ <summary>
+ Y Coordinate of the Origin for this plane
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ColoredPlane.OriginZ">
+
+ <summary>
+ Z Coordinate of the Origin for this plane
+ </summary>
+</member>
+      <member name="T:SIO3DViewer.FloorClickEventArgs">
+
+ <summary>
+ Event Args for a user click on the Floor area.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.FloorClickEventArgs.#ctor(System.Single,System.Single)"></member>
+      <member name="P:SIO3DViewer.FloorClickEventArgs.Handled">
+
+ <summary>
+ Set to True to disable default processing
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.FloorClickEventArgs.X">
+
+ <summary>
+ X coordinate on the floors plane corresponding to the mouse position in the View.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.FloorClickEventArgs.Z">
+
+ <summary>
+ Z coordinate on the floors plane corresponding to the mouse position in the View.
+ </summary>
+</member>
+      <member name="T:SIO3DViewer.Image">
+
+<summary>
+An image that can be displayed to represent an object in the 3D viewer, such as a tag, floor, or tagchild.  
+</summary>
+<remarks>
+The viewer uses a method called "billboarding" to facilitate very fast rendering. Billboarding means that the tags and tagchildren are actually flat "billboards" that an image is drawn on to represent the item.  The billboard is always turned to face the camera before it is rendered, so it appears somewhat 3 dimensional.  This feature greatly simplifies the task of providing custom images, and also makes rendering extremely efficient, especially on older hardware.
+</remarks>
+</member>
+      <member name="M:SIO3DViewer.Image.GetBestSize(System.Int32,System.Int32)"></member>
+      <member name="M:SIO3DViewer.Image.#ctor(System.Object,System.String)"></member>
+      <member name="M:SIO3DViewer.Image.#ctor(System.Object,System.String)"></member>
+      <member name="M:SIO3DViewer.Image.InitDeviceObjects(Microsoft.DirectX.Direct3D.Device)"></member>
+      <member name="P:SIO3DViewer.Image.Path">
+<summary>
+A read-only string that is the path to the image file on the hard-drive.   or Nothing
+ if the image was from a bitmap.
+</summary>
+<remarks>
+The supported file types are .dds and .bmp.
+</remarks>
+</member>
+      <member name="P:SIO3DViewer.Image.Bitmap">
+<summary>
+A read-only string that is the raw bitmap used to create the texture or Nothing if the
+ image was loaded from a file.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Image.Key">
+<summary>
+A readonly object that is the key identifying this image in the image list.  
+</summary>
+<remarks>
+All images must have a unique key identifier.
+</remarks>
+</member>
+      <member name="P:SIO3DViewer.Image.ImageTexture"></member>
+      <member name="T:SIO3DViewer.ImageCollection">
+
+<summary>
+A collection of image objects. 
+</summary>
+<remarks>
+All images used during the rendering process must exist in this collection or the render will fail.
+</remarks>
+</member>
+      <member name="M:SIO3DViewer.ImageCollection.Add(System.Object,System.String)">
+
+ <summary>
+ Add a new image to the collection with the specified key and path.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.ImageCollection.Add(System.Object,System.String)">
+
+ <summary>
+ Add a new image to the collection with the specified key and bitmap.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.ImageCollection.Remove(System.Object)">
+
+<summary>
+ Remove the specified image from the collection.
+</summary>
+<remarks>
+Removing an image that is currently referenced by another item (such as a tag, tagchild, or floor) will result in an error when that item is rendered to the screen.  Because of this, it is important to remove the referencing item or change the imagekey for that item before removing the image.
+</remarks>
+</member>
+      <member name="M:SIO3DViewer.ImageCollection.Item(System.Object)">
+<summary>
+ Returns the specified image object.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.ImageCollection.GetEnumerator">
+<summary>
+Returns an enumerator that will enumerate all images in the collection.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.ImageCollection.Clear">
+
+<summary>
+ Removes all image objects from the collection
+</summary>
+</member>
+      <member name="M:SIO3DViewer.ImageCollection.InitDeviceObjects(Microsoft.DirectX.Direct3D.Device)">
+
+ Create all textures represented by images in our list
+</member>
+      <member name="M:SIO3DViewer.ImageCollection.DeleteDeviceObjects">
+
+ delete all textures represented by images in our list
+</member>
+      <member name="P:SIO3DViewer.ImageCollection.Count">
+
+<summary>
+The number of image objects currently stored in the collection.
+</summary>
+</member>
+      <member name="T:SIO3DViewer.MeshObject">
+
+ <summary>
+ Container for Mesh objects.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.MeshObject.GetBoundingSphere(Microsoft.DirectX.Vector3@,System.Single@)">
+
+ <summary>
+ Returns the bounding sphere for this mesh
+ </summary>
+ <remarks>
+ the radius is 0 until the render engine has started and has created
+ the internal representation of this mesh.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.MeshObject.OnHitTest(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Direct3D.IntersectInformation@)">
+
+ <summary>
+ Test this mesh for an intersection with the given ray.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.MeshObject.#ctor(System.String)">
+
+ <summary>
+ Creates a new mesh loaded from the given file
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.MeshObject.#ctor">
+
+ <summary>
+ Creates a new mesh loaded from the given file, setting the diffuse and specular colors
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.MeshObject.#ctor">
+
+ <summary>
+ Creates a new mesh loaded from the given file, setting the diffuse and specular colors
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.MeshObject.OnRender">
+
+ <summary>
+ Renders this mesh to the specified device.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.MeshObject.OnCreateDeviceObjects">
+
+ <summary>
+ Loads the mesh and adjusts the colors of the vertices to the user settings.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.MeshObject.OnDeleteDeviceObjects">
+
+ <summary>
+ Destroys the internal mesh
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.MeshObject.Diffuse">
+
+ <summary>
+ The Diffuse color for the mesh.  Defaults to White
+ </summary>
+ <remarks>
+ Note that unless there is no texture or the texture is white, this gets blended with the texture color
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.MeshObject.Specular">
+
+ <summary>
+ The Specular color for the mesh.  Defaults to White
+ </summary>
+ <remarks>
+ Note that unless there is no texture or the texture is white, this gets blended with the texture color
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.MeshObject.WireFrameOnly">
+
+ <summary>
+ Boolean value indicating if the wireframe should be drawn or the mesh should be filled.
+ </summary>
+ <remarks>
+ It should be noted that wireframes are drawn using the same texture as the filled shape.
+ </remarks>
+</member>
+      <member name="T:SIO3DViewer.MeshVertex">
+-----------------------------------------------------------------------------
+ Custom vertex type
+ see ms-help://MS.VSCC.2003/MS.MSDNQTR.2003APR.1033/dx8_vb/directx_vb/Graphics/ProgrammersGuide/UsingDirect3D/VertexData/FixedFunction/VertexFormats/VFormats.htm
+-----------------------------------------------------------------------------
+</member>
+      <member name="T:SIO3DViewer.MeshTag"></member>
+      <member name="M:SIO3DViewer.MeshTag.GetBoundingSphere(Microsoft.DirectX.Vector3@,System.Single@)">
+
+ <summary>
+ Returns the bounding sphere for this mesh
+ </summary>
+ <remarks>
+ the radius is 0 until the render engine has started and has created
+ the internal representation of this mesh.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.MeshTag.AddToVertexBuffer"></member>
+      <member name="M:SIO3DViewer.MeshTag.OnHitTest(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Direct3D.IntersectInformation@)"></member>
+      <member name="M:SIO3DViewer.MeshTag.#ctor(System.String,System.Single,System.Single)">
+
+ <summary>
+ Creates a new meshtag loaded from the given file, setting the scaling factor
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.MeshTag.OnCreateDeviceObjects"></member>
+      <member name="M:SIO3DViewer.MeshTag.OnDeleteDeviceObjects"></member>
+      <member name="M:SIO3DViewer.MeshTag.OnRender"></member>
+      <member name="T:SIO3DViewer.Obj3D">
+
+ <summary>
+ The base class for visual objects within the 3D Viewer.  This class provides the
+ basic functionality for all visual objects.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Obj3D.GetAncestry">
+
+ <summary>
+ Get an array of keys to this objects ancestry, including this object.
+ </summary>
+ <remarks>
+ the first element of the array is the top-level object, the last is this object.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.Obj3D.HitTest"></member>
+      <member name="M:SIO3DViewer.Obj3D.HitTest"></member>
+      <member name="M:SIO3DViewer.Obj3D.GetBoundingSphere(Microsoft.DirectX.Vector3@,System.Single@)">
+
+ <summary>
+ Get the bounding sphere for this Obj3D
+ </summary>
+ <remarks>
+ It is up to the derived classes to get the actual bounding sphere.  The base class takes
+ the final transformation location as the center, 1/1000000 units as the radius, and returns
+ False to indicate no real bounding sphere is available.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.Obj3D.OnHitTest(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Direct3D.IntersectInformation@)">
+
+ <summary>
+ Called during hit testing to check if this object intersects the given ray.
+ </summary>
+ <remarks>
+ When implementing this in a subclass, do not hittest your children.  This is done internally and
+ would only cause a slowdown in performance.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.Obj3D.#ctor"></member>
+      <member name="M:SIO3DViewer.Obj3D.RecomputeFaceRotation"></member>
+      <member name="M:SIO3DViewer.Obj3D.SetKey(System.Object)">
+
+ allow internals to set the key...
+</member>
+      <member name="M:SIO3DViewer.Obj3D.SetParent(SIO3DViewer.Obj3D)"></member>
+      <member name="M:SIO3DViewer.Obj3D.InitDeviceObjects"></member>
+      <member name="M:SIO3DViewer.Obj3D.Render"></member>
+      <member name="M:SIO3DViewer.Obj3D.OnDeviceReset"></member>
+      <member name="M:SIO3DViewer.Obj3D.OnDeviceDisposing"></member>
+      <member name="M:SIO3DViewer.Obj3D.OnCreateDeviceObjects">
+
+ <summary>
+ Called during initialization to create the device specific objects making up this Obj3D
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Obj3D.OnDeleteDeviceObjects">
+
+ <summary>
+ Called when it is time to delete the device objects
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Obj3D.OnRender">
+
+ <summary>
+ Called during scene rendering when its time to render this Obj3D
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.Obj3D.VisibleChanged"></member>
+      <member name="P:SIO3DViewer.Obj3D.MinAlpha">
+
+ <summary>
+ the alpha value under which pixels are not drawn
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.AlphaBlendingEnabled">
+
+ <summary>
+ set to True to enable alpha blending for this object
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.LineOfSight">
+
+<summary>
+ Gets or sets the direction that this object should be facing.
+</summary>
+<remarks>
+ It is assumed that objects are by default facing the negative Z axis.  This can be
+ adjusted in the LocalTransform if it is not inherently true.
+</remarks>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.Data">
+
+<summary>
+ Gets or sets a reference to an object that stores arbitrary user-defined data.
+</summary>
+<remarks>
+ This would store, for example, information required to populate a properties window.
+</remarks>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.Key">
+
+ <summary>
+ Gets the key identifier for this Obj3D.
+ </summary>
+ <value>
+ The generic object that is used to uniquely identify this Obj3D in ObjectCollections
+ </value>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.Parent">
+
+ <summary>
+ Contains a reference to the parent object after a hit test.
+ </summary>
+ <remarks>
+ Initially, this value will be the last parent that this object was attached to.
+ Since, however, there is no restriction on the number of object collections
+ that any given object can be attached to, this value could change during a
+ hittest.  The parent object that detects the hit on this object will be the one
+ that is returned.
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.Images">
+
+ <summary>
+ Contains a reference to the 3D Viewers ImageCollection
+ </summary>
+ <value>
+ Reference to the 3D Viewers ImageCollection allowing derived objects
+ to access any images they need via the images key.
+ </value>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.LocalTransform">
+
+ <summary>
+ This objects internal transformation.
+ </summary>
+ <value>
+ A standard DirectX transformation matrix.  Used to translate the object to its final position
+ during rendering.
+ </value>
+ <remarks>
+ This transformation is combined with the general transform for this object prior
+ to rendering.  it is NOT included in the transform used during the rendering of children.
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.OrientationTransform">
+
+ <summary>
+ This objects orientation transformation.
+ </summary>
+ <value>
+ A standard DirectX transformation matrix.  Used to orient the object in its current position
+ </value>
+ <remarks>
+ This transformation is combined with the general transform for this object prior
+ to rendering.  it is NOT included in the transform used during the rendering of children.
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.Transform">
+
+ <summary>
+ This objects transformation.  It is prepended to the current world transform prior to
+ rendering this object and its children
+ </summary>
+ <value>
+ A standard DirectX transformation matrix.  Used to translate the object to its final position
+ during rendering.
+ </value>
+ <remarks>
+ This transformation is kept in place during the rendering of any children as well.  This allows
+ the child objects to position themselves relative to their parent (or a parent to position its
+ children relative to itself)
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.FinalTransform">
+
+ <summary>
+ The final transformation for this object.  It is the concatenation of the local transform
+ and the general transform.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.Children">
+
+ <summary>
+ Contains the array of child objects.
+ </summary>
+ <value>
+ An ArrayList containing all of the children for this object.
+ </value>
+ <remarks>
+ All ArrayList operations are allowed, with the caveat that only Obj3D derived objects may
+ be placed in the array without causing exceptions to be thrown during rendering.
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.Obj3D.Visible">
+
+ <summary>
+ Boolean value indicating whether this obj3D should be displayed in the viewer.
+ </summary>
+ <remarks>
+ Children of objects that are not visible are inherently invisible themselves.
+ </remarks>
+</member>
+      <member name="T:SIO3DViewer.Transformation">
+
+ <summary>
+ Container for a transformation matrix.
+ </summary>
+ <remarks>
+ <para>
+ The Transformation class encapsulates a DirectX transformation matrix.  Direct
+ access to the actual matrix is possible through the Matrix property.  Additionally,
+ users of this class may use the methods to build up a transformation matrix.  It
+ must be noted that all calls to the methods for manipulating the internal matrix are
+ performed immediately, and are appended to the internal matrix.  This means that
+ the order of operations is important and directly affects the results of the matrix.  
+ </para><para>
+ Example:  We have an object that is aligned such that its vertical axis coincides
+ with the positive Z axis, and it faces the negative Y axis.  The following two scenarios
+ result in the same orientation of the object.  Note, however, the difference in sign in the
+ rotation about the X axis.  Because in the second scenario, we rotated the object around
+ our vertical axis first, we needed to rotate about the X axis in the opposite direction in
+ order to get the correct result. 
+ </para><para>
+ Scenario 1:
+ </para><para>
+ obj.LocalTransform.Reset() ' Reset the local transformation.
+ </para><para>
+ obj.LocalTransform.RotateX( -Math.PI/2 ) ' Rotate the objects vertical axis to coincide with our positive Y axis.
+ </para><para>
+ obj.LocalTransform.RotateY( Math.PI ) ' Rotate the object around the vertical axis to face towards the negative Z axis.
+ </para><para>
+ These transformations result in the object appearing vertical in our space and facing the negative Z axis (the default camera location).
+ </para><para>
+ Scenario 2:
+ </para><para>
+ obj.LocalTransform.Reset() ' Reset the local transformation.
+ </para><para>
+ obj.LocalTransform.RotateY( Math.PI ) ' Rotate the object to align its vertical axis with the negative Z axis
+ </para><para>
+ obj.LocalTransform.RotateX( Math.PI/2 ) ' Rotate the objects vertical axis to coincide with our positive Y axis.
+ </para><para>
+ These transformations result in the object appearing vertical in our space and facing the negative Z axis (the default camera location).
+ </para>
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.Transformation.RotateX(System.Single)">
+
+ <summary>
+ Add a rotation about the X axis to the transformation
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Transformation.RotateY(System.Single)">
+
+ <summary>
+ Add a rotation about the Y axis to the transformation
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Transformation.RotateZ(System.Single)">
+
+ <summary>
+ Add a rotation about the Z axis to the transformation
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Transformation.Scale(System.Single)">
+
+ <summary>
+ Add a scaling factor to the transformation, affecting all dimensions
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Transformation.ScaleX(System.Single)">
+
+ <summary>
+ Add a scaling factor to the transformation, affecting only the X dimension
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Transformation.ScaleY(System.Single)">
+
+ <summary>
+ Add a scaling factor to the transformation, affecting only the Y dimension
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Transformation.ScaleZ(System.Single)">
+
+ <summary>
+ Add a scaling factor to the transformation, affecting only the Z dimension
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Transformation.Translate(System.Single,System.Single,System.Single)">
+
+ <summary>
+ Add a translation (move) to the transformation
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Transformation.Reset">
+
+ <summary>
+ Reset the transformation such that no operations are performed (set to the Identity matrix)
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Transformation.#ctor"></member>
+      <member name="P:SIO3DViewer.Transformation.Matrix">
+
+ <summary>
+ Direct axis to the transformation matrix
+ </summary>
+ <remarks>
+ <para>Setting a matrix into this property will override all previous
+ operations.  If you wish to combine this transformation with
+ another matrix, you can do so as follows:</para>
+ <para>transform.Matrix = DirectX.Matrix.Multiply( myMatrix, transform.Matrix )</para>
+ <para> or transform.Matrix = DirectX.Matrix.Multiply( transform.Matrix, myMatrix )</para>
+ </remarks>
+</member>
+      <member name="T:SIO3DViewer.Obj3DCollection">
+
+<summary>
+A collection of Obj3Ds. 
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Obj3DCollection.Add(System.Object,SIO3DViewer.Obj3D)">
+
+ <summary>
+ Add a new Obj3D to the collection with the specified key and path.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Obj3DCollection.Remove(System.Object)">
+
+<summary>
+ Remove the specified object from the collection.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Obj3DCollection.Item(System.Object)">
+<summary>
+ Returns the specified object.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Obj3DCollection.HitTest"></member>
+      <member name="M:SIO3DViewer.Obj3DCollection.HitTest"></member>
+      <member name="M:SIO3DViewer.Obj3DCollection.GetEnumerator">
+<summary>
+Returns an enumerator that will enumerate all objects in the collection.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Obj3DCollection.#ctor"></member>
+      <member name="M:SIO3DViewer.Obj3DCollection.#ctor(SIO3DViewer.Obj3D)"></member>
+      <member name="M:SIO3DViewer.Obj3DCollection.Clear">
+
+<summary>
+ Removes all objects from the collection
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Obj3DCollection.InitDeviceObjects"></member>
+      <member name="M:SIO3DViewer.Obj3DCollection.Render"></member>
+      <member name="P:SIO3DViewer.Obj3DCollection.TextureCollection"></member>
+      <member name="P:SIO3DViewer.Obj3DCollection.Owner"></member>
+      <member name="P:SIO3DViewer.Obj3DCollection.Count">
+
+<summary>
+The number of objects currently stored in the collection.
+</summary>
+</member>
+      <member name="P:SIO3DViewer.Obj3DCollection.Visible">
+
+ <summary>
+ Set to True to make the objects in this collection visible, else False
+ </summary>
+ <remarks>
+ defaults to True
+ </remarks>
+</member>
+      <member name="T:SIO3DViewer.ObjEnum"></member>
+      <member name="M:SIO3DViewer.ObjEnum.MoveNext"></member>
+      <member name="M:SIO3DViewer.ObjEnum.#ctor(SIO3DViewer.Obj3DCollection,System.Collections.IEnumerator)"></member>
+      <member name="M:SIO3DViewer.ObjEnum.Reset"></member>
+      <member name="P:SIO3DViewer.ObjEnum.Current"></member>
+      <member name="T:SIO3DViewer.ObjectClickEventArgs">
+
+ <summary>
+ Event args for when an object is clicked.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.ObjectClickEventArgs.#ctor"></member>
+      <member name="M:SIO3DViewer.ObjectClickEventArgs.#ctor(SIO3DViewer.Obj3D[])"></member>
+      <member name="P:SIO3DViewer.ObjectClickEventArgs.Empty">
+
+ <summary>
+ An empty instance of a ObjectClickEventArgs
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ObjectClickEventArgs.ObjectKeys">
+
+ <summary>
+ Get the key of the object
+ </summary>
+</member>
+      <member name="T:SIO3DViewer.SelectionArea">
+
+ <summary>
+ Container for selection areas
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SelectionArea.#ctor(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,System.Single,System.Single)"></member>
+      <member name="P:SIO3DViewer.SelectionArea.Points">
+
+ <summary>
+ Polygon points for the bottom of the area.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SelectionArea.MinY">
+
+ <summary>
+ Y coordinate of the bottom of the area.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SelectionArea.MaxY">
+
+ <summary>
+ Y coordinate of the top of the area.
+ </summary>
+</member>
+      <member name="T:SIO3DViewer.SelectionEventArgs">
+
+ <summary>
+ Information and properties used during selection actions 
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SelectionEventArgs.#ctor"></member>
+      <member name="P:SIO3DViewer.SelectionEventArgs.SetSelection">
+
+ <summary>
+ Set to True to select tags enclosed in the selection area.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SelectionEventArgs.TagKeys">
+
+ <summary>
+ An ArrayList containing the keys of all tags in the selection area
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SelectionEventArgs.Area">
+
+ <summary>
+ The current selection area
+ </summary>
+</member>
+      <member name="T:SIO3DViewer.SIO3DViewer">
+
+ <summary>
+ The SIO3DViewer object is the top level object within which all other objects are contained.
+ </summary>
+ <remarks>
+ <para>The SIO3DViewer coordinate system works in a fashion consistent with most other 3D computer
+ systems, which are oriented as follows:</para>
+ <para>X = left and right on the computer screen, with right moving in the positive direction</para>
+ <para>Y = up and down on the computer screen, with up moving in the positive direction</para>
+ <para>Z = in and out of the computer screen, with in moving in the positive direction.</para>
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.ConfirmDevice(Microsoft.DirectX.Direct3D.Caps,SIO3DViewer.VertexProcessingType,Microsoft.DirectX.Direct3D.Format,Microsoft.DirectX.Direct3D.Format)">
+ <summary>
+ Called during device initialization, this code checks the device for some 
+ minimum set of capabilities
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.HitTest(System.Drawing.Point@,SIO3DViewer.Tag@,SIO3DViewer.TagChild@,SIO3DViewer.Obj3D@,Microsoft.DirectX.Vector3@)"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.CreateViewerMouseEventArgs">
+
+ Mouse click in the view...
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.GetFloor(System.Object@,System.Single@,System.Single@,System.Single@,System.Single@,System.Single@)">
+
+ <summary>
+ Gets the current floor settings.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.GetSkyBoxMeshFile">
+
+ <summary>
+ Sets the name of the file used to load the skybox mesh.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.ViewportToFloor">
+
+ <summary>
+ Gets the name of the file that is used to load the skybox mesh.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.ViewportToFloor">
+
+ <summary>
+ Converts a viewport client coordinate to floor plane coordinates.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.#ctor"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.Dispose(System.Boolean)">
+Control overrides dispose to clean up the component list.
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.InitializeComponent">
+ NOTE: The following procedure is required by the Component Designer
+ It can be modified using the Component Designer.  Do not modify it
+ using the code editor.
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.ResetTimer"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnPaint"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnTimer"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.MiniMap_MouseDown"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.MiniMap_MouseMove"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.MiniMap_MouseUp"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.AddTagsInSelection"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.SelectionStart(SIO3DViewer.ViewerMouseEventArgs)"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.SelectionContinue(SIO3DViewer.ViewerMouseEventArgs)"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.SelectionEnd(SIO3DViewer.ViewerMouseEventArgs)"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.DrawSelection"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.FrameMove">
+ <summary>
+ Called once per frame, the call is the entry point for animating the scene.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.Render">
+ <summary>
+ Called once per frame, the call is the entry point for 3d rendering. This 
+ function sets up render states, clears the viewport, and renders the scene.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.InitializeDeviceObjects">
+<summary>
+ Initialize scene objects.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.RestoreDeviceObjects">
+/ <summary>
+/ Recreates any device objects needing recreation...
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.DeleteDeviceObjects">
+ <summary>
+ Called when the app is exiting, or the device is being changed, this 
+ function deletes any device-dependent objects.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.tagCollection_TagSelectedChanged"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.ModifySelection(SIO3DViewer.Tag,System.Boolean)"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnBeforeRender">
+
+ <summary>
+ Raises the BeforeRender event and updates the camera position during
+ animated camera movement.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnAfterRender">
+
+ <summary>
+ Raises the AfterRender event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnTagSelectedChanged(SIO3DViewer.TagEventArgs)">
+
+ <summary>
+ Raises the TagSelectedChanged event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnFloorChanged">
+
+ <summary>
+ Raises the FloorChanged event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnBeginSelection(SIO3DViewer.SelectionEventArgs)">
+
+ <summary>
+ Raises the BeginSelection event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnContinueSelection(SIO3DViewer.SelectionEventArgs)">
+
+ <summary>
+ Raises the ContinueSelection event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnEndSelection(SIO3DViewer.SelectionEventArgs)">
+
+ <summary>
+ Raises the EndSelection event and if SetSelection is True, selects tags
+ enclosed in the selection area.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnViewerMouseDown(SIO3DViewer.ViewerMouseEventArgs)">
+
+ <summary>
+ Raises the ViewerMouseDown event.  If Handled is false, and selections are permitted,
+ then a selection is started.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnViewerMouseMove(SIO3DViewer.ViewerMouseEventArgs)">
+
+ <summary>
+ Raises the ViewerMouseMove event and continues the selection if one is in progress.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnViewerMouseUp(SIO3DViewer.ViewerMouseEventArgs)">
+
+ <summary>
+ Raises the ViewerMouseUp event and ends the selection if one is in progress.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnViewerMouseHover(SIO3DViewer.ViewerMouseEventArgs)">
+
+ <summary>
+ Raises the ViewerMouseHover event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnViewerMouseWheel(SIO3DViewer.ViewerMouseEventArgs)">
+
+ <summary>
+ Raises the ViewerMouseWheel event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnTagClicked(SIO3DViewer.TagClickEventArgs)">
+
+ <summary>
+ Raises the TagClicked event, and if Handled is False and AutoSelectOnClick is True, then
+ selects the tag that was clicked.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnTagDoubleClicked(SIO3DViewer.TagClickEventArgs)">
+
+ <summary>
+ Raises the TagDoubleClicked event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnObjectClicked(SIO3DViewer.ObjectClickEventArgs)">
+
+ <summary>
+ Raises the ObjectClicked event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnObjectDoubleClicked(SIO3DViewer.ObjectClickEventArgs)">
+
+ <summary>
+ Raises the ObjectDoubleClicked event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnTagChildClicked(SIO3DViewer.TagChildClickEventArgs)">
+
+ <summary>
+ Raises the TagChildClicked event, and if Handled is False and AutoSelectOnClick is True, then
+ selects the TagChilds parent tag.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnTagChildDoubleClicked(SIO3DViewer.TagChildClickEventArgs)">
+
+ <summary>
+ Raises the TagChildDoubleClicked event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnFloorClicked(SIO3DViewer.FloorClickEventArgs)">
+
+ <summary>
+ Raises the FloorClicked event, and if Handled is False, and AutoSelectOnClick is True, then
+ clears any selection
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnFloorDoubleClicked(SIO3DViewer.FloorClickEventArgs)">
+
+ <summary>
+ Raises the FloorDoubleClicked event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnViewerClicked(SIO3DViewer.ViewerClickEventArgs)">
+
+ <summary>
+ Raises the ViewerClicked event, and if Handled is False, AutoSelectOnClick is True, and
+ the control key is NOT pressed, clears the selection.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnViewerDoubleClicked(SIO3DViewer.ViewerClickEventArgs)">
+
+ <summary>
+ Raises the ViewerDoubleClicked event.
+ </summary>
+ <remarks>
+ Overrides should call the base class to raise the event and perform
+ any default processing.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnMouseDown"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnMouseMove"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnMouseUp"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnMouseWheel"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnMouseHover"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnClick"></member>
+      <member name="M:SIO3DViewer.SIO3DViewer.OnDoubleClick">
+
+ Mouse dblclick in the view...
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.StartRender">
+
+ <summary>
+ Start the render timer and begin rendering frames.
+ </summary>
+ <remarks>
+ The timer ticks TargetFrameRate times per second and attempts to render
+ the view.  If the viewer is currently in the process of viewing, then the new frame
+ is dropped.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.StopRender">
+
+ <summary>
+ Stops the render timer.
+ </summary>
+ <remarks>
+ No more rendering will happen until the timer is restarted.  If a frame is currently
+ being rendered, it will finish the current frame.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.SetFloor(System.Object,System.Single,System.Single,System.Single,System.Single,System.Single)">
+
+ <summary>
+ Creates the "floor" in the 3D world.
+ </summary>
+ <remarks>
+ The floor is created using the size and image specified, with the bottom left
+ corner of the floor placed at the specified origin.  The floor is always created
+ parallel to the X-Z plane.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.SetSkyBoxMeshFile(System.String)">
+
+ <summary>
+
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.ViewportToLineOfSight">
+
+ <summary>
+ Gets the ray from the camera position (eye) through the given point on the viewport
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.SetDrawingFont(System.String,System.Drawing.FontStyle)">
+
+ <summary>
+ Sets the text font to be used for drawing text on the viewer surface using DrawText.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.DrawText">
+
+ <summary>
+ Draws text on the viewer at the given client coordinates in the given color.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.SIO3DViewer.ClearSelection">
+
+ <summary>
+ Clears the current selection, if any.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.FloorChanged">
+
+ <summary>
+ Raised after SetFloor is called on the viewer.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.BeforeRender">
+
+ <summary>
+ Raised immediately before preparing the next frame for rendering
+ </summary>
+ <remarks>
+ Typically, changes to the camera, lookat, or object positions are done here to be
+ reflected in the render.
+ </remarks>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.AfterRender">
+
+ <summary>
+ Raised after all rendering has been completed
+ </summary>
+ <remarks>
+ Any changes to the camera, lookat, or any visible objects made in the handling of 
+ this event will not be reflected in the viewer until the next frame is rendered.
+ </remarks>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.ViewerClicked">
+
+ <summary>
+ Raised whenever the user clicks in the view but does not hit the floor, a tag,
+ a tagchild, or any other object.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.ViewerDoubleClicked">
+
+ <summary>
+ Raised whenever the user double-clicks in the view but does not hit the floor,
+ a tag, a tagchild, or any other object.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.ViewerMouseDown">
+
+ <summary>
+ Raised whenever the user presses a mouse button on the viewer.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.ViewerMouseMove">
+
+ <summary>
+ Raised whenever the mouse moves over the viewer.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.ViewerMouseUp">
+
+ <summary>
+ Raised whenever a mouse button is released over the viewer.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.ViewerMouseHover">
+
+ <summary>
+ Raised when the mouse hovers over the viewer.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.ViewerMouseWheel">
+
+ <summary>
+ Raised whenever the user rotates the mouse wheel.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.FloorClicked">
+
+ <summary>
+ Raised whenever the floor area is clicked.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.FloorDoubleClicked">
+
+ <summary>
+ Raised whenever the floor area is double-clicked.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.TagClicked">
+
+ <summary>
+ Raised whenever a Tag has been clicked in the Viewer.
+ </summary>
+ <remarks>
+ This event is fired whenever a Tag is clicked in the Viewer, passing along the Key
+ identifier of the clicked Tag object.  In general, the tag object would then be used
+ to display data related to the tag, or to loop through the TagChildren collection
+ and display a list of available TagChild items or related data.
+</remarks>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.TagDoubleClicked">
+
+ <summary>
+ Raised whenever a Tag has been double clicked.
+ </summary>
+ <remarks>
+ This event is fired whenever a Tag is double clicked in the Viewer, passing along the
+ Key identifier of the Tag object that was double-clicked. 
+ </remarks>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.ObjectClicked">
+
+ <summary>
+ Raised whenever a User Object has been clicked in the Viewer.
+ </summary>
+ <remarks>
+ This event is fired whenever a User Object is clicked in the Viewer, passing along the Key
+ identifier of the clicked object.
+</remarks>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.ObjectDoubleClicked">
+
+ <summary>
+ Raised whenever a User Object has been double-clicked in the Viewer.
+ </summary>
+ <remarks>
+ This event is fired whenever a User Object is double-clicked in the Viewer, passing along the Key
+ identifier of the clicked object.
+</remarks>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.TagChildClicked">
+
+ <summary>
+ Raised whenever a TagChild has been clicked.
+ </summary>
+ <remarks>
+ This event is fired whenever a TagChild is clicked in the Viewer, passing along the
+ Key identifier of the Parent Tag and the TagChild that was double-clicked. 
+ </remarks>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.TagChildDoubleClicked">
+
+ <summary>
+ Raised whenever a TagChild has been double clicked.
+ </summary>
+ <remarks>
+ This event is fired whenever a TagChild is clicked in the Viewer, passing along the
+ Key identifiers of the Parent Tag and the TagChild that was double-clicked. 
+ </remarks>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.BeginSelection">
+
+ <summary>
+ Raised when the mouse button is pressed and dragged on the view and a selection has begun.
+ </summary>
+ <remarks>
+ This usually will display a "cube" on the viewer indicating the area that is being selected.
+ </remarks>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.ContinueSelection">
+
+ <summary>
+ Raised as the mouse moves while creating a selection.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.EndSelection">
+
+ <summary>
+ Raised when the user releases the mouse button at the end of a selection 
+ operation.  This event will make data available to determine the cubic area that was selected.  This information might be used, for example, to create a "trigger" area.
+ </summary>
+</member>
+      <member name="E:SIO3DViewer.SIO3DViewer.TagSelectedChanged">
+
+ <summary>
+ Raised whenever the selected state of a tag has changed
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.Images">
+
+ <summary>
+ Collection of images currently defined for the viewer
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.Tags">
+
+ <summary>
+ Collection of tags currently associated with the viewer.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.Objects">
+
+ <summary>
+ Collection of user objects currently associated with the viewer.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.Camera">
+
+ <summary>
+ The camera representing the users current view of the world.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.AutoSelectOnClick">
+
+ <summary>
+ Boolean value indicating whether or not a tag should be selected when it is clicked.  Defaults to True
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.AllowAreaSelection">
+
+ <summary>
+ Boolean value indicating whether or not clicking and dragging will perform a selection.  Defaults to True.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.SelectionWallImageKey">
+
+ <summary>
+  Key identifier of the image that is used to display the selection cube wall.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.SelectionRoofImageKey">
+
+ <summary>
+ Key identifier of the image that is used to display the selection cube roof.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.SelectionFloorImageKey">
+
+ <summary>
+ Key identifier of the image that is used to display the selection cube floor.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.SelectionWallBottom">
+
+ <summary>
+ Bottom Y coordinate where the selection area should be rendered.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.SelectionWallTop">
+
+ <summary>
+ Top Y coordinate where the selection area should be rendered.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.SelectionWallColor">
+
+ <summary>
+ base color for selection walls
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.SelectionRoofColor">
+
+ <summary>
+ base color for selection roofs
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.SelectionFloorColor">
+
+ <summary>
+ base color for selection roofs
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.SelectionLineColor">
+
+ <summary>
+ Color of the line that should be drawn on the bottom edge of the selection area.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.AllowMultipleSelection">
+
+ <summary>
+ Boolean value indicating if multiple items can be selected.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.SelectedTags">
+
+ <summary>
+ Collection of keys of currently selected tags.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.AngularUnit">
+
+ <summary>
+ The base unit of angular movement and/or rotation. Default is 2 degrees (pi/90)
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.LinearUnit">
+
+ <summary>
+ The base unit for movement.  the default is 1.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.UnitsPerSecondMovement">
+
+ <summary>
+ Value that will be used (along with the framerate) to determine the normal speed
+ at which movements in the veiwer occur.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.AccelerationMultiplier">
+
+ <summary>
+ Value that will be multiplied with the UnitsPerSecondMovement per-frame
+ acceleration factor when requesting the current accelerator.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.AccelerateMovement">
+
+ <summary>
+ Boolean indicating that movement should be accelerated
+ </summary>
+ <remarks>
+ If false, then the normal speed acceleration factor is returned in Accelerator.  If true,
+ then the normal acceleration factor is multiplied by AccelerationMultiplier prior to being
+ returned in Accelerator.
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.Accelerator">
+
+ <summary>
+ Acceleration factor for the current frame.  This equates to the number of units that should be moved in this frame.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.FloorWidth">
+
+ <summary>
+ Gets the width of the floor area (X)
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.FloorDepth">
+
+ <summary>
+ Gets the depth of the floor area (Z)
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.MiniMap">
+
+ <summary>
+ The SIOMiniMap based control that is to be used for the minimap or Nothing if no minimap is desired.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.FieldOfView">
+
+ <summary>
+ The Field Of View angle used during rendering.  Defaults to 45 degrees (pi/4)
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.NearClipPlane">
+
+ <summary>
+ The distance to the near clip plane from the eye.  Defaults to 1.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.FarClipPlane">
+
+ <summary>
+ The distance to the far clip plane from the eye. Defaults to 4000.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.TargetFrameRate">
+
+ <summary>
+ The desired number of frames per second that should be displayed.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.ActualFrameRate">
+
+ <summary>
+ The actual number of frames per second that are being displayed.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SIO3DViewer.ShowStatistics">
+
+ <summary>
+ Boolean indicating the current frame rate statistics should or should not be displayed 
+ in the upper left corner of the view.  Useful for debugging purposes.
+ </summary>
+</member>
+      <member name="T:SIO3DViewer.SIOMiniMap"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.ClientToWorld"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.ClientToWorld(System.Int32,System.Int32)"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.IsInputKey(System.Windows.Forms.Keys)"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.#ctor"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.Dispose(System.Boolean)">
+UserControl overrides dispose to clean up the component list.
+</member>
+      <member name="M:SIO3DViewer.SIOMiniMap.InitializeComponent">
+NOTE: The following procedure is required by the Windows Form Designer
+It can be modified using the Windows Form Designer.  
+Do not modify it using the code editor.
+</member>
+      <member name="M:SIO3DViewer.SIOMiniMap.Viewer_FloorChanged"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.Viewer_BeforeRender"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.Viewer_AfterRender"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.Viewer_TagClicked(System.Object,SIO3DViewer.TagClickEventArgs)"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.Viewer_TagDoubleClicked(System.Object,SIO3DViewer.TagClickEventArgs)"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.Viewer_TagChildClicked(System.Object,SIO3DViewer.TagChildClickEventArgs)"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.Viewer_TagChildDoubleClicked(System.Object,SIO3DViewer.TagChildClickEventArgs)"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.GetFloorImage(System.Object)"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.OnBeforeRender"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.OnFloorChanged"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.OnAfterRender"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.OnTagClicked(System.Object,SIO3DViewer.TagClickEventArgs)"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.OnTagDoubleClicked(System.Object,SIO3DViewer.TagClickEventArgs)"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.OnTagChildClicked(System.Object,SIO3DViewer.TagChildClickEventArgs)"></member>
+      <member name="M:SIO3DViewer.SIOMiniMap.OnTagChildDoubleClicked(System.Object,SIO3DViewer.TagChildClickEventArgs)"></member>
+      <member name="P:SIO3DViewer.SIOMiniMap.Viewer"></member>
+      <member name="P:SIO3DViewer.SIOMiniMap.FloorImage"></member>
+      <member name="T:SIO3DViewer.Tag">
+<summary>
+The tag object is the primary object used for representing items in the viewer.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Tag.AddToVertexBuffer"></member>
+      <member name="M:SIO3DViewer.Tag.GetBoundingSphere(Microsoft.DirectX.Vector3@,System.Single@)">
+
+ <summary>
+ return the bounding sphere for this tag
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Tag.OnHitTest(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Direct3D.IntersectInformation@)">
+
+ <summary>
+ Test this tag for an intersection with the given ray.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Tag.#ctor(System.Single,System.Single)"></member>
+      <member name="M:SIO3DViewer.Tag.#ctor">
+<summary>
+ Creates a new tag
+</summary>
+</member>
+      <member name="M:SIO3DViewer.Tag.GetChildDimensions(System.Single@,System.Single@)">
+
+ <summary>
+ Get the recommended dimensions for child tags.
+ </summary>
+ <remarks>
+ The values returned are based on the default of 3 columns of children
+ and assuming a square aspect.
+ </remarks>
+ <param name="childWidth">Reference to storage for the recommended width of a child tag.</param>
+ <param name="childHeight">Reference to storage for the recommended height of a child tag.</param>
+</member>
+      <member name="M:SIO3DViewer.Tag.mChildren_CollectionChanged(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.Tag.mChildren_ChildVisibleChanged(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.Tag.UpdateChildTagPositions"></member>
+      <member name="M:SIO3DViewer.Tag.OnRender(Microsoft.DirectX.Direct3D.Device)">
+
+ <summary>
+ Renders this tag to the specified device.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.Tag.OnCreateDeviceObjects(Microsoft.DirectX.Direct3D.Device)"></member>
+      <member name="M:SIO3DViewer.Tag.OnDeleteDeviceObjects(Microsoft.DirectX.Direct3D.Device)"></member>
+      <member name="E:SIO3DViewer.Tag.ChildCollectionChanged"></member>
+      <member name="E:SIO3DViewer.Tag.TagSelectedChanged"></member>
+      <member name="P:SIO3DViewer.Tag.MaxVisibleChildren">
+
+ <summary>
+ The maximum number of visible children or -1 for all children visible
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.FollowCamera">
+
+ <summary>
+ Set to True to have tag always face camera else False
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.TagColor">
+
+ <summary>
+ Gets/Sets the tag color.  
+ </summary>
+ <remarks>
+ Note that this is blended with the tag image, so unless the tag image is white,
+ the tag will appear as the image blended with this color.
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.Tag.FloorColor">
+
+ <summary>
+ Gets/Sets the floor image color.
+ </summary>
+ <remarks>
+ Note that this is blended with the tag image, so unless the
+ floor image is white, the floor will appear as the image blended with this color.
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.Tag.UserColor">
+
+ <summary>
+ Gets/Sets the user color.
+ </summary>
+ <remarks>
+ This is used in the default minimap implementation to determine the color displayed
+ for this tag if the UseTagUserColor property is set.  Otherwise its use is entirely user defined.
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.Tag.Children">
+
+ <summary>
+ Gets the collection of tag children associated with this tag.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.Selected">
+
+ <summary>
+ Gets/Sets the flag determining if this tag is currently selected.
+ </summary>
+ <remarks>
+ Raises the TagSelectedChanged event if the value is actually changed.
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.Tag.X">
+
+ <summary>
+ Gets/Sets the X position of the tag
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.Y">
+
+ <summary>
+ Gets/Sets the Y position of the tag
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.Z">
+
+ <summary>
+ Gets/Sets the Z position of the tag
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.ImageKey">
+
+ <summary>
+ Gets/Sets the identifier for the image that should be displayed to represent this tag.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.FloorImageKey">
+
+ <summary>
+ Gets/Sets the identifier for the image that should be displayed at the bottom
+ of this tag, perpendicular to the tag.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.OffsetX">
+
+ <summary>
+ Gets/Sets the X offset of the image from the tag location
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.OffsetY">
+
+ <summary>
+ Gets/Sets the Y offset of the image from the tag location
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.OffsetZ">
+
+ <summary>
+ Gets/Sets the Z offset of the image from the tag location
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.FinalTransform">
+
+ <summary>
+ The final transformation for this object.  It is the concatenation of the local transform
+ and the general transform.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.Tag.TextureCollection"></member>
+      <member name="P:SIO3DViewer.Tag.SortValue"></member>
+      <member name="P:SIO3DViewer.Tag.ChildObjects">
+
+ access to the base classes child list...
+</member>
+      <member name="T:SIO3DViewer.TagCollection">
+<summary>
+ Container for the collection of tags in the current viewer
+</summary>
+</member>
+      <member name="M:SIO3DViewer.TagCollection.Add(System.Object,SIO3DViewer.Tag)">
+
+ <summary>
+ Adds the given tag to the collection
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TagCollection.Remove(System.Object)">
+
+ <summary>
+ Remove the specified tag from the collection
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TagCollection.Item(System.Object)">
+
+ <summary>
+ Get the tag with the specified identifier
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TagCollection.HitTest"></member>
+      <member name="M:SIO3DViewer.TagCollection.HitTest(Microsoft.DirectX.Direct3D.Device,Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,SIO3DViewer.Tag@,SIO3DViewer.TagChild@,Microsoft.DirectX.Direct3D.IntersectInformation@)"></member>
+      <member name="M:SIO3DViewer.TagCollection.AddAllVertices"></member>
+      <member name="M:SIO3DViewer.TagCollection.tag_ChildCollectionChanged(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.TagCollection.tag_SelectedChanged(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.TagCollection.Clear">
+
+ <summary>
+ Removes all tags from the collection
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TagCollection.PrepareFrame(Microsoft.DirectX.Direct3D.Device,SIO3DViewer.Camera)"></member>
+      <member name="M:SIO3DViewer.TagCollection.Render(Microsoft.DirectX.Direct3D.Device)"></member>
+      <member name="M:SIO3DViewer.TagCollection.CreateVertexBuffer(Microsoft.DirectX.Direct3D.Device)"></member>
+      <member name="M:SIO3DViewer.TagCollection.InitDeviceObjects(Microsoft.DirectX.Direct3D.Device)"></member>
+      <member name="M:SIO3DViewer.TagCollection.RestoreDeviceObjects(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.TagCollection.DeleteDeviceObjects(System.Object,System.EventArgs)"></member>
+      <member name="E:SIO3DViewer.TagCollection.TagSelectedChanged"></member>
+      <member name="E:SIO3DViewer.TagCollection.TagCollectionChanged"></member>
+      <member name="T:SIO3DViewer.TagSorter"></member>
+      <member name="T:SIO3DViewer.TagSorter.FollowCameraEnum"></member>
+      <member name="M:SIO3DViewer.TagSorter.Compare(System.Object,System.Object)"></member>
+      <member name="T:SIO3DViewer.TagChild">
+
+<summary>
+A TagChild is an item that is used to store dynamic information related to a specific Tag object.
+</summary>
+<remarks>
+The tagchild can also have a visual representation.  The "data" property is used to store a reference to an arbitrary object that can contain information related to a given tag, and that can be used to populate property windows or for any other application specific purpose.
+</remarks>
+</member>
+      <member name="M:SIO3DViewer.TagChild.AddToVertexBuffer"></member>
+      <member name="M:SIO3DViewer.TagChild.GetBoundingSphere(Microsoft.DirectX.Vector3@,System.Single@)">
+
+ <summary>
+ return the bounding sphere for this tag
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TagChild.OnHitTest(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Direct3D.IntersectInformation@)"></member>
+      <member name="M:SIO3DViewer.TagChild.#ctor(System.Object,System.Single,System.Single)">
+
+<summary>
+ Creates a new instance of a TagChild
+</summary>
+</member>
+      <member name="M:SIO3DViewer.TagChild.OnRender(Microsoft.DirectX.Direct3D.Device)"></member>
+      <member name="E:SIO3DViewer.TagChild.SizeChanged"></member>
+      <member name="P:SIO3DViewer.TagChild.ImageKey">
+ <summary>
+ The key for the image in the "Images" collection that should be used when rendering the TagChild in the 3D display.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.TagChild.Width"></member>
+      <member name="P:SIO3DViewer.TagChild.Height"></member>
+      <member name="P:SIO3DViewer.TagChild.TextureCollection"></member>
+      <member name="T:SIO3DViewer.TagChildCollection">
+
+<summary>
+ A collection of TagChild's.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.TagChildCollection.Add(System.Object,SIO3DViewer.TagChild)">
+ <summary>
+ Adds a TagChild with the specified key and imagekey to the collection.
+</summary>
+<remarks>The data parameter can store any type of arbitrary object reference.  The image will be resized to fit the standard TagChild display size.  The data parameter can store any type of arbitrary object reference.  The image will be resized to fit the standard TagChild display size.  There is no practical limit to the number of TagChildren that can be added to the collection.  TagChildren may be useful if, for example, a seperate display (such as a listbox or menu) is used to display the complete list of items in the collection when a Tag is selected in the viewer.
+</remarks>
+</member>
+      <member name="M:SIO3DViewer.TagChildCollection.Remove(System.Object)">
+<summary>
+ Removes the specified TagChild from the collection.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.TagChildCollection.Item(System.Object)">
+<summary>
+ Returns the specified TagChild.
+</summary>
+</member>
+      <member name="M:SIO3DViewer.TagChildCollection.#ctor(SIO3DViewer.Tag)"></member>
+      <member name="M:SIO3DViewer.TagChildCollection.OnTagChildSizeChanged(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.TagChildCollection.OnTagChildVisibleChanged(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.TagChildCollection.Clear">
+<summary>
+ Remove all TagChild objects from the collection, effectively emptying it.
+</summary>
+</member>
+      <member name="E:SIO3DViewer.TagChildCollection.CollectionChanged"></member>
+      <member name="E:SIO3DViewer.TagChildCollection.ChildVisibleChanged"></member>
+      <member name="T:SIO3DViewer.TagChildClickEventArgs">
+
+ <summary>
+ Event args for when a TagChild is clicked.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TagChildClickEventArgs.#ctor"></member>
+      <member name="M:SIO3DViewer.TagChildClickEventArgs.#ctor(SIO3DViewer.Tag,SIO3DViewer.TagChild)"></member>
+      <member name="P:SIO3DViewer.TagChildClickEventArgs.ChildKey">
+
+ <summary>
+ The unique Key identifier of the TagChild that the event pertains to.
+ </summary>
+ <remarks>
+ The TagChild is accessible through the parent Tags Children collection.
+ </remarks>
+</member>
+      <member name="T:SIO3DViewer.TagChildEventArgs">
+
+ <summary>
+ Generic event args for events pertaining to Tag Children
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TagChildEventArgs.#ctor"></member>
+      <member name="M:SIO3DViewer.TagChildEventArgs.#ctor(SIO3DViewer.Tag,SIO3DViewer.TagChild)"></member>
+      <member name="P:SIO3DViewer.TagChildEventArgs.Empty">
+
+ <summary>
+ An empty instance of a TagChildEventArgs
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.TagChildEventArgs.ChildKey">
+
+ <summary>
+ The unique Key identifier of the TagChild that the event pertains to.
+ </summary>
+ <remarks>
+ The TagChild is accessible through the parent Tags Children collection.
+ </remarks>
+</member>
+      <member name="T:SIO3DViewer.TagClickEventArgs">
+
+ <summary>
+ Event args for when a tag is clicked.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TagClickEventArgs.#ctor"></member>
+      <member name="M:SIO3DViewer.TagClickEventArgs.#ctor(SIO3DViewer.Tag)"></member>
+      <member name="P:SIO3DViewer.TagClickEventArgs.Empty">
+
+ <summary>
+ An empty instance of a TagClickEventArgs
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.TagClickEventArgs.Handled">
+
+ <summary>
+ Set to True to disable default processing
+ </summary>
+</member>
+      <member name="T:SIO3DViewer.TagEventArgs">
+
+ <summary>
+ Generic event args for events pertaining to Tags
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TagEventArgs.#ctor"></member>
+      <member name="M:SIO3DViewer.TagEventArgs.#ctor(SIO3DViewer.Tag)"></member>
+      <member name="P:SIO3DViewer.TagEventArgs.Empty">
+
+ <summary>
+ An empty instance of a TagEventArgs
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.TagEventArgs.TagKey">
+
+ <summary>
+ The unique Key identifier of the tag that the event pertains to.
+ </summary>
+</member>
+      <member name="T:SIO3DViewer.TextObject">
+
+ <summary>
+ Container for Text objects.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TextObject.GetBoundingSphere(Microsoft.DirectX.Vector3@,System.Single@)">
+
+ <summary>
+ Returns the bounding sphere for this TextObject
+ </summary>
+ <remarks>
+ the radius is 0 until the render engine has started and has created
+ the internal representation of this TextObject.
+ </remarks>
+</member>
+      <member name="M:SIO3DViewer.TextObject.OnHitTest(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Direct3D.IntersectInformation@)">
+
+ <summary>
+ Test this text for an intersection with the given ray.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TextObject.#ctor">
+
+ <summary>
+ Creates a new TextObject using the given text and font information.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TextObject.#ctor">
+
+ <summary>
+ Creates a new TextObject using the given text and font information, setting the diffuse color
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TextObject.#ctor">
+
+ <summary>
+ Creates a new TextObject using the given text and font information, setting the diffuse and specular colors
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TextObject.OnRender">
+
+ <summary>
+ Renders this text to the specified device.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TextObject.OnCreateDeviceObjects">
+
+ <summary>
+ Loads the mesh and adjusts the colors of the vertices to the user settings.
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TextObject.OnDeleteDeviceObjects">
+
+ <summary>
+ Destroys the internal mesh
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.TextObject.Diffuse">
+
+ <summary>
+ The Diffuse color for the text.  Defaults to White
+ </summary>
+ <remarks>
+ Note that unless there is no texture or the texture is white, this gets blended with the texture color
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.TextObject.Specular">
+
+ <summary>
+ The Specular color for the text.  Defaults to White
+ </summary>
+ <remarks>
+ Note that unless there is no texture or the texture is white, this gets blended with the texture color
+ </remarks>
+</member>
+      <member name="P:SIO3DViewer.TextObject.UnitWidth">
+
+ <summary>
+ Width of the text assuming a height of 1 unit
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.TextObject.WireFrameOnly">
+
+ <summary>
+ Boolean value indicating if the wireframe should be drawn or the text should be filled.
+ </summary>
+ <remarks>
+ It should be noted that wireframes are drawn using the same texture as the filled shape.
+ </remarks>
+</member>
+      <member name="T:SIO3DViewer.MeshVertex">
+-----------------------------------------------------------------------------
+ Custom vertex type
+ see ms-help://MS.VSCC.2003/MS.MSDNQTR.2003APR.1033/dx8_vb/directx_vb/Graphics/ProgrammersGuide/UsingDirect3D/VertexData/FixedFunction/VertexFormats/VFormats.htm
+-----------------------------------------------------------------------------
+</member>
+      <member name="T:SIO3DViewer.TexturedPlane">
+
+ <summary>
+ Encapsulates a plane which has an image attached and stretched over its surface
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.TexturedPlane.OnHitTest(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3,Microsoft.DirectX.Direct3D.IntersectInformation@)"></member>
+      <member name="M:SIO3DViewer.TexturedPlane.#ctor(System.Single,System.Single,System.Single,System.Single,System.Single,System.Object)"></member>
+      <member name="M:SIO3DViewer.TexturedPlane.OnCreateDeviceObjects"></member>
+      <member name="M:SIO3DViewer.TexturedPlane.OnRender"></member>
+      <member name="T:SIO3DViewer.GraphicsBase"></member>
+      <member name="T:SIO3DViewer.GraphicsBase.ApplicationMessage">
+ <summary>
+ Messages that can be used when displaying an error
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.ConfirmDevice(Microsoft.DirectX.Direct3D.Caps,SIO3DViewer.VertexProcessingType,Microsoft.DirectX.Direct3D.Format,Microsoft.DirectX.Direct3D.Format)">
+ Overridable functions for the 3D scene created by the app
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.CreateGraphicsBase">
+ <summary>
+ Picks the best graphics device, and initializes it
+ </summary>
+ <returns>true if a good device was found, false otherwise</returns>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.FindBestWindowedMode(System.Boolean,System.Boolean)">
+ <summary>
+ Sets up graphicsSettings with best available windowed mode, subject to 
+ the doesRequireHardware and doesRequireReference constraints.  
+ </summary>
+ <param name="doesRequireHardware">Does the device require hardware support</param>
+ <param name="doesRequireReference">Does the device require the ref device</param>
+ <returns>true if a mode is found, false otherwise</returns>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.FindBestFullscreenMode(System.Boolean,System.Boolean)">
+ <summary>
+ Sets up graphicsSettings with best available fullscreen mode, subject to 
+ the doesRequireHardware and doesRequireReference constraints.  
+ </summary>
+ <param name="doesRequireHardware">Does the device require hardware support</param>
+ <param name="doesRequireReference">Does the device require the ref device</param>
+ <returns>true if a mode is found, false otherwise</returns>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.ChooseInitialSettings">
+ <summary>
+ Choose the initial settings for the application
+ </summary>
+ <returns>true if the settings were initialized</returns>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.OneTimeSceneInitialization"></member>
+      <member name="M:SIO3DViewer.GraphicsBase.InitializeDeviceObjects"></member>
+      <member name="M:SIO3DViewer.GraphicsBase.RestoreDeviceObjects(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.GraphicsBase.FrameMove"></member>
+      <member name="M:SIO3DViewer.GraphicsBase.Render"></member>
+      <member name="M:SIO3DViewer.GraphicsBase.InvalidateDeviceObjects(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.GraphicsBase.DeleteDeviceObjects(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.GraphicsBase.#ctor">
+ <summary>
+ Constructor
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.BuildPresentParamsFromSettings">
+ <summary>
+ Build presentation parameters from the current settings
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.InitializeEnvironment">
+-----------------------------------------------------------------------------
+ Name: InitializeEnvironment()
+ Desc: Initialize the graphics environment
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.HandleSampleException(SIO3DViewer.SampleException,SIO3DViewer.ApplicationMessage)">
+ <summary>
+ Displays sample exceptions to the user
+ </summary>
+ <param name="e">The exception that was thrown</param>
+ <param name="Type">Extra information on how to handle the exception</param>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.EnvironmentResized"></member>
+      <member name="M:SIO3DViewer.GraphicsBase.ToggleFullscreen">
+ <summary>
+ Called when user toggles between fullscreen mode and windowed mode
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.ForceWindowed">
+ <summary>
+ Switch to a windowed mode, even if that means picking a new device and/or adapter
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.FullRender">
+ <summary>
+ Called when our sample has nothing else to do, and it's time to render
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.Render3DEnvironment">
+ <summary>
+ Draws the scene 
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.UpdateStats">
+ <summary>
+ Update the various statistics the simulation keeps track of
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.PauseSample(System.Boolean)">
+ <summary>
+ Called in to toggle the pause state of the app.
+ </summary>
+ <param name="pause">true if the simulation should pause</param>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.CleanupEnvironment">
+ <summary>
+ Set our variables to not active and not ready
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.UserSelectNewDevice(System.Object,System.EventArgs)">
+ <summary>
+ Prepares the simulation for a new device being selected
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.DoSelectNewDevice">
+ <summary>
+ Displays a dialog so the user can select a new adapter, device, or
+ display mode, and then recreates the 3D environment if needed
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.ToggleStart(System.Object,System.EventArgs)">
+ <summary>
+ Will start (or stop) simulation
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.SingleStep(System.Object,System.EventArgs)">
+ <summary>
+ Will single step the simulation
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.Dispose(System.Boolean)">
+ <summary>
+ Clean up any resources
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.OnKeyPress">
+ <summary>
+ Handle any key presses
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.OnKeyDown">
+ <summary>
+ Handle system keystrokes (ie, alt-enter)
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.InitializeComponent">
+ <summary>
+ Winforms generated code for initializing the form
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.OnMouseMove">
+ <summary>
+ Make sure our graphics cursor (if available) moves with the cursor
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.OnSizeChanged(System.EventArgs)">
+ <summary>
+ Handle size changed events
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.OnResize(System.EventArgs)">
+ <summary>
+ Handle resize events
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.OnGotFocus(System.EventArgs)">
+ <summary>
+ Once the form has focus again, we can continue to handle our resize
+ and resets..
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsBase.OnMove(System.EventArgs)">
+ <summary>
+ Handle move events
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.GraphicsBase.Caps"></member>
+      <member name="P:SIO3DViewer.GraphicsBase.BehaviorFlags"></member>
+      <member name="P:SIO3DViewer.GraphicsBase.RenderTarget"></member>
+      <member name="P:SIO3DViewer.GraphicsBase.MinDepthBits"></member>
+      <member name="P:SIO3DViewer.GraphicsBase.MinStencilBits"></member>
+      <member name="P:SIO3DViewer.GraphicsBase.WindowState">
+ <summary>
+ Fired when our environment was resized
+ </summary>
+ <param name="sender">the device that's resizing our environment</param>
+ <param name="e">Set the cancel member to true to turn off automatic device reset</param>
+</member>
+      <member name="P:SIO3DViewer.GraphicsBase.FormBorderStyle"></member>
+      <member name="T:SIO3DViewer.SampleException">
+ <summary>
+ The default sample exception type
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.SampleException.Message"></member>
+      <member name="T:SIO3DViewer.NoCompatibleDevicesException">
+ <summary>
+ Exception informing user no compatible devices were found
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.NoCompatibleDevicesException.Message"></member>
+      <member name="T:SIO3DViewer.NullReferenceDeviceException">
+ <summary>
+ An exception for when the ReferenceDevice is null
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.NullReferenceDeviceException.Message"></member>
+      <member name="T:SIO3DViewer.ResetFailedException">
+ <summary>
+ An exception for when reset fails
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ResetFailedException.Message"></member>
+      <member name="T:SIO3DViewer.MediaNotFoundException">
+ <summary>
+ The exception thrown when media couldn't be found
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.MediaNotFoundException.#ctor(System.String)"></member>
+      <member name="M:SIO3DViewer.MediaNotFoundException.#ctor"></member>
+      <member name="P:SIO3DViewer.MediaNotFoundException.Message"></member>
+      <member name="T:SIO3DViewer.GraphicsAdapterInfo">
+/ <summary>
+/ Info about a display adapter
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsAdapterInfo.ToString">
+ List of D3DDeviceInfos
+</member>
+      <member name="T:SIO3DViewer.GraphicsDeviceInfo">
+/ <summary>
+/ Info about a D3D device, including a list of DeviceCombos (see below) 
+/ that work with the device
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.GraphicsDeviceInfo.ToString">
+ List of D3DDeviceCombos
+</member>
+      <member name="T:SIO3DViewer.DepthStencilMultiSampleConflict">
+/ <summary>
+/ A depth/stencil buffer format that is incompatible with a multisample type.
+/ </summary>
+</member>
+      <member name="T:SIO3DViewer.DeviceCombo">
+/ <summary>
+/ A combination of adapter format, back buffer format, and windowed/fullscreen 
+/ that is compatible with a particular D3D device (and the app)
+/ </summary>
+</member>
+      <member name="T:SIO3DViewer.DisplayModeComparer">
+/ <summary>
+/ Used to sort D3DDISPLAYMODEs
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.DisplayModeComparer.Compare(System.Object,System.Object)"></member>
+      <member name="T:SIO3DViewer.D3DEnumeration">
+/ <summary>
+/ Enumerates available D3D adapters, devices, modes, etc.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DEnumeration.ConfirmDeviceCallbackType"></member>
+      <member name="M:SIO3DViewer.D3DEnumeration.Enumerate">
+/ <summary>
+/ Enumerates available D3D adapters, devices, modes, etc.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DEnumeration.EnumerateDevices(SIO3DViewer.GraphicsAdapterInfo,System.Collections.ArrayList)">
+/ <summary>
+/ Enumerates D3D devices for a particular adapter
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DEnumeration.EnumerateDeviceCombos(SIO3DViewer.GraphicsDeviceInfo,System.Collections.ArrayList)">
+/ <summary>
+/ Enumerates DeviceCombos for a particular device
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DEnumeration.BuildDepthStencilFormatList(SIO3DViewer.DeviceCombo)">
+/ <summary>
+/ Adds all depth/stencil formats that are compatible with the device and app to
+/ the given deviceCombo
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DEnumeration.BuildMultiSampleTypeList(SIO3DViewer.DeviceCombo)">
+/ <summary>
+/ Adds all multisample types that are compatible with the device and app to
+/ the given deviceCombo
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DEnumeration.BuildDepthStencilMultiSampleConflictList(SIO3DViewer.DeviceCombo)">
+/ <summary>
+/ Finds any depthstencil formats that are incompatible with multisample types and
+/  builds a list of them.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DEnumeration.BuildVertexProcessingTypeList(SIO3DViewer.GraphicsDeviceInfo,SIO3DViewer.DeviceCombo)">
+/ <summary>
+/ Adds all vertex processing types that are compatible with the device and app to
+/ the given deviceCombo
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DEnumeration.BuildPresentIntervalList(SIO3DViewer.GraphicsDeviceInfo,SIO3DViewer.DeviceCombo)">
+/ <summary>
+/ Adds all present intervals that are compatible with the device and app to
+/ the given deviceCombo
+/ </summary>
+</member>
+      <member name="T:SIO3DViewer.VertexProcessingType">
+/ <summary>
+/ Enumeration of all possible D3D vertex processing types
+/ </summary>
+</member>
+      <member name="T:SIO3DViewer.GraphicsFont"></member>
+      <member name="T:SIO3DViewer.GraphicsFont.RenderFlags">
+ Font rendering flags
+</member>
+      <member name="M:SIO3DViewer.GraphicsFont.GetTextExtent(System.String)">
+-----------------------------------------------------------------------------
+ Name: GetTextExtent()
+ Desc: Get the dimensions of a text string
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsFont.#ctor(System.Drawing.Font)">
+-----------------------------------------------------------------------------
+ Name: Constructor
+ Desc: Create a new font object
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsFont.#ctor(System.Drawing.Font)"></member>
+      <member name="M:SIO3DViewer.GraphicsFont.#ctor(System.String,System.Drawing.FontStyle)"></member>
+      <member name="M:SIO3DViewer.GraphicsFont.#ctor(System.String,System.Drawing.FontStyle,System.Int32)"></member>
+      <member name="M:SIO3DViewer.GraphicsFont.PaintAlphabet(System.Drawing.Graphics,System.Boolean)">
+-----------------------------------------------------------------------------
+ Name: PaintAlphabet
+ Desc: Attempt to draw the systemFont alphabet onto the provided graphics
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsFont.InitializeDeviceObjects(Microsoft.DirectX.Direct3D.Device)">
+-----------------------------------------------------------------------------
+ Name: InitializeDeviceObjects
+ Desc: Initialize the device objects
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsFont.DrawText(System.Single,System.Single,System.Drawing.Color,System.String)"></member>
+      <member name="M:SIO3DViewer.GraphicsFont.DeleteDeviceObjects(System.Object,System.EventArgs)"></member>
+      <member name="M:SIO3DViewer.GraphicsFont.RestoreDeviceObjects(System.Object,System.EventArgs)">
+-----------------------------------------------------------------------------
+ Name: RestoreDeviceObjects
+ Desc: Restore the font
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsFont.DrawText(System.Single,System.Single,System.Drawing.Color,System.String,SIO3DViewer.GraphicsFont.RenderFlags)">
+-----------------------------------------------------------------------------
+ Name: DrawText
+ Desc: Draw some text on the screen
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsFont.DrawTextScaled(System.Single,System.Single,System.Single,System.Single,System.Single,System.Drawing.Color,System.String,SIO3DViewer.GraphicsFont.RenderFlags)">
+-----------------------------------------------------------------------------
+ Name: DrawTextScaled()
+ Desc: Draws scaled 2D text.  Note that x and y are in viewport coordinates
+       (ranging from -1 to +1).  fXScale and fYScale are the size fraction 
+       relative to the entire viewport.  For example, a fXScale of 0.25 is
+       1/8th of the screen width.  This allows you to output text at a fixed
+       fraction of the viewport, even if the screen or window size changes.
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsFont.DrawTextScaled(System.Single,System.Single,System.Single,System.Single,System.Single,System.Drawing.Color,System.String)"></member>
+      <member name="M:SIO3DViewer.GraphicsFont.Render3DText(System.String,SIO3DViewer.GraphicsFont.RenderFlags)">
+-----------------------------------------------------------------------------
+ Name: Render3DText()
+ Desc: Renders 3D text
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsFont.Dispose(System.Object,System.EventArgs)">
+-----------------------------------------------------------------------------
+ Name: Dispose
+ Desc: Cleanup any resources being used
+-----------------------------------------------------------------------------
+</member>
+      <member name="P:SIO3DViewer.GraphicsFont.ZBufferEnable"></member>
+      <member name="T:SIO3DViewer.D3DSettings">
+/ <summary>
+/ Current D3D settings: adapter, device, mode, formats, etc.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettings.Clone"></member>
+      <member name="P:SIO3DViewer.D3DSettings.AdapterInfo"></member>
+      <member name="P:SIO3DViewer.D3DSettings.DeviceInfo"></member>
+      <member name="P:SIO3DViewer.D3DSettings.DeviceCombo"></member>
+      <member name="P:SIO3DViewer.D3DSettings.AdapterOrdinal"></member>
+      <member name="P:SIO3DViewer.D3DSettings.DevType"></member>
+      <member name="P:SIO3DViewer.D3DSettings.BackBufferFormat"></member>
+      <member name="P:SIO3DViewer.D3DSettings.DisplayMode"></member>
+      <member name="P:SIO3DViewer.D3DSettings.DepthStencilBufferFormat"></member>
+      <member name="P:SIO3DViewer.D3DSettings.MultisampleType"></member>
+      <member name="P:SIO3DViewer.D3DSettings.MultisampleQuality"></member>
+      <member name="P:SIO3DViewer.D3DSettings.VertexProcessingType"></member>
+      <member name="P:SIO3DViewer.D3DSettings.PresentInterval"></member>
+      <member name="T:SIO3DViewer.D3DSettingsForm">
+/ <summary>
+/ A form to allow the user to change the current D3D settings.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.FormatResolution(System.Int32,System.Int32)">
+/ <summary>
+/ Converts the given width and height into a formatted string
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.FormatRefreshRate(System.Int32)">
+/ <summary>
+/ Converts the given refresh rate into a formatted string
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.#ctor(SIO3DViewer.D3DEnumeration,SIO3DViewer.D3DSettings)">
+/ <summary>
+/ Constructor.  Pass in an enumeration and the current D3D settings.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.Dispose">
+/ <summary>
+/ Clean up any resources being used.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.InitializeComponent">
+/ <summary>
+/ Required method for Designer support - do not modify
+/ the contents of this method with the code editor.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.AdapterChanged(System.Object,System.EventArgs)">
+
+/ <summary>
+/ Respond to a change of selected adapter by rebuilding the device 
+/ list.  Updating the selected device will trigger updates of the 
+/ rest of the dialog.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.DeviceChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of selected device by resetting the 
+/ fullscreen/windowed radio buttons.  Updating these buttons
+/ will trigger updates of the rest of the dialog.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.WindowedFullscreenChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of windowed/fullscreen state by rebuilding the
+/ adapter format list, resolution list, and refresh rate list.
+/ Updating the selected adapter format will trigger updates of the 
+/ rest of the dialog.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.AdapterFormatChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of selected adapter format by rebuilding the
+/ resolution list and back buffer format list.  Updating the selected 
+/ resolution and back buffer format will trigger updates of the rest 
+/ of the dialog.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.ResolutionChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of selected resolution by rebuilding the
+/ refresh rate list.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.RefreshRateChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of selected refresh rate.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.BackBufferFormatChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of selected back buffer format by rebuilding
+/ the depth/stencil format list, multisample type list, and vertex
+/ processing type list.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.DepthStencilBufferFormatChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of selected depth/stencil buffer format.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.MultisampleTypeChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of selected multisample type.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.MultisampleQualityChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of selected multisample quality.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.VertexProcessingChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of selected vertex processing type.
+/ </summary>
+</member>
+      <member name="M:SIO3DViewer.D3DSettingsForm.PresentIntervalChanged(System.Object,System.EventArgs)">
+/ <summary>
+/ Respond to a change of selected vertex processing type.
+/ </summary>
+</member>
+      <member name="T:SIO3DViewer.GraphicsUtility"></member>
+      <member name="M:SIO3DViewer.GraphicsUtility.RotatePointAboutAxis(Microsoft.DirectX.Vector3,System.Single,Microsoft.DirectX.Vector3)">
+
+   Rotate a point p by angle theta around an arbitrary axis r
+   Return the rotated point.
+   Positive angles are anticlockwise looking down the axis
+   towards the origin.
+   Assume right hand coordinate system.
+
+</member>
+      <member name="M:SIO3DViewer.GraphicsUtility.RotatePointAboutPoint(Microsoft.DirectX.Vector3,System.Single,Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3)"></member>
+      <member name="M:SIO3DViewer.GraphicsUtility.InitMaterial(System.Drawing.Color)">
+-----------------------------------------------------------------------------
+ Name: GraphicsUtility.InitMaterial()
+ Desc: Initializes a Material structure, setting the diffuse and ambient
+       colors. It does not set emissive or specular colors.
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsUtility.CreateTexture">
+-----------------------------------------------------------------------------
+ Name: GraphicsUtility.CreateTexture()
+ Desc: Helper function to create a texture. It checks the root path first,
+       then tries the DXSDK media path (as specified in the system registry).
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsUtility.CreateTexture(Microsoft.DirectX.Direct3D.Device,System.String)"></member>
+      <member name="M:SIO3DViewer.GraphicsUtility.GetCubeMapViewMatrix(Microsoft.DirectX.Direct3D.CubeMapFace)">
+-----------------------------------------------------------------------------
+ Name: GraphicsUtility.GetCubeMapViewMatrix()
+ Desc: Returns a view matrix for rendering to a face of a cubemap.
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsUtility.GetRotationFromCursor(System.Windows.Forms.Form,System.Single)">
+-----------------------------------------------------------------------------
+ Name: GraphicsUtility.GetRotationFromCursor()
+ Desc: Returns a quaternion for the rotation implied by the window's cursor
+       position.
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsUtility.GetRotationFromCursor(System.Windows.Forms.Form)">
+-----------------------------------------------------------------------------
+ Name: GraphicsUtility.GetRotationFromCursor()
+ Desc: Returns a quaternion for the rotation implied by the window's cursor
+       position.
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsUtility.D3DXQuaternionUnitAxisToUnitAxis2(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3)">
+-----------------------------------------------------------------------------
+ Name: D3DXQuaternionUnitAxisToUnitAxis2
+ Desc: Axis to axis quaternion double angle (no normalization)
+       Takes two points on unit sphere an angle THETA apart, returns
+       quaternion that represents a rotation around cross product by 2*THETA.
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsUtility.D3DXQuaternionAxisToAxis(Microsoft.DirectX.Vector3,Microsoft.DirectX.Vector3)">
+-----------------------------------------------------------------------------
+ Name: D3DXQuaternionAxisToAxis
+ Desc: Axis to axis quaternion 
+       Takes two points on unit sphere an angle THETA apart, returns
+       quaternion that represents a rotation around cross product by theta.
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsUtility.ColorChannelBits"></member>
+      <member name="M:SIO3DViewer.GraphicsUtility.AlphaChannelBits"></member>
+      <member name="M:SIO3DViewer.GraphicsUtility.DepthBits(Microsoft.DirectX.Direct3D.DepthFormat)"></member>
+      <member name="M:SIO3DViewer.GraphicsUtility.StencilBits(Microsoft.DirectX.Direct3D.DepthFormat)"></member>
+      <member name="M:SIO3DViewer.GraphicsUtility.CreateVertexShader(Microsoft.DirectX.Direct3D.Device,System.String)">
+-----------------------------------------------------------------------------
+ Name: GraphicsUtility.CreateVertexShader()
+ Desc: Assembles and creates a file-based vertex shader
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsUtility.#ctor"></member>
+      <member name="M:SIO3DViewer.GraphicsUtility.GetPickRay"></member>
+      <member name="M:SIO3DViewer.GraphicsUtility.GetPickRay(Microsoft.DirectX.Direct3D.Device,System.Drawing.PointF,Microsoft.DirectX.Vector3@,Microsoft.DirectX.Vector3@)"></member>
+      <member name="M:SIO3DViewer.GraphicsUtility.InitLight(Microsoft.DirectX.Direct3D.Light,Microsoft.DirectX.Direct3D.LightType,System.Single,System.Single,System.Single)">
+-----------------------------------------------------------------------------
+ Name: GraphicsUtility.InitLight()
+ Desc: Initializes a LightType structure, setting the light position. The
+       diffuse color is set to white; specular and ambient are left as black.
+-----------------------------------------------------------------------------
+</member>
+      <member name="T:SIO3DViewer.GraphicsArcBall"></member>
+      <member name="M:SIO3DViewer.GraphicsArcBall.ScreenToVector(System.Int32,System.Int32)">
+-----------------------------------------------------------------------------
+ Name: ScreenToVector
+ Desc: Screen coords to a vector
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsArcBall.#ctor(System.Windows.Forms.Control)">
+ parent
+-----------------------------------------------------------------------------
+ Name: Constructor
+ Desc: Initialize variables
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsArcBall.SetWindow(System.Int32,System.Int32,System.Single)">
+-----------------------------------------------------------------------------
+ Name: SetWindow
+ Desc: Set the window dimensions
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsArcBall.OnContainerMouseDown(System.Object,System.Windows.Forms.MouseEventArgs)"></member>
+      <member name="M:SIO3DViewer.GraphicsArcBall.OnContainerMouseUp(System.Object,System.Windows.Forms.MouseEventArgs)"></member>
+      <member name="M:SIO3DViewer.GraphicsArcBall.OnContainerMouseMove(System.Object,System.Windows.Forms.MouseEventArgs)"></member>
+      <member name="P:SIO3DViewer.GraphicsArcBall.Radius"></member>
+      <member name="P:SIO3DViewer.GraphicsArcBall.RightHanded"></member>
+      <member name="P:SIO3DViewer.GraphicsArcBall.RotationMatrix"></member>
+      <member name="P:SIO3DViewer.GraphicsArcBall.RotationDeltaMatrix"></member>
+      <member name="P:SIO3DViewer.GraphicsArcBall.TranslationMatrix"></member>
+      <member name="P:SIO3DViewer.GraphicsArcBall.TranslationDeltaMatrix"></member>
+      <member name="P:SIO3DViewer.GraphicsArcBall.IsBeingDragged"></member>
+      <member name="T:SIO3DViewer.'"></member>
+      <member name="M:SIO3DViewer.'.#ctor"></member>
+      <member name="M:SIO3DViewer.'.SetViewParams">
+-----------------------------------------------------------------------------
+ Name: SetViewParams
+ Desc: Set the viewing parameters
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.'.SetProjParams">
+-----------------------------------------------------------------------------
+ Name: SetProjParams
+ Desc: Set the project parameters
+-----------------------------------------------------------------------------
+</member>
+      <member name="P:SIO3DViewer.'.EyePt"></member>
+      <member name="P:SIO3DViewer.'.LookatPt"></member>
+      <member name="P:SIO3DViewer.'.UpVec"></member>
+      <member name="P:SIO3DViewer.'.ViewDir"></member>
+      <member name="P:SIO3DViewer.'.Cross"></member>
+      <member name="P:SIO3DViewer.'.ViewMatrix"></member>
+      <member name="P:SIO3DViewer.'.ParcoMatrix"></member>
+      <member name="P:SIO3DViewer.'.ProjMatrix"></member>
+      <member name="T:SIO3DViewer.GraphicsMesh"></member>
+      <member name="M:SIO3DViewer.GraphicsMesh.#ctor(System.String)">
+-----------------------------------------------------------------------------
+ Name: Constructor
+ Desc: Initialize the string variable
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsMesh.#ctor"></member>
+      <member name="M:SIO3DViewer.GraphicsMesh.Create(Microsoft.DirectX.Direct3D.Device,System.String)">
+-----------------------------------------------------------------------------
+ Name: Create
+ Desc: Creates a new Mesh object
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsMesh.Create(Microsoft.DirectX.Direct3D.Device,System.String,System.Drawing.Font,System.Single,System.Single)"></member>
+      <member name="M:SIO3DViewer.GraphicsMesh.SetFVF(Microsoft.DirectX.Direct3D.Device,Microsoft.DirectX.Direct3D.VertexFormats)">
+-----------------------------------------------------------------------------
+ Name: SetFVF
+ Desc: Set the flexible vertex format
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsMesh.RestoreDeviceObjects(System.Object,System.EventArgs)">
+-----------------------------------------------------------------------------
+ Name: RestoreDeviceObjects
+ Desc: Restore the device objects
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsMesh.InvalidateDeviceObjects(System.Object,System.EventArgs)">
+-----------------------------------------------------------------------------
+ Name: InvalidateDeviceObjects
+ Desc: Invalidate our local mesh
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsMesh.Dispose">
+-----------------------------------------------------------------------------
+ Name: Dispose
+ Desc: Clean up any resources
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsMesh.Render(Microsoft.DirectX.Direct3D.Device,System.Boolean,System.Boolean)">
+-----------------------------------------------------------------------------
+ Name: Render
+ Desc: Actually draw the mesh
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.GraphicsMesh.Render(Microsoft.DirectX.Direct3D.Device)"></member>
+      <member name="M:SIO3DViewer.GraphicsMesh.DisposeLocalBuffers(System.Boolean,System.Boolean)">
+-----------------------------------------------------------------------------
+ Name: DisposeLocalBuffers
+ Desc: Cleans up the local vertex buffers/index buffers
+-----------------------------------------------------------------------------
+</member>
+      <member name="P:SIO3DViewer.GraphicsMesh.SysMemMesh"></member>
+      <member name="P:SIO3DViewer.GraphicsMesh.LocalMesh"></member>
+      <member name="P:SIO3DViewer.GraphicsMesh.UseMeshMaterials"></member>
+      <member name="P:SIO3DViewer.GraphicsMesh.SystemVertexBuffer"></member>
+      <member name="P:SIO3DViewer.GraphicsMesh.LocalVertexBuffer"></member>
+      <member name="P:SIO3DViewer.GraphicsMesh.SystemIndexBuffer"></member>
+      <member name="P:SIO3DViewer.GraphicsMesh.LocalIndexBuffer"></member>
+      <member name="T:SIO3DViewer.D3DXFont"></member>
+      <member name="M:SIO3DViewer.D3DXFont.#ctor(System.Drawing.Font)">
+-----------------------------------------------------------------------------
+ Name: Constructor
+ Desc: Create a new font object
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.D3DXFont.#ctor(System.Drawing.Font)"></member>
+      <member name="M:SIO3DViewer.D3DXFont.#ctor(System.String,System.Drawing.FontStyle)"></member>
+      <member name="M:SIO3DViewer.D3DXFont.#ctor(System.String,System.Drawing.FontStyle,System.Int32)"></member>
+      <member name="M:SIO3DViewer.D3DXFont.InitializeDeviceObjects(Microsoft.DirectX.Direct3D.Device)">
+-----------------------------------------------------------------------------
+ Name: InitializeDeviceObjects
+ Desc: Initialize the device objects
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.D3DXFont.BeginText">
+-----------------------------------------------------------------------------
+ Name: BeginText
+ Desc: Call Begin on our font object
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.D3DXFont.DrawText(System.Int32,System.Int32,System.Int32,System.String)">
+-----------------------------------------------------------------------------
+ Name: DrawText
+ Desc: Draw some text on the screen
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.D3DXFont.EndText">
+-----------------------------------------------------------------------------
+ Name: EndText
+ Desc: Call End on our font object
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.D3DXFont.Dispose">
+-----------------------------------------------------------------------------
+ Name: Dispose
+ Desc: Cleanup any resources being used
+-----------------------------------------------------------------------------
+</member>
+      <member name="T:SIO3DViewer.DXUtil"></member>
+      <member name="M:SIO3DViewer.DXUtil.QueryPerformanceFrequency(System.Int64@)">
+ We won't use this maliciously
+</member>
+      <member name="M:SIO3DViewer.DXUtil.QueryPerformanceCounter(System.Int64@)">
+ We won't use this maliciously
+ We won't use this maliciously
+</member>
+      <member name="M:SIO3DViewer.DXUtil.timeGetTime">
+ We won't use this maliciously
+ We won't use this maliciously
+ We won't use this maliciously
+</member>
+      <member name="M:SIO3DViewer.DXUtil.Timer(SIO3DViewer.DirectXTimer)">
+-----------------------------------------------------------------------------
+ Name: DXUtil.Timer()
+ Desc: Performs timer opertations. Use the following commands:
+          DirectXTimer.Reset           - to reset the timer
+          DirectXTimer.Start           - to start the timer
+          DirectXTimer.Stop            - to stop (or pause) the timer
+          DirectXTimer.Advance         - to advance the timer by 0.1 seconds
+          DirectXTimer.GetAbsoluteTime - to get the absolute system time
+          DirectXTimer.GetApplicationTime      - to get the current time
+          DirectXTimer.GetElapsedTime  - to get the time that elapsed between 
+                                  TIMER_GETELAPSEDTIME calls
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.DXUtil.FindMediaFile(System.String,System.String)">
+-----------------------------------------------------------------------------
+ Name: DXUtil.FindMediaFile()
+ Desc: Returns a valid path to a DXSDK media file
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.DXUtil.AppendDirSep(System.String)">
+-----------------------------------------------------------------------------
+ Name: DXUtil.AppendDirSep()
+ Desc: Returns a valid string with a directory separator at the end.
+-----------------------------------------------------------------------------
+</member>
+      <member name="M:SIO3DViewer.DXUtil.#ctor"></member>
+      <member name="P:SIO3DViewer.DXUtil.SdkMediaPath"></member>
+      <member name="T:SIO3DViewer.DirectXTimer"></member>
+      <member name="T:SIO3DViewer.ViewerClickEventArgs">
+
+ <summary>
+ Event Args for a user click in the view area
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.ViewerClickEventArgs.#ctor(System.Single,System.Single)"></member>
+      <member name="P:SIO3DViewer.ViewerClickEventArgs.Handled">
+
+ <summary>
+ Set to True to disable default processing
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ViewerClickEventArgs.X">
+
+ <summary>
+ X coordinate on the floor plane corresponding to the mouses click position in the View.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ViewerClickEventArgs.Z">
+
+ <summary>
+ Z coordinate on the floor plane corresponding to the mouses click position in the View.
+ </summary>
+</member>
+      <member name="T:SIO3DViewer.ViewerMouseEventArgs">
+
+ <summary>
+ Generic event args for non-specific mouse events within the viewer
+ </summary>
+</member>
+      <member name="M:SIO3DViewer.ViewerMouseEventArgs.#ctor"></member>
+      <member name="M:SIO3DViewer.ViewerMouseEventArgs.#ctor"></member>
+      <member name="M:SIO3DViewer.ViewerMouseEventArgs.#ctor"></member>
+      <member name="M:SIO3DViewer.ViewerMouseEventArgs.#ctor"></member>
+      <member name="M:SIO3DViewer.ViewerMouseEventArgs.#ctor"></member>
+      <member name="P:SIO3DViewer.ViewerMouseEventArgs.FloorPlaneX">
+
+ <summary>
+ X coordinate on the floor plane that corresponds to the mouse position in the view.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ViewerMouseEventArgs.FloorPlaneY">
+
+ <summary>
+ Y coordinate on the floor plane that corresponds to the mouse position in the view.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ViewerMouseEventArgs.FloorPlaneZ">
+
+ <summary>
+ Z coordinate on the floor plane that corresponds to the mouse position in the view.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ViewerMouseEventArgs.HitFloor">
+
+ <summary>
+ Boolean value indicating if the floor itself is under the mouse position in the view.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ViewerMouseEventArgs.Handled">
+
+ <summary>
+ Set to True to cancel the default processing
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ViewerMouseEventArgs.TagKey">
+
+ <summary>
+ The unique Key identifier of the Tag under the mouse or Nothing if the mouse isn't over a Tag or TagChild.
+ </summary>
+</member>
+      <member name="P:SIO3DViewer.ViewerMouseEventArgs.ChildKey">
+
+ <summary>
+ The unique Key identifier of the TagChild under the mouse or Nothing if the mouse isn't over a TagChild.
+ </summary>
+ <remarks>
+ The TagChild is accessible through the parent Tags Children collection.
+ </remarks>
+</member>
+   </members>
+</doc>

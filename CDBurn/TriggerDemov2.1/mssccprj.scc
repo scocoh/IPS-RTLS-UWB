@@ -1,0 +1,9 @@
+SCC = This is a Source Code Control file
+
+[TriggerDemo.sln]
+SCC_Aux_Path = "\\Parco-main\vss\"
+SCC_Project_Name = "$/RTLS version 1/3rd Party Apps/TriggerDemo", CRAAAAAA
+
+[TriggerDemo.vbproj]
+SCC_Aux_Path = "\\Parco-main\vss\"
+SCC_Project_Name = "$/RTLS version 1/3rd Party Apps/TriggerDemo", CRAAAAAA

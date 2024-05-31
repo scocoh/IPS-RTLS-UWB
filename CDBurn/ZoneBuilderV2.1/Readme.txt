@@ -1,0 +1,1 @@
+The zonebuilder.exe.config file is set to point to the parco SDK server. Please change the dataservice url to point to your own server. The help file contains information that you should read before attempting the configuration of a production system. The ParcoRTLS.dll, ZoneBuilder.chm, NoMap.jpg and NotFound.jpg files are required to be in the same folder as the executable file.

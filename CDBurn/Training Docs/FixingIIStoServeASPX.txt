@@ -1,0 +1,15 @@
+RESOLUTION
+To resolve this issue, repair the IIS mappings so that the file name extensions for ASP.NET are properly associated. There are two ways to fix IIS mappings for ASP.NET.
+
+To repair IIS mappings for ASP.NET, run the Aspnet_regiis.exe utlity. To do so, follow these steps: 
+Click Start, and then click Run. 
+Type cmd, and then click OK. 
+At the command prompt, run the following command, and then click OK: 
+"\<Windows folder>\Microsoft.NET\Framework\<Version Number>\aspnet_regiis.exe" -i
+
+NOTE:Replace <Windows folder> with the name of the directory where the operating system is installed and replace <Version Number> with the .NET Framework version installed on your computer.
+
+To repair IIS mappings for ASP.NET, you must register Aspnet_isapi.dll. To do so, follow these steps: 
+Click Start, and then click Run. 
+Type regsvr32 <Windows folder>\Microsoft.NET\Framework\<Version Number>\aspnet_isapi.dll, and then click OK. Regsvr32 returns the results of the registration. 
+STATUS

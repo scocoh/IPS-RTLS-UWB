@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "TriggerDemo", "TriggerDemo.vbproj", "{1160F1BF-3216-4316-B069-DA561E2AB95C}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 2
+		SccLocalPath0 = .
+		CanCheckoutShared = false
+		SolutionUniqueID = {F3009787-9E5F-4CEE-9E96-1C3CE5CE23E0}
+		SccProjectUniqueName1 = TriggerDemo.vbproj
+		SccLocalPath1 = .
+		CanCheckoutShared = false
+	EndGlobalSection
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{1160F1BF-3216-4316-B069-DA561E2AB95C}.Debug.ActiveCfg = Debug|.NET
+		{1160F1BF-3216-4316-B069-DA561E2AB95C}.Debug.Build.0 = Debug|.NET
+		{1160F1BF-3216-4316-B069-DA561E2AB95C}.Release.ActiveCfg = Release|.NET
+		{1160F1BF-3216-4316-B069-DA561E2AB95C}.Release.Build.0 = Release|.NET
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

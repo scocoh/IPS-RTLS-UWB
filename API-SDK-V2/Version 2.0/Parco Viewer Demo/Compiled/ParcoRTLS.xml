@@ -1,0 +1,3721 @@
+<doc>
+   <assembly>ParcoRTLS.dll</assembly>
+   <members>
+      <member name="T:Parco.DeviceAssignment">
+<summary>
+DeviceAssignment is a business object representing a Device to Entity assignment datarow from the DeviceAssmts table.
+</summary>
+</member>
+      <member name="M:Parco.DeviceAssignment.#ctor"></member>
+      <member name="P:Parco.DeviceAssignment.AssignmentKey">
+<summary>The integer auto number key.</summary>
+<value>The integer auto number key.</value>
+</member>
+      <member name="P:Parco.DeviceAssignment.DeviceID">
+<summary>The Device ID for the assignment.</summary>
+<value>The Device ID for the assignment.</value>
+</member>
+      <member name="P:Parco.DeviceAssignment.EntityID">
+<summary>The Entity ID for the assignment.</summary>
+<value>The Entity ID for the assignment.</value>
+</member>
+      <member name="P:Parco.DeviceAssignment.BeginDate">
+<summary>The assignment begin date and time in UTC.</summary>
+<value>The assignment begin date and time in UTC.</value>
+</member>
+      <member name="P:Parco.DeviceAssignment.EndDate">
+<summary>The assignment end date and time in UTC.</summary>
+<value>The assignment begin end and time in UTC.</value>
+</member>
+      <member name="P:Parco.DeviceAssignment.ReasonKey">
+<summary>Optional reason assignment key.</summary>
+<value>Optional reason assignment key.</value>
+</member>
+      <member name="P:Parco.DeviceAssignment.ReasonDescription">
+<summary>Optional reason assignment description.</summary>
+<value>Optional reason assignment description.</value>
+</member>
+      <member name="T:Parco.EntityAssignment">
+<summary>
+DeviceAssignment is a business object representing a datarow representing an Entity to Entity assignment  from the EntityAssmts table.
+</summary>
+</member>
+      <member name="M:Parco.EntityAssignment.#ctor"></member>
+      <member name="P:Parco.EntityAssignment.AssignmentKey">
+<summary>The integer auto number key.</summary>
+<value>The integer auto number key.</value>
+</member>
+      <member name="P:Parco.EntityAssignment.PrincipleID">
+<summary>The string ID of the principle Entity in the assignment.</summary>
+<value>The string ID of the principle Entity in the assignment.</value>
+</member>
+      <member name="P:Parco.EntityAssignment.ChildID">
+<summary>The string ID of the child Entity in the assignment.</summary>
+<value>The string ID of the child Entity in the assignment.</value>
+</member>
+      <member name="P:Parco.EntityAssignment.BeginDate">
+<summary>The assignment begin date and time in UTC.</summary>
+<value>The assignment begin date and time in UTC.</value>
+</member>
+      <member name="P:Parco.EntityAssignment.EndDate">
+<summary>The assignment end date and time in UTC.</summary>
+<value>The assignment end date and time in UTC.</value>
+</member>
+      <member name="P:Parco.EntityAssignment.ReasonKey">
+<summary>Optional reason assignment key.</summary>
+<value>Optional reason assignment key.</value>
+</member>
+      <member name="P:Parco.EntityAssignment.ReasonDescription">
+<summary>Optional reason assignment description.</summary>
+<value>Optional reason assignment description.</value>
+</member>
+      <member name="T:Parco.Devices">
+ <summary>
+ The Devices class is a custom collection class for holding instances of the Parco Device class.
+ </summary>
+</member>
+      <member name="M:Parco.Devices.GetEnumerator">
+ <summary>
+ Returns an IEnumerator for enumerating through the collection.
+ </summary>
+<returns>IEnumerator</returns>
+</member>
+      <member name="M:Parco.Devices.#ctor"></member>
+      <member name="M:Parco.Devices.AddItem(Parco.Device,System.String)">
+ <summary>
+ Adds a Device instance to the collection.
+ </summary>
+<param name="oDevice">The Device instance to add.</param>
+<param name="sDeviceID">The Device.ID of the instance.</param>
+<returns>void</returns>
+</member>
+      <member name="M:Parco.Devices.RemoveItem(System.String)">
+ <summary>
+ Removes a Device instance from the collection.
+ </summary>
+<param name="sDeviceID">The Device.ID of the instance to remove.</param>
+<returns>void</returns>
+</member>
+      <member name="P:Parco.Devices.Item">
+<overloads>This property has two overloads</overloads>
+ <summary>
+ Item adds a device or returns the Device instance if the key exists, nothing if it does not.
+ </summary>
+<param name="sDeviceID">The string containing the Device ID to return or add.</param>
+<returns>Parco.Device</returns>
+</member>
+      <member name="P:Parco.Devices.Item">
+ <summary>
+ Item returns the Device instance if the index exists, nothing if it does not.
+ </summary>
+<param name="Index">The integer index of the Device to return.</param>
+<returns>Parco.Device</returns>
+</member>
+      <member name="P:Parco.Devices.Count">
+ <summary>
+ Returns a count of Device instances contained in the collection.
+ </summary>
+<returns>Integer</returns>
+</member>
+      <member name="T:Parco.Rooms">
+ <summary>
+ The Rooms class is a custom collection class for holding instances of the Parco Room class.
+ </summary>
+</member>
+      <member name="M:Parco.Rooms.GetEnumerator">
+ <summary>
+ Returns an IEnumerator for enumerating through the collection.
+ </summary>
+<returns>IEnumerator</returns>
+</member>
+      <member name="M:Parco.Rooms.#ctor"></member>
+      <member name="M:Parco.Rooms.AddItem(Parco.Room,System.String)">
+ <summary>
+ Adds a Room instance to the collection.
+ </summary>
+<param name="oRoom">The Room instance to add.</param>
+<param name="sRoomID">The Room ID of the instance.</param>
+<returns>void</returns>
+</member>
+      <member name="M:Parco.Rooms.RemoveItem(System.String)">
+ <summary>
+ Removes a Room instance from the collection.
+ </summary>
+<param name="sRoomID">The string ID of the instance to remove.</param>
+<returns>void</returns>
+</member>
+      <member name="P:Parco.Rooms.Item">
+<overloads>This property has two overloads</overloads>
+ <summary>
+ Item adds or returns a Room instance, returns nothing if the key does not exist.
+ </summary>
+<param name="sRoomID">The string containing the id to return or add.</param>
+<returns>Parco.Room</returns>
+</member>
+      <member name="P:Parco.Rooms.Item">
+ <summary>
+ Item returns an Room instance, returns nothing if the index does not exist.
+ </summary>
+<param name="Index">The integer containing the index of the item to return.</param>
+<returns>Parco.Room</returns>
+</member>
+      <member name="P:Parco.Rooms.Count">
+ <summary>
+ Returns a count of Room instances contained in the collection.
+ </summary>
+<returns>Integer</returns>
+</member>
+      <member name="T:Parco.Triggers">
+ <summary>
+ The Triggers class is a custom collection class for holding instances of the Parco Trigger class.
+ </summary>
+</member>
+      <member name="M:Parco.Triggers.GetEnumerator">
+ <summary>
+ Returns an IEnumerator for enumerating through the collection.
+ </summary>
+<returns>IEnumerator</returns>
+</member>
+      <member name="M:Parco.Triggers.#ctor"></member>
+      <member name="M:Parco.Triggers.AddItem(Parco.Trigger,System.String)">
+ <summary>
+ Adds a Trigger instance to the collection.
+ </summary>
+<param name="oTrigger">The Trigger instance to add.</param>
+<param name="sTriggerID">The Trigger ID of the instance.</param>
+<returns>void</returns>
+</member>
+      <member name="M:Parco.Triggers.RemoveItem(System.String)">
+ <summary>
+ Removes a Trigger instance from the collection.
+ </summary>
+<param name="sTriggerID">The string ID of the instance to remove.</param>
+<returns>void</returns>
+</member>
+      <member name="P:Parco.Triggers.Item">
+<overloads>This property has two overloads</overloads>
+ <summary>
+ Item adds or returns a Trigger instance, returns nothing if the key does not exist.
+ </summary>
+<param name="sTriggerID">The string containing the id to return or add.</param>
+<returns>Parco.Trigger</returns>
+</member>
+      <member name="P:Parco.Triggers.Item">
+ <summary>
+ Item returns an Trigger instance, returns nothing if the index does not exist.
+ </summary>
+<param name="Index">The integer containing the index of the item to return.</param>
+<returns>Parco.Trigger</returns>
+</member>
+      <member name="P:Parco.Triggers.Count">
+ <summary>
+ Returns a count of Trigger instances contained in the collection.
+ </summary>
+<returns>Integer</returns>
+</member>
+      <member name="T:Parco.Regions">
+ <summary>
+ The Regions class is a custom collection class for holding instances of the Parco Region3D class.
+ </summary>
+</member>
+      <member name="M:Parco.Regions.GetEnumerator">
+ <summary>
+ Returns an IEnumerator for enumerating through the collection.
+ </summary>
+<returns>IEnumerator</returns>
+</member>
+      <member name="M:Parco.Regions.#ctor"></member>
+      <member name="M:Parco.Regions.AddItem(Parco.Region3D,System.String)">
+ <summary>
+ Adds a Region3D instance to the collection.
+ </summary>
+<param name="oRegion">The Region3D instance to add.</param>
+<param name="sRegionID">The Region3D ID of the instance.</param>
+<returns>void</returns>
+</member>
+      <member name="M:Parco.Regions.RemoveItem(System.String)">
+ <summary>
+ Removes a Region3D instance from the collection.
+ </summary>
+<param name="sRegionID">The string ID of the instance to remove.</param>
+<returns>void</returns>
+</member>
+      <member name="E:Parco.Regions.ItemCountChanged"></member>
+      <member name="P:Parco.Regions.Item">
+<overloads>This property has two overloads</overloads>
+ <summary>
+ Item adds or returns a Region3D instance, returns nothing if the key does not exist.
+ </summary>
+<param name="sRegionID">The string containing the id to return or add.</param>
+<returns>Parco.Region3D</returns>
+</member>
+      <member name="P:Parco.Regions.Item">
+ <summary>
+ Item returns an Region3D instance, returns nothing if the index does not exist.
+ </summary>
+<param name="Index">The integer containing the index of the item to return.</param>
+<returns>Parco.Region3D</returns>
+</member>
+      <member name="P:Parco.Regions.Count">
+ <summary>
+ Returns a count of Region3D instances contained in the collection.
+ </summary>
+<returns>Integer</returns>
+</member>
+      <member name="T:Parco.Entities">
+ <summary>
+ The Entities class is a custom collection class for holding instances of the Parco Entity class.
+ </summary>
+</member>
+      <member name="M:Parco.Entities.GetEnumerator">
+ <summary>
+ Returns an IEnumerator for enumerating through the collection.
+ </summary>
+<returns>IEnumerator</returns>
+</member>
+      <member name="M:Parco.Entities.#ctor"></member>
+      <member name="M:Parco.Entities.AddItem(Parco.Entity,System.String)">
+ <summary>
+ Adds a Entity instance to the collection.
+ </summary>
+<param name="oEntity">The Entity instance to add.</param>
+<param name="sEntityID">The Entity ID of the instance.</param>
+<returns>void</returns>
+</member>
+      <member name="M:Parco.Entities.RemoveItem(System.String)">
+ <summary>
+ Removes a Entity instance from the collection.
+ </summary>
+<param name="sEntityID">The string ID of the instance to remove.</param>
+<returns>void</returns>
+</member>
+      <member name="P:Parco.Entities.Item">
+<overloads>This property has two overloads</overloads>
+ <summary>
+ Item adds or returns an Entity instance, returns nothing if the key does not exist.
+ </summary>
+<param name="sEntityID">The string containing the id to return or add.</param>
+<returns>Parco.Entity</returns>
+</member>
+      <member name="P:Parco.Entities.Item">
+ <summary>
+ Item returns an Entity instance, returns nothing if the index does not exist.
+ </summary>
+<param name="Index">The integer containing the index of the item to return.</param>
+<returns>Parco.Entity</returns>
+</member>
+      <member name="P:Parco.Entities.Count">
+ <summary>
+ Returns a count of Entity instances contained in the collection.
+ </summary>
+<returns>Integer</returns>
+</member>
+      <member name="T:Parco.DevAssignments">
+ <summary>
+ The DevAssignments class is a custom collection class for holding instances of the Parco DeviceAssignment class.
+ </summary>
+</member>
+      <member name="M:Parco.DevAssignments.GetEnumerator">
+ <summary>
+ Returns an IEnumerator for enumerating through the collection.
+ </summary>
+<returns>IEnumerator</returns>
+</member>
+      <member name="M:Parco.DevAssignments.#ctor"></member>
+      <member name="M:Parco.DevAssignments.AddItem(Parco.DeviceAssignment,System.String)">
+ <summary>
+ Adds a DeviceAssignment instance to the collection.
+ </summary>
+<param name="oDevAssgn">The instance to add.</param>
+<param name="sAsnKey">The ID of the instance.</param>
+<returns>void</returns>
+</member>
+      <member name="M:Parco.DevAssignments.RemoveItem(System.String)">
+ <summary>
+ Removes a DeviceAssignment instance from the collection.
+ </summary>
+<param name="sAsnKey">The string ID of the instance to remove.</param>
+<returns>void</returns>
+</member>
+      <member name="P:Parco.DevAssignments.Item">
+<overloads>This property has two overloads</overloads>
+ <summary>
+Item adds or returns an DeviceAssignment instance, returns nothing if if the key does not exist.
+ </summary>
+<param name="sAsnKey">The string containing the id to return or add.</param>
+<returns>Parco.DeviceAssignment</returns>
+</member>
+      <member name="P:Parco.DevAssignments.Item">
+ <summary>
+Item returns an DeviceAssignment instance, returns nothing if the index does not exist.
+ </summary>
+<param name="Index">The integer of the item to return</param>
+<returns>Parco.DeviceAssignment</returns>
+</member>
+      <member name="P:Parco.DevAssignments.Count">
+ <summary>
+ Returns a count of DeviceAssignment instances contained in the collection.
+ </summary>
+<returns>Integer</returns>
+</member>
+      <member name="T:Parco.EntAssignments">
+ <summary>
+ The EntAssignments class is a custom collection class for holding instances of the Parco EntityAssignment class.
+ </summary>
+</member>
+      <member name="M:Parco.EntAssignments.GetEnumerator">
+ <summary>
+ Returns an IEnumerator for enumerating through the collection.
+ </summary>
+<returns>IEnumerator</returns>
+</member>
+      <member name="M:Parco.EntAssignments.#ctor"></member>
+      <member name="M:Parco.EntAssignments.AddItem(Parco.EntityAssignment,System.String)">
+ <summary>
+ Adds a EntityAssignment instance to the collection.
+ </summary>
+<param name="oEntAssgn">The instance to add.</param>
+<param name="sAsnKey">The ID of the instance.</param>
+<returns>void</returns>
+</member>
+      <member name="M:Parco.EntAssignments.RemoveItem(System.String)">
+ <summary>
+ Removes a EntityAssignment instance from the collection.
+ </summary>
+<param name="sAsnKey">The string ID of the instance to remove.</param>
+<returns>void</returns>
+</member>
+      <member name="P:Parco.EntAssignments.Item">
+<overloads>This property has two overloads</overloads>
+ <summary>
+ Item adds or returns an EntityAssignment instance, returns nothing if the key does not exist.
+ </summary>
+<param name="sAsnKey">The string containing the id to return or add.</param>
+<returns>Parco.EntityAssignment</returns>
+</member>
+      <member name="P:Parco.EntAssignments.Item">
+ <summary>
+ Item returns an EntityAssignment instance, returns nothing if the index does not exist.
+ </summary>
+<param name="Index">The integer containing the index of the item to return.</param>
+<returns>Parco.EntityAssignment</returns>
+</member>
+      <member name="P:Parco.EntAssignments.Count">
+ <summary>
+ Returns a count of EntityAssignment instances contained in the collection.
+ </summary>
+<returns>Integer</returns>
+</member>
+      <member name="T:Parco.Data">
+ <summary>
+ The data class provides data access for the Parco RLTS SDK.
+ </summary>
+ <remarks>The data class handles all version 1.0 data access. Data access is accomplished through a Parco system web service.
+The DataServiceURL must be set to a valid Parco DataService URL before using an instance of this class. A valid URL looks like http://IPAddress/ParcoRTLSws/DataV1.asmx .
+ Replace "IPAddress" with a valid TCPIP address like 10.1.130.4 or DNS entry like parcodata.yourdomain.com to connect to the data service.
+Note that all method names containing "List" return a sparse dataset containing only the key and name/description of the items.
+All method names containing "Select" return a dataset containing all fields for the item(s) and all method names containing "Get" return
+an initialized object of the specified type.
+When accessing data, be sure to encapsulate the method calls in a try/catch block to capture any errors. All data access failures
+ will result in an error being thrown back to the code containing the instance of this object.</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerDirectionList">
+<summary>
+TriggerDirectionList returns a dataset of the possible trigger directions. 
+</summary>
+<returns>Dataset: I_DIR is the key(value) and X_DIR is the display text for the direction.</returns>
+<remarks>Trigger directions are readonly and I_DIR must match a Trigger.Direction enumeration values</remarks>
+</member>
+      <member name="M:Parco.Data.ResourceTypeList">
+<summary>
+TriggerDirectionList returns a dataset of the possible resource types. 
+</summary>
+<returns>Dataset: I_TYP_RES is the key(value) and X_DSC_RES is the display text for the description.</returns>
+<remarks></remarks>
+</member>
+      <member name="M:Parco.Data.ResourcesList">
+<summary>
+EntityTypeList returns a dataset of Resources. I_RES is the key(value) and X_NM_RES is the display name for the resource.
+</summary>
+<returns>Dataset:</returns>
+<remarks></remarks>
+</member>
+      <member name="M:Parco.Data.ResourceSelect(System.Int32)">
+<summary>
+ResourceSelect returns a dataset of of the least busy resouce of the type specified. I_RES is the key(value) and X_NM_RES is the display name for the resource.
+</summary>
+<param name="I_TYP_RES">The resource type to return, SqlDbType.NvarChar(50)</param>
+<returns>Dataset</returns>
+<remarks>The lowest I_RNK (least busy) resource is returned</remarks>
+</member>
+      <member name="M:Parco.Data.ResourceSelectAll(System.Int32)">
+<summary>
+ResourceSelect returns a dataset of of the least busy resouce of the type specified. I_RES is the key(value) and X_NM_RES is the display name for the resource.
+</summary>
+<param name="I_TYP_RES">The resource type to return, SqlDbType.NvarChar(50)</param>
+<returns>Dataset</returns>
+<remarks>The lowest I_RNK (least busy) resource is returned</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceTypeList">
+<summary>
+DeviceTypeList returns a dataset of device types. 
+</summary>
+<param name="X_DSC_DEV">The text description for the device type, SqlDbType.NvarChar(50)</param>
+<returns>Dataset: I_TYP_DEV is the key(value) and X_DSC_DEV is the display text for the description.</returns>
+<remarks>Device types characterize Parco Tags in size, shape, and lot numbers.</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceTypeAdd(System.String)">
+<summary>
+DeviceTypeAdd adds a device type. The return value is the auto number integer I_TYP_DEV key for the new record.
+</summary>
+<param name="X_DSC_DEV">The text description for the device type, SqlDbType.NvarChar(50)</param>
+<returns>Integer</returns>
+<remarks>Device types characterize Parco Tags in size, shape, and lot numbers.</remarks>
+</member>
+      <member name="M:Parco.Data.EntityTypeList(System.Boolean)">
+<summary>
+EntityTypeList returns a dataset of EntityTypes. I_TYP_ENT is the key(value) and X_DSC_ENT is display text for the type.
+</summary>
+<returns>Dataset</returns>
+<remarks>Entity types characterize entities. I_TYP_ENT = 1 is a Room and is reserved.  All other Entity Types are user defined</remarks>
+</member>
+      <member name="M:Parco.Data.EntityTypeAdd(System.String)">
+<summary>
+EntityTypeAdd adds an EntityType. The return value is the auto number integer I_TYP_ENT key for the new record.
+</summary>
+<param name="X_DSC_ENT">The description for the entity type, SqlDbType.NvarChar(50)</param>
+<returns>Integer</returns>
+<remarks>Entity types characterize entities. I_TYP_ENT = 1 is a Room and is reserved.  All other Entity Types are user defined</remarks>
+</member>
+      <member name="M:Parco.Data.AssmtReasonList">
+<summary>
+AssmtReasonList returns a dataset of Assignment Reasons. 
+</summary>
+<returns>Dataset: I_RSN is the key(value) and X_RSN is display text for the reason.</returns>
+<remarks>Assignment Reasons characterize assignments. Assignment Reasons are user defined and will be used according to your business rules.</remarks>
+</member>
+      <member name="M:Parco.Data.AssmtReasonAdd(System.String)">
+<summary>
+AssmtReasonAdd adds an Assignment Reason. The return value is the auto number integer I_RSN key for the new record.
+</summary>
+<param name="X_RSN">The description for the Assignment Reason, SqlDbType.NvarChar(50)</param>
+<returns>Integer</returns>
+<remarks>Assignment Reasons characterize assignments. Assignment Reasons are user defined and will be used according to your business rules.</remarks>
+</member>
+      <member name="M:Parco.Data.RegionAdd(System.String,System.Single,System.Single,System.Single,System.Single,System.Single,System.Single,System.String,System.Int32)">
+<summary>
+RegionAdd adds a Region. The return value is the auto number key I_RGN  for the new record.
+</summary>
+<param name="X_NM_RGN">The name for the region, SqlDbType.NvarChar(200)</param>
+<param name="N_MAX_X">The max X vertice value for the region, SqlDbType.Float</param>
+<param name="N_MAX_Y">The max Y vertice value for the region, SqlDbType.Float</param>
+<param name="N_MAX_Z">The max Z vertice value for the region, SqlDbType.Float</param>
+<param name="N_MIN_X">The min X vertice value for the region, SqlDbType.Float</param>
+<param name="N_MIN_Y">The min Y vertice value for the region, SqlDbType.Float</param>
+<param name="N_MIN_Z">The min Z vertice value for the region,SqlDbType.Float</param>
+<param name="X_ID_ENT">The optional Room entity ID if the region belongs to a room. SqlDbType.NvarChar(200)</param>
+<param name="I_TRG">The optional trigger key if the region belongs to a trigger, SqlDbType.Int</param>
+<returns>Integer</returns>
+<remarks>The Max and Min values are the values computed by a region object from it vertices.  A region may belong to a Room entity, Trigger, or both.</remarks>
+</member>
+      <member name="M:Parco.Data.RegionAdd(Parco.Region2D)">
+<summary>
+RegionAdd adds a Region. The return value is the auto number key I_RGN  for the new record.
+</summary>
+<param name="oRegion">A Region2D instance containing the values to add.</param>
+<returns>Integer</returns>
+<remarks>The Max and Min values are the values computed by a region object from it vertices. A region may belong to a Room entity, Trigger, or both.</remarks>
+</member>
+      <member name="M:Parco.Data.RegionAdd(Parco.Region3D)">
+<summary>
+RegionAdd adds a Region. The return value is the auto number key I_RGN  for the new record.
+</summary>
+<param name="oRegion">A Region3D instance containing the values to add.</param>
+<returns>Integer</returns>
+<remarks>The Max and Min values are the values computed by a region object from it vertices. A region may belong to a Room entity, Trigger, or both.</remarks>
+</member>
+      <member name="M:Parco.Data.RegionSelectByID(System.Int32)">
+<summary>
+RegionSelect returns a dataset for the specified region.
+</summary>
+<param name="I_RGN">The key of the region to select.</param>
+<returns>Dataset</returns>
+<remarks>Each datarow contains the following items: I_RGN, X_NM_RGN, N_MAX_X, N_MAX_Y, N_MAX_Z, N_MIN_X, N_MIN_Y, N_MIN_Z, X_ID_ENT, I_TRG.
+The I_TRG and X_ID_ENT values may be null.</remarks>
+</member>
+      <member name="M:Parco.Data.RegionsSelect">
+<summary>
+RegionSelect returns a dataset of all of the regions.
+ </summary>
+<returns>Dataset</returns>
+<remarks>Each datarow contains the following items: I_RGN, X_NM_RGN, N_MAX_X, N_MAX_Y, N_MAX_Z, N_MIN_X, N_MIN_Y, N_MIN_Z, X_ID_ENT, I_TRG.
+The I_TRG and X_ID_ENT values may be null.</remarks>
+</member>
+      <member name="M:Parco.Data.RegionsSelectByRoom(System.String)">
+<summary>
+RegionSelectByRoom returns a dataset of all of the regions for a room.
+</summary>
+<param name="X_ID_ENT">The key of the entity(room) to select.</param>
+<returns>Dataset</returns>
+<remarks>Each datarow contains the following items: I_RGN, X_NM_RGN, N_MAX_X, N_MAX_Y, N_MAX_Z, N_MIN_X, N_MIN_Y, N_MIN_Z, X_ID_ENT, I_TRG.
+The I_TRG values may be null.</remarks>
+</member>
+      <member name="M:Parco.Data.RegionsSelectByTrigger(System.Int32)">
+<summary>
+RegionSelectByRoom returns a dataset of all of the regions for a room.
+</summary>
+<param name="I_TRG">The key of the Trigger to select.</param>
+<returns>Dataset</returns>
+<remarks>Each datarow contains the following items: I_RGN, X_NM_RGN, N_MAX_X, N_MAX_Y, N_MAX_Z, N_MIN_X, N_MIN_Y, N_MIN_Z, X_ID_ENT, I_TRG.
+The X_ID_ETY values may be null.</remarks>
+</member>
+      <member name="M:Parco.Data.Region3DGet(System.Int32)">
+<summary>
+Region3DGet returns a Region3D object containing the values for the specified region including the child vertices
+</summary>
+<returns>Region3D</returns>
+<remarks>The I_TRG property will be -1 if the region does not belong to a trigger. The X_ID_ENT property will be a empty string if the region does not belong to a Room Entity
+Vertices, if any, are in the region's vertice array. </remarks>
+</member>
+      <member name="M:Parco.Data.RegionsList">
+<summary>
+RegionSelect returns a sparse dataset of all of the regions for a listbox.
+</summary>
+<remarks>The dataset contains the following items: I_RGN, X_NM_RGN, I_TRG, and X_ID_ENT</remarks>
+</member>
+      <member name="M:Parco.Data.VertexAdd(System.Single,System.Single,System.Single,System.Int32,System.Int32)">
+<summary>
+VertexAdd adds a Vertex to the Vertices table. The return value is the auto number key I_VTX  for the new record.
+</summary>
+<param name="N_X">The X value for the vertex, SqlDbType.Float</param>
+<param name="N_Y">The Y value for the vertex, SqlDbType.Float</param>
+<param name="N_Z">The Z value for the vetex. The Z values are not used at this time except for a Region3D object to calculate the Max and Min Z values, SqlDbType.Float</param>
+<param name="N_ORD">The order number for the vertex., SqlDbType.Int</param>
+<param name="I_RGN">The key for the parent region., SqlDbType.Int</param>
+<returns>Integer</returns>
+<remarks> Verticies should be ordered with the N_ORD value increasing in the clockwise direction. The result of the verticies for a region should form a regular polygon such that no lines cross over one another.</remarks>
+</member>
+      <member name="M:Parco.Data.VertexAdd(Parco.Point3D)">
+<summary>
+VertexAdd adds a Vertex to the Vertices table. The return value is the auto number key I_VTX  for the new record.
+ </summary>
+<param name="oVert">A Point3D object instance </param>
+<returns>Integer, the auto number key I_VTX  for the new record.</returns>
+<remarks> If the object does not contain a valid I_RGN key, the insert will fail. Verticies should be ordered with the N_ORD value increasing in the clockwise direction. The result of the verticies for a region should form a regular polygon such that no lines cross over one another.</remarks>
+</member>
+      <member name="M:Parco.Data.VertexSelect(System.Int32)">
+<summary>
+VertexSelect returns a dataset for a Vertice in the Vertices table.
+</summary>
+<param name="I_VTX">The key for the vertex record to select.</param>
+<returns>Dataset</returns>
+</member>
+      <member name="M:Parco.Data.VertexGet(System.Int32)">
+<summary>
+VertexGet returns a Parco.Point3D for a Vertice in the Vertices table.
+</summary>
+<param name="I_VTX">The key for the vertex record to select.</param>
+<returns>Dataset</returns>
+</member>
+      <member name="M:Parco.Data.VerticiesSelectByRegion(System.Int32)">
+<summary>
+VerticiesSelectByRegion returns a dataset of vertices for a Region.
+</summary>
+<param name="I_RGN">The key for the Region to to select.</param>
+<returns>Dataset</returns>
+<remarks>Fields: I_VTX, N_X, N_Z, N_ORD, I_RGN</remarks>
+</member>
+      <member name="M:Parco.Data.RoomSelect(System.String)">
+<summary>
+RoomSelect returns a dataset with all of a rooms regions and verticies.
+</summary>
+<param name="X_ID_ENT">The unique key for the room record</param>
+<returns>Dataset</returns>
+<remarks>A room is a Entity where the EnityType is 1. If X_ID_ENT is not for a room, the call will fail.</remarks>
+</member>
+      <member name="M:Parco.Data.RoomGet(System.String)">
+<summary>
+RoomGet returns a Room object with all of the room's regions and verticies.
+</summary>
+<param name="X_ID_ENT">The unique key for the room record.</param>
+<returns>Room</returns>
+<remarks>A room is a Entity where the EntityType is 1. If X_ID_ENT is not for a room, the call will fail. A DataException is thrown
+if the requested room does not exist or the Entity ID is not for a room (I_TYP_ENT is not equal to 1). </remarks>
+</member>
+      <member name="M:Parco.Data.RoomsList">
+<summary>
+RoomList returns a sparse dataset of Rooms for databinding a listbox.
+</summary>
+<returns>Dataset</returns>
+<remarks>A room is a Entity where the EntityType is 1.</remarks>
+</member>
+      <member name="M:Parco.Data.RoomsSelectAll">
+<summary>
+RoomsSelectAll returns a complete dataset of Rooms/Regions/ and vertices.
+</summary>
+<returns>Dataset</returns>
+<remarks>A room is a Entity where the EntityType is 1.</remarks>
+</member>
+      <member name="M:Parco.Data.RoomsGetAll">
+<summary>
+RoomsGetAll returns a collection of all rooms
+</summary>
+<returns>Rooms Collection</returns>
+<remarks>A room is a Entity where the EntityType is 1.</remarks>
+</member>
+      <member name="M:Parco.Data.RoomsSelectByPoint(System.Single,System.Single,System.Single)">
+<summary>
+ RoomsSelectByPoint returns a dataset of rooms that contain that MAY contain the point.
+</summary>
+<param name="X">The X coordinate</param>
+<param name="Y">The Y coordinate</param>
+<param name="Z">The Z coordinate</param>
+<returns>Dataset</returns>
+<remarks>The dataset will have 0 items if no matches found. Each datarow needs to be evaluated using the rooms ContainsPoint method</remarks>
+</member>
+      <member name="M:Parco.Data.RoomsGetByPoint(System.Single,System.Single,System.Single)">
+<summary>
+RoomsGetByPoint returns a collection of rooms that contain the point.
+</summary>
+<param name="X">The X coordinate</param>
+<param name="Y">The Y coordinate</param>
+<param name="Z">The Z coordinate</param>
+<returns>Room Collection</returns>
+<remarks>The room collection will have 0 items if no matches found</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerAdd(System.String,System.Int32,System.Boolean)">
+<summary>
+TriggerAdd adds a record to the Triggers table.
+</summary>
+<param name="X_NM_TRG">The friendly name for the trigger, SqlDbType.NvarChar(200)</param>
+<param name="I_DIR">The trigger direction, SqlDbType.Int</param>
+<param name="bIgnoreUnknowns">The triggers behavior for unknown devices</param>
+<returns>Integer Auto number key for the trigger.</returns>
+<remarks>This method does not create or specify the underlying region.</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerAdd(System.String,System.Int32,System.Boolean)">
+<summary>
+TriggerAdd adds a record to the Triggers table.
+</summary>
+<param name="X_NM_TRG">The friendly name for the trigger, SqlDbType.NvarChar(200)</param>
+<param name="enmDIR">The trigger direction constant, Trigger.Direction</param>
+<param name="bIgnoreUnknowns">The triggers behavior for unknown devices. SqlDbType.Bit</param>
+<returns>Integer Auto number key for the trigger.</returns>
+<remarks>This method does not create or specify the underlying region</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerAdd(Parco.Trigger)">
+<summary>
+TriggerAdd adds a record to the Triggers table.
+</summary>
+<param name="oTrigger">An instance of Parco.Trigger to add</param>
+<returns>Integer Auto number key for the trigger</returns>
+<remarks>This method does not create or specify the underlying region.</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerGet(System.Int32)">
+<summary>
+TriggerGet retrieves a populated trigger object.
+</summary>
+<param name="I_TRG">The key of the trigger to get</param>
+<returns>Parco.Trigger</returns>
+<remarks>If the triggers underlying region is not valid, an exception may be thrown</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerSelect(System.Int32)">
+<summary>
+TriggerSelect returns a dataset of the trigger, its regions, and vertices
+</summary>
+<param name="I_TRG">The key of the trigger, SqlDbType.Int</param>
+<returns>Dataset</returns>
+<remarks></remarks>
+</member>
+      <member name="M:Parco.Data.TriggersSelectAll">
+<summary>
+TriggerSelectAll returns a dataset of all triggers with related regions and vertices
+</summary>
+<returns>Dataset</returns>
+<remarks></remarks>
+</member>
+      <member name="M:Parco.Data.TriggerGetAll">
+<summary>
+TriggerGetAll returns a collection of trigger objects
+</summary>
+<returns>Parco.Triggers Collection</returns>
+<remarks>If a triggers underlying region is not valid, an exception may be thrown</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerSelectByPoint(System.Single,System.Single,System.Single)">
+<summary>
+TriggerSelectByPoint returns a dataset of the trigger, its regions, and vertices that MAY contain the point.
+</summary>
+<param name="X">The X coordinate, SqlDbType.Float</param>
+<param name="Y">The Y coordinate, SqlDbType.Float</param>
+<param name="Z">The Z coordinate, SqlDbType.Float</param>
+<returns>Dataset</returns>
+<remarks>The dataset will have 0 items if no matches found. Each datarow needs to be evaluated using the region's ContainsPoint method</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerGetByPoint(System.Single,System.Single,System.Single)">
+<summary>
+TriggerGetByPoint returns a collection of the triggers objects
+</summary>
+<param name="X">The X coordinate, SqlDbType.Float</param>
+<param name="Y">The Y coordinate, SqlDbType.Float</param>
+<param name="Z">The Z coordinate, SqlDbType.Float</param>
+<returns>Dataset</returns>
+<remarks>The collection will have 0 items if no matches found.</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerList">
+<summary>
+TriggerList returns a sparse dataset of Triggers for databinding a list
+</summary>
+<returns>Dataset</returns>
+ <remarks>The dataset contains the I_TRG Key, X_NM_TRG trigger name, and I_DIR trigger direction fields.</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceSelectByType(System.Int32,System.Boolean)">
+<summary>
+DeviceSelectByType returns a recordset of devices of a particular type.
+</summary>
+<param name="I_TYP_DEV">The Device Type key for the type. SqlDbType.Int</param>
+<param name="bLimitToInService">Set to true to limit the results to devices whos service end date is null. SqlDbType.Bit</param>
+<returns>dataset</returns>
+<remarks>The dataset contains these fields: X_ID_DEV, I_TYP_DEV, X_NM_DEV, D_SRV_BGN, D_SRV_END, N_MOE_X, N_MOE_Y, N_MOE_Z, F_LOG</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceGetByType(System.Int32,System.Boolean)">
+<summary>
+DeviceGetByType returns a collection of devices of a particular type.
+</summary>
+<param name="I_TYP_DEV">The Device Type key for the type. SqlDbType.Int</param>
+<param name="bLimitToInService">Set to true to limit the results to devices whos service end date is null. SqlDbType.Bit</param>
+<returns>Devices collection</returns>
+<remarks>The collection item count will be 0 if no records are returned from the database.</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceSelectByID(System.String)">
+<summary>
+DeviceSelectByID returns a dataset of a single device.
+</summary>
+<param name="X_ID_DEV">The Device key. SqlDbType.NvarChar(200)</param>
+<returns>Dataset</returns>
+<remarks>The dataset contains these fields: X_ID_DEV, I_TYP_DEV, X_NM_DEV, D_SRV_BGN, D_SRV_END, N_MOE_X, N_MOE_Y, N_MOE_Z, F_LOG</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceGetByID(System.String)">
+<summary>
+DeviceGetByID returns a populated Device instance.
+</summary>
+<param name="X_ID_DEV">The Device key. SqlDbType.NvarChar(200)</param>
+<returns>Device</returns>
+<remarks>Nothing is returned If the device id does not exist. The device properties populated by
+by this method are: ID, Name, DeviceType, MOEx, MOEy, MOEz, ServiceBegin, ServiceEnd, and Log</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceSelectAll(System.Boolean)">
+<summary>
+DeviceSelectAll returns a dataset of devices.
+</summary>
+<param name="bLimitToInService">Passing a true value limits the resultset to devices with a null D_SRV_END. SqlDbType.Bit</param>
+<returns>Dataset</returns>
+<remarks>The dataset contains these fields: X_ID_DEV, I_TYP_DEV, X_NM_DEV, D_SRV_BGN, D_SRV_END, N_MOE_X, N_MOE_Y, N_MOE_Z, F_LOG</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceGetAll(System.Boolean)">
+<summary>
+DeviceGetAll returns Devices collection.
+</summary>
+<param name="bLimitToInService">Passing a true value limits the resultset to devices with a null D_SRV_END. SqlDbType.Bit</param>
+<returns>Devices collection</returns>
+<remarks>The collection item count will be 0 if no records are returned from the database.
+The device properties populated by this method are: ID, Name, DeviceType, MOEx, MOEy, MOEz, ServiceBegin, ServiceEnd, and Log</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceSelectOutOfService(System.Int32)">
+<summary>
+DeviceSelectOutOfService returns a dataset of out of service devices.
+</summary>
+<param name="I_TYP_DEV">Passing a value value limits the resultset to devices of the specified type. SqlDbType.Int</param>
+<returns>Dataset</returns>
+<remarks>The dataset contains these fields: X_ID_DEV, I_TYP_DEV, X_NM_DEV, D_SRV_BGN, D_SRV_END, N_MOE_X, N_MOE_Y, N_MOE_Z, F_LOG</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceGetOutOfService(System.Int32)">
+<summary>
+DeviceGetOutOfService returns Devices collection.
+</summary>
+<param name="I_TYP_DEV">Passing an optional value value limits the resultset to devices of the specified type. SqlDbType.Int</param>
+<returns>Devices collection</returns>
+<remarks>The collection item count will be 0 if no records are returned from the database.
+The device properties populated by this method are: ID, Name, DeviceType, MOEx, MOEy, MOEz, ServiceBegin, ServiceEnd, and Log</remarks>
+</member>
+      <member name="M:Parco.Data.EntitySelectByID(System.String)">
+<summary>
+EntitySelectByID selects a single record in the Entities table.
+</summary>
+<param name="X_ID_ENT">The key of the entity to delete, SqlDbType.NvarChar(200)</param>
+<returns>Dataset</returns>
+<remarks>The dataset contains these fields: X_ID_ENT, I_TYP_ENT, X_NM_ENT, D_CRT, D_UDT, and X_DSC_ENT (entity type description)
+Date fields are in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.EntitySelectByType(System.Int32)">
+<summary>
+EntitySelectByID selects all entities of the specified type.
+</summary>
+<param name="I_TYP_ENT">The entity type key, SqlDbType.Int</param>
+<returns>Dataset</returns>
+<remarks>The dataset contains these fields: X_ID_ENT, I_TYP_ENT, X_NM_ENT, D_CRT, D_UDT, and X_DSC_ENT (entity type description)
+Date fields are in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.EntityGetByType(System.Int32)">
+<summary>
+EntityGetByType selects all entities of the specified type and returns a collection of Entity instances.
+</summary>
+<param name="I_TYP_ENT">The entity type key, SqlDbType.Int</param>
+<returns>Entities</returns>
+<remarks>These properties of the instances are populated: ID, EntityType, TypeDescription, Name, CreateDate, UpdateDate.
+Date properties are in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.EntitySelectAll(System.Boolean)">
+<summary>
+EntitySelectByID selects all entities. Rooms are included in the dataset if the optional
+parameter bIncludeRooms is true.
+</summary>
+<param name="bIncludeRooms">True returns rooms in the dataset, Boolean</param>
+<returns>Dataset</returns>
+<remarks>The dataset contains these fields: X_ID_ENT, I_TYP_ENT, X_NM_ENT, D_CRT, D_UDT, and X_DSC_ENT (entity type description).
+Date fields are in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.EntityGetAll(System.Boolean)">
+<summary>
+EntityGetAll selects all entities of the specified type and returns a collection of Entity instances.
+</summary>
+<param name="bIncludeRooms">True returns rooms in the collection, Boolean</param>
+<returns>Entities</returns>
+<remarks>These properties of the instances are populated: ID, EntityType, TypeDescription, Name, CreateDate, UpdateDate.
+Date properties are in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.EntityGet(System.String)">
+<summary>
+EntityGet selects an entity and returns a populated entity instance.
+</summary>
+<param name="X_ID_ENT">The key of the entity to retrieve, SqlDbType.NvarChar(200)</param>
+<returns>Entity</returns>
+<remarks>These properties of the  instance are populated: ID, EntityType, TypeDescription, Name, CreateDate, UpdateDate.
+Date properties are in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityAdd(System.String,System.String,System.Int32)">
+<summary>
+AssignEntityAdd adds an assignment record to the EntityAssmts table.
+</summary>
+<param name="X_ID_PRN">The unique identifier for the principle assignment entity, SqlDbType.NvarChar(200)</param>
+<param name="X_ID_CHD">The unique identifier for the child assignment entity, SqlDbType.NvarChar(200)</param>
+<param name="I_RSN">An optional reason key for the basis of the assignment, SqlDbType.Int</param>
+<returns>Integer key for the new EntityAssmts record</returns>
+<remarks>The D_ENT_ASN_BGN (assignment begin date) field defaults to the current server time in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityGet(System.Int32)">
+<summary>
+AssignEntityGet returns an entity assignment instance from the EntityAssmts table.
+</summary>
+<param name="I_ASN_ENT">The key for the record, SqlDbType.Int</param>
+<returns>EntityAssignment</returns>
+<remarks>EntityAssignment will be nothing if the call does not return a matching record.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityListByPrincipal(System.String,System.Boolean)">
+<summary>
+AssignEntityListByPrincipal returns a dataset of all EntityAssignments for a principle Entity.
+</summary>
+<param name="X_ID_PRN">The unique identifier for the principle entity, SqlDbType.NVarChar(200)</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>Dataset</returns>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityGetByPrinciple(System.String,System.Boolean)">
+<summary>
+AssignEntityListByPrincipal returns an EntAssignments collection for a principle Entity.
+</summary>
+<param name="X_ID_PRN">The unique identifier for the principle entity, SqlDbType.NVarChar(200)</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>EntAssignments Collection</returns>
+<remarks>The collection item count will  be zero if no records are returned.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityListByChild(System.String,System.Boolean)">
+<summary>
+AssignEntityListByChild returns a dataset of all EntityAssignments for a child Entity.
+</summary>
+<param name="X_ID_PRN">The unique identifier for the child entity, SqlDbType.NVarChar(200)</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>Dataset</returns>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityGetByChild(System.String,System.Boolean)">
+<summary>
+AssignEntityGetByChild returns an EntAssignments collection for a child Entity.
+</summary>
+<param name="X_ID_PRN">The unique identifier for the child entity, SqlDbType.NVarChar(200)</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>EntAssignments Collection</returns>
+<remarks>The collection item count will  be zero if no records are returned.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityListByID(System.String,System.Boolean)">
+<summary>
+AssignEntityListByID returns a dataset of all EntityAssignments for an Entity where the Entity is
+either the priciple or the child in the assignment relationship.
+</summary>
+<param name="X_ID_ENT">The unique identifier for the entity, SqlDbType.NVarChar(200)</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>Dataset</returns>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityGetByID(System.String,System.Boolean)">
+<summary>
+AssignEntityGetByID returns an EntAssignment collection of all EntityAssignments for an Entity where the Entity is
+either the priciple or the child in the assignment relationship.
+</summary>
+<param name="X_ID_ENT">The unique identifier for the entity, SqlDbType.NVarChar(200)</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>EntAssignments Collection</returns>
+<remarks>The collection item count will  be zero if no records are returned.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityListByReason(System.Int32,System.Boolean)">
+<summary>
+AssignEntityListByReason returns a dataset of all EntityAssignments for a particular reason.
+</summary>
+<param name="I_RSN">The reason identifier for the assignments, SqlDbType.Int</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>Dataset</returns>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityGetByReason(System.Int32,System.Boolean)">
+<summary>
+AssignEntityGetByReason returns a colection of all EntityAssignments for a particular reason.
+</summary>
+<param name="I_RSN">The reason identifier for the assignments, SqlDbType.Int</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>EntAssignments Collection</returns>
+<remarks>The collection item count will  be zero if no records are returned.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityList(System.Boolean)">
+<summary>
+AssignEntityList returns a dataset of all EntityAssignments.
+</summary>
+<param name="bIncludeEnded">Optional defaults to false, if true, ended assignments will be included, boolean</param>
+<returns>Dataset</returns>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityGetAll(System.Boolean)">
+<summary>
+AssignEntityGetAll returns a collection of all EntityAssignments.
+</summary>
+<param name="bIncludeEnded">Optional defaults to false, if true, ended assignments will be included, boolean</param>
+<returns>EntAssignments Collection</returns>
+<remarks>The collection item count will be zero if no records are returned.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevAdd(System.String,System.String,System.Int32)">
+<summary>
+AssignDevAdd adds an assignment record to the DeviceAssmts table.
+</summary>
+<param name="X_ID_DEV">The unique identifier for the Parco device, SqlDbType.NvarChar(200)</param>
+<param name="X_ID_ENT">The unique identifier for the entity, SqlDbType.NvarChar(200)</param>
+<param name="I_RSN">An optional reason key for the basis of the assignment, SqlDbType.Int</param>
+<returns>Integer key for the new DeviceAssmts record</returns>
+<remarks>The D_ASN_BGN (assignment begin date) field defaults to the current server time in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevList(System.Boolean)">
+<summary>
+AssignDevList returns a dataset of all DeviceAssignments.
+</summary>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>Dataset</returns>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevGet(System.Boolean)">
+<summary>
+AssignDevGet returns a collection of all DeviceAssignments.
+</summary>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>DevAssignments Collection</returns>
+<remarks>The collection item count will  be zero if no records are returned.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevListByID(System.String,System.Boolean)">
+<summary>
+AssignDevListByID returns a dataset of all DeviceAssignments for a Device.
+</summary>
+<param name="X_ID_DEV">The unique identifier for the Parco device, SqlDbType.NvarChar(200)</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>Dataset</returns>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevGetByID(System.String,System.Boolean)">
+<summary>
+AssignDevDetByID returns a collection of all DeviceAssignments for a Device.
+</summary>
+<param name="X_ID_DEV">The unique identifier for the Parco device, SqlDbType.NvarChar(200)</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>DevAssignments Collection</returns>
+<remarks>The collection item count will  be zero if no records are returned.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevListByEntity(System.String,System.Boolean)">
+<summary>
+AssignDevListByEntity returns a dataset of all DeviceAssignments for an Entity.
+</summary>
+<param name="X_ID_ENT">The unique identifier for the Parco Entity, SqlDbType.NvarChar(200)</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>Dataset</returns>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevGetByEntity(System.String,System.Boolean)">
+<summary>
+AssignDevGetByEntity returns a collection of all DeviceAssignments for an Entity.
+</summary>
+<param name="X_ID_ENT">The unique identifier for the Parco Entity, SqlDbType.NvarChar(200)</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>DevAssignments Collection</returns>
+<remarks>The collection item count will  be zero if no records are returned.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevListByReason(System.Int32,System.Boolean)">
+<summary>
+AssignDevListByReason returns a dataset of all DeviceAssignments for a Reason.
+</summary>
+<param name="I_RSN">The reason key, SqlDbType.Int</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>Dataset</returns>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevGetByReason(System.Int32,System.Boolean)">
+<summary>
+AssignDevGetByReason returns a collection of all DeviceAssignments for a Reason.
+</summary>
+<param name="I_RSN">The reason key, SqlDbType.Int</param>
+<param name="bIncludeEnded">Optional defaults to false, if true ended assignments will be included, boolean</param>
+<returns>DevAssignments Collection</returns>
+<remarks>The collection item count will  be zero if no records are returned.</remarks>
+</member>
+      <member name="M:Parco.Data.RTLSSearch(System.String)">
+<summary>
+RTLSSearch allows Ad-Hoc searches to be run against the ParcoRTLS database.
+</summary>
+<param name="SQLstring">The SQL select string to execute.</param>
+<returns>Dataset</returns>
+<remarks>A DataSearchException is thrown if the SQLString parameter does not contain a select statement.</remarks>
+</member>
+      <member name="M:Parco.Data.DataSearch(System.String)">
+<summary>
+DataSearch allows Ad-Hoc searches to be run against the ParcoRTLSData database.
+</summary>
+<param name="SQLstring">The SQL select string to execute.</param>
+<returns>Dataset</returns>
+<remarks>A DataSearchException is thrown if the SQLString parameter does not contain a select statement.</remarks>
+</member>
+      <member name="M:Parco.Data.HistorySearch(System.String)">
+<summary>
+HistorySearch allows Ad-Hoc searches to be run against the ParcoRTLSHistory database.
+</summary>
+<param name="SQLstring">The SQL select string to execute.</param>
+<returns>Dataset</returns>
+<remarks>A DataSearchException is thrown if the SQLString parameter does not contain a select statement.</remarks>
+</member>
+      <member name="M:Parco.Data.HistoryByID(System.String,System.DateTime,System.DateTime)">
+<summary>
+HistoryByID returns a dataset of device location data from the ParcoRTLSHistory database.
+</summary>
+<param name="X_ID_DEV">The unique identifier for the Parco device, SqlDbType.NvarChar(200)</param>
+<param name="dtBeginUTC">The begining UTC datetime to start., SqlDbType.Datetime</param>
+<param name="dtEndUTC">The ending UTC datetime to end, SqlDbType.Datetime</param>
+<returns>Dataset, fields: I_PH, X_ID_DEV, D_POS_BGN, D_POS_END, N_X, N_Y, N_Z</returns>
+<remarks>All dates parameters must be converted to UTC. All date fields are returned in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.HistoryByLocation(System.Single,System.Single,System.Single,System.Single,System.Single,System.Single,System.DateTime,System.DateTime)">
+<summary>
+HistoryByLocation returns a dataset of device location data from the ParcoRTLSHistory database given the rectangular
+volume described by the vertice parameters.
+</summary>
+<param name="XMax">The maximum X value, SqlDbType.Float</param>
+<param name="XMin">The minimum X value, SqlDbType.Float</param>
+<param name="YMax">The maximum Y value, SqlDbType.Float</param>
+<param name="YMin">The minimum Y value, SqlDbType.Float</param>
+<param name="ZMax">The maximum Z value, SqlDbType.Float</param>
+<param name="ZMin">The minimum Z value, SqlDbType.Float</param>
+<param name="dtBeginUTC">The begining UTC datetime to start., SqlDbType.Datetime</param>
+<param name="dtEndUTC">The ending UTC datetime to end, SqlDbType.Datetime</param>
+<returns>Dataset, fields: I_PH, X_ID_DEV, D_POS_BGN, D_POS_END, N_X, N_Y, N_Z</returns>
+<remarks>All dates parameters must be converted to UTC. All date fields are returned in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.HistoryByDevices(Parco.Devices,System.DateTime,System.DateTime)">
+<summary>
+HistoryByDevices returns a dataset of device location data from the ParcoRTLSHistory database.
+</summary>
+<param name="colDevices">The collection of  Parco devices, SqlDbType.NvarChar(200)</param>
+<param name="dtBeginUTC">The begining UTC datetime to start., SqlDbType.Datetime</param>
+<param name="dtEndUTC">The ending UTC datetime to end, SqlDbType.Datetime</param>
+<returns>Dataset, fields: I_PH, X_ID_DEV, D_POS_BGN, D_POS_END, N_X, N_Y, N_Z</returns>
+<remarks>All dates parameters must be converted to UTC. All date fields are returned in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.HistoryByRegion(Parco.Region3D,System.DateTime,System.DateTime)">
+<summary>
+HistoryByRegion returns a dataset of device location data from the ParcoRTLSHistory database.
+</summary>
+<param name="reg">The region instance to use for the search, SqlDbType.NvarChar(200)</param>
+<param name="dtBeginUTC">The begining UTC datetime to start., SqlDbType.Datetime</param>
+<param name="dtEndUTC">The ending UTC datetime to end, SqlDbType.Datetime</param>
+<returns>Dataset, fields: I_PH, X_ID_DEV, D_POS_BGN, D_POS_END, N_X, N_Y, N_Z</returns>
+<remarks>All dates parameters must be converted to UTC. All date fields are returned in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.HistoryByRegions(Parco.Regions,System.DateTime,System.DateTime)">
+<summary>
+HistoryByRegions returns a dataset of device location data from the ParcoRTLSHistory database.
+</summary>
+<param name="colReg">The region collection  instance to use for the search, SqlDbType.NvarChar(200)</param>
+<param name="dtBeginUTC">The begining UTC datetime to start., SqlDbType.Datetime</param>
+<param name="dtEndUTC">The ending UTC datetime to end, SqlDbType.Datetime</param>
+<returns>Dataset, fields: I_PH, X_ID_DEV, D_POS_BGN, D_POS_END, N_X, N_Y, N_Z</returns>
+<remarks>All dates parameters must be converted to UTC. All date fields are returned in UTC. An error is thrown if the
+collection's item count is 0</remarks>
+</member>
+      <member name="M:Parco.Data.HistoryLastKnownPosition(System.String)">
+<summary>
+HistoryLastKnownPosition returns a dataset of the latest device location data from the ParcoRTLSHistory database.
+</summary>
+<param name="X_ID_DEV">The Device ID to use for the search, SqlDbType.NvarChar(200)</param>
+<returns>Dataset, fields: I_PH, X_ID_DEV, D_POS_BGN, D_POS_END, N_X, N_Y, N_Z</returns>
+<remarks>All dates parameters must be converted to UTC. All date fields are returned in UTC. 0 or 1 record may be returned.</remarks>
+</member>
+      <member name="M:Parco.Data.DataTextByDate(System.String,System.DateTime,System.DateTime)">
+<summary>
+DataTextByDate returns a dataset of device text data from the ParcoRTLSData database (future use)
+</summary>
+<param name="X_ID_DEV">The Device ID to fetch records for, SqlDbType.Float</param>
+<param name="dtBeginUTC">The begining UTC datetime to start., SqlDbType.Datetime</param>
+<param name="dtEndUTC">The ending UTC datetime to end, SqlDbType.Datetime</param>
+<returns>Dataset, fields: I_DAT, X_ID_DEV, X_DAT, D_TS, D_CRT</returns>
+<remarks>All dates parameters must be converted to UTC. All date fields are returned in UTC. This method is for future use.</remarks>
+</member>
+      <member name="M:Parco.Data.DataTextByID(System.Int32)">
+<summary>
+DataTextByID returns a dataset of device text data from the ParcoRTLSData database (future use)
+</summary>
+<param name="I_DAT">The record Autonumber key to fetch records for, SqlDbType.Float</param>
+<returns>Dataset, fields: I_DAT, X_ID_DEV, X_DAT, D_TS, D_CRT</returns>
+<remarks>All date fields are returned in UTC. This method is for future use.</remarks>
+</member>
+      <member name="M:Parco.Data.DataTextAllByDevice(System.String)">
+<summary>
+DataTextAllByDevice returns a dataset of all device text data for a Parco Device from the ParcoRTLSData database (future use)
+</summary>
+<param name="X_ID_DEV">The Device ID to fetch records for, SqlDbType.Float</param>
+<returns>Dataset, fields: I_DAT, X_ID_DEV, X_DAT, D_TS, D_CRT</returns>
+<remarks>All date fields are returned in UTC. This method is for future use.</remarks>
+</member>
+      <member name="M:Parco.Data.PopDevices(System.Data.DataSet@)">
+local function for populating a device collection from a dataset
+</member>
+      <member name="M:Parco.Data.PopEntities(System.Data.DataSet@)">
+local function for populating an entity collection from a dataset
+</member>
+      <member name="M:Parco.Data.PopEntityAssign(System.Data.DataSet@)">
+local function for populating an entity assignment collection from a dataset
+</member>
+      <member name="M:Parco.Data.PopDeviceAssign(System.Data.DataSet@)">
+local function for populating an entity assignment collection from a dataset
+</member>
+      <member name="M:Parco.Data.FixForSQL(System.String)">
+TODO: remove the FixForSQL method? 
+</member>
+      <member name="M:Parco.Data.FixWildCard(System.String)">
+TODO: remove the FixWildCard method?
+</member>
+      <member name="M:Parco.Data.#ctor"></member>
+      <member name="M:Parco.Data.#ctor(System.String)">
+ <summary>
+ Initializes a new instance of the Data Class.
+ </summary>
+<param name="DataServiceURL">Sets the URL of the web service reference. This URL must be a valid Parco RLTS data service."</param>
+<remarks>Use this constructor for accessing the data service if it is not password proctected.</remarks>
+</member>
+      <member name="M:Parco.Data.#ctor(System.String,System.String,System.String)">
+ <summary>
+ Initializes a new instance of the Data Class and supplies the values to create a network credential.
+ </summary>
+<param name="DataServiceURL">Sets the URL of the web service reference. This URL must be a valid Parco RLTS data service"</param>
+<param name="UserID">The userid for the network credential to access the Parco RLTS data service"</param>
+<param name="Password">The password for the network credential to access the Parco RLTS data service"</param>
+<remarks>Use this constructor for accessing a password protected data service. An InvalidCredentialException will be throw if either the UserID or Password is an empty string.</remarks>
+</member>
+      <member name="M:Parco.Data.SetCredential">
+<summary>
+SetCredential creates the network credential for the userid and password. The webservice is pre-authenicated using the credentials. 
+</summary>
+<remarks>If the userid or password is an empty string, an error will be thrown. Use this method if the webservice has password protection.</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceTypeEdit(System.Int32,System.String)">
+<summary>
+DeviceTypeEdit modifies an existing device type.
+</summary>
+<param name="I_TYP_DEV">The  auto number key for the device type record, SqlDbType.Int</param>
+<param name="X_DSC_DEV">The text description for the device type, SqlDbType.NvarChar(50)</param>
+<remarks>Device types characterize Parco Tags in size, shape, and lot numbers.</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceTypeDelete(System.Int32)">
+<summary>
+DeviceTypeDelete deletes an existing device type. The delete will throw an exception if the record is in use.
+</summary>
+<param name="I_TYP_DEV">The auto number key for the device type record, SqlDbType.Int</param>
+<remarks>Device types characterize Parco Tags in size, shape, and lot numbers.</remarks>
+</member>
+      <member name="M:Parco.Data.EntityTypeEdit(System.Int32,System.String)">
+<summary>
+ EntityTypeEdit modifies an existing Entity Type.
+</summary>
+<param name="I_TYP_ENT">The  auto number key for the entity type record, SqlDbType.Int</param>
+<param name="X_DSC_ENT">The text description for the entity type, SqlDbType.NvarChar(50)</param>
+<remarks>Entity types characterize entities. I_TYP_ENT = 1 is a Room and is reserved.  All other Entity Types are user defined</remarks>
+</member>
+      <member name="M:Parco.Data.EntityTypeDelete(System.Int32)">
+<summary>
+EntityTypeDelete deletes an existing entity type. The delete will throw an exception if the record is in use.
+</summary>
+<param name="I_TYP_ENT">The auto number key for the entity type record, SqlDbType.Int</param>
+<remarks>Entity types characterize entities. I_TYP_ENT = 1 is a Room and is reserved.  All other Entity Types are user defined</remarks>
+</member>
+      <member name="M:Parco.Data.AssmtReasonEdit(System.Int32,System.String)">
+<summary>
+AssmtReasonEdit modifies an existing Assignment Reason.
+</summary>
+<param name="I_RSN">The key the Assignment Reason record, SqlDbType.Int</param>
+<param name="X_RSN">The description for the Assignment Reason, SqlDbType.NvarChar(50)</param>
+<remarks>Assignment Reasons characterize assignments. Assignment Reasons are user defined and will be used according to your business rules.</remarks>
+</member>
+      <member name="M:Parco.Data.AssmtReasonDelete(System.Int32)">
+<summary>
+AssmtReasonDelete deletes an existing Assignment Reason. The delete will throw an exception if the record is in use.
+</summary>
+<param name="I_RSN">The key the Assignment Reason record, SqlDbType.Int</param>
+<remarks>Assignment Reasons characterize assignments. Assignment Reasons are user defined and will be used according to your business rules.</remarks>
+</member>
+      <member name="M:Parco.Data.RegionEdit(System.Int32,System.String,System.Single,System.Single,System.Single,System.Single,System.Single,System.Single,System.String,System.Int32)">
+<summary>
+RegionEdit modifies an existing Region. 
+</summary>
+<param name="I_RGN">The key specifying the region to edit, SqlDbType.Int</param>
+<param name="X_NM_RGN">The name for the region, SqlDbType.NvarChar(200)</param>
+<param name="N_MAX_X">The max X vertice value for the region, SqlDbType.Float</param>
+<param name="N_MAX_Y">The max Y vertice value for the region, SqlDbType.Float</param>
+<param name="N_MAX_Z">The max Z vertice value for the region, SqlDbType.Float</param>
+<param name="N_MIN_X">The min X vertice value for the region, SqlDbType.Float</param>
+<param name="N_MIN_Y">The min Y vertice value for the region, SqlDbType.Float</param>
+<param name="N_MIN_Z">The min Z vertice value for the region,SqlDbType.Float</param>
+<param name="X_ID_ENT">The optional Room entity ID if the region belongs to a room. SqlDbType.NvarChar(200)</param>
+<param name="I_TRG">The optional trigger key if the region belongs to a trigger, SqlDbType.Int</param>
+<remarks>The Max and Min values are the values computed by a region object from it vertices. A region may belong to a Room entity, Trigger, or both.</remarks>
+</member>
+      <member name="M:Parco.Data.RegionEdit(Parco.Region3D)">
+<summary>
+RegionEdit modifies an existing Region.
+</summary>
+<param name="oRegion">A Region3D instance containing the values to add.</param>
+<remarks>The Max and Min values are the values computed by a region object from it vertices. A region may belong to a Room entity, Trigger, or both.</remarks>
+</member>
+      <member name="M:Parco.Data.RegionDelete(System.Int32)">
+<summary>
+RegionDelete deletes an existing Region. The delete will fail if the region's vertices are not deleted first.
+</summary>
+<param name="I_RGN">The auto number key of the region to delete.</param>
+<remarks>A region may belong to a Room entity, Trigger, or both.</remarks>
+</member>
+      <member name="M:Parco.Data.VertexEdit(System.Int32,System.Single,System.Single,System.Single,System.Int32,System.Int32)">
+<summary>
+VertexEdit modifies a Vertex in the Vertices table.
+</summary>
+<param name="I_VTX">The key for the vertex record, SqlDbType.Int</param>
+<param name="N_X">The X value for the vertex, SqlDbType.Float</param>
+<param name="N_Y">The Y value for the vertex, SqlDbType.Float</param>
+<param name="N_Z">The Z value for the vetex. The Z values are not used at this time except for a Region3D object to calculate the Max and Min Z values, SqlDbType.Float</param>
+<param name="N_ORD">The order number for the vertex., SqlDbType.Int</param>
+<param name="I_RGN">The key for the parent region., SqlDbType.Int</param>
+<remarks> Verticies should be ordered with the N_ORD value increasing in the clockwise direction. The result of the verticies for a region should form a regular polygon such that no lines cross over one another.</remarks>
+</member>
+      <member name="M:Parco.Data.VertexEdit(Parco.Point2D)">
+<summary>
+VertexEdit modifies a Vertex in the Vertices table.
+</summary>
+<param name="oVert">A Point2D object instance.</param>
+<remarks>If the object does not contain a valid I_RGN key, the edit will fail. Verticies should be ordered with the N_ORD value increasing in the clockwise direction. The result of the verticies for a region should form a regular polygon such that no lines cross over one another.</remarks>
+</member>
+      <member name="M:Parco.Data.VertexEdit(Parco.Point3D)">
+<summary>
+VertexEdit modifies a Vertex in the Vertices table.
+</summary>
+<param name="oVert">A Point3D object instance.</param>
+<remarks>If the object does not contain a valid I_RGN key, the edit will fail. Verticies should be ordered with the N_ORD value increasing in the clockwise direction. The result of the verticies for a region should form a regular polygon such that no lines cross over one another.</remarks>
+</member>
+      <member name="M:Parco.Data.VertexDelete(System.Int32)">
+<summary>
+VertexDelete deletes a Vertex in the Vertices table.
+</summary>
+<param name="I_VTX">The key for the vertex record.</param>
+<remarks>Verticies should be ordered with the N_ORD value increasing in the clockwise direction. The result of the verticies for a region should form a regular polygon such that no lines cross over one another.</remarks>
+</member>
+      <member name="M:Parco.Data.RoomAdd(System.String,System.String)">
+<summary>
+RoomAdd adds a Room to the Entities table.
+</summary>
+<param name="X_ID_ENT">The unique id (GUID) for the Room, SqlDbType.NvarChar(200)</param>
+<param name="X_NM_ENT">The friendly name for the Room, SqlDbType.NvarChar(200)</param>
+<remarks>A room is a Entity where the EntiyType is 1. If X_ID_ENT is not unique, the insert will fail.</remarks>
+</member>
+      <member name="M:Parco.Data.RoomAdd(Parco.Room)">
+<summary>
+RoomAdd adds a Room to the Entities table.
+</summary>
+<param name="oRoom">An instance of a Room class.</param>
+<remarks>A room is a Entity where the EnityType is 1. If X_ID_ETY is not unique, the insert will fail.</remarks>
+</member>
+      <member name="M:Parco.Data.RoomEdit(System.String,System.String)">
+<summary>
+RoomEdit modifies a Room in the Entities table.
+</summary>
+<param name="X_ID_ENT">The unique id (GUID) for the Room, SqlDbType.NvarChar(200)</param>
+<param name="X_NM_ENT">The friendly name for the Room, SqlDbType.NvarChar(200)</param>
+<remarks>A room is a Entity where the EnityType is 1. If X_ID_ETY is not unique, the edit will fail.</remarks>
+</member>
+      <member name="M:Parco.Data.RoomEdit(Parco.Room)">
+<summary>
+RoomEdit modifies a Room in the Entities table.
+</summary>
+<param name="oRoom">An instance of a Room class</param>
+<remarks>A room is a Entity where the EnityType is 1. If X_ID_ENT is not unique, the edit will fail.</remarks>
+</member>
+      <member name="M:Parco.Data.RoomDelete(System.String)">
+<summary>
+RoomDelete deletes a Room in the Entities table.
+</summary>
+<param name="X_ID_ENT">The unique key for the room record</param>
+<remarks>A room is a Entity where the EnityType is 1. If the room has regions or assignments, the delete will fail.</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerEdit(System.Int32,System.String,System.Int32,System.Boolean)">
+<summary>
+TriggerEdits edits an existing record to the Triggers table.
+</summary>
+<param name="I_TRG">The trigger's auto number key, SqlDbType.int</param>
+<param name="X_NM_TRG">The friendly name for the trigger, SqlDbType.NvarChar(200)</param>
+<param name="I_DIR">The trigger direction, SqlDbType.int</param>
+<param name="bIgnoreUnknowns">The triggers behavior for unknown devices</param>
+<returns></returns>
+<remarks>This method does not edit the underlying region</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerEdit(System.Int32,System.String,System.Int32,System.Boolean)">
+<summary>
+TriggerEdits edits an existing record to the Triggers table.
+</summary>
+<param name="I_TRG">The trigger's auto number key, SqlDbType.int</param>
+<param name="X_NM_TRG">The friendly name for the trigger, SqlDbType.NvarChar(200)</param>
+<param name="enmDIR">The trigger direction enumerated value, SqlDbType.int</param>
+<param name="bIgnoreUnknowns">The triggers behavior for unknown devices</param>
+<returns></returns>
+<remarks>This method does not edit the underlying region</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerEdit(Parco.Trigger)">
+<summary>
+TriggerEdits edits an existing record to the Triggers table.
+</summary>
+<param name="oTrigger">An instance of Parco.Trigger to edit</param>
+<returns></returns>
+<remarks>This method does not edit the underlying region</remarks>
+</member>
+      <member name="M:Parco.Data.TriggerDelete(System.Int32)">
+<summary>
+TriggerDelete deletes an existing record in the Triggers table and any associated regions.
+</summary>
+<param name="I_TRG">The key of the trigger to delete</param>
+<returns></returns>
+<remarks>If a related region is also part of a room, the region's I_TRG foreign key is set to null and the region is not deleted.</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceAdd(System.String,System.Int32,System.String,System.Single,System.Single,System.Single,System.Boolean,System.DateTime)">
+<summary>
+DeviceAdd adds a record to the Devices table.
+</summary>
+<param name="X_ID_DEV">The unique identifier for the device, SqlDbType.NvarChar(200)</param>
+<param name="I_TYP_DEV">The device type key, SqlDbType.Int</param>
+<param name="X_NM_DEV">The friendly name for the device, SqlDbType.NvarChar(200)</param>
+<param name="X_MOE_X">The margin of error in the X direction, SqlDbType.Float</param>
+<param name="X_MOE_Y">The margin of error in the Y direction, SqlDbType.Float</param>
+<param name="X_MOE_Z">The margin of error in the Z direction, SqlDbType.Float</param>
+<param name="F_LOG">The flag for logging device data if it exists, SqlDbType.Bit</param>
+<param name="D_SRV_BGN">The service begin date for the device, SqlDbType.Datetime</param>
+<remarks>MOE's are used in determining if a device has moved in the History database. The F_LOG flag may be used
+to stop transmitted device data from being saved when the device is not assigned to an entity</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceAdd(Parco.Device)">
+<summary>
+DeviceAdd adds a record to the Devices table.
+</summary>
+<param name="oDevice">A Device instance containing the values to add.</param>
+<remarks>Margin of Error properties (MOE's) are used in determining if a device has moved in the History database. The Device.Log property
+ may be used to stop transmitted device data from being saved when the device is not assigned to an entity</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceEdit(System.String,System.Int32,System.String,System.Single,System.Single,System.Single,System.Boolean,System.DateTime)">
+<summary>
+DeviceEdit modifies a record to the Devices table.
+</summary>
+<param name="X_ID_DEV">The unique identifier for the device, SqlDbType.NvarChar(200)</param>
+<param name="I_TYP_DEV">The device type key, SqlDbType.Int</param>
+<param name="X_NM_DEV">The friendly name for the device, SqlDbType.NvarChar(200)</param>
+<param name="X_MOE_X">The margin of error in the X direction, SqlDbType.Float</param>
+<param name="X_MOE_Y">The margin of error in the Y direction, SqlDbType.Float</param>
+<param name="X_MOE_Z">The margin of error in the Z direction, SqlDbType.Float</param>
+<param name="F_LOG">The flag for logging device data if it exists, SqlDbType.Bit</param>
+<param name="D_SRV_BGN">The service begin date for the device, SqlDbType.Datetime</param>
+<remarks>MOE's are used in determining if a device has moved in the History database. The F_LOG flag may be used
+to stop transmitted device data from being saved when the device is not assigned to an entity</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceEdit(Parco.Device)">
+<summary>
+DeviceEdit modifies a record in the Devices table.
+</summary>
+<param name="oDevice">A Device instance containing the values to modify.</param>
+<remarks>Margin of Error properties (MOE's) are used in determining if a device has moved in the History database. The Device.Log property
+ may be used to stop transmitted device data from being saved when the device is not assigned to an entity</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceDelete(System.String)">
+<summary>
+DeviceDelete deletes a record in the Devices table.
+</summary>
+<param name="X_ID_DEV">The Device key to delete. SqlDbType.NvarChar(200)</param>
+<remarks>A device may not be deleted unless children records in DeviceAssmts are deleted (archived).</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceRemoveEndDate(System.String)">
+<summary>
+DeviceRemoveEndDate sets the end date of a device to null to designate it as "in service".
+</summary>
+<param name="X_ID_DEV">The device ID. SqlDbType.NVarChar(200)</param>
+<remarks>The D_CRT (create date) field defaults to the current server time in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.DeviceSetEndDate(System.String,System.DateTime)">
+<summary>DeviceSetEndDate sets the end date of a device to designate it as out of service.</summary>
+<param name="X_ID_DEV">The Device ID. SqlDbType.NVarChar(200)</param>
+<param name="D_SRV_END">The UTC date and time to set. SqlDbType.Datetime</param>
+<remarks>All Parco system date fields are in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.EntityAdd(System.String,System.Int32,System.String)">
+<summary>
+EntityAdd adds a record to the Entities table.
+</summary>
+<param name="X_ID_ENT">The unique identifier for the entity, SqlDbType.NvarChar(200)</param>
+<param name="I_TYP_ENT">The device type key, SqlDbType.Int</param>
+<param name="X_NM_ENT">A user friendly name for the entity, SqlDbType.NvarChar(200)</param>
+<remarks>The D_CRT (create date) field defaults to the current server time in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.EntityAdd(Parco.Entity)">
+<summary>
+EntityAdd adds a record to the Entities table.
+</summary>
+<param name="oEntity">The entity instance to add, Parco.Entity</param>
+<remarks>The D_CRT (create date) field defaults to the current server time in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.EntityEdit(System.String,System.Int32,System.String)">
+<summary>
+EntityEdit modifies a record in the Entities table.
+</summary>
+<param name="X_ID_ENT">The unique identifier for the entity, SqlDbType.NvarChar(200)</param>
+<param name="I_TYP_ENT">The device type key, SqlDbType.Int</param>
+<param name="X_NM_ENT">A user friendly name for the entity, SqlDbType.NvarChar(200)</param>
+<remarks>The D_UDT (update date) field defaults to the current server time in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.EntityEdit(Parco.Entity)">
+<summary>
+EntityEdit modifies a record in the Entities table.
+</summary>
+<param name="oEntity">The instance of an entity to edit, Parco.Entity</param>
+<remarks>The D_UDT (update date) field defaults to the current server time in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.EntityDelete(System.String)">
+<summary>
+EntityDelete deletes a record in the Entities table.
+</summary>
+<param name="X_ID_ENT">The key of the entity to delete, SqlDbType.NvarChar(200)</param>
+<remarks>Child records in table EntityAssignments must be deleted and/or archived before an
+entity may be deleted. If the entity is a room, the delete will fail if child regions exist.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityEdit(System.Int32,System.String,System.String,System.Int32)">
+<summary>
+AssignEntityEdit edits an assignment record to the EntityAssmts table.
+</summary>
+<param name="I_ASN_ENT">The key for the record, SqlDbType.Int</param>
+<param name="X_ID_PRN">The unique identifier for the principle assignment entity, SqlDbType.NvarChar(200)</param>
+<param name="X_ID_CHD">The unique identifier for the child assignment entity, SqlDbType.NvarChar(200)</param>
+<param name="I_RSN">An optional reason key for the basis of the assignment, SqlDbType.Int</param>
+<remarks>The D_ENT_ASN_BGN (assignment begin date) field is not changed.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityEnd(System.Int32)">
+<summary>
+AssignEntityEnd sets the end date for an assignment record in the EntityAssmts table.
+</summary>
+<param name="I_ASN_ENT">The key for the record, SqlDbType.Int</param>
+<remarks>The D_ENT_ASN_END (assignment end date) field is set to the current server time in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityDelete(System.Int32)">
+<summary>
+AssignEntityDelete deletes an assignment record in the EntityAssmts table.
+</summary>
+<param name="I_ASN_ENT">The key for the record, SqlDbType.Int</param>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityEndAll(System.String)">
+<summary>
+AssignEntityEndAll sets the Assignment End Date for all assignment records where the
+either the principle or child matches the Entity ID.
+</summary>
+<param name="X_ID_ENT">The unique identifier for the entity, SqlDbType.NVarChar(200)</param>
+<remarks>None</remarks>
+</member>
+      <member name="M:Parco.Data.AssignEntityDeleteAll(System.String)">
+<summary>
+AssignEntityDeleteAll deletes all assignment records where the
+either the principle or child matches the Entity ID.
+</summary>
+<param name="X_ID_ENT">The unique identifier for the entity, SqlDbType.NVarChar(200)</param>
+<remarks>None</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevEdit(System.Int32,System.String,System.String,System.Int32)">
+<summary>
+AssignDevEdit edits an assignment record to the DeviceAssmts table.
+</summary>
+<param name="I_ASN_DEV">The key for the record, SqlDbType.Int</param>
+<param name="X_ID_DEV">The unique identifier for the Parco device, SqlDbType.NvarChar(200)</param>
+<param name="X_ID_ENT">The unique identifier for the entity, SqlDbType.NvarChar(200)</param>
+<param name="I_RSN">An optional reason key for the basis of the assignment, SqlDbType.Int</param>
+<remarks>The D_ASN_BGN (assignment begin date) field is not changed.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevEnd(System.Int32)">
+<summary>
+AssignDevEnd sets the end date for an assignment record in the DeviceAssmts table.
+</summary>
+<param name="I_ASN_DEV">The key for the record, SqlDbType.Int</param>
+<remarks>The D_ASN_END (assignment end date) field is set to the current server time in UTC.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevDelete(System.Int32)">
+<summary>
+AssignDevDelete deletes an assignment record in the DeviceAssmts table.
+</summary>
+<param name="I_ASN_DEV">The key for the record, SqlDbType.Int</param>
+<remarks>none</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevEndAll(System.String)">
+<summary>
+AssignDevEndAll sets the D_ASN_END field for all open assignment records for the Device ID
+</summary>
+<param name="X_ID_DEV">The unique identifier for the Device, SqlDbType.NVarChar(200)</param>
+<remarks>The D_ASN_END Field is set by the server in UTC and is not changed for previosly ended assignments.</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevDeleteAll(System.String)">
+<summary>
+AssignEntityDeleteAll deletes all assignment records for the Device Id
+</summary>
+<param name="X_ID_DEV">The unique identifier for the Device, SqlDbType.NVarChar(200)</param>
+<remarks>None</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevDeleteAllByEnt(System.String)">
+<summary>
+AssignDevDeleteAllByEnt deletes all assignment records for the Entity ID
+</summary>
+<param name="X_ID_ENT">The unique identifier for the entity, SqlDbType.NVarChar(200)</param>
+<remarks>None</remarks>
+</member>
+      <member name="M:Parco.Data.AssignDevEndAllByEnt(System.String)">
+<summary>
+AssignDevEndAllByEnt ends all open assignment records for the Entity ID
+</summary>
+<param name="X_ID_ENT">The unique identifier for the entity, SqlDbType.NVarChar(200)</param>
+<remarks>The D_ASN_END Field is set by the server in UTC</remarks>
+</member>
+      <member name="M:Parco.Data.HistoryDeleteAll">
+<summary>
+HistoryDeleteAll deletes all of the records in ParcoRTLSHistory database.
+</summary>
+<remarks>This method may timeout if a large number of position records are contained in the database.</remarks>
+</member>
+      <member name="M:Parco.Data.HistoryDeleteByID(System.String)">
+<summary>
+HistoryDeleteAll deletes all of the records in ParcoRTLSHistory database.
+</summary>
+<param name="X_ID_DEV">The Device ID to delete all history records for, SqlDbType.NvarChar(200)</param>
+<remarks>This method may timeout if a large number of position records are contained in the database.</remarks>
+</member>
+      <member name="M:Parco.Data.DataTextDeleteByDevice(System.String)">
+<summary>
+DataTextDeleteByDevice deletes all data for a Parco Device from the ParcoRTLSData database (future use)
+</summary>
+<param name="X_ID_DEV">The Device ID to fetch records for, SqlDbType.Float</param>
+<remarks>This method is for future use.</remarks>
+</member>
+      <member name="M:Parco.Data.DataTextDeleteByID(System.Int32)">
+<summary>
+DataTextDeleteByID deletes a text data record from the ParcoRTLSData database (future use)
+</summary>
+<param name="I_DAT">The data key to delete, SqlDbType.Int</param>
+<remarks>This method is for future use.</remarks>
+</member>
+      <member name="M:Parco.Data.DataTextDeleteAll">
+<summary>
+DataTextDeleteAll deletes all text data records from the ParcoRTLSData database (future use)
+</summary>
+<remarks>This method is for future use.</remarks>
+</member>
+      <member name="P:Parco.Data.DataServiceURL">
+ <summary>
+ Sets the URL for the Parco RTLS data service.
+ </summary>
+<remarks>The URL must point to a valid Parco version 1.0 data service like http://IPAddress/ParcoRTLSws/DataV1.asmx . Replace "IPAddress" with a valid TCPIP address
+like 10.1.130.4 or DNS entry like parcodata.yourdomain.com to connect to the data service.</remarks>
+</member>
+      <member name="P:Parco.Data.UserID">
+<summary>
+The UserId member sets the userid used for a network credential. 
+</summary>
+<remarks>This property is not needed if the Parco Data Service is not password proctected.</remarks>
+</member>
+      <member name="P:Parco.Data.Password">
+<summary>
+The password member sets the password used for a network credential. 
+</summary>
+<remarks>This property is not needed if the Parco Data Service is not password proctected.</remarks>
+</member>
+      <member name="T:Parco.DataStream">
+<summary>The DataStream class provides connectivity to Parco streaming data resources. Resources are created by Parco to meet your
+your application requirements.
+</summary>
+<remarks>Parco streaming data resources are published in the Parco RTLS database. Calling Data.ResourceSelect will return
+a TCPIP address and Port for the least busy resource of the type specified.</remarks>
+</member>
+      <member name="T:Parco.DataStream.ConnectionState">
+<summary>DataStream TCP socket connection enumerations.</summary>
+<remarks>None</remarks>
+</member>
+      <member name="F:Parco.DataStream.ConnectionState.StateUnknown"></member>
+      <member name="F:Parco.DataStream.ConnectionState.Connected"></member>
+      <member name="F:Parco.DataStream.ConnectionState.Disconnected"></member>
+      <member name="M:Parco.DataStream.ConnectionTest(System.String,System.Int32)">
+<summary>ConnectionTest returns true if a connection can be made to the specified TCPIP address and port. </summary>
+<remarks>A new connection is made and closed. This method may be called at any time.</remarks>
+</member>
+      <member name="M:Parco.DataStream.Address(System.String,System.Int32)">
+<summary>The Address method sets the TCPIP address and Port for a resource.</summary>
+<remarks>A ConnectionException is thrown if the underlying connection is open.</remarks>
+</member>
+      <member name="M:Parco.DataStream.Connect">
+<summary>Connect opens a connection to the TCPIP address and port.</summary>
+<remarks>A ConnectionException is thrown if the underlying socket connection is already open.</remarks>
+</member>
+      <member name="M:Parco.DataStream.Close">
+<summary>Close closes the socket connection to the Parco resource.</summary>
+<remarks>A NotConnectedException is thrown if the underlying socket is not initialized.</remarks>
+</member>
+      <member name="M:Parco.DataStream.SendRequest">
+<summary>Sends a Parco Request to the resource.</summary>
+<remarks>A NotConnectedException is thrown if the underlying socket is not initialized or open. An InvalidRequestException is
+thrown if an AddDevice or RemoveDevice request does not contain any devices.</remarks>
+</member>
+      <member name="M:Parco.DataStream.StartReadingLive"></member>
+      <member name="M:Parco.DataStream.LiveDataReceived"></member>
+      <member name="M:Parco.DataStream.LiveDataArrived(System.String)"></member>
+      <member name="M:Parco.DataStream.#ctor">
+<summary>Initializes a new instance.</summary>
+</member>
+      <member name="M:Parco.DataStream.#ctor(System.String,System.Int32)">
+<summary>Initializes a new instance and sets the TCPIP address and port</summary>
+<remarks>The connection is not opened until the Connect method is called.</remarks>
+</member>
+      <member name="M:Parco.DataStream.Finalize">
+<summary>Finalizes the object instance</summary>
+<remarks>The underlying socket is closed if it is still open.</remarks>
+</member>
+      <member name="E:Parco.DataStream.Stream">
+<summary>The stream event is raised when the DataStream instance receives device position information from the resource.</summary>
+<remarks>The device object contains the ID as well as X, Y, and Z coordinate data.
+ The stream event has the same signature as the Trigger.TriggerEvent and History.HistoryData events. As such, you may use the same
+event handler for all three events.</remarks>
+</member>
+      <member name="E:Parco.DataStream.Response">
+<summary>The Response event is raised when the DataStream instance receives receives a response from a Parco service. A response is always sent from the service
+in acknowlegement of a request.</summary>
+<remarks>The response object contains your original request ID as well as any error message. An empty message signifies that the request was processed. A message, if present, indicates
+the problem with the original request. </remarks>
+</member>
+      <member name="E:Parco.DataStream.Connection">
+<summary>The Connection event is raised when the DataStream's underlying socket changes state.</summary>
+<remarks>If a connection unexpectedly closes, you will have to re-initialize your connection and all requests for data.</remarks>
+</member>
+      <member name="P:Parco.DataStream.Name">
+<summary>A user supplied name to differentiate between multiple DataStream instances.</summary>
+</member>
+      <member name="P:Parco.DataStream.IsConnected">
+<summary>Returns true if the underlying TCP socket is connected, otherwise returns false.</summary>
+</member>
+      <member name="P:Parco.DataStream.ResourceType">
+<summary>The Resouce Type that the instance is receiving streaming data from. Resouce types are data driven from the Parco data service
+and are set up in advance and are based on your application needs.</summary>
+</member>
+      <member name="P:Parco.DataStream.Version">
+<summary>The executing assembly version.</summary>
+</member>
+      <member name="T:Parco.Device">
+<summary>
+The Device class is the base class that all Parco device hardware items should inherit from.
+Ptags and  Etags are examples of devices. Inheritance allows the system to pass around generic
+device information without having to know about the device specifics. 
+</summary>
+<remarks>Properties will be populated based upon the context of use. Devices from stream resources will have the
+these properties populated: ID, ConfFactor, Data, HasData, MsgType, Point3D, TimeStampUTC, X, Y, And Z.
+Devices retrieved from a data source will have these properties populated: ID, DeviceType, Name, ServiceBegin, 
+ServiceEnd, Log, MOEx, MOEy, and MOEz</remarks>
+</member>
+      <member name="M:Parco.Device.#ctor"></member>
+      <member name="M:Parco.Device.#ctor(System.String)"></member>
+      <member name="M:Parco.Device.#ctor(System.String,System.Single,System.Single,System.Single,System.DateTime)"></member>
+      <member name="M:Parco.Device.#ctor(System.String,System.Single,System.Single,System.Single,System.Single,System.Single,System.Single,System.DateTime)"></member>
+      <member name="P:Parco.Device.ID">
+<summary>A unique string identifier transmitted by the Device or stored in a database.</summary>
+<value>A unique string identifier transmitted by the Device or stored in a database.</value> 
+</member>
+      <member name="P:Parco.Device.X">
+<summary>The X coordinate transmitted by the Device.</summary>
+<value>The X coordinate transmitted by the Device.</value> 
+</member>
+      <member name="P:Parco.Device.Y">
+<summary>The Y coordinate transmitted by the Device.</summary>
+<value>The Y coordinate transmitted by the Device.</value> 
+</member>
+      <member name="P:Parco.Device.Z">
+<summary>The Z coordinate transmitted by the Device.</summary>
+<value>The Z coordinate transmitted by the Device.</value> 
+</member>
+      <member name="P:Parco.Device.DeviceType">
+<summary>A logical device grouping. Devices may be classified by physical form factors as well as administrative groupings such as lot numbers.</summary>
+<value>The device type identifier.</value> 
+</member>
+      <member name="P:Parco.Device.Name">
+<summary>The device name. Device name holds an assigned name which may also be the unique id or some other user friendly name.</summary>
+<value>The friendly name identifier.</value> 
+</member>
+      <member name="P:Parco.Device.MsgType">
+<summary>The message type from which the device data originated such as a stream subscription.</summary>
+<value>The friendly name identifier.</value> 
+</member>
+      <member name="P:Parco.Device.ConfFactor">
+<summary>The Confidence factor of the position coordinates (X,Y,Z). This property is reserved for future use.</summary>
+<value>The confidence factor relating to the accuracy and/or timing of the position coordinates.</value> 
+</member>
+      <member name="P:Parco.Device.SendData">
+<summary>A flag for determing if a subscription requires the device's transmitted data to be sent.</summary>
+<value>A flag for determing if a subscription requires the device's transmitted data to be sent.</value> 
+</member>
+      <member name="P:Parco.Device.ServiceBegin">
+<summary>The date and time signifying the when the device was placed in service.</summary>
+<value>The date and time in UTC signifying the when the device was placed in service.</value> 
+</member>
+      <member name="P:Parco.Device.ServiceEnd">
+<summary>The date and time signifying the when the device was removed fromservice.</summary>
+<value>The date and time in UTC signifying the when the device was removed from service.</value> 
+</member>
+      <member name="P:Parco.Device.TimeStampUTC">
+<summary>The date and time signifying the when the device position information was transmitted.</summary>
+<value>The date and time in UTC signifying the when the device information was transmitted.</value> 
+</member>
+      <member name="P:Parco.Device.MOEx">
+<summary>The margin of errror in the X direction used to determine if the device has moved. MOE's are used to 
+eliminate insignificant position changes.</summary>
+<value>The margin of errror in the X direction used to determine if the device has moved.</value> 
+</member>
+      <member name="P:Parco.Device.MOEy">
+<summary>The margin of errror in the Y direction used to determine if the device has moved. MOE's are used to 
+eliminate insignificant position changes.</summary>
+<value>The margin of errror in the Y direction used to determine if the device has moved.</value> 
+</member>
+      <member name="P:Parco.Device.MOEz">
+<summary>The margin of errror in the Z direction used to determine if the device has moved. MOE's are used to 
+eliminate insignificant position changes.</summary>
+<value>The margin of errror in the Z direction used to determine if the device has moved.</value> 
+</member>
+      <member name="P:Parco.Device.Point3D">
+<summary>Returns a Parco.Point3D object based on the X, Y, and Z properties</summary>
+<value>ReadOnly returns a Parco.Point3D object based on the X, Y, and Z properties</value> 
+</member>
+      <member name="P:Parco.Device.Data">
+<summary>Contains data transmitted by the device.</summary>
+<value>* Contains data transmitted by the device.</value> 
+</member>
+      <member name="P:Parco.Device.HasData">
+<summary>Boolean property to dertemine if the Device instance contains transmitted data.</summary>
+<value>Boolean property to dertemine if the Device instance contains transmitted data.</value> 
+</member>
+      <member name="P:Parco.Device.Log">
+<summary>Boolean property to dertemine if the Device's transmitted data should be saved to the Parco RTLS Database.</summary>
+<value>Boolean property to dertemine if the Device's transmitted data should be saved to the Parco RTLS Database.</value> 
+</member>
+      <member name="T:Parco.Entity">
+<summary>
+An entity represents person or thing that can accept an assignment. Entities can have devices or other entities assigned to them.
+The entity ID is user assignable and should correspond to the ID of the item in your application or facility database. 
+A name property is provided to hold a user friendly name or description of the entity. A Room is a special entity in the Parco system and has a reserved EntityType value of 1.
+</summary>
+</member>
+      <member name="M:Parco.Entity.#ctor"></member>
+      <member name="M:Parco.Entity.#ctor(System.String)">
+mcolDevices = New Devices
+mcolEntities = New Entities
+</member>
+      <member name="M:Parco.Entity.#ctor(System.String,System.String,System.Int32)">
+mcolDevices = New Devices
+mcolEntities = New Entities
+</member>
+      <member name="M:Parco.Entity.#ctor(System.String,System.String,System.Int32,System.String)"></member>
+      <member name="P:Parco.Entity.ID">
+<summary>A unique string identifier stored in the Parco RTLS database. The value should correspond to the Entity's
+key in your application or facilty database.</summary>
+<value>>A unique string identifier stored in the Parco RTLS database. The value should correspond to the Entity's
+key in your application or facilty database.</value> 
+</member>
+      <member name="P:Parco.Entity.EntityType">
+<summary>The integer key for the classification of an entity.</summary>
+<value>The integer key for the classification of an entity.</value> 
+</member>
+      <member name="P:Parco.Entity.TypeDescription">
+<summary>The string descripton for the entity type.</summary>
+<value>The string descripton for the entity type.</value> 
+</member>
+      <member name="P:Parco.Entity.Name">
+<summary>The string name for the entity.</summary>
+<value>The string name for the entity.</value> 
+</member>
+      <member name="P:Parco.Entity.CreateDate">
+<summary>The datetime when the entity record was created in UTC.</summary>
+<value>The datetime when the entity record was created in UTC.</value> 
+</member>
+      <member name="P:Parco.Entity.UpdateDate">
+<summary>The datetime when the entity record was last updated in UTC.</summary>
+<value>The datetime when the entity record was last updated in UTC.</value> 
+</member>
+      <member name="P:Parco.Entity.Entities">
+<summary>A collection of Entity instances assigned to this Entity.</summary>
+<value>A collection of Entity instances assigned to this Entity.</value> 
+</member>
+      <member name="P:Parco.Entity.Devices">
+<summary>A collection of Device instances assigned to this Entity.</summary>
+<value>A collection of Device instances assigned to this Entity.</value> 
+</member>
+      <member name="P:Parco.Entity.DeviceAssignments">
+<summary>A collection of DeviceAssignment instances related to this Entity. A DeviceAssignment is a
+business object representation of a device assignment record.</summary>
+<value>A collection of DeviceAssignment instances related to this Entity. A DeviceAssignment is a
+business object representation of a device assignment record.</value> 
+</member>
+      <member name="P:Parco.Entity.EntityAssignments">
+<summary>A collection of EntityAssignment instances related to this Entity. An EntityAssignment is a
+business object representation of an entity assignment record.</summary>
+<value>A collection of EntityAssignment instances related to this Entity. An EntityAssignment is a
+business object representation of an entity assignment record.</value> 
+</member>
+      <member name="T:Parco.TriggerDirectionNotSetException">
+<summary>Thrown when a trigger is checked and the direction has not been set.</summary>
+</member>
+      <member name="M:Parco.TriggerDirectionNotSetException.#ctor"></member>
+      <member name="M:Parco.TriggerDirectionNotSetException.#ctor(System.String)"></member>
+      <member name="M:Parco.TriggerDirectionNotSetException.#ctor"></member>
+      <member name="T:Parco.TriggerRegionNotSetException">
+<summary>Thrown when a trigger is checked and its regions collection is nothing.</summary>
+</member>
+      <member name="M:Parco.TriggerRegionNotSetException.#ctor"></member>
+      <member name="M:Parco.TriggerRegionNotSetException.#ctor(System.String)"></member>
+      <member name="M:Parco.TriggerRegionNotSetException.#ctor"></member>
+      <member name="T:Parco.RegionVerticesNotSetException">
+<summary>Thrown when the region validates itself and its vertices array is nothing.</summary>
+</member>
+      <member name="M:Parco.RegionVerticesNotSetException.#ctor"></member>
+      <member name="M:Parco.RegionVerticesNotSetException.#ctor(System.String)"></member>
+      <member name="M:Parco.RegionVerticesNotSetException.#ctor"></member>
+      <member name="T:Parco.RegionVerticesMinimumException">
+<summary>Thrown when a  Region2D or Region3D validates itself and its vertices array length is less than 3.</summary>
+</member>
+      <member name="M:Parco.RegionVerticesMinimumException.#ctor"></member>
+      <member name="M:Parco.RegionVerticesMinimumException.#ctor(System.String)"></member>
+      <member name="M:Parco.RegionVerticesMinimumException.#ctor"></member>
+      <member name="T:Parco.RegionVerticesMissingException">
+<summary>Thrown when a Region2D/3D instance validates itself and  a vertices array member (Parco.Point2D) is nothing.</summary>
+</member>
+      <member name="M:Parco.RegionVerticesMissingException.#ctor"></member>
+      <member name="M:Parco.RegionVerticesMissingException.#ctor(System.String)"></member>
+      <member name="M:Parco.RegionVerticesMissingException.#ctor"></member>
+      <member name="T:Parco.RegionVerticesOutOfOrderException">
+<summary>Thrown when a Region2D/3D instance validates itself and vertices array Item.Number is not equal to its index.</summary>
+</member>
+      <member name="M:Parco.RegionVerticesOutOfOrderException.#ctor"></member>
+      <member name="M:Parco.RegionVerticesOutOfOrderException.#ctor(System.String)"></member>
+      <member name="M:Parco.RegionVerticesOutOfOrderException.#ctor"></member>
+      <member name="T:Parco.RegionInvalidException">
+<summary>Thrown when the Region3D.ContainsPoint method is called and and its region is not valid.</summary>
+</member>
+      <member name="M:Parco.RegionInvalidException.#ctor"></member>
+      <member name="M:Parco.RegionInvalidException.#ctor(System.String)"></member>
+      <member name="M:Parco.RegionInvalidException.#ctor"></member>
+      <member name="T:Parco.RegionInvalidShapeException">
+<summary>Future use for shape checking.</summary>
+</member>
+      <member name="M:Parco.RegionInvalidShapeException.#ctor"></member>
+      <member name="M:Parco.RegionInvalidShapeException.#ctor(System.String)"></member>
+      <member name="M:Parco.RegionInvalidShapeException.#ctor"></member>
+      <member name="T:Parco.Region3DInvalidZException">
+<summary>Thrown when a  Region3D.ContainsPoint is called and ZTop is less than ZBottom AND the point is of type Point3D or the Z value is specified.</summary>
+</member>
+      <member name="M:Parco.Region3DInvalidZException.#ctor"></member>
+      <member name="M:Parco.Region3DInvalidZException.#ctor(System.String)"></member>
+      <member name="M:Parco.Region3DInvalidZException.#ctor"></member>
+      <member name="T:Parco.HistoryNotLoadedException">
+<summary>Thrown when the History.Start or History.Pause methods are called and the dataset is not Loaded or has 0 records.</summary>
+</member>
+      <member name="M:Parco.HistoryNotLoadedException.#ctor"></member>
+      <member name="M:Parco.HistoryNotLoadedException.#ctor(System.String)"></member>
+      <member name="M:Parco.HistoryNotLoadedException.#ctor"></member>
+      <member name="T:Parco.HistoryPlayModeException">
+<summary>Thrown when the History.Load method is called and the playmode property is missing or is invalid.</summary>
+</member>
+      <member name="M:Parco.HistoryPlayModeException.#ctor"></member>
+      <member name="M:Parco.HistoryPlayModeException.#ctor(System.String)"></member>
+      <member name="M:Parco.HistoryPlayModeException.#ctor"></member>
+      <member name="T:Parco.HistoryPlayException">
+<summary>Thrown when the History.Start method is called and already playing, Pause Method called and not playing or paused, or
+setting any Playmode Property or Date property while Playing or Paused.</summary>
+</member>
+      <member name="M:Parco.HistoryPlayException.#ctor"></member>
+      <member name="M:Parco.HistoryPlayException.#ctor(System.String)"></member>
+      <member name="M:Parco.HistoryPlayException.#ctor"></member>
+      <member name="T:Parco.HistoryPlayRateException">
+<summary>Thrown when the History.Playrate property is set to a value of 0 or less</summary>
+</member>
+      <member name="M:Parco.HistoryPlayRateException.#ctor"></member>
+      <member name="M:Parco.HistoryPlayRateException.#ctor(System.String)"></member>
+      <member name="M:Parco.HistoryPlayRateException.#ctor"></member>
+      <member name="T:Parco.HistoryDateException">
+<summary>Thrown when the History.EndDate property is less than BeginDate property and the Load method is called.</summary>
+</member>
+      <member name="M:Parco.HistoryDateException.#ctor"></member>
+      <member name="M:Parco.HistoryDateException.#ctor(System.String)"></member>
+      <member name="M:Parco.HistoryDateException.#ctor"></member>
+      <member name="T:Parco.HistoryPropertySetException">
+<summary>Thrown when the Target,  Property, or Date property  is set while PlayState is not NotReady</summary>
+</member>
+      <member name="M:Parco.HistoryPropertySetException.#ctor"></member>
+      <member name="M:Parco.HistoryPropertySetException.#ctor(System.String)"></member>
+      <member name="M:Parco.HistoryPropertySetException.#ctor"></member>
+      <member name="T:Parco.DataSearchException">
+<summary>Thrown when Passing a SQL string argument which contains Insert, Update, or Delete commands to the Search, HistorySearch, or DataSearch methods.</summary>
+</member>
+      <member name="M:Parco.DataSearchException.#ctor"></member>
+      <member name="M:Parco.DataSearchException.#ctor(System.String)"></member>
+      <member name="M:Parco.DataSearchException.#ctor"></member>
+      <member name="T:Parco.DataException">
+<summary>Thrown when a generic Parco.Dataservice data access error occurs.</summary>
+</member>
+      <member name="M:Parco.DataException.#ctor"></member>
+      <member name="M:Parco.DataException.#ctor(System.String)"></member>
+      <member name="M:Parco.DataException.#ctor"></member>
+      <member name="T:Parco.NotConnectedException">
+<summary>Thrown when calling a DataStream method while the underlying socket is not open</summary>
+</member>
+      <member name="M:Parco.NotConnectedException.#ctor"></member>
+      <member name="M:Parco.NotConnectedException.#ctor(System.String)"></member>
+      <member name="M:Parco.NotConnectedException.#ctor"></member>
+      <member name="T:Parco.ConnectionException">
+<summary>Thrown when a DataStream TCPIP address or port properties are modified while the underlying socket is open.</summary>
+</member>
+      <member name="M:Parco.ConnectionException.#ctor"></member>
+      <member name="M:Parco.ConnectionException.#ctor(System.String)"></member>
+      <member name="M:Parco.ConnectionException.#ctor"></member>
+      <member name="T:Parco.InvalidRequestException">
+<summary>Thrown when the DataStream AddDevice or RemoveDevice method is called without specifying the device(s)</summary>
+</member>
+      <member name="M:Parco.InvalidRequestException.#ctor"></member>
+      <member name="M:Parco.InvalidRequestException.#ctor(System.String)"></member>
+      <member name="M:Parco.InvalidRequestException.#ctor"></member>
+      <member name="T:Parco.InvalidCredentialException">
+<summary>Thrown when the DataStream SetCredential method or a constructor is called with empty UserID or Password strings.</summary>
+</member>
+      <member name="M:Parco.InvalidCredentialException.#ctor"></member>
+      <member name="M:Parco.InvalidCredentialException.#ctor(System.String)"></member>
+      <member name="M:Parco.InvalidCredentialException.#ctor"></member>
+      <member name="T:Parco.History">
+<summary>
+The history player is a virtual "VCR" for timed playback of Parco historical data. Data is supplied by the HistoryData event and is in the same format 
+as streaming data. 
+</summary>
+<remarks>An asynchronous data retrieval mode is available. The OnLoad event fires when the data retrieval is complete.</remarks>
+</member>
+      <member name="T:Parco.History.PlayMode">
+<summary>Enumerated contants for specifying the PlayMode of the history player.</summary>
+</member>
+      <member name="F:Parco.History.PlayMode.NotSet"></member>
+      <member name="F:Parco.History.PlayMode.ByRegion"></member>
+      <member name="F:Parco.History.PlayMode.ByRegions"></member>
+      <member name="F:Parco.History.PlayMode.ByDevice"></member>
+      <member name="F:Parco.History.PlayMode.ByDevices"></member>
+      <member name="T:Parco.History.PlayState">
+<summary>Enumerated contants for determining the PlayState of the history player.</summary>
+</member>
+      <member name="F:Parco.History.PlayState.NotReady"></member>
+      <member name="F:Parco.History.PlayState.Ready"></member>
+      <member name="F:Parco.History.PlayState.Playing"></member>
+      <member name="F:Parco.History.PlayState.Paused"></member>
+      <member name="M:Parco.History.GetDevice(System.Data.DataRow)"></member>
+      <member name="M:Parco.History.Interval(System.DateTime,System.DateTime)"></member>
+      <member name="M:Parco.History.GetData">
+<summary>Delegate for asynchronous data retrieval.</summary>
+</member>
+      <member name="M:Parco.History.#ctor"></member>
+      <member name="M:Parco.History.#ctor(System.Single,System.DateTime,System.DateTime,System.String,Parco.Data)"></member>
+      <member name="M:Parco.History.#ctor(System.Single,System.DateTime,System.DateTime,System.String,Parco.Data)"></member>
+      <member name="M:Parco.History.#ctor(System.Single,System.DateTime,System.DateTime,System.String,Parco.Data)"></member>
+      <member name="M:Parco.History.#ctor(System.Single,System.DateTime,System.DateTime,System.String,Parco.Data)"></member>
+      <member name="M:Parco.History.#ctor(System.Single,System.DateTime,System.DateTime,System.String,Parco.Data)"></member>
+      <member name="M:Parco.History.Load">
+<summary>Begins sychronous data retrieval based on the property settings of the instance.</summary>
+<returns>void</returns>
+<remarks>The OnLoad event is raised when data retrieval is complete. The Done event is raised if the dataset contains 0 records</remarks>
+</member>
+      <member name="M:Parco.History.BeginLoad">
+<summary>Begins asychronous data retrieval based on the property settings of the instance.</summary>
+<returns>void</returns>
+<remarks>The OnLoad event is raised when data retrieval is complete. The Done event is raised if the dataset contains 0 records</remarks>
+</member>
+      <member name="M:Parco.History.EndLoad"></member>
+      <member name="M:Parco.History.Play">
+<summary>Begins playback of the history data.</summary>
+<returns>void</returns>
+<remarks>A HistoryPlayException is thrown if the PlayState is Playing.
+ A HistoryNotLoadedException if the PlayState is NotReady or if IsLoaded is false.</remarks>
+</member>
+      <member name="M:Parco.History.Pause">
+<summary>Pauses playback of the history data at the current record.</summary>
+<returns>void</returns>
+<remarks>A HistoryPlayException is thrown if the PlayState is Ready or NotReady.</remarks>
+</member>
+      <member name="M:Parco.History.Quit">
+<summary>Stops playback of the history data and resets the record cursor to the first record in the dataset.</summary>
+<returns>void</returns>
+<remarks>Raised a Done event when completed.</remarks>
+</member>
+      <member name="M:Parco.History.ErrorCheck"></member>
+      <member name="M:Parco.History.GetDataset"></member>
+      <member name="M:Parco.History.InitTimer"></member>
+      <member name="M:Parco.History.Reset"></member>
+      <member name="M:Parco.History.mTimer_Elapsed">
+The timer is enabled when the play method is called 
+</member>
+      <member name="E:Parco.History.OnLoad">
+<summary>The OnLoad event is raised when the dataset has been retrieved from the Parco data service</summary>
+</member>
+      <member name="E:Parco.History.HistoryData">
+<summary>The HistoryData event is raised for each row of device data based on the TimeStamp of the record and the PlayRate.</summary>
+<remarks>The HistoryData event has the same signature as the DataStream.Stream and Trigger.TriggerEvent events. As such, you may use the same
+event handler for all three events.</remarks>
+</member>
+      <member name="E:Parco.History.Done">
+<summary>The Done event is raised when all of the requested data has been played back.</summary>
+</member>
+      <member name="P:Parco.History.Name">
+<summary>String, user defined name for differentiating history player instances.</summary>
+<value>String, user defined name for differentiating history player instances.</value>
+</member>
+      <member name="P:Parco.History.PlayRate">
+<summary>Single, multiplication factor for play back, 1 is real time.</summary>
+<value>Single, multiplication factor for play back, 1 is real time.</value>
+<remarks>A HistoryPlayRateException is thrown if the value is set to 0 or less.</remarks>
+</member>
+      <member name="P:Parco.History.BeginDateUTC">
+<summary>Date, the begin date in UTC for record retrieval.</summary>
+<value>Date, the begin date in UTC for record retrieval.</value>
+<remarks>A HistoryPropertySetException is thrown if the property is set and the PlayState is NotReady</remarks>
+</member>
+      <member name="P:Parco.History.EndDateUTC">
+<summary>Date, the end date in UTC for record retrieval.</summary>
+<value>Date, the end date in UTC for record retrieval.</value>
+<remarks>A HistoryPropertySetException is thrown if the property is set and the PlayState is NotReady</remarks>
+</member>
+      <member name="P:Parco.History.ePlayMode">
+<summary>Readonly PlayMode enum, the PlayMode set upon instantiation</summary>
+<value>Readonly PlayMode enum, the PlayMode set upon instantiation</value>
+</member>
+      <member name="P:Parco.History.Device">
+<summary>Date, the end date in UTC for record retrieval.</summary>
+<value>Date, the end date in UTC for record retrieval.</value>
+<remarks>A HistoryPropertySetException is thrown if the property is set and the PlayState is NotReady</remarks>
+</member>
+      <member name="P:Parco.History.Devices">
+<summary>Device collection, devices for record retrieval when PlayMode.ByDevices is chosen.</summary>
+<value>Device collection, devices for record retrieval when PlayMode.ByDevices is chosen.</value>
+<remarks>A HistoryPropertySetException is thrown if the property is set and the PlayState is NotReady</remarks>
+</member>
+      <member name="P:Parco.History.Region">
+<summary>Region3D, region for record retrieval when PlayMode.ByRegion is chosen.</summary>
+<value>Region3D, region for record retrieval when PlayMode.ByRegion is chosen.</value>
+<remarks>A HistoryPropertySetException is thrown if the property is set and the PlayState is NotReady</remarks>
+</member>
+      <member name="P:Parco.History.Regions">
+<summary>Region3D collection, regions for record retrieval when PlayMode.ByRegions is chosen.</summary>
+<value>Region3D collection, regions for record retrieval when PlayMode.ByRegions is chosen.</value>
+<remarks>A HistoryPropertySetException is thrown if the property is set and the PlayState is NotReady</remarks>
+</member>
+      <member name="P:Parco.History.IsLoaded">
+<summary>ReadOnly Boolean, returns true if the playback recordset has been retrieved from the Parco data service.</summary>
+<value>ReadOnly Boolean, returns true if the playback recordset has been retrieved from the Parco data service.</value>
+</member>
+      <member name="P:Parco.History.Playing">
+<summary>ReadOnly PlayState, returns the PlayState enumeration value for the current instance.</summary>
+<value>ReadOnly PlayState, returns the PlayState enumeration value for the current instance.</value>
+</member>
+      <member name="P:Parco.History.Data">
+<summary>Parco.Data, sets or gets the instance of the Parco.Data object for data retrieval.</summary>
+<value>Parco.Data, sets or gets the instance of the Parco.Data object for data retrieval.</value>
+</member>
+      <member name="T:Parco.ParcoMsg.Request">
+<summary>
+The request class is to request data from stream resource. The request must be formatted
+for the type of resource that the DataStream instance is connected to. FullStream resources
+will return a response error if an AddDevice or RemoveDevice request is sent. AddDevice and Remove
+Device request are used when accessing Subscription resources. All AddDevice
+and RemoveDevice requests must contain a Devices collection containing 1 or more Device instances.
+Only the Device's ID property needs to be populated for requests. You must supply each request
+with a request id of your choosing. The request id allows you to match corresponding reply messages
+from the resource. If you do not recieve a corresponding reply for each request, you must assume that
+the request was not received.
+</summary>
+</member>
+      <member name="M:Parco.ParcoMsg.Request.ToXML">
+<summary>
+ToXML serializes the request into a Parco XML message.
+</summary>
+<returns>String, serialized parco XML request message</returns>
+<remarks>This method is used by the Parco systems and services. Parco reserves the right to modify the message format at any time.</remarks>
+</member>
+      <member name="M:Parco.ParcoMsg.Request.ToBytes">
+<summary>
+ToXML serializes the request instance into a byte array.
+</summary>
+<returns>byte array, serialized parco XML request message.</returns>
+</member>
+      <member name="M:Parco.ParcoMsg.Request.#ctor"></member>
+      <member name="M:Parco.ParcoMsg.Request.#ctor(Parco.ParcoMsg.RequestType,System.String)"></member>
+      <member name="M:Parco.ParcoMsg.Request.#ctor(Parco.ParcoMsg.RequestType,System.String,System.String)"></member>
+      <member name="M:Parco.ParcoMsg.Request.#ctor(Parco.ParcoMsg.RequestType,Parco.Device,System.String)"></member>
+      <member name="M:Parco.ParcoMsg.Request.#ctor(Parco.ParcoMsg.RequestType,Parco.Device,System.String)"></member>
+      <member name="M:Parco.ParcoMsg.Request.ParseMsg(System.String,System.Xml.XmlParserContext)">
+<summary>
+ParseMsg deserializes the request and populates the instance properties.
+</summary>
+<param name="xmlMsg">A complete request xml message, String</param>
+<param name="xmlCont">An XmlParser context for parsing the Xml</param>
+<remarks>An instance of an xmlParserContext is available from the GetParserContext method.
+Use a module level parser context instance for improved performance.</remarks>
+</member>
+      <member name="P:Parco.ParcoMsg.Request.ReqType">
+<summary>
+The request type for the message.
+</summary>
+<value>The request type for the message.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.Request.ReqID">
+<summary>
+The request identifier supplied by the requester. The id is used by the message sender to differentiate messages sent to the resource.
+The response id will contain the id supplied with the request.
+</summary>
+<value>String, the request identifier supplied by the requester.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.Request.Devices">
+<summary>
+The Devices collection to create the request for.
+</summary>
+<value>The Devices collection to create the request for.</value>
+</member>
+      <member name="T:Parco.ParcoMsg.Response">
+<summary>
+The response class is used for acknowleging a request sent to a Parco resource. The response contains the
+original request id. The presence of a message indicates that the request was not completed. The message
+contains the failure reason. A response is returned for each request sent.
+</summary>
+<remarks>If a response is not received from the resource, then your code should assume that
+the request did not make it to the resource.</remarks>
+</member>
+      <member name="M:Parco.ParcoMsg.Response.ToXML">
+<summary>
+ToXML serializes the response into a Parco XML message.
+</summary>
+<returns>String, serialized parco XML response message.</returns>
+<remarks>This method is used by the Parco systems and services. Parco reserves the right to modify the message format at any time.</remarks>
+</member>
+      <member name="M:Parco.ParcoMsg.Response.ToBytes">
+<summary>
+ToXML serializes the response instance into a byte array.
+</summary>
+<returns>Byte array, serialized parco XML response message.</returns>
+</member>
+      <member name="M:Parco.ParcoMsg.Response.#ctor"></member>
+      <member name="M:Parco.ParcoMsg.Response.#ctor(System.String,Parco.ParcoMsg.ResponseType,System.String)"></member>
+      <member name="M:Parco.ParcoMsg.Response.ParseMsg(System.String,System.Xml.XmlParserContext)">
+<summary>
+ParseMsg deserializes the response message and populates the instance properties.
+</summary>
+<param name="xmlMsg">A complete response xml message.</param>
+<param name="xmlCont">An xmlparser context for message parsing.</param>
+<remarks>An instance of an xmlParserContext is available from the GetParserContext method.
+Use a module level parser context instance for improved performance.</remarks>
+</member>
+      <member name="P:Parco.ParcoMsg.Response.ResponseType">
+<summary>
+The response type for the message.
+</summary>
+<value>The response type for the message.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.Response.Message">
+<summary>
+ The response message for a request. The message will be an empty string for processed requests and will 
+contain the error message for denied requests.
+</summary>
+<value>A message is present if a request was not processed for any reason. 
+The message contains the text describing the reason why the request was not completed.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.Response.ReqID">
+<summary>
+The request identifier supplied by the requester. The id is used by the message sender to differentiate messages sent to the resource.
+The response id is set to the request ID value contained in the initiating request.
+</summary>
+<value>The request identifier supplied by the requester.</value>
+</member>
+      <member name="T:Parco.ParcoMsg.GISData">
+<summary>
+GISData is used as the internal message format within the Parco system and components. This message Parco's raw position and data format message.
+</summary>
+<remarks>This class is considered a system resource. As such, Parco reserves the right to modify this class at any time.</remarks>
+</member>
+      <member name="M:Parco.ParcoMsg.GISData.ToXML">
+<summary>
+ToXML serializes the instance into a Parco XML message.
+</summary>
+<returns>String, serialized parco XML GISData message.</returns>
+<remarks>This method is used by the Parco systems and services. Parco reserves the right to modify the message format at any time.</remarks>
+</member>
+      <member name="M:Parco.ParcoMsg.GISData.ToBytes">
+<summary>
+ToXML serializes the GISData instance into a byte array.
+</summary>
+<returns>Byte array, serialized parco XML GISData message.</returns>
+</member>
+      <member name="M:Parco.ParcoMsg.GISData.#ctor"></member>
+      <member name="M:Parco.ParcoMsg.GISData.#ctor"></member>
+      <member name="M:Parco.ParcoMsg.GISData.#ctor"></member>
+      <member name="M:Parco.ParcoMsg.GISData.#ctor"></member>
+      <member name="M:Parco.ParcoMsg.GISData.ParseMsg(System.String,System.Xml.XmlParserContext)">
+<summary>
+ParseMsg deserializes the GISData message and populates the instance properties.
+</summary>
+<param name="xmlMsg">A complete GISData xml message.</param>
+<param name="xmlCont">An xmlparser context for message parsing.</param>
+<remarks>An instance of an xmlParserContext is available from the GetParserContext method.
+Use a module level parser context instance for improved performance.</remarks>
+</member>
+      <member name="P:Parco.ParcoMsg.GISData.ID">
+<summary>
+The unique Parco Device ID.
+</summary>
+<value>The unique Parco Device ID.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.GISData.Type">
+<summary>
+Parco Device Type.
+</summary>
+<value>Parco Device Type.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.GISData.TS">
+<summary>
+Timestamp for the data message.
+</summary>
+<value>Timestamps are in UTC (Universal Coordinate Time).</value>
+</member>
+      <member name="P:Parco.ParcoMsg.GISData.X">
+<summary>
+The reported device position in the X coordinate.
+</summary>
+<value>The reported device position in the X coordinate.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.GISData.Y">
+<summary>
+The reported device position in the Y coordinate.
+</summary>
+<value>The reported device position in the Y coordinate.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.GISData.Z">
+<summary>
+The reported device position in the Z coordinate.
+</summary>
+<value>The reported device position in the Z coordinate.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.GISData.CNF">
+<summary>
+The device position confidence factor.
+</summary>
+<value>The confidence factor is supplied by the gateway. For future use.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.GISData.GWID">
+<summary>
+The Parco gateway identifier.
+</summary>
+<value>The origin of the device position information. For future use.</value>
+</member>
+      <member name="P:Parco.ParcoMsg.GISData.Bat">
+<summary>
+The device position battery indicator. A bit value of a through f?
+</summary>
+<value>The battery indicator for the device. The value will be an empty string if the device is not battery powered.
+</value>
+</member>
+      <member name="P:Parco.ParcoMsg.GISData.Data">
+<summary>
+The devices transmitted data.
+</summary>
+<value>For future use. The value will be an empty string if the device did not transmit data.
+</value>
+</member>
+      <member name="T:Parco.ParcoMsg.MessageUtilities">
+<summary>MessageUtilities contains the utilities and contstants for Parco system messaging.
+The tag constants should be used as module level variables for increased performance. GetParserContext returns
+an XmlParserContext which should also be used as a module level instance.</summary>
+</member>
+      <member name="M:Parco.ParcoMsg.MessageUtilities.GetParserContext">
+<summary>GetParserContext returns an instance of an XmlParserContext for message processing.</summary>
+<remarks>Using a module level parser context for message processing will improve performance.</remarks>
+</member>
+      <member name="T:Parco.ParcoMsg.RequestType">
+<summary>RequestTypes are used to differentiate request messages.</summary>
+</member>
+      <member name="F:Parco.ParcoMsg.RequestType.BeginStream"></member>
+      <member name="F:Parco.ParcoMsg.RequestType.EndStream"></member>
+      <member name="F:Parco.ParcoMsg.RequestType.AddDevice"></member>
+      <member name="F:Parco.ParcoMsg.RequestType.RemoveDevice"></member>
+      <member name="T:Parco.ParcoMsg.ResponseType">
+<summary>ResponseTypes are used to differentiate response messages. 
+The response type will match the corresponding Request Type.
+</summary>
+</member>
+      <member name="F:Parco.ParcoMsg.ResponseType.BeginStream"></member>
+      <member name="F:Parco.ParcoMsg.ResponseType.EndStream"></member>
+      <member name="F:Parco.ParcoMsg.ResponseType.AddDevice"></member>
+      <member name="F:Parco.ParcoMsg.ResponseType.RemoveDevice"></member>
+      <member name="T:Parco.ParcoTCP"></member>
+      <member name="P:Parco.ParcoTCP.Active"></member>
+      <member name="P:Parco.ParcoTCP.Client"></member>
+      <member name="T:Parco.Point2D">
+<summary>
+This class holds 2 dimensional point (vertex) info in variables of the Single type.
+The number property is used when contructing an array of verteces.
+The overloaded Equals functions compares Point2D objects or X/Y values to the instances X and Y members.
+The ToString method provides a graphical representation of a cartesian point (X,Y) from the members of an instance.
+</summary>
+</member>
+      <member name="M:Parco.Point2D.Equals(Parco.Point2D)">
+<summary>
+Compares the X and Y members of this instance to the Point2D instance in the parameter.
+</summary>
+<param name="pt">Point2D, instance to compare.</param>
+<returns>Boolean</returns>
+<remarks></remarks>
+</member>
+      <member name="M:Parco.Point2D.Equals(System.Single,System.Single)">
+<summary>
+Compares the members of this instance to the parameters.
+</summary>
+<param name="X">Single, value of X to compare.</param>
+<param name="Y">Single, value of Y to compare.</param>
+<returns>Boolean</returns>
+<remarks></remarks>
+</member>
+      <member name="M:Parco.Point2D.ToString">
+<summary>
+Provides a graphical representation of a cartesian point (X,Y) based on the instance members.
+</summary>
+<returns>String, (X,Y)</returns>
+<remarks></remarks>
+</member>
+      <member name="M:Parco.Point2D.#ctor"></member>
+      <member name="M:Parco.Point2D.#ctor(System.Single,System.Single)"></member>
+      <member name="M:Parco.Point2D.#ctor(System.Single,System.Single,System.Int32)"></member>
+      <member name="P:Parco.Point2D.X">
+<summary>
+The single representing the points X coordinate.
+</summary>
+<value>The single representing the points X coordinate.</value>
+</member>
+      <member name="P:Parco.Point2D.Y">
+<summary>
+The single representing the points Y coordinate.
+</summary>
+<value>The single representing the points Y coordinate.</value>
+</member>
+      <member name="P:Parco.Point2D.Number">
+<summary>
+The N_ORD number identifier for this instance. The order number is used to define the shape of a vertice array.
+</summary>
+<value>'The N_ORD number identifier for this instance. The order number is used to define the shape of a vertice array.</value>
+</member>
+      <member name="P:Parco.Point2D.I_RGN">
+<summary>
+The integer key for region that this instance belongs to.
+</summary>
+<value>The integer key for region that this instance belongs to.</value>
+</member>
+      <member name="P:Parco.Point2D.I_VTX">
+<summary>
+The integer auto number key for vertex that this instance represents.
+</summary>
+<value>The integer auto number key for vertex that this instance represents.</value>
+</member>
+      <member name="T:Parco.Point3D">
+<summary>
+This class inherits from the Point2D class holds 3 dimensional point (vertex) info in variables of the Single type.
+The number property is used when contructing an array of verteces.
+The overloaded Equals functions compares Point3D objects or X/Y/Z values to the X, Y, and Z members.
+The ToString method provides a graphical representation of a cartesian point (X,Y,Z) from the members of an instance.
+</summary>
+</member>
+      <member name="M:Parco.Point3D.Equals(System.Single,System.Single,System.Single)">
+<summary>
+Compares the members of this instance to the parameters.
+</summary>
+<param name="X">Single, value of X to compare.</param>
+<param name="Y">Single, value of Y to compare.</param>
+<param name="Z">Single, value of Z to compare.</param>
+<returns>Boolean</returns>
+<remarks></remarks>
+</member>
+      <member name="M:Parco.Point3D.Equals(Parco.Point3D)">
+<summary>
+Compares the X, Y, and Z members of this instance to the Point3D instance in the parameter.
+</summary>
+<param name="pt">Point3D, instance to compare.</param>
+<returns>Boolean</returns>
+<remarks></remarks>
+</member>
+      <member name="M:Parco.Point3D.ToString">
+<summary>
+Provides a graphical representation of a cartesian point (X,Y,Z) based on the instance members.
+</summary>
+<returns>String, (X,Y,Z)</returns>
+<remarks></remarks>
+</member>
+      <member name="M:Parco.Point3D.#ctor"></member>
+      <member name="M:Parco.Point3D.#ctor(System.Single,System.Single)"></member>
+      <member name="M:Parco.Point3D.#ctor(System.Single,System.Single,System.Single)"></member>
+      <member name="M:Parco.Point3D.#ctor(System.Single,System.Single,System.Single,System.Int32)"></member>
+      <member name="M:Parco.Point3D.#ctor(System.Int32,System.Single,System.Single,System.Single,System.Int32)"></member>
+      <member name="M:Parco.Point3D.#ctor(System.Int32,System.Int32,System.Single,System.Single,System.Single,System.Int32)"></member>
+      <member name="P:Parco.Point3D.Z">
+<summary>
+The single representing the point's Z coordinate.
+</summary>
+<value>The single representing the point's Z coordinate.</value>
+</member>
+      <member name="T:Parco.Region2D">
+<summary>
+A valid region requires the polygon to be regular or convex and must contain at least 3 points (verticies).
+The vertices must be in order (N_ORD = vertice array index) and are 0 based. By Parco's convention, a polygon's vertices are defined in increasing order
+in a in clockwise rotation looking down upon the shape. Valid polygons have legs that do not cross over other legs. 
+</summary>
+</member>
+      <member name="T:Parco.Region2D.eIntersect">
+Intersection Enums to describe what kind of intersection we have
+between a point and a line (two vertices)
+</member>
+      <member name="F:Parco.Region2D.eIntersect.None"></member>
+      <member name="F:Parco.Region2D.eIntersect.BetweenYs"></member>
+      <member name="F:Parco.Region2D.eIntersect.CurVertex"></member>
+      <member name="F:Parco.Region2D.eIntersect.NextVert"></member>
+      <member name="F:Parco.Region2D.eIntersect.OnLine"></member>
+      <member name="F:Parco.Region2D.eIntersect.LeftOfHorzLine"></member>
+      <member name="M:Parco.Region2D.ContainsPoint(System.Single,System.Single)">
+<overloads>ContainsPoint has two overloads.</overloads>
+<summary>ContainsPoint returns true if the point defined by the parameters is inside or on the boundry of the polygon.</summary>
+<param name="X">Single, the X coordinate to check.</param>
+<param name="Y">Single, the Y coordinate to check.</param>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points.</remarks>
+</member>
+      <member name="M:Parco.Region2D.ContainsPoint(Parco.Point2D)">
+<summary>ContainsPoint returns true if the point defined by the parameters is inside or on the boundry of the polygon.</summary>
+<param name="pt">Point2D, the point containing the coordinates to check.</param>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points.</remarks>
+</member>
+      <member name="M:Parco.Region2D.Contains(Parco.Point2D)">
+<summary>Contains returns true if the point defined by the parameters is inside or on the boundry of the polygon.</summary>
+<param name="pt">Point2D, the point containing the coordinates to check.</param>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points.</remarks>
+</member>
+      <member name="M:Parco.Region2D.Intersects(Parco.Point2D,Parco.Point2D,Parco.Point2D)"></member>
+      <member name="M:Parco.Region2D.IsIntVert(Parco.Point2D,Parco.Point2D,Parco.Point2D)"></member>
+      <member name="M:Parco.Region2D.IsBetweenYs(Parco.Point2D,Parco.Point2D,Parco.Point2D)"></member>
+      <member name="M:Parco.Region2D.SetMinMaxForTranslate(System.Single,System.Single)"></member>
+      <member name="M:Parco.Region2D.#ctor"></member>
+      <member name="M:Parco.Region2D.#ctor(Parco.Point2D[])"></member>
+      <member name="M:Parco.Region2D.#ctor(System.String,System.Int32,Parco.Point2D[])"></member>
+      <member name="M:Parco.Region2D.SetMinMax"></member>
+      <member name="M:Parco.Region2D.Validate"></member>
+      <member name="P:Parco.Region2D.Vertices">
+<summary>The underlying Point2D array.</summary>
+<value>The underlying Point2D array.</value>
+</member>
+      <member name="P:Parco.Region2D.Name">
+<summary>String, the Region's name. If a region belongs to a room or trigger it should use the parents name in part as a matter of convention.</summary>
+<value>String, the Region's name. If a region belongs to a room or trigger it should use the parents name in part as a matter of convention.</value>
+</member>
+      <member name="P:Parco.Region2D.ID">
+<summary>Integer, the I_RGN auto number key from the database.</summary>
+<value>Integer, the I_RGN auto number key from the database.</value>
+</member>
+      <member name="P:Parco.Region2D.XMax">
+<summary>Single, the maximum X coordinate as determined by the Vertices array.</summary>
+<value>Single, the maximum X coordinate as determined by the Vertices array.</value>
+<remarks>Sets the upper bound for SQL database queries.</remarks>
+</member>
+      <member name="P:Parco.Region2D.Xmin">
+<summary>Single, the minimum X coordinate as determined by the Vertices array.</summary>
+<value>Single, the minimum X coordinate as determined by the Vertices array.</value>
+<remarks>Sets the lower bound for SQL database queries.</remarks>
+</member>
+      <member name="P:Parco.Region2D.YMax">
+<summary>Single, the maximum Y coordinate as determined by the Vertices array.</summary>
+<value>Single, the maximum Ycoordinate as determined by the Vertices array.</value>
+<remarks>Sets the upper bound for SQL database queries.</remarks>
+</member>
+      <member name="P:Parco.Region2D.Ymin">
+<summary>Single, the minimum Y coordinate as determined by the Vertices array.</summary>
+<value>Single, the minimum Y coordinate as determined by the Vertices array.</value>
+<remarks>Sets the lower bound for SQL database queries.</remarks>
+</member>
+      <member name="P:Parco.Region2D.IsValid">
+<summary>Boolean, returns true if the regions shape is valid.</summary>
+<value>Boolean, returns true if the regions shape is valid.</value>
+</member>
+      <member name="P:Parco.Region2D.X_ID_ENT">
+<summary>String, the Entity ID if the region belongs to a Room else String.Empty.</summary>
+<value>String, the Entity ID if the region belongs to a Room else String.Empty.</value>
+</member>
+      <member name="P:Parco.Region2D.I_TRG">
+<summary>Integer, the trigger key (I_TRG) if the region belongs to a Trigger else -1.</summary>
+<value>Integer, the trigger key (I_TRG) if the region belongs to a Trigger else -1.</value>
+</member>
+      <member name="T:Parco.Region3D">
+<summary>
+A valid region requires the polygon to be regular or convex and must contain at least 3 points (verticies) and a Z.
+The vertices must be in order (N_ORD = vertice array index) and are 0 based. By Parco's convention, a polygon's vertices are defined in increasing order
+in a in clockwise rotation looking down upon the shape. Valid polygons have legs that do not cross over other legs. 
+</summary>
+</member>
+      <member name="M:Parco.Region3D.ContainsPoint(Parco.Point3D)">
+<overloads>Contains point has two overloads</overloads>
+<summary>ContainsPoint returns true if the point defined by the parameters is inside or on the boundry of the polygon.</summary>
+<param name="pt">Point3D, the point containing the coordinates to check.</param>
+<returns>Boolean, true if the coordinates fall inside on on the shape.</returns>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid or the Z's are invalid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points.</remarks>
+</member>
+      <member name="M:Parco.Region3D.ContainsPoint(System.Single,System.Single,System.Single)">
+<summary>ContainsPoint returns true if the point defined by the parameters is inside or on the boundry of the polygon.</summary>
+<param name="X">Single, the X coordinate to check.</param>
+<param name="Y">Single, the Y coordinate to check.</param>
+<param name="Z">Single, the Z coordinate to check.</param>
+<returns>Boolean, true if the coordinates fall inside on on the shape.</returns>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid or the Z's are not valid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points.</remarks>
+</member>
+      <member name="M:Parco.Region3D.#ctor"></member>
+      <member name="M:Parco.Region3D.#ctor(Parco.Point2D[])"></member>
+      <member name="M:Parco.Region3D.#ctor(Parco.Point3D[])"></member>
+      <member name="M:Parco.Region3D.#ctor(System.String,System.Int32,Parco.Point2D[])"></member>
+      <member name="M:Parco.Region3D.#ctor(System.String,System.Int32,Parco.Point3D[])"></member>
+      <member name="M:Parco.Region3D.#ctor(System.String,System.Int32,Parco.Point2D[],System.Single,System.Single)"></member>
+      <member name="M:Parco.Region3D.#ctor(System.String,System.Int32,Parco.Point3D[],System.Single,System.Single)"></member>
+      <member name="M:Parco.Region3D.Translate(System.Single,System.Single,System.Single)">
+<summary>The Translate method "moves" the region by the amount specified by the parameters. The underlying vertice array values
+are translated and then the min and max values are recalculated.</summary>
+<param name="X">Single, the amount to move in the X direction.</param>
+<param name="Y">Single, the amount to move in the Y direction.</param>
+<param name="Z">Single, the amount to move in the Z direction.</param>
+<returns>Void</returns>
+<remarks>A RegionInvalidException is thrown if the underyling vertice array is not valid or the Z values are not valid.</remarks>
+</member>
+      <member name="M:Parco.Region3D.Validate">
+<summary>Validate checks the vertice array and Z members to ensure the Region is valid. If it is, the IsValid property is set to True.</summary>
+<returns>Void</returns>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid. A Region3DInvalidZException is thrown if the ZBottom and ZTop members are not valid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points.</remarks>
+</member>
+      <member name="P:Parco.Region3D.ZTop">
+<summary>Single, the maximum Y coordinate as determined by the Vertices array.</summary>
+<value>Single, the maximum Ycoordinate as determined by the Vertices array.</value>
+<remarks>Sets the upper bound for SQL database queries.</remarks>
+</member>
+      <member name="P:Parco.Region3D.ZBottom">
+<summary>Single, the maximum Y coordinate as determined by the Vertices array.</summary>
+<value>Single, the maximum Ycoordinate as determined by the Vertices array.</value>
+<remarks>Sets the upper bound for SQL database queries.</remarks>
+</member>
+      <member name="P:Parco.Region3D.Vertices3D">
+<summary>The underlying Point3D array that defines the shape of the region.</summary>
+<value>The underlying Point3D array that defines the shape of the region.</value>
+<remarks>Setting the Vertices3D property to an array of Point3D instances causes the region to
+populate the Xmax, Xmin, Ymax, and Ymin members based on the Point3D array. The Z properties for 
+the array's points should be the Zbottom value for shape as a matter of convention.
+The Ztop and ZBottom values must be set "manually"</remarks>
+</member>
+      <member name="T:Parco.Room">
+<summary>
+The Room class inherits the Entity class. A room is an entity in that it can accept device and entity assignments.
+Room extends the entity class by providing a collection of regions to defines the room's shape.
+All rooms have the reserved EntityType of 1 and TypeDescription of "Room".
+</summary>
+</member>
+      <member name="M:Parco.Room.ContainsPoint(Parco.Point3D)">
+<overloads>This method has 3 overloads</overloads>
+<summary>ContainsPoint returns true if the point defined by the parameters is inside or on the boundry of any of the Room's regions.</summary>
+<param name="pt">Point3D, the Point3D instance to check.</param>
+<returns>Boolean, true if the coordinates fall inside on or in one of the regions.</returns>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid or the Z's are not valid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points. An exception is thrown if the Regions collection count is zero.</remarks>
+</member>
+      <member name="M:Parco.Room.ContainsPoint(System.Single,System.Single,System.Single)">
+<summary>ContainsPoint returns true if the point defined by the parameters is inside or on the boundry of any of the Room's regions.</summary>
+<param name="X">Single, the X coordinate to check.</param>
+<param name="Y">Single, the Y coordinate to check.</param>
+<param name="Z">Single, the Z coordinate to check.</param>
+<returns>Boolean, true if the coordinates fall inside on or in one of the regions.</returns>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid or the Z's are not valid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points. An exception is thrown if the Regions collection count is zero.</remarks>
+</member>
+      <member name="M:Parco.Room.ContainsDevice(Parco.Device)">
+<summary>ContainsDevice returns true if the point defined by the device location is inside or on the boundry of any of the Room's regions.</summary>
+<param name="oDev">Device, the Device instance to check.</param>
+<returns>Boolean, true if the coordinates fall inside on or in one of the regions.</returns>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid or the Z's are not valid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points. An exception is thrown if the Regions collection count is zero.</remarks>
+</member>
+      <member name="M:Parco.Room.Contains(Parco.Point3D)"></member>
+      <member name="M:Parco.Room.#ctor"></member>
+      <member name="M:Parco.Room.#ctor(System.String,System.String)"></member>
+      <member name="M:Parco.Room.#ctor(System.String,System.String,Parco.Regions)"></member>
+      <member name="M:Parco.Room.mRegions_ItemCountChanged(System.Int32)"></member>
+      <member name="P:Parco.Room.Regions">
+<summary>The regions member contains the collection of Region3D instances defining the room's shape.</summary>
+<value>The regions member contains the collection of Region3D instances defining the room's shape.</value>
+</member>
+      <member name="T:Parco.Tag">
+<summary>
+The Tag class inherits the Device class. A tag is a battery powered "Device" used for transmitting position
+and battery information within the Parco system.
+Tag extends the Device class by providing a battery level indicator.
+</summary>
+</member>
+      <member name="M:Parco.Tag.#ctor"></member>
+      <member name="M:Parco.Tag.#ctor(System.String)"></member>
+      <member name="M:Parco.Tag.#ctor(System.String,System.String)"></member>
+      <member name="M:Parco.Tag.#ctor(System.String,System.Single,System.Single,System.Single,System.DateTime)"></member>
+      <member name="M:Parco.Tag.#ctor(System.String,System.Single,System.Single,System.Single,System.DateTime,System.Int32,System.String)"></member>
+      <member name="P:Parco.Tag.BatteryLevel">
+TODO: find out more about battery levels
+<summary>String, values range from a through f and are a bit representation of the device's battery condition.</summary>
+<value>String, values range from a through f and are a bit representation of the device's battery condition.</value>
+</member>
+      <member name="T:Parco.Trigger">
+<summary>
+The Trigger class provides event notification based on a device's position relative to the trigger's shape and the direction.
+The trigger direction defines how the trigger responds in relation to a devices position. WhileIn raises events if the device's
+position is on the edge or contained in any region. WhileOut raises events if the device is outside of all regions. The
+OnEnter, OnExit, and OnCross directions maintain the positional state of the device and report only when the devices change state. The first time
+a device is checked with the trigger, its state is saved. An event is raised if the initial state meets the triggers settings. Since the WhileIn and WhileOut
+directions do not maintain device state, they may be more performant. Each instance can be set to ignore devices by setting the IngnoreUnknowns member
+to true. CheckDevice will return false and an event will not be raised if the device is not contained in the Devices collection regardless of the trigger
+direction or device position. Triggers are portable and can be translated in any direction. Each translation resets the all underlying Region3D instances by the amount specified.
+</summary>
+</member>
+      <member name="T:Parco.Trigger.Directions">
+<summary>
+Enumerated constants for defining a trigger's direction. The values must match the values contained in the ParcoRTLS.tlkTrigDirections table.
+</summary>
+</member>
+      <member name="F:Parco.Trigger.Directions.NotSet"></member>
+      <member name="F:Parco.Trigger.Directions.WhileIn"></member>
+      <member name="F:Parco.Trigger.Directions.WhileOut"></member>
+      <member name="F:Parco.Trigger.Directions.OnCross"></member>
+      <member name="F:Parco.Trigger.Directions.OnEnter"></member>
+      <member name="F:Parco.Trigger.Directions.OnExit"></member>
+      <member name="T:Parco.Trigger.State">
+<summary>
+Enumerated constants for defining a devices last known position state relative to the triggers regions.
+</summary>
+</member>
+      <member name="F:Parco.Trigger.State.NotKnown"></member>
+      <member name="F:Parco.Trigger.State.InSide"></member>
+      <member name="F:Parco.Trigger.State.OutSide"></member>
+      <member name="M:Parco.Trigger.ContainsPoint(Parco.Point3D)">
+<overloads>This method has 2 overloads</overloads>
+<summary>ContainsPoint returns true if the point defined by the parameters is inside or on the boundry of any of the Triggers's regions.</summary>
+<param name="pt">Point3D, the Point3D instance to check.</param>
+<returns>Boolean, true if the coordinates fall inside on or in one of the regions.</returns>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid or the Z's are not valid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points. A TriggerRegionNotSetException is thrown if the Regions collection count is zero.</remarks>
+</member>
+      <member name="M:Parco.Trigger.ContainsPoint(System.Single,System.Single,System.Single)">
+<summary>ContainsPoint returns true if the point defined by the parameters is inside or on the boundry of any of the Triggers's regions.</summary>
+<param name="X">Single, the X coordinate to check.</param>
+<param name="Y">Single, the Y coordinate to check.</param>
+<param name="Z">Single, the Z coordinate to check.</param>
+<returns>Boolean, true if the coordinates fall inside on or in one of the regions.</returns>
+<remarks>A RegionInvalidException is thrown if the underlying shape is not valid or the Z's are not valid. A RegionVerticesMinimumException
+is thrown if the vertices array contains 2 or fewer points. A TriggerRegionNotSetException is thrown if the Regions collection count is zero.</remarks>
+</member>
+      <member name="M:Parco.Trigger.CheckTrigger(Parco.Device)">
+<summary>The CheckTrigger checks a device and raises a event if the device meets the conditions set for the trigger.
+</summary>
+<param name="oDev">Device, the device instance containing the position information to check.</param>
+<returns>Boolean</returns>
+<remarks>A RegionInvalidException is thrown if any region's underyling vertice arrays are not valid or the ZBottom and ZTop values are not valid.
+A TriggerRegionNotSetException is thrown if the trigger direction is not set. A TriggerRegionNotSetException is thrown if the trigger is not valid.
+</remarks>
+</member>
+      <member name="M:Parco.Trigger.PointState(Parco.Point3D)"></member>
+      <member name="M:Parco.Trigger.GetState(System.String)"></member>
+      <member name="M:Parco.Trigger.Contains(Parco.Point3D)"></member>
+      <member name="M:Parco.Trigger.#ctor"></member>
+      <member name="M:Parco.Trigger.#ctor(System.Int32,System.String,Parco.Trigger.Directions)"></member>
+      <member name="M:Parco.Trigger.#ctor(System.Int32,System.String,Parco.Trigger.Directions,Parco.Regions,System.Boolean)"></member>
+      <member name="M:Parco.Trigger.#ctor(System.Int32,System.String,Parco.Trigger.Directions,Parco.Regions,System.Boolean,Parco.Devices)"></member>
+      <member name="M:Parco.Trigger.Translate(System.Single,System.Single,System.Single)">
+<summary>The Translate method "moves" the regions by the amount specified by the parameters. The underlying vertice array values
+are translated and then the min and max values are recalculated.</summary>
+<param name="X">Single, the amount to move in the X direction.</param>
+<param name="Y">Single, the amount to move in the Y direction.</param>
+<param name="Z">Single, the amount to move in the Z direction.</param>
+<returns>Void</returns>
+<remarks>A RegionInvalidException is thrown if any region's underyling vertice arrays are not valid or the ZBottom and ZTop values are not valid.
+Exercise due caution if saving triggers which have been translated. If any of the Regions also belongs to a Room (X_ID_ENT is not an empty string), then
+saving the region will result in translating all or part of the room.</remarks>
+</member>
+      <member name="E:Parco.Trigger.TriggerEvent">
+<summary>
+The TriggerEvent is raised when the CheckTrigger method is called and device's position meets the constraints defined by the instance members.
+</summary>
+<remarks>The trigger event has the same signature as the DataStream.Stream and History.HistoryData events. As such, you may use the same
+event handler for all three events.</remarks>
+</member>
+      <member name="P:Parco.Trigger.ID">
+<summary>Integer, the I_TRG auto number key for the trigger.</summary>
+<value>Integer, the I_TRG auto number key for the trigger.</value>
+</member>
+      <member name="P:Parco.Trigger.Name">
+<summary>String, a user friendly name describing the trigger.</summary>
+<value>String, a user friendly name describing the trigger.</value>
+</member>
+      <member name="P:Parco.Trigger.Direction">
+<summary>Direction(integer), an enumerated constant describing the "direction" of the trigger.</summary>
+<value>Direction(integer), an enumerated constant describing the "direction" of the trigger.</value>
+</member>
+      <member name="P:Parco.Trigger.IgnoreUnknowns">
+<summary>Boolean, if true the instance ignores (does not raise events) for devices which are not contained in the Devices collection.</summary>
+<value>Boolean, if true the instance ignores (does not raise events) for devices which are not contained in the Devices collection.</value>
+</member>
+      <member name="P:Parco.Trigger.Regions">
+<summary>Collection, the Region3D instances defining the trigger's shape.</summary>
+<value>Collection, the Region3D instances defining the trigger's shape.</value>
+</member>
+      <member name="P:Parco.Trigger.Devices">
+<summary>Collection, the Device instances for the trigger to check if the IgnoreUnknows member is true.</summary>
+<value>Collection, the Devices instances for the trigger to check if the IgnoreUnknows member is true.</value>
+</member>
+      <member name="P:Parco.Trigger.IsValid">
+<summary>Boolean, set to true if the Regions collection contains 1 or more Region3D instances.</summary>
+<value>Boolean, set to true if the Regions collection contains 1 or more Region3D instances.</value>
+</member>
+      <member name="T:Parco.DevState">
+Device state helper class for use in the hash table
+</member>
+      <member name="M:Parco.DevState.#ctor"></member>
+      <member name="M:Parco.DevState.#ctor(System.String,Parco.Trigger.State)"></member>
+      <member name="M:Parco.DevState.mRegions_ItemCountChanged"></member>
+      <member name="P:Parco.DevState.State"></member>
+      <member name="P:Parco.DevState.ID"></member>
+      <member name="T:Parco.DataService.DataV1">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceTypeList">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceTypeList(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceTypeList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceTypeAdd(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceTypeAdd(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceTypeAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceTypeEdit(System.Int32,System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceTypeDelete(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EntityTypeList(System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginEntityTypeList(System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndEntityTypeList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EntityTypeAdd(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginEntityTypeAdd(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndEntityTypeAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginEntityTypeEdit(System.Int32,System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginEntityTypeDelete(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssmtReasonList">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssmtReasonList(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssmtReasonList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssmtReasonAdd(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssmtReasonAdd(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssmtReasonAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssmtReasonEdit(System.Int32,System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssmtReasonDelete(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.TriggerDirectionList">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginTriggerDirectionList(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndTriggerDirectionList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.ResourceTypeList">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginResourceTypeList(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndResourceTypeList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.ResourceList">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginResourceList(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndResourceList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.ResourceSelect(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginResourceSelect(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndResourceSelect(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.ResourceSelectAll(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginResourceSelectAll(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndResourceSelectAll(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceAdd(System.String,System.Int32,System.String,System.Single,System.Single,System.Single,System.Boolean,System.DateTime,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceEdit(System.String,System.Int32,System.String,System.Single,System.Single,System.Single,System.Boolean,System.DateTime,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceSetEndDate(System.String,System.DateTime,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceRemoveEndDate(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceDelete(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceSelectByType(System.Int32,System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceSelectByType(System.Int32,System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceSelectByType(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceSelectOutofService(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceSelectOutofService(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceSelectOutofService(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceSelectAll(System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceSelectAll(System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceSelectAll(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceSelectByID(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDeviceSelectByID(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceSelectByID(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginEntityAdd(System.String,System.Int32,System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginEntityEdit(System.String,System.Int32,System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginEntityDelete(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EntitySelectByID(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginEntitySelectByID(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndEntitySelectByID(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EntitySelectByType(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginEntitySelectByType(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndEntitySelectByType(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EntitySelectAll(System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginEntitySelectAll(System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndEntitySelectAll(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.SearchRTLS(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginSearchRTLS(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndSearchRTLS(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.SearchHistory(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginSearchHistory(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndSearchHistory(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.SearchData(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginSearchData(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndSearchData(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RegionAdd(System.String,System.Single,System.Single,System.Single,System.Single,System.Single,System.Single,System.String,System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRegionAdd(System.String,System.Single,System.Single,System.Single,System.Single,System.Single,System.Single,System.String,System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRegionAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRegionEdit(System.Int32,System.String,System.Single,System.Single,System.Single,System.Single,System.Single,System.Single,System.String,System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRegionDelete(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RegionSelectByID(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRegionSelectByID(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRegionSelectByID(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RegionsSelectByRoom(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRegionsSelectByRoom(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRegionsSelectByRoom(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RegionsSelectByTrigger(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRegionsSelectByTrigger(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRegionsSelectByTrigger(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RegionsSelect">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRegionsSelect(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRegionsSelect(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RegionsList">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRegionsList(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRegionsList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.VertexAdd(System.Single,System.Single,System.Single,System.Int32,System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginVertexAdd(System.Single,System.Single,System.Single,System.Int32,System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndVertexAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginVertexEdit(System.Int32,System.Single,System.Single,System.Single,System.Int32,System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginVertexDelete(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.VertexSelect(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginVertexSelect(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndVertexSelect(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.VerticiesSelectByRegion(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginVerticiesSelectByRegion(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndVerticiesSelectByRegion(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRoomAdd(System.String,System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRoomEdit(System.String,System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRoomDelete(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RoomSelect(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRoomSelect(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRoomSelect(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RoomsSelectAll">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRoomsSelectAll(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRoomsSelectAll(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RoomsSelectByPoint(System.Single,System.Single,System.Single)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRoomsSelectByPoint(System.Single,System.Single,System.Single,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRoomsSelectByPoint(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RoomsList">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginRoomsList(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRoomsList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.TriggerAdd(System.String,System.Int32,System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginTriggerAdd(System.String,System.Int32,System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndTriggerAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginTriggerEdit(System.Int32,System.String,System.Int32,System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginTriggerDelete(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.TriggerSelectByPoint(System.Single,System.Single,System.Single)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginTriggerSelectByPoint(System.Single,System.Single,System.Single,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndTriggerSelectByPoint(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.TriggerSelect(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginTriggerSelect(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndTriggerSelect(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.TriggersSelectAll">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginTriggersSelectAll(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndTriggersSelectAll(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.TriggersList">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginTriggersList(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndTriggersList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityAdd(System.String,System.String,System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityAdd(System.String,System.String,System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityEdit(System.Int32,System.String,System.String,System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityEnd(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityDelete(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityListByPrincipal(System.String,System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityListByPrincipal(System.String,System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityListByPrincipal(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityListByChild(System.String,System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityListByChild(System.String,System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityListByChild(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityListByID(System.String,System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityListByID(System.String,System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityListByID(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityListByKey(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityListByKey(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityListByKey(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityListByReason(System.Int32,System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityListByReason(System.Int32,System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityListByReason(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityList(System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityList(System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityEndAll(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignEntityDeleteAll(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevAdd(System.String,System.String,System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevAdd(System.String,System.String,System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevEdit(System.Int32,System.String,System.String,System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevEnd(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevDelete(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevList(System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevList(System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevList(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevListByID(System.String,System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevListByID(System.String,System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevListByID(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevListByReason(System.Int32,System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevListByReason(System.Int32,System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevListByReason(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevListByEntity(System.String,System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevListByEntity(System.String,System.Boolean,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevListByEntity(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevEndAll(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevEndAllByEnt(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevDeleteAll(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginAssignDevDeleteAllByEnt(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.HistoryByID(System.String,System.DateTime,System.DateTime)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginHistoryByID(System.String,System.DateTime,System.DateTime,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndHistoryByID(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.HistoryByLocation(System.Single,System.Single,System.Single,System.Single,System.Single,System.Single,System.DateTime,System.DateTime)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginHistoryByLocation(System.Single,System.Single,System.Single,System.Single,System.Single,System.Single,System.DateTime,System.DateTime,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndHistoryByLocation(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.HistoryLastKnownPosition(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginHistoryLastKnownPosition(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndHistoryLastKnownPosition(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginHistoryDeleteAll(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginHistoryDeleteById(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DataTextByDate(System.String,System.DateTime,System.DateTime)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDataTextByDate(System.String,System.DateTime,System.DateTime,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDataTextByDate(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DataTextByID(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDataTextByID(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDataTextByID(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DataTextAllByDevice(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDataTextAllByDevice(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDataTextAllByDevice(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDataTextDeleteByDevice(System.String,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDataTextDeleteByID(System.Int32,System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.BeginDataTextDeleteAll(System.AsyncCallback,System.Object)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.#ctor">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceTypeEdit(System.Int32,System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceTypeEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceTypeDelete(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceTypeDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EntityTypeEdit(System.Int32,System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndEntityTypeEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EntityTypeDelete(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndEntityTypeDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssmtReasonEdit(System.Int32,System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssmtReasonEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssmtReasonDelete(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssmtReasonDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceAdd(System.String,System.Int32,System.String,System.Single,System.Single,System.Single,System.Boolean,System.DateTime)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceEdit(System.String,System.Int32,System.String,System.Single,System.Single,System.Single,System.Boolean,System.DateTime)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceSetEndDate(System.String,System.DateTime)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceSetEndDate(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceRemoveEndDate(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceRemoveEndDate(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DeviceDelete(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDeviceDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EntityAdd(System.String,System.Int32,System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndEntityAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EntityEdit(System.String,System.Int32,System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndEntityEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EntityDelete(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndEntityDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RegionEdit(System.Int32,System.String,System.Single,System.Single,System.Single,System.Single,System.Single,System.Single,System.String,System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRegionEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RegionDelete(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRegionDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.VertexEdit(System.Int32,System.Single,System.Single,System.Single,System.Int32,System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndVertexEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.VertexDelete(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndVertexDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RoomAdd(System.String,System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRoomAdd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RoomEdit(System.String,System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRoomEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.RoomDelete(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndRoomDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.TriggerEdit(System.Int32,System.String,System.Int32,System.Boolean)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndTriggerEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.TriggerDelete(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndTriggerDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityEdit(System.Int32,System.String,System.String,System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityEnd(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityEnd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityDelete(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityEndAll(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityEndAll(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignEntityDeleteAll(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignEntityDeleteAll(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevEdit(System.Int32,System.String,System.String,System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevEdit(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevEnd(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevEnd(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevDelete(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevDelete(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevEndAll(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevEndAll(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevEndAllByEnt(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevEndAllByEnt(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevDeleteAll(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevDeleteAll(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.AssignDevDeleteAllByEnt(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndAssignDevDeleteAllByEnt(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.HistoryDeleteAll">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndHistoryDeleteAll(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.HistoryDeleteById(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndHistoryDeleteById(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DataTextDeleteByDevice(System.String)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDataTextDeleteByDevice(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DataTextDeleteByID(System.Int32)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDataTextDeleteByID(System.IAsyncResult)">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.DataTextDeleteAll">
+<remarks/>
+</member>
+      <member name="M:Parco.DataService.DataV1.EndDataTextDeleteAll(System.IAsyncResult)">
+<remarks/>
+</member>
+   </members>
+</doc>

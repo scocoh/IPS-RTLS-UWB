@@ -1,0 +1,9 @@
+SCC = This is a Source Code Control file
+
+[TriggerDemo.sln]
+SCC_Aux_Path = "\\Std12\VSS\"
+SCC_Project_Name = "$/Parco/ParcoTriggerDemo/TriggerDemo", KIRAAAAA
+
+[TriggerDemo.vbproj]
+SCC_Aux_Path = "\\Std12\VSS\"
+SCC_Project_Name = "$/Parco/ParcoTriggerDemo/TriggerDemo", KIRAAAAA
