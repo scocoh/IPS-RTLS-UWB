@@ -3,6 +3,8 @@ Parco RTLS SDK for integrating various hardware positioning systems into a unifi
 
 This repository contains the Parco Real-Time Location System (RTLS) software development kit (SDK) and related services. Parco RTLS is designed to integrate with various hardware positioning systems, providing a common format for data regardless of the hardware used. This allows for seamless upgrades or changes to hardware without impacting the end-user applications built with the Parco SDK.
 
+For a full history on this code visit https://asproj.com/github-rtls
+
 # Key Features:
 
 Tag Agnostic and Scalable: Supports active RFID systems, ensuring tag data is immediately available without prior system knowledge.
