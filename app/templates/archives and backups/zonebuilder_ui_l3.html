@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Define Building L3</title>
+    <style>
+        canvas {
+            border: 2px solid black;
+            background-size: cover;
+            background-position: center;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Define Building L3</h1>
+
+    <label for="buildingL3Name">Enter Building L3 Name:</label>
+    <input type="text" id="buildingL3Name" placeholder="Enter Name">
+    
+    <button onclick="startDrawingBuildingL3()">Define Interior Outline</button>
+    <button id="finishL3Button" class="hidden" onclick="finishDrawingL3()">Finish L3 Drawing</button>
+    <button id="saveL3Button" class="hidden" onclick="saveBuildingL3()">Save Building L3</button>
+
+    <canvas id="zoneCanvasL3"></canvas>
+
+    <script src="/static/vertexFormatterL3.js"></script>
+    <script src="/static/drawingToolL3.js"></script>
+
+    <script>
+        // Get map ID from URL
+        let urlParams = new URLSearchParams(window.location.search);
+        let mapId = urlParams.get('map_id');
+
+        if (mapId) {
+            console.log("Loading L3 for map ID:", mapId);
+            startDrawingBuildingL3(mapId);
+        } else {
+            alert("Error: Map ID missing!");
+        }
+    </script>
+
+</body>
+</html>

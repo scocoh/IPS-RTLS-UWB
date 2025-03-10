@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parco Zone Viewer</title>
+    <script>
+        const version = "0P.6B.28j"; // Version bump for style.css fix
+        console.log(`[INFO] Loaded Parco Zone Viewer (Version ${version}) 🚀`);
+    </script>
+    <script type="module">
+        import { loadCampusMap, loadCampuses, loadVerticesForSelectedZones, saveAllVertices } from "./static/campusMapLoader.js";
+        window.loadCampusMap = loadCampusMap;
+        window.loadCampuses = loadCampuses;
+        window.loadVerticesForSelectedZones = loadVerticesForSelectedZones;
+        window.saveAllVertices = saveAllVertices; // Expose saveAllVertices globally for the onclick handler
+    </script>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico"> <!-- Keep favicon -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .control-panel {
+            margin-top: 10px;
+        }
+        #zoneList {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        #zoneCanvas {
+            border: 2px solid black;
+            width: 800px;
+            height: 600px;
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        button {
+            padding: 5px 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Parco Zone Viewer (Version <span id="versionDisplay"></span>)</h1>
+    <div class="control-panel">
+        <label for="campusSelect">Select Campus:</label>
+        <select id="campusSelect" onchange="loadCampusMap()"></select>
+    </div>
+    <h3>Select Zones & Vertices:</h3>
+    <div id="zoneList"></div>
+    <button onclick="loadVerticesForSelectedZones()">Load Vertices for Selected Zones</button>
+    <canvas id="zoneCanvas" width="800" height="600"></canvas>
+
+    <h3>Edit Zone Vertices</h3>
+    <table id="vertexTable">
+        <thead>
+            <tr>
+                <th>Vertex #</th>
+                <th>X Coordinate</th>
+                <th>Y Coordinate</th>
+                <th>Z Coordinate</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Table rows will be dynamically populated -->
+        </tbody>
+    </table>
+    <button onclick="saveAllVertices()">Save All Changes</button>
+
+    <script>
+        document.getElementById("versionDisplay").textContent = version;
+        window.onload = () => {
+            console.log("[INFO] Page Loaded. Running `loadCampuses()`...");
+            loadCampuses();
+        };
+    </script>
+</body>
+</html>

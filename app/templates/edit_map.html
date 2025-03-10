@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Map</title>
+</head>
+<body>
+    <h2>Edit Map</h2>
+    <form action="{{ url_for('edit_map', map_id=map_entry.i_map) }}" method="post">
+        <label for="name">Map Name:</label>
+        <input type="text" name="name" value="{{ map_entry.x_nm_map }}" required><br>
+
+        <label for="lat_origin">Latitude (Origin):</label>
+        <input type="text" name="lat_origin" value="{{ map_entry.lat_origin }}" required><br>
+
+        <label for="lon_origin">Longitude (Origin):</label>
+        <input type="text" name="lon_origin" value="{{ map_entry.lon_origin }}" required><br>
+
+        <label for="min_x">Min X:</label>
+        <input type="text" name="min_x" value="{{ map_entry.min_x }}" required><br>
+
+        <label for="min_y">Min Y:</label>
+        <input type="text" name="min_y" value="{{ map_entry.min_y }}" required><br>
+
+        <label for="min_z">Min Z:</label>
+        <input type="text" name="min_z" value="{{ map_entry.min_z }}" required><br>
+
+        <label for="max_x">Max X:</label>
+        <input type="text" name="max_x" value="{{ map_entry.max_x }}" required><br>
+
+        <label for="max_y">Max Y:</label>
+        <input type="text" name="max_y" value="{{ map_entry.max_y }}" required><br>
+
+        <label for="max_z">Max Z:</label>
+        <input type="text" name="max_z" value="{{ map_entry.max_z }}" required><br>
+
+        <button type="submit">Save Changes</button>
+    </form>
+
+    <a href="{{ url_for('upload_file') }}">Cancel</a>
+</body>
+</html>

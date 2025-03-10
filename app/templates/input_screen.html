@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parco RTLS Input Screen</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-section { margin-bottom: 20px; border: 1px solid #ccc; padding: 10px; }
+        label { display: block; margin: 5px 0; }
+        button { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Parco RTLS API Input Screen</h1>
+
+    <!-- Set Device State -->
+    <div class="form-section">
+        <h2>Set Device State</h2>
+        <form action="/api/set_device_state" method="POST">
+            <label>Device ID:
+                <select name="device_id">
+                    {% for device in devices %}
+                        <option value="{{ device.x_id_dev }}" {% if device.x_id_dev == default_device %}selected{% endif %}>{{ device.x_id_dev }} ({{ device.x_nm_dev }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>New State:
+                <select name="new_state">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </label>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+<!-- Add Device -->
+<div class="form-section">
+    <h2>Add Device</h2>
+    <form action="/api/add_device" method="POST">
+        <label>Device ID: <input type="text" name="device_id" placeholder="Enter manufacturer tag ID (e.g., Tag123)"></label>
+        <label>Device Type:
+            <select name="device_type">
+                {% for dt in device_types %}
+                    <option value="{{ dt.i_typ_dev }}" {% if dt.i_typ_dev == default_device_type %}selected{% endif %}>{{ dt.x_dsc_dev }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Device Name: <input type="text" name="device_name" value="New Device"></label>
+        <button type="submit">Submit</button>
+    </form>
+</div>
+
+    <!-- Delete Device -->
+    <div class="form-section">
+        <h2>Delete Device</h2>
+        <form method="POST" onsubmit="this.action='/api/delete_device/' + document.getElementById('delete_device_id').value; return true;">
+            <label>Device ID:
+                <select id="delete_device_id" name="device_id">
+                    {% for device in devices %}
+                        <option value="{{ device.x_id_dev }}" {% if device.x_id_dev == default_device %}selected{% endif %}>{{ device.x_id_dev }} ({{ device.x_nm_dev }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Delete</button>
+        </form>
+    </div>
+
+    <!-- Assign Device to Zone -->
+    <div class="form-section">
+        <h2>Assign Device to Zone</h2>
+        <form action="/api/assign_device_to_zone" method="POST">
+            <label>Device ID:
+                <select name="device_id">
+                    {% for device in devices %}
+                        <option value="{{ device.x_id_dev }}" {% if device.x_id_dev == default_device %}selected{% endif %}>{{ device.x_id_dev }} ({{ device.x_nm_dev }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Entity ID:
+                <select name="entity_id">
+                    {% for entity in entities %}
+                        <option value="{{ entity.x_id_ent }}" {% if entity.x_id_ent == default_entity %}selected{% endif %}>{{ entity.x_nm_ent }} ({{ entity.x_id_ent }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Reason ID:
+                <select name="reason_id">
+                    {% for reason in reasons %}
+                        <option value="{{ reason.i_rsn }}" {% if reason.i_rsn == default_reason %}selected{% endif %}>{{ reason.x_rsn }} ({{ reason.i_rsn }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <!-- Insert Position -->
+    <div class="form-section">
+        <h2>Insert Position</h2>
+        <form action="/api/insert_position" method="POST">
+            <label>Device ID:
+                <select name="device_id">
+                    {% for device in devices %}
+                        <option value="{{ device.x_id_dev }}" {% if device.x_id_dev == default_device %}selected{% endif %}>{{ device.x_id_dev }} ({{ device.x_nm_dev }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>X Coordinate: <input type="number" step="0.1" name="x" value="10.0"></label>
+            <label>Y Coordinate: <input type="number" step="0.1" name="y" value="20.0"></label>
+            <label>Z Coordinate: <input type="number" step="0.1" name="z" value="0.0"></label>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <!-- Fire Trigger -->
+    <div class="form-section">
+        <h2>Fire Trigger</h2>
+        <form action="/api/fire_trigger/{{ default_trigger }}" method="POST">
+            <label>Trigger Name:
+                <select name="trigger_name" onchange="this.form.action='/api/fire_trigger/' + this.value;">
+                    {% for trigger in triggers %}
+                        <option value="{{ trigger.x_nm_trg }}" {% if trigger.x_nm_trg == default_trigger %}selected{% endif %}>{{ trigger.x_nm_trg }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <!-- Log Text Event -->
+    <div class="form-section">
+        <h2>Log Text Event</h2>
+        <form action="/api/log_text_event" method="POST">
+            <label>Device ID:
+                <select name="device_id">
+                    {% for device in devices %}
+                        <option value="{{ device.x_id_dev }}" {% if device.x_id_dev == default_device %}selected{% endif %}>{{ device.x_id_dev }} ({{ device.x_nm_dev }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Event Data: <input type="text" name="event_data" value="Test event from UI"></label>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload a New Map</title>
+    <script>
+        function dmsToDecimal(dms, direction) {
+            let parts = dms.match(/(\d+)[° ](\d+)[\' ](\d+)[\"\ ]?([NSEW])/);
+            if (!parts) return "Invalid Format";
+
+            let degrees = parseFloat(parts[1]);
+            let minutes = parseFloat(parts[2]) / 60;
+            let seconds = parseFloat(parts[3]) / 3600;
+            let decimal = degrees + minutes + seconds;
+
+            if (parts[4] === "S" || parts[4] === "W") {
+                decimal *= -1;
+            }
+            return decimal.toFixed(6);
+        }
+
+        function convertLat() {
+            let dmsLat = document.getElementById("dms_lat").value;
+            document.getElementById("lat_origin").value = dmsToDecimal(dmsLat, 'lat');
+        }
+
+        function convertLon() {
+            let dmsLon = document.getElementById("dms_lon").value;
+            document.getElementById("lon_origin").value = dmsToDecimal(dmsLon, 'lon');
+        }
+
+        function validateForm() {
+            let lat = parseFloat(document.getElementById("lat_origin").value);
+            let lon = parseFloat(document.getElementById("lon_origin").value);
+            
+            if (lat < -90 || lat > 90) {
+                alert("⚠️ Error: Latitude must be between -90 and 90.");
+                return false;
+            }
+            
+            if (lon < -180 || lon > 180) {
+                alert("⚠️ Error: Longitude must be between -180 and 180.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+    <h2>Upload a New Map</h2>
+    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
+        <label for="name">Map Name:</label>
+        <input type="text" name="name" required><br>
+
+        <label for="dms_lat">Latitude (DMS):</label>
+        <input type="text" id="dms_lat" placeholder="e.g., 33° 31' 26&quot; N">
+        <button type="button" onclick="convertLat()">Convert</button>
+        <input type="text" name="lat_origin" id="lat_origin" placeholder="Decimal Latitude" required readonly><br>
+
+        <label for="dms_lon">Longitude (DMS):</label>
+        <input type="text" id="dms_lon" placeholder="e.g., 111° 56' 35&quot; W">
+        <button type="button" onclick="convertLon()">Convert</button>
+        <input type="text" name="lon_origin" id="lon_origin" placeholder="Decimal Longitude" required readonly><br>
+
+        <label for="min_x">Min X:</label>
+        <input type="text" name="min_x" required><br>
+
+        <label for="min_y">Min Y:</label>
+        <input type="text" name="min_y" required><br>
+
+        <label for="min_z">Min Z:</label>
+        <input type="text" name="min_z" required><br>
+
+        <label for="max_x">Max X:</label>
+        <input type="text" name="max_x" required><br>
+
+        <label for="max_y">Max Y:</label>
+        <input type="text" name="max_y" required><br>
+
+        <label for="max_z">Max Z:</label>
+        <input type="text" name="max_z" required><br>
+
+        <label for="file">Upload Map (GIF, PNG, JPG):</label>
+        <input type="file" name="file" accept=".png,.jpg,.gif" required><br>
+
+        <button type="submit">Upload</button>
+    </form>
+
+    <h2>Existing Maps</h2>
+    <form action="{{ url_for('delete_maps') }}" method="post">
+        {% for map in maps %}
+            <input type="checkbox" name="delete_maps" value="{{ map.i_map }}">
+            <strong>{{ map.x_nm_map }}</strong> (Uploaded: {{ map.d_uploaded }})
+            <a href="{{ url_for('edit_map', map_id=map.i_map) }}">✏️ Edit</a><br>
+        {% endfor %}
+        <button type="submit">Delete Selected</button>
+    </form>
+</body>
+</html>

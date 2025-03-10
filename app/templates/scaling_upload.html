@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload a New Map (Interactive)</title>
+  <style>
+    /* Basic styling for layout */
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    h1, h2 {
+      margin-top: 1rem;
+    }
+    .form-section {
+      margin-bottom: 1rem;
+    }
+    .inline-label {
+      display: inline-block;
+      width: 100px;
+      font-weight: bold;
+    }
+
+    /* Force the image to display at natural pixel size (1:1) */
+    #previewContainer {
+      position: relative;
+      display: inline-block;
+      margin-top: 1rem;
+      overflow: auto; /* scroll if large */
+    }
+    #mapPreview {
+      border: 1px solid #ccc;
+      cursor: crosshair;
+      display: none; /* hidden until file is loaded */
+      width: auto !important;
+      height: auto !important;
+      max-width: none !important;
+      max-height: none !important;
+    }
+    #pointInputs {
+      margin-top: 1rem;
+      display: none;
+    }
+    #clickInfo {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #333;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body>
+  <h1>Upload a New Map (Interactive)</h1>
+  <!-- 
+    Main form that will POST to your Flask route (upload_file).
+    This will carry the final min_x, min_y, max_x, max_y once computed.
+  -->
+  <form id="uploadForm" action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+    <!-- Hard-code lat/lon to 0 so Flask won't complain about missing fields -->
+    <input type="hidden" name="lat_origin" value="0" />
+    <input type="hidden" name="lon_origin" value="0" />
+
+    <!-- Map Name -->
+    <div class="form-section">
+      <label class="inline-label" for="name">Map Name:</label>
+      <input type="text" name="name" id="mapName" required />
+    </div>
+
+    <!-- Z-Min / Z-Max (Optional) -->
+    <div class="form-section">
+      <label class="inline-label" for="min_z">Min Z:</label>
+      <input type="number" step="any" name="min_z" id="minZ" required /><br />
+      <label class="inline-label" for="max_z">Max Z:</label>
+      <input type="number" step="any" name="max_z" id="maxZ" required />
+    </div>
+
+    <!-- X / Y bounding box (will be computed by JS) -->
+    <div class="form-section">
+      <label class="inline-label" for="min_x">Min X:</label>
+      <input type="number" step="any" name="min_x" id="minX" required /><br />
+      <label class="inline-label" for="min_y">Min Y:</label>
+      <input type="number" step="any" name="min_y" id="minY" required /><br />
+      <label class="inline-label" for="max_x">Max X:</label>
+      <input type="number" step="any" name="max_x" id="maxX" required /><br />
+      <label class="inline-label" for="max_y">Max Y:</label>
+      <input type="number" step="any" name="max_y" id="maxY" required />
+    </div>
+
+    <!-- File input -->
+    <div class="form-section">
+      <label class="inline-label" for="file">Map File:</label>
+      <input
+        type="file"
+        name="file"
+        id="mapFile"
+        accept="image/png, image/jpeg, image/gif"
+        required
+      />
+    </div>
+
+    <!-- Final Submit Button -->
+    <button type="submit">Final Upload</button>
+  </form>
+
+  <hr />
+
+  <!-- Preview & Scaling Controls -->
+  <h2>Map Preview & Scaling</h2>
+  <p>Select your map file above, then use the tools below to set your scale.</p>
+  <button id="beginScalingBtn" disabled>Begin Scaling</button>
+
+  <!-- 1:1 image container -->
+  <div id="previewContainer">
+    <img id="mapPreview" src="" alt="Map Preview" />
+  </div>
+
+  <div id="clickInfo"></div>
+
+  <!-- Inputs for Real-World Coordinates of the 2 clicked points -->
+  <div id="pointInputs">
+    <h3>Enter Real-World Coordinates for Clicked Points (in feet)</h3>
+    <div>
+      <strong>Point 1 (Anchor):</strong><br />
+      X: <input type="number" step="any" id="p1x_real" placeholder="e.g., 3.45" /><br />
+      Y: <input type="number" step="any" id="p1y_real" placeholder="e.g., -0.15" />
+    </div>
+    <div style="margin-top: 0.5rem;">
+      <strong>Point 2:</strong><br />
+      X: <input type="number" step="any" id="p2x_real" placeholder="e.g., 37.402" /><br />
+      Y: <input type="number" step="any" id="p2y_real" placeholder="e.g., 105.074" />
+    </div>
+    <button id="computeScaleBtn">Compute Map Bounds (ft)</button>
+  </div>
+
+  <script>
+    // Variables to store clicked pixel coordinates
+    let clickCount = 0;
+    let p1_pixel = null;
+    let p2_pixel = null;
+
+    // DOM references
+    const mapFileInput = document.getElementById("mapFile");
+    const mapPreview = document.getElementById("mapPreview");
+    const beginScalingBtn = document.getElementById("beginScalingBtn");
+    const clickInfo = document.getElementById("clickInfo");
+    const pointInputs = document.getElementById("pointInputs");
+    const computeScaleBtn = document.getElementById("computeScaleBtn");
+
+    // Real-world coords from user
+    const p1xRealInput = document.getElementById("p1x_real");
+    const p1yRealInput = document.getElementById("p1y_real");
+    const p2xRealInput = document.getElementById("p2x_real");
+    const p2yRealInput = document.getElementById("p2y_real");
+
+    // Form fields for bounding box
+    const minXField = document.getElementById("minX");
+    const minYField = document.getElementById("minY");
+    const maxXField = document.getElementById("maxX");
+    const maxYField = document.getElementById("maxY");
+
+    // --- 1. Load & Preview Image at Natural Size ---
+    mapFileInput.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        mapPreview.src = e.target.result;
+        mapPreview.style.display = "block"; // show image
+
+        // Reset
+        clickCount = 0;
+        p1_pixel = null;
+        p2_pixel = null;
+        clickInfo.textContent = "";
+        pointInputs.style.display = "none";
+
+        beginScalingBtn.disabled = false;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // --- 2. Begin Scaling (Capture 2 points) ---
+    beginScalingBtn.addEventListener("click", () => {
+      clickCount = 0;
+      p1_pixel = null;
+      p2_pixel = null;
+      clickInfo.textContent = "Click the first point on the image (Point 1)...";
+      pointInputs.style.display = "none";
+    });
+
+    // Capture pixel coords from user clicks
+    mapPreview.addEventListener("click", (e) => {
+      if (beginScalingBtn.disabled) return;
+      const rect = mapPreview.getBoundingClientRect();
+
+      // If the image is truly 1:1, rect.width = mapPreview.naturalWidth
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      clickCount++;
+      if (clickCount === 1) {
+        p1_pixel = { x, y };
+        clickInfo.textContent =
+          `Point 1 (pixels): (${x.toFixed(2)}, ${y.toFixed(2)})\nNow click Point 2...`;
+      } else if (clickCount === 2) {
+        p2_pixel = { x, y };
+        clickInfo.textContent +=
+          `\nPoint 2 (pixels): (${x.toFixed(2)}, ${y.toFixed(2)})\nEnter real-world coords below.`;
+        pointInputs.style.display = "block";
+      }
+    });
+
+    // Helper function to reorder points so p1 is the "lower" pixel
+    function reorderPointsIfNeeded(
+      px1, py1, px2, py2,
+      rx1, ry1, rx2, ry2
+    ) {
+      // We want p1 to have the bigger y in pixel space (the "lower" point).
+      // If p2_pixel.y > p1_pixel.y, swap them.
+      if (py2 > py1) {
+        // swap pixel coords
+        const tmpPx = px1; const tmpPy = py1;
+        px1 = px2; py1 = py2;
+        px2 = tmpPx; py2 = tmpPy;
+        // swap real coords
+        const tmpRx = rx1; const tmpRy = ry1;
+        rx1 = rx2; ry1 = ry2;
+        rx2 = tmpRx; ry2 = tmpRy;
+      }
+      return { px1, py1, px2, py2, rx1, ry1, rx2, ry2 };
+    }
+
+    // --- 3. Compute the Bounding Box in Feet (Spreadsheet Logic) ---
+    computeScaleBtn.addEventListener("click", () => {
+      if (!p1_pixel || !p2_pixel) {
+        alert("Please click two points first!");
+        return;
+      }
+
+      let p1xReal = parseFloat(p1xRealInput.value);
+      let p1yReal = parseFloat(p1yRealInput.value);
+      let p2xReal = parseFloat(p2xRealInput.value);
+      let p2yReal = parseFloat(p2yRealInput.value);
+      if (isNaN(p1xReal) || isNaN(p1yReal) || isNaN(p2xReal) || isNaN(p2yReal)) {
+        alert("Enter valid real-world coords for both points.");
+        return;
+      }
+
+      // Reorder so "Point 1" is the lower pixel in the image
+      let rp = reorderPointsIfNeeded(
+        p1_pixel.x, p1_pixel.y, p2_pixel.x, p2_pixel.y,
+        p1xReal, p1yReal, p2xReal, p2yReal
+      );
+
+      // Overwrite with swapped if needed
+      p1_pixel.x = rp.px1; p1_pixel.y = rp.py1;
+      p2_pixel.x = rp.px2; p2_pixel.y = rp.py2;
+      p1xReal = rp.rx1; p1yReal = rp.ry1;
+      p2xReal = rp.rx2; p2yReal = rp.ry2;
+
+      // 3A. Compute separate scales in X & Y (pixels per foot)
+      // dx_pixels = p2_pixel.x - p1_pixel.x
+      // dx_feet = (p2xReal - p1xReal)
+      const dx_pixels = p2_pixel.x - p1_pixel.x;
+      const dx_feet = p2xReal - p1xReal;
+      const s_x = dx_pixels / dx_feet;
+
+      // dy_pixels = p1_pixel.y - p2_pixel.y
+      // dy_feet = (p2yReal - p1yReal)
+      const dy_pixels = p1_pixel.y - p2_pixel.y;
+      const dy_feet = p2yReal - p1yReal;
+      const s_y = dy_pixels / dy_feet;
+
+      // 3B. Average scale
+      const s = (s_x + s_y) / 2;
+
+      // 3C. offset so that p1 => (p1xReal, p1yReal)
+      // p1yReal = offset_y + ( (canvasHeight - p1_pixel.y)/s )
+      // p1xReal = offset_x + (p1_pixel.x / s)
+      const canvasWidth = mapPreview.naturalWidth;
+      const canvasHeight = mapPreview.naturalHeight;
+
+      const offset_x = p1xReal - (p1_pixel.x / s);
+      const p1y_flipped = canvasHeight - p1_pixel.y;
+      const offset_y = p1yReal - (p1y_flipped / s);
+
+      // 3D. bounding box
+      // minX, minY => pixel(0, canvasHeight)
+      // maxX, maxY => pixel(canvasWidth, 0)
+      const minX = offset_x; 
+      const minY = offset_y;
+      const maxX = offset_x + (canvasWidth / s);
+      const maxY = offset_y + (canvasHeight / s);
+
+      let msg = "";
+      msg += `After reorder (p1 is lower in image coords):\n`;
+      msg += `Point 1 (px): (${p1_pixel.x.toFixed(2)}, ${p1_pixel.y.toFixed(2)}) => Real(${p1xReal}, ${p1yReal})\n`;
+      msg += `Point 2 (px): (${p2_pixel.x.toFixed(2)}, ${p2_pixel.y.toFixed(2)}) => Real(${p2xReal}, ${p2yReal})\n\n`;
+      msg += `Scale X: ${s_x.toFixed(5)} px/ft\n`;
+      msg += `Scale Y: ${s_y.toFixed(5)} px/ft\n`;
+      msg += `Avg Scale: ${s.toFixed(5)} px/ft\n\n`;
+      msg += `Offset X: ${offset_x.toFixed(2)} ft\n`;
+      msg += `Offset Y: ${offset_y.toFixed(2)} ft\n\n`;
+      msg += `Canvas Size: ${canvasWidth} x ${canvasHeight} px\n`;
+      msg += `Final BBox:\n  minX=${minX.toFixed(2)}, minY=${minY.toFixed(2)}\n`;
+      msg += `           maxX=${maxX.toFixed(2)}, maxY=${maxY.toFixed(2)}\n`;
+      msg += `(Now it should match your spreadsheet if you used the same P1/P2)`;
+
+      // Fill the form
+      minXField.value = minX.toFixed(2);
+      minYField.value = minY.toFixed(2);
+      maxXField.value = maxX.toFixed(2);
+      maxYField.value = maxY.toFixed(2);
+
+      clickInfo.textContent = msg;
+      console.log(msg);
+    });
+  </script>
+</body>
+</html>

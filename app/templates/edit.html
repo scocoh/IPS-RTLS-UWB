@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Map</title>
+</head>
+<body>
+    <h2>Edit Map</h2>
+    <form method="POST">
+        <label>Map Name:</label>
+        <input type="text" name="name" value="{{ map.x_nm_map }}" required><br>
+
+        <label>Latitude Origin:</label>
+        <input type="text" name="lat_origin" value="{{ map.lat_origin }}"><br>
+
+        <label>Longitude Origin:</label>
+        <input type="text" name="lon_origin" value="{{ map.lon_origin }}"><br>
+
+        <label>Min X:</label>
+        <input type="text" name="min_x" value="{{ map.min_x }}"><br>
+
+        <label>Min Y:</label>
+        <input type="text" name="min_y" value="{{ map.min_y }}"><br>
+
+        <label>Min Z:</label>
+        <input type="text" name="min_z" value="{{ map.min_z }}"><br>
+
+        <label>Max X:</label>
+        <input type="text" name="max_x" value="{{ map.max_x }}"><br>
+
+        <label>Max Y:</label>
+        <input type="text" name="max_y" value="{{ map.max_y }}"><br>
+
+        <label>Max Z:</label>
+        <input type="text" name="max_z" value="{{ map.max_z }}"><br>
+
+        <button type="submit">Save Changes</button>
+    </form>
+    <a href="/">Cancel</a>
+</body>
+</html>

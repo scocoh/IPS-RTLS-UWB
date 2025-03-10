@@ -1,0 +1,61 @@
+from flask import Flask, render_template, request, redirect, url_for, send_file
+from flask_sqlalchemy import SQLAlchemy
+import io
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://parcoadmin@localhost/ParcoRTLSMaint'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+class Map(db.Model):
+    __tablename__ = 'maps'
+    i_map = db.Column(db.Integer, primary_key=True)
+    x_nm_map = db.Column(db.String, nullable=False)
+    x_path = db.Column(db.String, nullable=False)
+    x_format = db.Column(db.String, nullable=False)
+    d_uploaded = db.Column(db.DateTime, nullable=False)
+    img_data = db.Column(db.LargeBinary)
+    is_default = db.Column(db.Boolean, default=False)
+
+# ✅ Ensure database is created inside app context
+with app.app_context():
+    db.create_all()
+
+@app.route('/')
+def upload_form():
+    maps = Map.query.all()
+    return render_template('upload.html', maps=maps)
+
+@app.route('/upload_file', methods=['POST'])
+def upload_file():
+    file = request.files['file']
+    if file:
+        img_data = file.read()
+        new_map = Map(x_nm_map=file.filename, x_path='/static/' + file.filename, 
+                      x_format=file.content_type, d_uploaded=db.func.now(), img_data=img_data)
+        db.session.add(new_map)
+        db.session.commit()
+    return redirect(url_for('upload_form'))
+
+# ✅ Route to serve the default grid map
+@app.route('/default_map')
+def default_map():
+    with app.app_context():
+        default_map_entry = Map.query.filter_by(is_default=True).first()
+        if default_map_entry and default_map_entry.img_data:
+            return send_file(io.BytesIO(default_map_entry.img_data),
+                            mimetype="image/png",
+                            as_attachment=False)
+        else:
+            return "Default Map Not Found", 404
+
+@app.route('/delete_maps', methods=['POST'])
+def delete_maps():
+    selected_maps = request.form.getlist('delete_maps')
+    for map_id in selected_maps:
+        Map.query.filter_by(i_map=map_id).delete()
+    db.session.commit()
+    return redirect(url_for('upload_form'))
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5001, debug=True)

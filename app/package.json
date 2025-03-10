@@ -1,0 +1,42 @@
+{
+  "name": "parco-rtls",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "start:proxy-debug": "cross-env REACT_APP_PROXY_DEBUG=true react-scripts start"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "leaflet": "^1.9.4",
+    "leaflet-draw": "^1.0.4",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.10.9",
+    "react-dom": "^18.2.0",
+    "react-leaflet": "^5.0.0",
+    "react-leaflet-draw": "^0.20.6",
+    "react-router-dom": "^7.3.0",
+    "react-scripts": "^5.0.0"
+  },
+  "devDependencies": {
+    "http-proxy-middleware": "^2.0.6"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "http://192.168.210.231:8000",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

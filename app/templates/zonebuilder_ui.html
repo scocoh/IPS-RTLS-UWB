@@ -1,0 +1,130 @@
+<!--
+Version: 250227 zonebuilder_ui.html Version 0P.6B.3T
+
+ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
+Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
+Invented by Scott Cohen & Bertrand Dugal.
+Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
+Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
+
+Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parco Zone Builder</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico"> <!-- Added favicon link -->
+    <style>
+        canvas {
+            border: 2px solid black;
+            background-size: cover;
+            background-position: center;
+        }
+        .hidden { display: none; }
+        .control-panel { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div id="zoneDetails" class="hidden">
+        <h3>Zone Details</h3>
+    </div>
+    
+    <h1>Parco Zone Builder</h1>
+    <div class="control-panel">
+        <select id="zoneLevel"></select>
+
+        <label for="zoneLevel">Select Zone Level:</label>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                fetch("/get_zone_types")
+                 .then(response => response.json())
+                 .then(data => {
+                     let zoneSelect = document.getElementById("zoneLevel");
+                     zoneSelect.innerHTML = "<option value=''>Select Zone Type</option>"; // Clear and set default option
+
+                    data.forEach(zone => {
+                        let option = document.createElement("option");
+                        option.value = zone.api_endpoint || "";  // Store API endpoint directly
+                        option.textContent = zone.zone_name;
+                        option.dataset.zoneLevel = zone.zone_level; // Store zone level separately
+                        zoneSelect.appendChild(option);
+                    });
+
+                    console.log("[INFO] Populated zoneLevel dropdown with API endpoints:", data);
+                })
+                .catch(error => console.error("[ERROR] Fetching zone types failed:", error));
+            });
+        </script>
+        
+        
+        <label for="mapSelect">Select Map:</label>
+        <select id="mapSelect"></select>
+
+        <label for="parentZoneSelect">Select Parent Zone:</label>
+        <select id="parentZoneSelect">
+            <option value="">(None - Parent Zone)</option>
+        </select>
+
+        <label for="zoneName">Zone Name:</label>
+        <input type="text" id="zoneName" placeholder="Enter Zone Name">
+        <button onclick="startDrawingZone()">Define Zone Outline</button>
+        <button id="finishDrawing" class="hidden" onclick="finishDrawingZone()">Finish Drawing</button>
+        <button id="saveZone" class="hidden" onclick="saveZone()">Save Zone</button>
+    </div>
+
+    <canvas id="zoneCanvas" width="800" height="600"></canvas>
+
+    <div id="zoomControls">
+        <button onclick="zoomIn()">+</button>
+        <button onclick="zoomOut()">-</button>
+    </div>
+
+    <script type="module" src="/static/mapLoader.js"></script>
+    <script type="module" src="/static/drawingTool.js"></script>
+    <script type="module" src="/static/vertexFormatter.js"></script>
+    <script type="module" src="/static/zoneManager.js"></script>
+    
+    <script>
+        // Ensure JavaScript only runs after page is fully loaded
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch("/get_parent_zones")
+                .then(response => response.json())
+                .then(data => {
+                    let parentZoneSelect = document.getElementById("parentZoneSelect");
+                    data.zones.forEach(zone => {
+                        let option = document.createElement("option");
+                        option.value = zone.zone_id;
+                        option.textContent = zone.name;
+                        parentZoneSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error fetching parent zones:", error));
+        });
+    </script>
+
+    <script type="module">
+        import { startDrawingZone, finishDrawingZone, updateZoneLevel, saveZone } from "./static/drawingTool.js";
+        import { zoomIn, zoomOut } from "./static/mapLoader.js";  
+
+        document.addEventListener("DOMContentLoaded", function () {
+            window.startDrawingZone = startDrawingZone;
+            window.finishDrawingZone = finishDrawingZone;
+            window.updateZoneLevel = updateZoneLevel;
+            window.saveZone = saveZone // Ensure Save Zone Button Works
+            
+            // Attach event listener for the dropdown change
+            document.getElementById("zoneLevel").addEventListener("change", function(event) {
+                updateZoneLevel(event);
+            });
+
+            // Ensure Save Zone button appears when finished drawing
+            document.getElementById("finishDrawing").addEventListener("click", function() {
+                document.getElementById("saveZone").classList.remove("hidden");
+            });
+        });
+    </script>
+</body>
+</html>

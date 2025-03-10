@@ -1,0 +1,200 @@
+2025-02-27 15:42:14,047 - INFO - Cleanup script initialized successfully (Version 0P.1C.10).
+2025-02-27 15:42:14,056 - INFO - Database connection established successfully.
+2025-02-27 15:42:14,058 - INFO - Found 140 test zones.
+2025-02-27 15:42:14,058 - INFO - Database connection closed.
+2025-02-27 15:42:14,066 - INFO - Database connection established successfully.
+2025-02-27 15:42:14,067 - ERROR - Error fetching test vertices: column "vertex_id" does not exist
+LINE 2:         SELECT vertex_id, i_zn as zone_id, x, y, z, "order"
+                       ^
+
+2025-02-27 15:42:14,067 - INFO - Database connection closed.
+2025-02-27 15:42:14,074 - INFO - Database connection established successfully.
+2025-02-27 15:42:14,075 - ERROR - Error fetching test regions: column "i_reg" does not exist
+LINE 2:         SELECT i_zn, i_reg, x_nm_reg, i_pnt_reg
+                             ^
+HINT:  Perhaps you meant to reference the column "regions.i_rgn" or the column "regions.i_trg".
+
+2025-02-27 15:42:14,075 - INFO - Database connection closed.
+2025-02-27 15:42:50,551 - ERROR - Invalid selection: invalid literal for int() with base 10: ''
+2025-02-27 15:46:07,183 - INFO - Cleanup script initialized successfully (Version 0P.1C.12).
+2025-02-27 15:46:07,192 - INFO - Database connection established successfully.
+2025-02-27 15:46:07,194 - INFO - Found 140 test zones.
+2025-02-27 15:46:07,194 - INFO - Database connection closed.
+2025-02-27 15:46:07,202 - INFO - Database connection established successfully.
+2025-02-27 15:46:07,203 - ERROR - Error fetching test vertices: column "i_zn" does not exist
+LINE 2:         SELECT i_vtx as vertex_id, i_zn as zone_id, n_x as x...
+                                           ^
+HINT:  Perhaps you meant to reference the column "vertices.n_z" or the column "vertices.i_rgn".
+
+2025-02-27 15:46:07,203 - INFO - Database connection closed.
+2025-02-27 15:46:07,210 - INFO - Database connection established successfully.
+2025-02-27 15:46:07,211 - ERROR - Error fetching test regions: column "i_pnt_reg" does not exist
+LINE 2: ...SELECT i_zn, i_rgn as i_reg, x_nm_rgn as x_nm_reg, i_pnt_reg
+                                                              ^
+
+2025-02-27 15:46:07,211 - INFO - Database connection closed.
+2025-02-27 15:46:09,815 - ERROR - Invalid selection: invalid literal for int() with base 10: ''
+2025-02-27 15:50:08,975 - INFO - Cleanup script initialized successfully (Version 0P.1C.13).
+2025-02-27 15:50:08,985 - INFO - Database connection established successfully.
+2025-02-27 15:50:08,987 - INFO - Found 140 test zones.
+2025-02-27 15:50:08,987 - INFO - Database connection closed.
+2025-02-27 15:50:08,995 - INFO - Database connection established successfully.
+2025-02-27 15:50:08,997 - INFO - Found 403 vertices for test zones.
+2025-02-27 15:50:08,997 - INFO - Database connection closed.
+2025-02-27 15:50:09,005 - INFO - Database connection established successfully.
+2025-02-27 15:50:09,006 - INFO - Found 139 regions for test zones.
+2025-02-27 15:50:09,006 - INFO - Database connection closed.
+2025-02-27 15:51:56,277 - INFO - Database connection established successfully.
+2025-02-27 15:51:56,281 - INFO - Deleted 403 vertices for test zones.
+2025-02-27 15:51:56,282 - INFO - Database connection closed.
+2025-02-27 15:51:56,290 - INFO - Database connection established successfully.
+2025-02-27 15:51:56,301 - INFO - Deleted 139 regions for test zones.
+2025-02-27 15:51:56,301 - INFO - Database connection closed.
+2025-02-27 15:51:56,310 - INFO - Database connection established successfully.
+2025-02-27 15:51:56,313 - ERROR - Error deleting test zones: update or delete on table "zones" violates foreign key constraint "fk_zones_zones" on table "zones"
+DETAIL:  Key (i_zn)=(17) is still referenced from table "zones".
+
+2025-02-27 15:51:56,314 - INFO - Database connection closed.
+2025-02-27 15:51:56,314 - ERROR - Test data cleanup failed. Check logs for details.
+2025-02-27 15:55:55,026 - INFO - Cleanup script initialized successfully (Version 0P.1C.14).
+2025-02-27 15:55:55,036 - INFO - Database connection established successfully.
+2025-02-27 15:55:55,039 - INFO - Found 152 test zones (including descendants).
+2025-02-27 15:55:55,039 - INFO - Database connection closed.
+2025-02-27 15:55:55,047 - INFO - Database connection established successfully.
+2025-02-27 15:55:55,049 - INFO - Found 0 vertices for test zones.
+2025-02-27 15:55:55,049 - INFO - Database connection closed.
+2025-02-27 15:55:55,056 - INFO - Database connection established successfully.
+2025-02-27 15:55:55,059 - INFO - Found 10 regions for test zones.
+2025-02-27 15:55:55,059 - INFO - Database connection closed.
+2025-02-27 15:56:00,163 - INFO - Database connection established successfully.
+2025-02-27 15:56:00,165 - INFO - Deleted 0 vertices for test zones.
+2025-02-27 15:56:00,166 - INFO - Database connection closed.
+2025-02-27 15:56:00,174 - INFO - Database connection established successfully.
+2025-02-27 15:56:00,176 - INFO - Deleted 0 regions for test zones.
+2025-02-27 15:56:00,176 - INFO - Database connection closed.
+2025-02-27 15:56:00,183 - INFO - Database connection established successfully.
+2025-02-27 15:56:00,188 - ERROR - Error deleting test zones: update or delete on table "zones" violates foreign key constraint "regions_i_zn_fkey" on table "regions"
+DETAIL:  Key (i_zn)=(31) is still referenced from table "regions".
+
+2025-02-27 15:56:00,188 - INFO - Database connection closed.
+2025-02-27 15:56:00,188 - ERROR - Test data cleanup failed. Check logs for details.
+2025-02-27 17:33:42,188 - INFO - Cleanup script initialized successfully (Version 0P.1C.15).
+2025-02-27 17:33:42,197 - INFO - Database connection established successfully.
+2025-02-27 17:33:42,200 - INFO - Found 152 test zones (including descendants).
+2025-02-27 17:33:42,200 - INFO - Database connection closed.
+2025-02-27 17:33:42,208 - INFO - Database connection established successfully.
+2025-02-27 17:33:42,210 - INFO - Found 0 vertices for test zones.
+2025-02-27 17:33:42,210 - INFO - Database connection closed.
+2025-02-27 17:33:42,217 - INFO - Database connection established successfully.
+2025-02-27 17:33:42,220 - INFO - Found 10 regions for test zones (including linked regions).
+2025-02-27 17:33:42,220 - INFO - Database connection closed.
+2025-02-27 17:35:35,881 - INFO - Database connection established successfully.
+2025-02-27 17:35:35,884 - INFO - Deleted 0 vertices for test zones.
+2025-02-27 17:35:35,884 - INFO - Database connection closed.
+2025-02-27 17:35:35,891 - INFO - Database connection established successfully.
+2025-02-27 17:35:35,895 - ERROR - Error deleting test regions: update or delete on table "regions" violates foreign key constraint "vertices_i_rgn_fkey" on table "vertices"
+DETAIL:  Key (i_rgn)=(24) is still referenced from table "vertices".
+
+2025-02-27 17:35:35,895 - INFO - Database connection closed.
+2025-02-27 17:35:35,903 - INFO - Database connection established successfully.
+2025-02-27 17:35:35,907 - ERROR - Error deleting test zones: update or delete on table "zones" violates foreign key constraint "regions_i_zn_fkey" on table "regions"
+DETAIL:  Key (i_zn)=(31) is still referenced from table "regions".
+
+2025-02-27 17:35:35,908 - INFO - Database connection closed.
+2025-02-27 17:35:35,908 - ERROR - Test data cleanup failed. Check logs for details.
+2025-02-27 17:41:34,557 - INFO - Cleanup script initialized successfully (Version 0P.1C.16).
+2025-02-27 17:41:34,566 - INFO - Database connection established successfully.
+2025-02-27 17:41:34,568 - INFO - Found 152 test zones (including descendants).
+2025-02-27 17:41:34,568 - INFO - Database connection closed.
+2025-02-27 17:41:34,576 - INFO - Database connection established successfully.
+2025-02-27 17:41:34,578 - INFO - Found 0 vertices for test zones.
+2025-02-27 17:41:34,578 - INFO - Database connection closed.
+2025-02-27 17:41:34,585 - INFO - Database connection established successfully.
+2025-02-27 17:41:34,588 - INFO - Found 10 regions for test zones (including all related regions).
+2025-02-27 17:41:34,588 - INFO - Database connection closed.
+2025-02-27 17:41:37,567 - INFO - Database connection established successfully.
+2025-02-27 17:41:37,572 - INFO - Deleted 49 vertices for test zones (including related data).
+2025-02-27 17:41:37,572 - INFO - Database connection closed.
+2025-02-27 17:41:37,581 - INFO - Database connection established successfully.
+2025-02-27 17:41:37,586 - INFO - Deleted 10 regions for test zones (including all related regions).
+2025-02-27 17:41:37,586 - INFO - Database connection closed.
+2025-02-27 17:41:37,594 - INFO - Database connection established successfully.
+2025-02-27 17:41:37,603 - INFO - Deleted 152 test zones (including descendants).
+2025-02-27 17:41:37,603 - INFO - Database connection closed.
+2025-02-27 17:41:37,603 - INFO - Test data cleanup completed successfully.
+2025-02-27 18:35:12,872 - INFO - Cleanup script initialized successfully (Version 0P.2C.03).
+2025-02-27 18:35:12,882 - INFO - Database connection established successfully.
+2025-02-27 18:35:12,883 - INFO - Found 116 zones to delete (all test data).
+2025-02-27 18:35:12,884 - INFO - Database connection closed.
+2025-02-27 18:35:42,044 - INFO - Database connection established successfully.
+2025-02-27 18:35:42,047 - INFO - Deleted all 767 vertices (all test data).
+2025-02-27 18:35:42,047 - INFO - Database connection closed.
+2025-02-27 18:35:42,055 - INFO - Database connection established successfully.
+2025-02-27 18:35:42,059 - INFO - Deleted all 114 regions (all test data).
+2025-02-27 18:35:42,059 - INFO - Database connection closed.
+2025-02-27 18:35:42,066 - INFO - Database connection established successfully.
+2025-02-27 18:35:42,071 - INFO - Deleted all 116 zones (all test data).
+2025-02-27 18:35:42,071 - INFO - Database connection closed.
+2025-02-27 18:35:42,078 - INFO - Database connection established successfully.
+2025-02-27 18:35:42,087 - INFO - Deleted all 12 maps (all test data).
+2025-02-27 18:35:42,087 - INFO - Database connection closed.
+2025-02-27 18:35:42,087 - INFO - Full data cleanup completed successfully (all test data removed).
+2025-03-03 13:40:29,433 - INFO - Cleanup script initialized successfully (Version 0P.2C.03).
+2025-03-03 13:40:29,444 - INFO - Database connection established successfully.
+2025-03-03 13:40:29,445 - INFO - Found 30 zones to delete (all test data).
+2025-03-03 13:40:29,445 - INFO - Database connection closed.
+2025-03-03 13:41:01,020 - INFO - Database connection established successfully.
+2025-03-03 13:41:01,022 - INFO - Deleted all 275 vertices (all test data).
+2025-03-03 13:41:01,022 - INFO - Database connection closed.
+2025-03-03 13:41:01,031 - INFO - Database connection established successfully.
+2025-03-03 13:41:01,034 - INFO - Deleted all 30 regions (all test data).
+2025-03-03 13:41:01,034 - INFO - Database connection closed.
+2025-03-03 13:41:01,043 - INFO - Database connection established successfully.
+2025-03-03 13:41:01,046 - INFO - Deleted all 30 zones (all test data).
+2025-03-03 13:41:01,046 - INFO - Database connection closed.
+2025-03-03 13:41:01,054 - INFO - Database connection established successfully.
+2025-03-03 13:41:01,058 - INFO - Deleted all 4 maps (all test data).
+2025-03-03 13:41:01,058 - INFO - Database connection closed.
+2025-03-03 13:41:01,059 - INFO - Full data cleanup completed successfully (all test data removed).
+2025-03-03 13:41:05,687 - INFO - Cleanup script initialized successfully (Version 0P.2C.03).
+2025-03-03 13:41:05,696 - INFO - Database connection established successfully.
+2025-03-03 13:41:05,698 - INFO - Found 0 zones to delete (all test data).
+2025-03-03 13:41:05,698 - INFO - Database connection closed.
+2025-03-03 13:41:05,706 - INFO - Database connection established successfully.
+2025-03-03 13:41:05,707 - INFO - Found 0 vertices to delete (all test data).
+2025-03-03 13:41:05,707 - INFO - Database connection closed.
+2025-03-03 13:41:05,715 - INFO - Database connection established successfully.
+2025-03-03 13:41:05,716 - INFO - Found 0 regions to delete (all test data).
+2025-03-03 13:41:05,716 - INFO - Database connection closed.
+2025-03-03 13:41:05,723 - INFO - Database connection established successfully.
+2025-03-03 13:41:05,724 - INFO - Found 0 maps to delete (all test data).
+2025-03-03 13:41:05,724 - INFO - Database connection closed.
+2025-03-03 13:41:05,724 - INFO - No data found to delete (database is already empty).
+2025-03-03 13:41:27,132 - INFO - Cleanup script initialized successfully (Version 0P.2C.03).
+2025-03-03 13:41:27,142 - INFO - Database connection established successfully.
+2025-03-03 13:41:27,144 - INFO - Found 0 zones to delete (all test data).
+2025-03-03 13:41:27,144 - INFO - Database connection closed.
+2025-03-03 13:41:27,153 - INFO - Database connection established successfully.
+2025-03-03 13:41:27,154 - INFO - Found 0 vertices to delete (all test data).
+2025-03-03 13:41:27,154 - INFO - Database connection closed.
+2025-03-03 13:41:27,163 - INFO - Database connection established successfully.
+2025-03-03 13:41:27,164 - INFO - Found 0 regions to delete (all test data).
+2025-03-03 13:41:27,164 - INFO - Database connection closed.
+2025-03-03 13:41:27,173 - INFO - Database connection established successfully.
+2025-03-03 13:41:27,174 - INFO - Found 0 maps to delete (all test data).
+2025-03-03 13:41:27,174 - INFO - Database connection closed.
+2025-03-03 13:41:27,174 - INFO - No data found to delete (database is already empty).
+2025-03-03 13:41:33,229 - INFO - Cleanup script initialized successfully (Version 0P.2C.03).
+2025-03-03 13:41:33,237 - INFO - Database connection established successfully.
+2025-03-03 13:41:33,238 - INFO - Found 0 zones to delete (all test data).
+2025-03-03 13:41:33,239 - INFO - Database connection closed.
+2025-03-03 13:41:33,246 - INFO - Database connection established successfully.
+2025-03-03 13:41:33,247 - INFO - Found 0 vertices to delete (all test data).
+2025-03-03 13:41:33,247 - INFO - Database connection closed.
+2025-03-03 13:41:33,254 - INFO - Database connection established successfully.
+2025-03-03 13:41:33,255 - INFO - Found 0 regions to delete (all test data).
+2025-03-03 13:41:33,255 - INFO - Database connection closed.
+2025-03-03 13:41:33,263 - INFO - Database connection established successfully.
+2025-03-03 13:41:33,264 - INFO - Found 0 maps to delete (all test data).
+2025-03-03 13:41:33,264 - INFO - Database connection closed.
+2025-03-03 13:41:33,264 - INFO - No data found to delete (database is already empty).

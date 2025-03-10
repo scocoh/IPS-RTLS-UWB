@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <!-- Modular Includes -->
+    {% include "_map_selection.html" %}
+    {% include "_campus_l1.html" %}
+    {% include "_building_outside_l2.html" %}
+    {% include "_building_l3.html" %}
+    
+    <div id="zoomControls">
+        <button onclick="zoomIn()">+</button>
+        <button onclick="zoomOut()">-</button>
+    </div>
+    
+    <!-- Your map display -->
+    <!-- Zone Canvas for Display -->
+    <canvas id="zoneCanvas" class="hidden"></canvas>
+
+{% endblock %}

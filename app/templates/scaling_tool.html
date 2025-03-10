@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Scaling Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #mapCanvas { border: 1px solid black; cursor: crosshair; }
+        .info { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Upload an Image</h2>
+    <input type="file" id="imageUpload" accept="image/*">
+    <br>
+    <canvas id="mapCanvas"></canvas>
+    <div class="info">
+        <p><strong>Click two points on the image.</strong></p>
+        <p>Point 1 (Bottom Left): <span id="p1"></span></p>
+        <p>Point 2 (Top Right): <span id="p2"></span></p>
+    </div>
+    <div>
+        <label>Point 1 (Feet X, Y): </label>
+        <input type="number" id="p1_x_ft" placeholder="X Feet"> 
+        <input type="number" id="p1_y_ft" placeholder="Y Feet">
+    </div>
+    <div>
+        <label>Point 2 (Feet X, Y): </label>
+        <input type="number" id="p2_x_ft" placeholder="X Feet"> 
+        <input type="number" id="p2_y_ft" placeholder="Y Feet">
+    </div>
+    <button onclick="computeScaling()">Compute Scaling</button>
+    <div id="results"></div>
+    
+    <script>
+        let canvas = document.getElementById("mapCanvas");
+        let ctx = canvas.getContext("2d");
+        let img = new Image();
+        let points = [];
+
+        document.getElementById("imageUpload").addEventListener("change", function(event) {
+            let file = event.target.files[0];
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        canvas.addEventListener("click", function(event) {
+            if (points.length < 2) {
+                let rect = canvas.getBoundingClientRect();
+                let x = event.clientX - rect.left;
+                let y = event.clientY - rect.top;
+                points.push({ x, y });
+                ctx.fillStyle = "red";
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                document.getElementById(`p${points.length}`).textContent = `(${x.toFixed(1)}, ${y.toFixed(1)})`;
+            }
+        });
+
+        function computeScaling() {
+            if (points.length < 2) {
+                alert("Please select two points on the image.");
+                return;
+            }
+
+            let p1_pixel_x = points[0].x;
+            let p1_pixel_y = points[0].y;
+            let p2_pixel_x = points[1].x;
+            let p2_pixel_y = points[1].y;
+            let p1_x_ft = parseFloat(document.getElementById("p1_x_ft").value);
+            let p1_y_ft = parseFloat(document.getElementById("p1_y_ft").value);
+            let p2_x_ft = parseFloat(document.getElementById("p2_x_ft").value);
+            let p2_y_ft = parseFloat(document.getElementById("p2_y_ft").value);
+
+            if (isNaN(p1_x_ft) || isNaN(p1_y_ft) || isNaN(p2_x_ft) || isNaN(p2_y_ft)) {
+                alert("Please enter valid real-world coordinates for both points.");
+                return;
+            }
+
+            let delta_x_pixels = p2_pixel_x - p1_pixel_x;
+            let delta_y_pixels = p1_pixel_y - p2_pixel_y;
+            let delta_x_feet = p2_x_ft - p1_x_ft;
+            let delta_y_feet = p2_y_ft - p1_y_ft;
+
+            let scale_x = delta_x_pixels / delta_x_feet;
+            let scale_y = delta_y_pixels / delta_y_feet;
+            
+            let min_x = p1_x_ft - (p1_pixel_x / scale_x);
+            let min_y = - (p1_pixel_y / scale_y) - p1_y_ft;
+            let max_x = canvas.width / scale_x;
+            let max_y = canvas.height / scale_y;
+
+            document.getElementById("results").innerHTML = `
+                <p>Scale X (Pixels per Foot): ${scale_x.toFixed(4)}</p>
+                <p>Scale Y (Pixels per Foot): ${scale_y.toFixed(4)}</p>
+                <p>Computed Bottom Left: (${min_x.toFixed(2)}, ${min_y.toFixed(2)})</p>
+                <p>Computed Top Right: (${max_x.toFixed(2)}, ${max_y.toFixed(2)})</p>
+            `;
+        }
+    </script>
+</body>
+</html>

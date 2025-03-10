@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Default Grid Map Management</title>
+</head>
+<body>
+    <h2>Default Grid Map Management</h2>
+
+    {% if default_map %}
+        <p>Current Default Grid Map:</p>
+        <img src="{{ url_for('default_map') }}" alt="Default Grid Map" width="300"><br>
+    {% else %}
+        <p>No default grid map is currently set.</p>
+    {% endif %}
+
+    <h3>Upload New Default Grid Map</h3>
+    <form action="{{ url_for('manage_default_map') }}" method="post" enctype="multipart/form-data">
+        <label for="file">Select Default Grid Map:</label>
+        <input type="file" name="file" accept=".png,.jpg,.gif" required><br>
+        <button type="submit">Upload Default Map</button>
+    </form>
+
+    <br><a href="{{ url_for('upload_file') }}">⬅ Back to Upload Maps</a>
+</body>
+</html>

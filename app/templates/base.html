@@ -1,0 +1,44 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ZoneBuilder{% endblock %}</title>
+    <style>
+        canvas {
+            border: 2px solid black;
+            background-size: cover;
+            background-position: center;
+        }
+        .hidden {
+            display: none;
+        }
+        .control-panel {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ZoneBuilder - Define Your Zones</h1>
+
+    <p>Is this a New Zone Builder Session or Are we working with an existing one?</p>
+    <button onclick="startNewSession()">New Session</button>
+    <button onclick="loadExisting()">Load Existing</button>
+
+    {% block content %}{% endblock %}
+
+    <!-- Updated Scripts -->
+    <script src="{{ url_for('static', filename='mapLoader.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='zoneManager.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='drawingToolL3.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='vertexFormatter.js') }}" defer></script> <!-- Handles DB Storage -->
+    <script src="{{ url_for('static', filename='vertexFormatterMap.js') }}" defer></script> <!-- Handles Map Display -->
+    
+    <!-- Load vertexFormatter.js first since it is imported in drawingTool.js -->
+    <script type="module" src="{{ url_for('static', filename='vertexFormatter.js') }}" defer></script>
+    <script type="module" src="{{ url_for('static', filename='drawingTool.js') }}" defer></script>
+     
+
+</body>
+</html>

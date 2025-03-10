@@ -1,0 +1,2483 @@
+2025-02-27 18:32:01,702 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,703 - WARNING - Cannot create new map 1 without image data for zone 234. Skipping.
+2025-02-27 18:32:01,703 - DEBUG - Processing zone 241 with requested map 19
+2025-02-27 18:32:01,706 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,719 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,720 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,720 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,722 - WARNING - Cannot create new map 1 without image data for zone 241. Skipping.
+2025-02-27 18:32:01,722 - DEBUG - Processing zone 225 with requested map 19
+2025-02-27 18:32:01,723 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,732 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,733 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,733 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,733 - WARNING - Cannot create new map 1 without image data for zone 225. Skipping.
+2025-02-27 18:32:01,733 - DEBUG - Processing zone 235 with requested map 19
+2025-02-27 18:32:01,734 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,749 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,750 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,750 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,751 - WARNING - Cannot create new map 1 without image data for zone 235. Skipping.
+2025-02-27 18:32:01,751 - DEBUG - Processing zone 248 with requested map 19
+2025-02-27 18:32:01,754 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,763 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,764 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,765 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,766 - WARNING - Cannot create new map 1 without image data for zone 248. Skipping.
+2025-02-27 18:32:01,766 - DEBUG - Processing zone 256 with requested map 19
+2025-02-27 18:32:01,767 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,776 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,777 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,777 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,777 - WARNING - Cannot create new map 1 without image data for zone 256. Skipping.
+2025-02-27 18:32:01,777 - DEBUG - Processing zone 258 with requested map 19
+2025-02-27 18:32:01,781 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,795 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,796 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,796 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,797 - WARNING - Cannot create new map 1 without image data for zone 258. Skipping.
+2025-02-27 18:32:01,797 - DEBUG - Processing zone 260 with requested map 19
+2025-02-27 18:32:01,801 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,818 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,821 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,821 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,821 - WARNING - Cannot create new map 1 without image data for zone 260. Skipping.
+2025-02-27 18:32:01,821 - DEBUG - Processing zone 264 with requested map 19
+2025-02-27 18:32:01,822 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,835 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,836 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,837 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,837 - WARNING - Cannot create new map 1 without image data for zone 264. Skipping.
+2025-02-27 18:32:01,837 - DEBUG - Processing zone 265 with requested map 19
+2025-02-27 18:32:01,837 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,845 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,846 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,846 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,847 - WARNING - Cannot create new map 1 without image data for zone 265. Skipping.
+2025-02-27 18:32:01,847 - DEBUG - Processing zone 271 with requested map 19
+2025-02-27 18:32:01,847 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,855 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,856 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,856 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,856 - WARNING - Cannot create new map 1 without image data for zone 271. Skipping.
+2025-02-27 18:32:01,856 - DEBUG - Processing zone 10 with requested map 19
+2025-02-27 18:32:01,857 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,864 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,865 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,865 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,866 - WARNING - Cannot create new map 1 without image data for zone 10. Skipping.
+2025-02-27 18:32:01,866 - DEBUG - Processing zone 11 with requested map 19
+2025-02-27 18:32:01,866 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,874 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,875 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,875 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,875 - WARNING - Cannot create new map 1 without image data for zone 11. Skipping.
+2025-02-27 18:32:01,875 - DEBUG - Processing zone 12 with requested map 19
+2025-02-27 18:32:01,875 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,883 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,884 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,884 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,884 - WARNING - Cannot create new map 1 without image data for zone 12. Skipping.
+2025-02-27 18:32:01,884 - DEBUG - Processing zone 13 with requested map 19
+2025-02-27 18:32:01,885 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,892 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,893 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,893 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,893 - WARNING - Cannot create new map 1 without image data for zone 13. Skipping.
+2025-02-27 18:32:01,893 - DEBUG - Processing zone 14 with requested map 19
+2025-02-27 18:32:01,893 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,902 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,903 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,903 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,903 - WARNING - Cannot create new map 1 without image data for zone 14. Skipping.
+2025-02-27 18:32:01,903 - DEBUG - Processing zone 15 with requested map 19
+2025-02-27 18:32:01,904 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,911 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,912 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,912 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,913 - WARNING - Cannot create new map 1 without image data for zone 15. Skipping.
+2025-02-27 18:32:01,913 - DEBUG - Processing zone 16 with requested map 19
+2025-02-27 18:32:01,913 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,921 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,922 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,922 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,922 - WARNING - Cannot create new map 1 without image data for zone 16. Skipping.
+2025-02-27 18:32:01,922 - DEBUG - Processing zone 30 with requested map 19
+2025-02-27 18:32:01,923 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,930 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,931 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,931 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,931 - WARNING - Cannot create new map 1 without image data for zone 30. Skipping.
+2025-02-27 18:32:01,931 - DEBUG - Processing zone 39 with requested map 19
+2025-02-27 18:32:01,931 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,939 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,940 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,940 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,940 - WARNING - Cannot create new map 1 without image data for zone 39. Skipping.
+2025-02-27 18:32:01,940 - DEBUG - Processing zone 40 with requested map 19
+2025-02-27 18:32:01,941 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,948 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,949 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,949 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,949 - WARNING - Cannot create new map 1 without image data for zone 40. Skipping.
+2025-02-27 18:32:01,949 - DEBUG - Processing zone 41 with requested map 19
+2025-02-27 18:32:01,950 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,957 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,958 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,958 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,958 - WARNING - Cannot create new map 1 without image data for zone 41. Skipping.
+2025-02-27 18:32:01,958 - DEBUG - Processing zone 42 with requested map 19
+2025-02-27 18:32:01,959 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,967 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,968 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,968 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,968 - WARNING - Cannot create new map 1 without image data for zone 42. Skipping.
+2025-02-27 18:32:01,968 - DEBUG - Processing zone 43 with requested map 19
+2025-02-27 18:32:01,968 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,976 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,977 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,977 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,978 - WARNING - Cannot create new map 1 without image data for zone 43. Skipping.
+2025-02-27 18:32:01,978 - DEBUG - Processing zone 44 with requested map 19
+2025-02-27 18:32:01,978 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,986 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,987 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,987 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,987 - WARNING - Cannot create new map 1 without image data for zone 44. Skipping.
+2025-02-27 18:32:01,987 - DEBUG - Processing zone 45 with requested map 19
+2025-02-27 18:32:01,988 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:01,995 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:01,996 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:01,996 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:01,997 - WARNING - Cannot create new map 1 without image data for zone 45. Skipping.
+2025-02-27 18:32:01,997 - DEBUG - Processing zone 46 with requested map 19
+2025-02-27 18:32:01,997 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:02,006 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:02,007 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:02,007 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:02,007 - WARNING - Cannot create new map 1 without image data for zone 46. Skipping.
+2025-02-27 18:32:02,007 - DEBUG - Processing zone 47 with requested map 19
+2025-02-27 18:32:02,008 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:02,016 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:02,017 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:02,017 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:02,018 - WARNING - Cannot create new map 1 without image data for zone 47. Skipping.
+2025-02-27 18:32:02,018 - DEBUG - Processing zone 48 with requested map 19
+2025-02-27 18:32:02,018 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:02,027 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:02,028 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:02,028 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:02,028 - WARNING - Cannot create new map 1 without image data for zone 48. Skipping.
+2025-02-27 18:32:02,028 - DEBUG - Processing zone 49 with requested map 19
+2025-02-27 18:32:02,029 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:02,037 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:02,038 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:02,038 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:02,038 - WARNING - Cannot create new map 1 without image data for zone 49. Skipping.
+2025-02-27 18:32:02,038 - DEBUG - Processing zone 50 with requested map 19
+2025-02-27 18:32:02,039 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:02,047 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:02,048 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:02,048 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:02,048 - WARNING - Cannot create new map 1 without image data for zone 50. Skipping.
+2025-02-27 18:32:02,048 - DEBUG - Processing zone 51 with requested map 19
+2025-02-27 18:32:02,049 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:02,058 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:02,059 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:02,059 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:02,059 - WARNING - Cannot create new map 1 without image data for zone 51. Skipping.
+2025-02-27 18:32:02,059 - DEBUG - Processing zone 52 with requested map 19
+2025-02-27 18:32:02,059 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:02,068 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:02,069 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:02,069 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:02,069 - WARNING - Cannot create new map 1 without image data for zone 52. Skipping.
+2025-02-27 18:32:02,069 - DEBUG - Processing zone 53 with requested map 19
+2025-02-27 18:32:02,070 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:02,078 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:02,079 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:02,079 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:02,079 - WARNING - Cannot create new map 1 without image data for zone 53. Skipping.
+2025-02-27 18:32:02,079 - DEBUG - Processing zone 54 with requested map 19
+2025-02-27 18:32:02,079 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:02,088 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:02,089 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:02,089 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:02,089 - WARNING - Cannot create new map 1 without image data for zone 54. Skipping.
+2025-02-27 18:32:02,089 - DEBUG - Processing zone 277 with requested map 19
+2025-02-27 18:32:02,090 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:32:02,098 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:32:02,098 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:32:02,099 - DEBUG - Next available map ID: 1
+2025-02-27 18:32:02,099 - WARNING - Cannot create new map 1 without image data for zone 277. Skipping.
+2025-02-27 18:32:02,099 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:32:02,100 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:32:02,100 - INFO - Zone mapping process completed.
+2025-02-27 18:32:02,101 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:33:01,268 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:33:01,269 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:33:01,273 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:33:01,273 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:33:01,297 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:33:01,301 - DEBUG - Fetched unassociated zones: [(180, 'TB03CL1'), (181, 'TB04CL1'), (182, 'TB05CL1'), (187, 'TC01CL1'), (188, 'TC20CL1'), (189, 'TC20BOL2'), (191, 'TD01CL1'), (192, 'TD01CL1'), (193, 'TD02CL1'), (194, 'TD03CL1'), (195, 'TD02BOL2'), (197, 'TG01CL1'), (198, 'TG10CL1'), (204, 'simpla map as campusL1'), (205, '6005SimpleCL1'), (206, '2502181136-6005CL1'), (209, '2502191241-6005CL1'), (210, '2502191257-6005CL1'), (211, '2502191321-6005CL1'), (234, '2502231957-cl1'), (241, '2502232124CL1'), (225, '2502200955-BocaCL1'), (235, '2502232052CL1'), (248, '250224BocaCampusL1'), (256, '2502251703CampusL1'), (258, '2502251850-BocaCL1'), (260, 'C2502251906-BocaCL1'), (264, 'D2502251916-BocaCL1'), (265, 'D2502251917-BocaBOL2'), (271, '2502262136-CL1'), (10, '6005r Campus'), (11, '250211 6005 Campus'), (12, '250211c 6005 Campus'), (13, '250211e 6005 Campus'), (14, '250211g 6005 Campus'), (15, '250211h 6005 Campus'), (16, '250211i 6005 Campus'), (30, '6005r Campus'), (39, '250212bb6005'), (40, '250212cc6005'), (41, '250212ff6005'), (42, '250212gg6005'), (43, '250212ii6005'), (44, '250212jj6005'), (45, '250212jj6005'), (46, '250212kk6005Campus'), (47, '250212mm6005Campus'), (48, '250212zz6005campusL1'), (49, '250213aa6005Campus'), (50, '250213cc6005Campus'), (51, '250213ee6005Campus'), (52, '250213gg6005Campus'), (53, '250213hh6005Campus'), (54, '250213mm6005Campus'), (277, '2502270906-IBOCACL1')]
+2025-02-27 18:33:01,356 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:33:01,357 - DEBUG - Maps with images: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,357 - DEBUG - Processing zone 180 with requested map 19
+2025-02-27 18:33:01,360 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,378 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,388 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,388 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,389 - WARNING - Cannot create new map 1 without image data for zone 180. Skipping.
+2025-02-27 18:33:01,389 - DEBUG - Processing zone 181 with requested map 19
+2025-02-27 18:33:01,394 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,411 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,412 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,412 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,413 - WARNING - Cannot create new map 1 without image data for zone 181. Skipping.
+2025-02-27 18:33:01,413 - DEBUG - Processing zone 182 with requested map 19
+2025-02-27 18:33:01,415 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,427 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,428 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,428 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,430 - WARNING - Cannot create new map 1 without image data for zone 182. Skipping.
+2025-02-27 18:33:01,430 - DEBUG - Processing zone 187 with requested map 19
+2025-02-27 18:33:01,431 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,444 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,445 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,445 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,447 - WARNING - Cannot create new map 1 without image data for zone 187. Skipping.
+2025-02-27 18:33:01,447 - DEBUG - Processing zone 188 with requested map 19
+2025-02-27 18:33:01,449 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,462 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,463 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,463 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,464 - WARNING - Cannot create new map 1 without image data for zone 188. Skipping.
+2025-02-27 18:33:01,465 - DEBUG - Processing zone 189 with requested map 19
+2025-02-27 18:33:01,466 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,475 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,476 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,476 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,479 - WARNING - Cannot create new map 1 without image data for zone 189. Skipping.
+2025-02-27 18:33:01,479 - DEBUG - Processing zone 191 with requested map 19
+2025-02-27 18:33:01,480 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,494 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,495 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,495 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,495 - WARNING - Cannot create new map 1 without image data for zone 191. Skipping.
+2025-02-27 18:33:01,495 - DEBUG - Processing zone 192 with requested map 19
+2025-02-27 18:33:01,499 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,513 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,513 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,513 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,514 - WARNING - Cannot create new map 1 without image data for zone 192. Skipping.
+2025-02-27 18:33:01,514 - DEBUG - Processing zone 193 with requested map 19
+2025-02-27 18:33:01,515 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,531 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,533 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,533 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,536 - WARNING - Cannot create new map 1 without image data for zone 193. Skipping.
+2025-02-27 18:33:01,536 - DEBUG - Processing zone 194 with requested map 19
+2025-02-27 18:33:01,539 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,555 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,557 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,557 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,559 - WARNING - Cannot create new map 1 without image data for zone 194. Skipping.
+2025-02-27 18:33:01,560 - DEBUG - Processing zone 195 with requested map 19
+2025-02-27 18:33:01,563 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,579 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,580 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,580 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,580 - WARNING - Cannot create new map 1 without image data for zone 195. Skipping.
+2025-02-27 18:33:01,580 - DEBUG - Processing zone 197 with requested map 19
+2025-02-27 18:33:01,582 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,597 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,598 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,598 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,599 - WARNING - Cannot create new map 1 without image data for zone 197. Skipping.
+2025-02-27 18:33:01,599 - DEBUG - Processing zone 198 with requested map 19
+2025-02-27 18:33:01,602 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,616 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,619 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,619 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,622 - WARNING - Cannot create new map 1 without image data for zone 198. Skipping.
+2025-02-27 18:33:01,623 - DEBUG - Processing zone 204 with requested map 19
+2025-02-27 18:33:01,624 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,638 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,639 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,640 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,640 - WARNING - Cannot create new map 1 without image data for zone 204. Skipping.
+2025-02-27 18:33:01,640 - DEBUG - Processing zone 205 with requested map 19
+2025-02-27 18:33:01,642 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,657 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,658 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,659 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,659 - WARNING - Cannot create new map 1 without image data for zone 205. Skipping.
+2025-02-27 18:33:01,659 - DEBUG - Processing zone 206 with requested map 19
+2025-02-27 18:33:01,661 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,676 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,677 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,679 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,681 - WARNING - Cannot create new map 1 without image data for zone 206. Skipping.
+2025-02-27 18:33:01,681 - DEBUG - Processing zone 209 with requested map 19
+2025-02-27 18:33:01,685 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,704 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,705 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,705 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,706 - WARNING - Cannot create new map 1 without image data for zone 209. Skipping.
+2025-02-27 18:33:01,706 - DEBUG - Processing zone 210 with requested map 19
+2025-02-27 18:33:01,711 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,724 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,727 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,727 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,728 - WARNING - Cannot create new map 1 without image data for zone 210. Skipping.
+2025-02-27 18:33:01,728 - DEBUG - Processing zone 211 with requested map 19
+2025-02-27 18:33:01,729 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,740 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,741 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,741 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,743 - WARNING - Cannot create new map 1 without image data for zone 211. Skipping.
+2025-02-27 18:33:01,743 - DEBUG - Processing zone 234 with requested map 19
+2025-02-27 18:33:01,744 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,753 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,754 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,754 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,756 - WARNING - Cannot create new map 1 without image data for zone 234. Skipping.
+2025-02-27 18:33:01,756 - DEBUG - Processing zone 241 with requested map 19
+2025-02-27 18:33:01,757 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,767 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,770 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,770 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,772 - WARNING - Cannot create new map 1 without image data for zone 241. Skipping.
+2025-02-27 18:33:01,772 - DEBUG - Processing zone 225 with requested map 19
+2025-02-27 18:33:01,773 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,787 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,788 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,788 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,789 - WARNING - Cannot create new map 1 without image data for zone 225. Skipping.
+2025-02-27 18:33:01,789 - DEBUG - Processing zone 235 with requested map 19
+2025-02-27 18:33:01,791 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,800 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,801 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,801 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,803 - WARNING - Cannot create new map 1 without image data for zone 235. Skipping.
+2025-02-27 18:33:01,803 - DEBUG - Processing zone 248 with requested map 19
+2025-02-27 18:33:01,803 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,812 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,813 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,813 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,815 - WARNING - Cannot create new map 1 without image data for zone 248. Skipping.
+2025-02-27 18:33:01,816 - DEBUG - Processing zone 256 with requested map 19
+2025-02-27 18:33:01,816 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,830 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,831 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,831 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,833 - WARNING - Cannot create new map 1 without image data for zone 256. Skipping.
+2025-02-27 18:33:01,833 - DEBUG - Processing zone 258 with requested map 19
+2025-02-27 18:33:01,834 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,842 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,843 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,843 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,845 - WARNING - Cannot create new map 1 without image data for zone 258. Skipping.
+2025-02-27 18:33:01,845 - DEBUG - Processing zone 260 with requested map 19
+2025-02-27 18:33:01,846 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,854 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,855 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,855 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,857 - WARNING - Cannot create new map 1 without image data for zone 260. Skipping.
+2025-02-27 18:33:01,857 - DEBUG - Processing zone 264 with requested map 19
+2025-02-27 18:33:01,858 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,866 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,866 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,866 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,868 - WARNING - Cannot create new map 1 without image data for zone 264. Skipping.
+2025-02-27 18:33:01,868 - DEBUG - Processing zone 265 with requested map 19
+2025-02-27 18:33:01,869 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,877 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,878 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,878 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,880 - WARNING - Cannot create new map 1 without image data for zone 265. Skipping.
+2025-02-27 18:33:01,880 - DEBUG - Processing zone 271 with requested map 19
+2025-02-27 18:33:01,880 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,888 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,889 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,889 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,890 - WARNING - Cannot create new map 1 without image data for zone 271. Skipping.
+2025-02-27 18:33:01,890 - DEBUG - Processing zone 10 with requested map 19
+2025-02-27 18:33:01,892 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,899 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,900 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,900 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,900 - WARNING - Cannot create new map 1 without image data for zone 10. Skipping.
+2025-02-27 18:33:01,900 - DEBUG - Processing zone 11 with requested map 19
+2025-02-27 18:33:01,903 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,911 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,912 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,912 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,912 - WARNING - Cannot create new map 1 without image data for zone 11. Skipping.
+2025-02-27 18:33:01,912 - DEBUG - Processing zone 12 with requested map 19
+2025-02-27 18:33:01,913 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,921 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,922 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,922 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,922 - WARNING - Cannot create new map 1 without image data for zone 12. Skipping.
+2025-02-27 18:33:01,922 - DEBUG - Processing zone 13 with requested map 19
+2025-02-27 18:33:01,923 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,930 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,931 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,931 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,932 - WARNING - Cannot create new map 1 without image data for zone 13. Skipping.
+2025-02-27 18:33:01,932 - DEBUG - Processing zone 14 with requested map 19
+2025-02-27 18:33:01,932 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,940 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,941 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,941 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,941 - WARNING - Cannot create new map 1 without image data for zone 14. Skipping.
+2025-02-27 18:33:01,941 - DEBUG - Processing zone 15 with requested map 19
+2025-02-27 18:33:01,942 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,949 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,950 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,950 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,951 - WARNING - Cannot create new map 1 without image data for zone 15. Skipping.
+2025-02-27 18:33:01,951 - DEBUG - Processing zone 16 with requested map 19
+2025-02-27 18:33:01,951 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,959 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,960 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,960 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,960 - WARNING - Cannot create new map 1 without image data for zone 16. Skipping.
+2025-02-27 18:33:01,960 - DEBUG - Processing zone 30 with requested map 19
+2025-02-27 18:33:01,960 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,969 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,970 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,970 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,970 - WARNING - Cannot create new map 1 without image data for zone 30. Skipping.
+2025-02-27 18:33:01,970 - DEBUG - Processing zone 39 with requested map 19
+2025-02-27 18:33:01,971 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,979 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,980 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,980 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,980 - WARNING - Cannot create new map 1 without image data for zone 39. Skipping.
+2025-02-27 18:33:01,980 - DEBUG - Processing zone 40 with requested map 19
+2025-02-27 18:33:01,980 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,987 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,988 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,988 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,988 - WARNING - Cannot create new map 1 without image data for zone 40. Skipping.
+2025-02-27 18:33:01,988 - DEBUG - Processing zone 41 with requested map 19
+2025-02-27 18:33:01,988 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:01,996 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:01,996 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:01,997 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:01,997 - WARNING - Cannot create new map 1 without image data for zone 41. Skipping.
+2025-02-27 18:33:01,997 - DEBUG - Processing zone 42 with requested map 19
+2025-02-27 18:33:01,997 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,004 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,004 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,005 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,005 - WARNING - Cannot create new map 1 without image data for zone 42. Skipping.
+2025-02-27 18:33:02,005 - DEBUG - Processing zone 43 with requested map 19
+2025-02-27 18:33:02,005 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,013 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,014 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,015 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,015 - WARNING - Cannot create new map 1 without image data for zone 43. Skipping.
+2025-02-27 18:33:02,015 - DEBUG - Processing zone 44 with requested map 19
+2025-02-27 18:33:02,015 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,023 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,024 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,024 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,024 - WARNING - Cannot create new map 1 without image data for zone 44. Skipping.
+2025-02-27 18:33:02,024 - DEBUG - Processing zone 45 with requested map 19
+2025-02-27 18:33:02,025 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,033 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,034 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,034 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,034 - WARNING - Cannot create new map 1 without image data for zone 45. Skipping.
+2025-02-27 18:33:02,034 - DEBUG - Processing zone 46 with requested map 19
+2025-02-27 18:33:02,034 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,043 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,043 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,043 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,044 - WARNING - Cannot create new map 1 without image data for zone 46. Skipping.
+2025-02-27 18:33:02,044 - DEBUG - Processing zone 47 with requested map 19
+2025-02-27 18:33:02,044 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,052 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,053 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,053 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,053 - WARNING - Cannot create new map 1 without image data for zone 47. Skipping.
+2025-02-27 18:33:02,053 - DEBUG - Processing zone 48 with requested map 19
+2025-02-27 18:33:02,054 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,062 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,063 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,063 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,063 - WARNING - Cannot create new map 1 without image data for zone 48. Skipping.
+2025-02-27 18:33:02,063 - DEBUG - Processing zone 49 with requested map 19
+2025-02-27 18:33:02,064 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,072 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,073 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,073 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,073 - WARNING - Cannot create new map 1 without image data for zone 49. Skipping.
+2025-02-27 18:33:02,073 - DEBUG - Processing zone 50 with requested map 19
+2025-02-27 18:33:02,074 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,082 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,083 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,083 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,083 - WARNING - Cannot create new map 1 without image data for zone 50. Skipping.
+2025-02-27 18:33:02,083 - DEBUG - Processing zone 51 with requested map 19
+2025-02-27 18:33:02,083 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,091 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,092 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,092 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,092 - WARNING - Cannot create new map 1 without image data for zone 51. Skipping.
+2025-02-27 18:33:02,092 - DEBUG - Processing zone 52 with requested map 19
+2025-02-27 18:33:02,092 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,099 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,100 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,100 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,100 - WARNING - Cannot create new map 1 without image data for zone 52. Skipping.
+2025-02-27 18:33:02,100 - DEBUG - Processing zone 53 with requested map 19
+2025-02-27 18:33:02,101 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,109 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,110 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,110 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,110 - WARNING - Cannot create new map 1 without image data for zone 53. Skipping.
+2025-02-27 18:33:02,110 - DEBUG - Processing zone 54 with requested map 19
+2025-02-27 18:33:02,110 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,118 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,118 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,118 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,118 - WARNING - Cannot create new map 1 without image data for zone 54. Skipping.
+2025-02-27 18:33:02,119 - DEBUG - Processing zone 277 with requested map 19
+2025-02-27 18:33:02,119 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:33:02,126 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:33:02,127 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:33:02,127 - DEBUG - Next available map ID: 1
+2025-02-27 18:33:02,127 - WARNING - Cannot create new map 1 without image data for zone 277. Skipping.
+2025-02-27 18:33:02,127 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:33:02,129 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:33:02,129 - INFO - Zone mapping process completed.
+2025-02-27 18:33:02,129 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:34:01,304 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:34:01,304 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:34:01,308 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:34:01,308 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:34:01,328 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:34:01,330 - DEBUG - Fetched unassociated zones: [(180, 'TB03CL1'), (181, 'TB04CL1'), (182, 'TB05CL1'), (187, 'TC01CL1'), (188, 'TC20CL1'), (189, 'TC20BOL2'), (191, 'TD01CL1'), (192, 'TD01CL1'), (193, 'TD02CL1'), (194, 'TD03CL1'), (195, 'TD02BOL2'), (197, 'TG01CL1'), (198, 'TG10CL1'), (204, 'simpla map as campusL1'), (205, '6005SimpleCL1'), (206, '2502181136-6005CL1'), (209, '2502191241-6005CL1'), (210, '2502191257-6005CL1'), (211, '2502191321-6005CL1'), (234, '2502231957-cl1'), (241, '2502232124CL1'), (225, '2502200955-BocaCL1'), (235, '2502232052CL1'), (248, '250224BocaCampusL1'), (256, '2502251703CampusL1'), (258, '2502251850-BocaCL1'), (260, 'C2502251906-BocaCL1'), (264, 'D2502251916-BocaCL1'), (265, 'D2502251917-BocaBOL2'), (271, '2502262136-CL1'), (10, '6005r Campus'), (11, '250211 6005 Campus'), (12, '250211c 6005 Campus'), (13, '250211e 6005 Campus'), (14, '250211g 6005 Campus'), (15, '250211h 6005 Campus'), (16, '250211i 6005 Campus'), (30, '6005r Campus'), (39, '250212bb6005'), (40, '250212cc6005'), (41, '250212ff6005'), (42, '250212gg6005'), (43, '250212ii6005'), (44, '250212jj6005'), (45, '250212jj6005'), (46, '250212kk6005Campus'), (47, '250212mm6005Campus'), (48, '250212zz6005campusL1'), (49, '250213aa6005Campus'), (50, '250213cc6005Campus'), (51, '250213ee6005Campus'), (52, '250213gg6005Campus'), (53, '250213hh6005Campus'), (54, '250213mm6005Campus'), (277, '2502270906-IBOCACL1')]
+2025-02-27 18:34:01,380 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:34:01,383 - DEBUG - Maps with images: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,385 - DEBUG - Processing zone 180 with requested map 19
+2025-02-27 18:34:01,388 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,433 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,442 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,442 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,444 - WARNING - Cannot create new map 1 without image data for zone 180. Skipping.
+2025-02-27 18:34:01,444 - DEBUG - Processing zone 181 with requested map 19
+2025-02-27 18:34:01,452 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,463 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,464 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,464 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,467 - WARNING - Cannot create new map 1 without image data for zone 181. Skipping.
+2025-02-27 18:34:01,467 - DEBUG - Processing zone 182 with requested map 19
+2025-02-27 18:34:01,467 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,477 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,478 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,479 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,481 - WARNING - Cannot create new map 1 without image data for zone 182. Skipping.
+2025-02-27 18:34:01,481 - DEBUG - Processing zone 187 with requested map 19
+2025-02-27 18:34:01,482 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,492 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,492 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,493 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,495 - WARNING - Cannot create new map 1 without image data for zone 187. Skipping.
+2025-02-27 18:34:01,495 - DEBUG - Processing zone 188 with requested map 19
+2025-02-27 18:34:01,495 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,513 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,514 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,515 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,516 - WARNING - Cannot create new map 1 without image data for zone 188. Skipping.
+2025-02-27 18:34:01,516 - DEBUG - Processing zone 189 with requested map 19
+2025-02-27 18:34:01,517 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,535 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,536 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,537 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,537 - WARNING - Cannot create new map 1 without image data for zone 189. Skipping.
+2025-02-27 18:34:01,537 - DEBUG - Processing zone 191 with requested map 19
+2025-02-27 18:34:01,539 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,559 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,560 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,563 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,563 - WARNING - Cannot create new map 1 without image data for zone 191. Skipping.
+2025-02-27 18:34:01,563 - DEBUG - Processing zone 192 with requested map 19
+2025-02-27 18:34:01,564 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,579 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,580 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,580 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,581 - WARNING - Cannot create new map 1 without image data for zone 192. Skipping.
+2025-02-27 18:34:01,581 - DEBUG - Processing zone 193 with requested map 19
+2025-02-27 18:34:01,582 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,594 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,595 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,595 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,597 - WARNING - Cannot create new map 1 without image data for zone 193. Skipping.
+2025-02-27 18:34:01,597 - DEBUG - Processing zone 194 with requested map 19
+2025-02-27 18:34:01,598 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,612 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,613 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,615 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,617 - WARNING - Cannot create new map 1 without image data for zone 194. Skipping.
+2025-02-27 18:34:01,617 - DEBUG - Processing zone 195 with requested map 19
+2025-02-27 18:34:01,619 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,633 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,634 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,634 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,636 - WARNING - Cannot create new map 1 without image data for zone 195. Skipping.
+2025-02-27 18:34:01,636 - DEBUG - Processing zone 197 with requested map 19
+2025-02-27 18:34:01,639 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,652 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,653 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,653 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,655 - WARNING - Cannot create new map 1 without image data for zone 197. Skipping.
+2025-02-27 18:34:01,657 - DEBUG - Processing zone 198 with requested map 19
+2025-02-27 18:34:01,658 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,675 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,678 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,679 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,679 - WARNING - Cannot create new map 1 without image data for zone 198. Skipping.
+2025-02-27 18:34:01,679 - DEBUG - Processing zone 204 with requested map 19
+2025-02-27 18:34:01,680 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,701 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,702 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,702 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,702 - WARNING - Cannot create new map 1 without image data for zone 204. Skipping.
+2025-02-27 18:34:01,702 - DEBUG - Processing zone 205 with requested map 19
+2025-02-27 18:34:01,705 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,720 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,723 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,723 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,723 - WARNING - Cannot create new map 1 without image data for zone 205. Skipping.
+2025-02-27 18:34:01,724 - DEBUG - Processing zone 206 with requested map 19
+2025-02-27 18:34:01,724 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,736 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,738 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,738 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,738 - WARNING - Cannot create new map 1 without image data for zone 206. Skipping.
+2025-02-27 18:34:01,738 - DEBUG - Processing zone 209 with requested map 19
+2025-02-27 18:34:01,740 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,757 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,759 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,759 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,759 - WARNING - Cannot create new map 1 without image data for zone 209. Skipping.
+2025-02-27 18:34:01,759 - DEBUG - Processing zone 210 with requested map 19
+2025-02-27 18:34:01,764 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,776 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,778 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,778 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,778 - WARNING - Cannot create new map 1 without image data for zone 210. Skipping.
+2025-02-27 18:34:01,778 - DEBUG - Processing zone 211 with requested map 19
+2025-02-27 18:34:01,779 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,791 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,794 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,794 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,794 - WARNING - Cannot create new map 1 without image data for zone 211. Skipping.
+2025-02-27 18:34:01,795 - DEBUG - Processing zone 234 with requested map 19
+2025-02-27 18:34:01,796 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,812 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,813 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,813 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,816 - WARNING - Cannot create new map 1 without image data for zone 234. Skipping.
+2025-02-27 18:34:01,816 - DEBUG - Processing zone 241 with requested map 19
+2025-02-27 18:34:01,817 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,828 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,829 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,829 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,829 - WARNING - Cannot create new map 1 without image data for zone 241. Skipping.
+2025-02-27 18:34:01,829 - DEBUG - Processing zone 225 with requested map 19
+2025-02-27 18:34:01,831 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,839 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,840 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,840 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,840 - WARNING - Cannot create new map 1 without image data for zone 225. Skipping.
+2025-02-27 18:34:01,840 - DEBUG - Processing zone 235 with requested map 19
+2025-02-27 18:34:01,843 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,856 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,857 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,857 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,861 - WARNING - Cannot create new map 1 without image data for zone 235. Skipping.
+2025-02-27 18:34:01,861 - DEBUG - Processing zone 248 with requested map 19
+2025-02-27 18:34:01,863 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,880 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,882 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,882 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,883 - WARNING - Cannot create new map 1 without image data for zone 248. Skipping.
+2025-02-27 18:34:01,883 - DEBUG - Processing zone 256 with requested map 19
+2025-02-27 18:34:01,884 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,895 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,896 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,896 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,896 - WARNING - Cannot create new map 1 without image data for zone 256. Skipping.
+2025-02-27 18:34:01,896 - DEBUG - Processing zone 258 with requested map 19
+2025-02-27 18:34:01,896 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,905 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,906 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,906 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,906 - WARNING - Cannot create new map 1 without image data for zone 258. Skipping.
+2025-02-27 18:34:01,907 - DEBUG - Processing zone 260 with requested map 19
+2025-02-27 18:34:01,907 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,916 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,917 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,917 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,917 - WARNING - Cannot create new map 1 without image data for zone 260. Skipping.
+2025-02-27 18:34:01,917 - DEBUG - Processing zone 264 with requested map 19
+2025-02-27 18:34:01,917 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,926 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,927 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,927 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,927 - WARNING - Cannot create new map 1 without image data for zone 264. Skipping.
+2025-02-27 18:34:01,927 - DEBUG - Processing zone 265 with requested map 19
+2025-02-27 18:34:01,927 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,936 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,937 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,937 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,937 - WARNING - Cannot create new map 1 without image data for zone 265. Skipping.
+2025-02-27 18:34:01,937 - DEBUG - Processing zone 271 with requested map 19
+2025-02-27 18:34:01,937 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,945 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,946 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,946 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,946 - WARNING - Cannot create new map 1 without image data for zone 271. Skipping.
+2025-02-27 18:34:01,946 - DEBUG - Processing zone 10 with requested map 19
+2025-02-27 18:34:01,947 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,955 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,955 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,956 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,956 - WARNING - Cannot create new map 1 without image data for zone 10. Skipping.
+2025-02-27 18:34:01,956 - DEBUG - Processing zone 11 with requested map 19
+2025-02-27 18:34:01,956 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,964 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,965 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,966 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,966 - WARNING - Cannot create new map 1 without image data for zone 11. Skipping.
+2025-02-27 18:34:01,966 - DEBUG - Processing zone 12 with requested map 19
+2025-02-27 18:34:01,966 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,975 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,975 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,976 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,976 - WARNING - Cannot create new map 1 without image data for zone 12. Skipping.
+2025-02-27 18:34:01,976 - DEBUG - Processing zone 13 with requested map 19
+2025-02-27 18:34:01,976 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,985 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,986 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,986 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,986 - WARNING - Cannot create new map 1 without image data for zone 13. Skipping.
+2025-02-27 18:34:01,986 - DEBUG - Processing zone 14 with requested map 19
+2025-02-27 18:34:01,986 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:01,995 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:01,996 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:01,996 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:01,996 - WARNING - Cannot create new map 1 without image data for zone 14. Skipping.
+2025-02-27 18:34:01,996 - DEBUG - Processing zone 15 with requested map 19
+2025-02-27 18:34:01,996 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,005 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,005 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,005 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,006 - WARNING - Cannot create new map 1 without image data for zone 15. Skipping.
+2025-02-27 18:34:02,006 - DEBUG - Processing zone 16 with requested map 19
+2025-02-27 18:34:02,006 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,015 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,016 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,016 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,016 - WARNING - Cannot create new map 1 without image data for zone 16. Skipping.
+2025-02-27 18:34:02,016 - DEBUG - Processing zone 30 with requested map 19
+2025-02-27 18:34:02,016 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,025 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,026 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,026 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,026 - WARNING - Cannot create new map 1 without image data for zone 30. Skipping.
+2025-02-27 18:34:02,026 - DEBUG - Processing zone 39 with requested map 19
+2025-02-27 18:34:02,027 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,035 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,036 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,036 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,036 - WARNING - Cannot create new map 1 without image data for zone 39. Skipping.
+2025-02-27 18:34:02,036 - DEBUG - Processing zone 40 with requested map 19
+2025-02-27 18:34:02,037 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,046 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,046 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,047 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,047 - WARNING - Cannot create new map 1 without image data for zone 40. Skipping.
+2025-02-27 18:34:02,047 - DEBUG - Processing zone 41 with requested map 19
+2025-02-27 18:34:02,047 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,056 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,057 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,057 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,057 - WARNING - Cannot create new map 1 without image data for zone 41. Skipping.
+2025-02-27 18:34:02,057 - DEBUG - Processing zone 42 with requested map 19
+2025-02-27 18:34:02,057 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,066 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,067 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,067 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,068 - WARNING - Cannot create new map 1 without image data for zone 42. Skipping.
+2025-02-27 18:34:02,068 - DEBUG - Processing zone 43 with requested map 19
+2025-02-27 18:34:02,068 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,076 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,077 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,077 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,077 - WARNING - Cannot create new map 1 without image data for zone 43. Skipping.
+2025-02-27 18:34:02,077 - DEBUG - Processing zone 44 with requested map 19
+2025-02-27 18:34:02,078 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,086 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,087 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,087 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,087 - WARNING - Cannot create new map 1 without image data for zone 44. Skipping.
+2025-02-27 18:34:02,087 - DEBUG - Processing zone 45 with requested map 19
+2025-02-27 18:34:02,087 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,096 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,096 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,097 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,097 - WARNING - Cannot create new map 1 without image data for zone 45. Skipping.
+2025-02-27 18:34:02,097 - DEBUG - Processing zone 46 with requested map 19
+2025-02-27 18:34:02,097 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,105 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,106 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,106 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,106 - WARNING - Cannot create new map 1 without image data for zone 46. Skipping.
+2025-02-27 18:34:02,106 - DEBUG - Processing zone 47 with requested map 19
+2025-02-27 18:34:02,106 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,114 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,115 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,115 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,115 - WARNING - Cannot create new map 1 without image data for zone 47. Skipping.
+2025-02-27 18:34:02,116 - DEBUG - Processing zone 48 with requested map 19
+2025-02-27 18:34:02,116 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,124 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,124 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,125 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,125 - WARNING - Cannot create new map 1 without image data for zone 48. Skipping.
+2025-02-27 18:34:02,125 - DEBUG - Processing zone 49 with requested map 19
+2025-02-27 18:34:02,125 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,134 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,135 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,135 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,135 - WARNING - Cannot create new map 1 without image data for zone 49. Skipping.
+2025-02-27 18:34:02,135 - DEBUG - Processing zone 50 with requested map 19
+2025-02-27 18:34:02,135 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,143 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,144 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,144 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,144 - WARNING - Cannot create new map 1 without image data for zone 50. Skipping.
+2025-02-27 18:34:02,144 - DEBUG - Processing zone 51 with requested map 19
+2025-02-27 18:34:02,144 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,153 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,153 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,153 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,154 - WARNING - Cannot create new map 1 without image data for zone 51. Skipping.
+2025-02-27 18:34:02,154 - DEBUG - Processing zone 52 with requested map 19
+2025-02-27 18:34:02,154 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,162 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,162 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,162 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,163 - WARNING - Cannot create new map 1 without image data for zone 52. Skipping.
+2025-02-27 18:34:02,163 - DEBUG - Processing zone 53 with requested map 19
+2025-02-27 18:34:02,163 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,171 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,172 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,172 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,172 - WARNING - Cannot create new map 1 without image data for zone 53. Skipping.
+2025-02-27 18:34:02,172 - DEBUG - Processing zone 54 with requested map 19
+2025-02-27 18:34:02,172 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,180 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,181 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,181 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,181 - WARNING - Cannot create new map 1 without image data for zone 54. Skipping.
+2025-02-27 18:34:02,181 - DEBUG - Processing zone 277 with requested map 19
+2025-02-27 18:34:02,182 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:34:02,190 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:34:02,191 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:34:02,191 - DEBUG - Next available map ID: 1
+2025-02-27 18:34:02,191 - WARNING - Cannot create new map 1 without image data for zone 277. Skipping.
+2025-02-27 18:34:02,191 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:34:02,192 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:34:02,193 - INFO - Zone mapping process completed.
+2025-02-27 18:34:02,194 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:35:01,359 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:35:01,359 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:35:01,361 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:35:01,361 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:35:01,370 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:35:01,372 - DEBUG - Fetched unassociated zones: [(180, 'TB03CL1'), (181, 'TB04CL1'), (182, 'TB05CL1'), (187, 'TC01CL1'), (188, 'TC20CL1'), (189, 'TC20BOL2'), (191, 'TD01CL1'), (192, 'TD01CL1'), (193, 'TD02CL1'), (194, 'TD03CL1'), (195, 'TD02BOL2'), (197, 'TG01CL1'), (198, 'TG10CL1'), (204, 'simpla map as campusL1'), (205, '6005SimpleCL1'), (206, '2502181136-6005CL1'), (209, '2502191241-6005CL1'), (210, '2502191257-6005CL1'), (211, '2502191321-6005CL1'), (234, '2502231957-cl1'), (241, '2502232124CL1'), (225, '2502200955-BocaCL1'), (235, '2502232052CL1'), (248, '250224BocaCampusL1'), (256, '2502251703CampusL1'), (258, '2502251850-BocaCL1'), (260, 'C2502251906-BocaCL1'), (264, 'D2502251916-BocaCL1'), (265, 'D2502251917-BocaBOL2'), (271, '2502262136-CL1'), (10, '6005r Campus'), (11, '250211 6005 Campus'), (12, '250211c 6005 Campus'), (13, '250211e 6005 Campus'), (14, '250211g 6005 Campus'), (15, '250211h 6005 Campus'), (16, '250211i 6005 Campus'), (30, '6005r Campus'), (39, '250212bb6005'), (40, '250212cc6005'), (41, '250212ff6005'), (42, '250212gg6005'), (43, '250212ii6005'), (44, '250212jj6005'), (45, '250212jj6005'), (46, '250212kk6005Campus'), (47, '250212mm6005Campus'), (48, '250212zz6005campusL1'), (49, '250213aa6005Campus'), (50, '250213cc6005Campus'), (51, '250213ee6005Campus'), (52, '250213gg6005Campus'), (53, '250213hh6005Campus'), (54, '250213mm6005Campus'), (277, '2502270906-IBOCACL1')]
+2025-02-27 18:35:01,393 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:35:01,394 - DEBUG - Maps with images: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,398 - DEBUG - Processing zone 180 with requested map 19
+2025-02-27 18:35:01,399 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,406 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,407 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,407 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,407 - WARNING - Cannot create new map 1 without image data for zone 180. Skipping.
+2025-02-27 18:35:01,407 - DEBUG - Processing zone 181 with requested map 19
+2025-02-27 18:35:01,410 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,420 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,421 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,421 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,423 - WARNING - Cannot create new map 1 without image data for zone 181. Skipping.
+2025-02-27 18:35:01,423 - DEBUG - Processing zone 182 with requested map 19
+2025-02-27 18:35:01,423 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,433 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,433 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,434 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,434 - WARNING - Cannot create new map 1 without image data for zone 182. Skipping.
+2025-02-27 18:35:01,434 - DEBUG - Processing zone 187 with requested map 19
+2025-02-27 18:35:01,436 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,448 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,449 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,449 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,451 - WARNING - Cannot create new map 1 without image data for zone 187. Skipping.
+2025-02-27 18:35:01,451 - DEBUG - Processing zone 188 with requested map 19
+2025-02-27 18:35:01,451 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,461 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,462 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,462 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,462 - WARNING - Cannot create new map 1 without image data for zone 188. Skipping.
+2025-02-27 18:35:01,462 - DEBUG - Processing zone 189 with requested map 19
+2025-02-27 18:35:01,466 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,476 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,477 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,477 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,479 - WARNING - Cannot create new map 1 without image data for zone 189. Skipping.
+2025-02-27 18:35:01,479 - DEBUG - Processing zone 191 with requested map 19
+2025-02-27 18:35:01,479 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,487 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,488 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,488 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,489 - WARNING - Cannot create new map 1 without image data for zone 191. Skipping.
+2025-02-27 18:35:01,489 - DEBUG - Processing zone 192 with requested map 19
+2025-02-27 18:35:01,490 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,497 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,498 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,498 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,498 - WARNING - Cannot create new map 1 without image data for zone 192. Skipping.
+2025-02-27 18:35:01,498 - DEBUG - Processing zone 193 with requested map 19
+2025-02-27 18:35:01,500 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,511 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,512 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,512 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,514 - WARNING - Cannot create new map 1 without image data for zone 193. Skipping.
+2025-02-27 18:35:01,514 - DEBUG - Processing zone 194 with requested map 19
+2025-02-27 18:35:01,515 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,522 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,523 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,523 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,525 - WARNING - Cannot create new map 1 without image data for zone 194. Skipping.
+2025-02-27 18:35:01,525 - DEBUG - Processing zone 195 with requested map 19
+2025-02-27 18:35:01,525 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,534 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,534 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,535 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,537 - WARNING - Cannot create new map 1 without image data for zone 195. Skipping.
+2025-02-27 18:35:01,537 - DEBUG - Processing zone 197 with requested map 19
+2025-02-27 18:35:01,537 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,544 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,545 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,545 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,547 - WARNING - Cannot create new map 1 without image data for zone 197. Skipping.
+2025-02-27 18:35:01,547 - DEBUG - Processing zone 198 with requested map 19
+2025-02-27 18:35:01,547 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,578 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,579 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,579 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,582 - WARNING - Cannot create new map 1 without image data for zone 198. Skipping.
+2025-02-27 18:35:01,583 - DEBUG - Processing zone 204 with requested map 19
+2025-02-27 18:35:01,583 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,595 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,597 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,597 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,599 - WARNING - Cannot create new map 1 without image data for zone 204. Skipping.
+2025-02-27 18:35:01,599 - DEBUG - Processing zone 205 with requested map 19
+2025-02-27 18:35:01,600 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,611 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,613 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,613 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,613 - WARNING - Cannot create new map 1 without image data for zone 205. Skipping.
+2025-02-27 18:35:01,613 - DEBUG - Processing zone 206 with requested map 19
+2025-02-27 18:35:01,618 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,630 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,631 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,631 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,633 - WARNING - Cannot create new map 1 without image data for zone 206. Skipping.
+2025-02-27 18:35:01,633 - DEBUG - Processing zone 209 with requested map 19
+2025-02-27 18:35:01,635 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,652 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,655 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,655 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,656 - WARNING - Cannot create new map 1 without image data for zone 209. Skipping.
+2025-02-27 18:35:01,656 - DEBUG - Processing zone 210 with requested map 19
+2025-02-27 18:35:01,659 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,670 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,674 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,674 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,676 - WARNING - Cannot create new map 1 without image data for zone 210. Skipping.
+2025-02-27 18:35:01,676 - DEBUG - Processing zone 211 with requested map 19
+2025-02-27 18:35:01,676 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,695 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,698 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,698 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,699 - WARNING - Cannot create new map 1 without image data for zone 211. Skipping.
+2025-02-27 18:35:01,699 - DEBUG - Processing zone 234 with requested map 19
+2025-02-27 18:35:01,699 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,715 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,717 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,717 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,717 - WARNING - Cannot create new map 1 without image data for zone 234. Skipping.
+2025-02-27 18:35:01,718 - DEBUG - Processing zone 241 with requested map 19
+2025-02-27 18:35:01,720 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,734 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,737 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,737 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,737 - WARNING - Cannot create new map 1 without image data for zone 241. Skipping.
+2025-02-27 18:35:01,737 - DEBUG - Processing zone 225 with requested map 19
+2025-02-27 18:35:01,738 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,752 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,753 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,753 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,754 - WARNING - Cannot create new map 1 without image data for zone 225. Skipping.
+2025-02-27 18:35:01,755 - DEBUG - Processing zone 235 with requested map 19
+2025-02-27 18:35:01,756 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,764 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,765 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,765 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,767 - WARNING - Cannot create new map 1 without image data for zone 235. Skipping.
+2025-02-27 18:35:01,768 - DEBUG - Processing zone 248 with requested map 19
+2025-02-27 18:35:01,768 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,778 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,781 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,781 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,781 - WARNING - Cannot create new map 1 without image data for zone 248. Skipping.
+2025-02-27 18:35:01,781 - DEBUG - Processing zone 256 with requested map 19
+2025-02-27 18:35:01,786 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,795 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,796 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,796 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,798 - WARNING - Cannot create new map 1 without image data for zone 256. Skipping.
+2025-02-27 18:35:01,798 - DEBUG - Processing zone 258 with requested map 19
+2025-02-27 18:35:01,799 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,807 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,808 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,808 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,810 - WARNING - Cannot create new map 1 without image data for zone 258. Skipping.
+2025-02-27 18:35:01,810 - DEBUG - Processing zone 260 with requested map 19
+2025-02-27 18:35:01,811 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,820 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,823 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,823 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,823 - WARNING - Cannot create new map 1 without image data for zone 260. Skipping.
+2025-02-27 18:35:01,823 - DEBUG - Processing zone 264 with requested map 19
+2025-02-27 18:35:01,824 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,839 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,840 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,840 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,841 - WARNING - Cannot create new map 1 without image data for zone 264. Skipping.
+2025-02-27 18:35:01,841 - DEBUG - Processing zone 265 with requested map 19
+2025-02-27 18:35:01,841 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,851 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,852 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,852 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,854 - WARNING - Cannot create new map 1 without image data for zone 265. Skipping.
+2025-02-27 18:35:01,854 - DEBUG - Processing zone 271 with requested map 19
+2025-02-27 18:35:01,854 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,868 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,870 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,870 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,870 - WARNING - Cannot create new map 1 without image data for zone 271. Skipping.
+2025-02-27 18:35:01,870 - DEBUG - Processing zone 10 with requested map 19
+2025-02-27 18:35:01,871 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,881 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,882 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,882 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,884 - WARNING - Cannot create new map 1 without image data for zone 10. Skipping.
+2025-02-27 18:35:01,884 - DEBUG - Processing zone 11 with requested map 19
+2025-02-27 18:35:01,886 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,893 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,894 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,894 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,895 - WARNING - Cannot create new map 1 without image data for zone 11. Skipping.
+2025-02-27 18:35:01,895 - DEBUG - Processing zone 12 with requested map 19
+2025-02-27 18:35:01,896 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,909 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,913 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,913 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,913 - WARNING - Cannot create new map 1 without image data for zone 12. Skipping.
+2025-02-27 18:35:01,913 - DEBUG - Processing zone 13 with requested map 19
+2025-02-27 18:35:01,914 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,929 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,931 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,931 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,931 - WARNING - Cannot create new map 1 without image data for zone 13. Skipping.
+2025-02-27 18:35:01,933 - DEBUG - Processing zone 14 with requested map 19
+2025-02-27 18:35:01,935 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,947 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,949 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,949 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,949 - WARNING - Cannot create new map 1 without image data for zone 14. Skipping.
+2025-02-27 18:35:01,949 - DEBUG - Processing zone 15 with requested map 19
+2025-02-27 18:35:01,952 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,960 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,961 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,961 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,961 - WARNING - Cannot create new map 1 without image data for zone 15. Skipping.
+2025-02-27 18:35:01,961 - DEBUG - Processing zone 16 with requested map 19
+2025-02-27 18:35:01,962 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,972 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,972 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,972 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,973 - WARNING - Cannot create new map 1 without image data for zone 16. Skipping.
+2025-02-27 18:35:01,973 - DEBUG - Processing zone 30 with requested map 19
+2025-02-27 18:35:01,975 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,983 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,983 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,984 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,984 - WARNING - Cannot create new map 1 without image data for zone 30. Skipping.
+2025-02-27 18:35:01,985 - DEBUG - Processing zone 39 with requested map 19
+2025-02-27 18:35:01,986 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:01,994 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:01,995 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:01,995 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:01,995 - WARNING - Cannot create new map 1 without image data for zone 39. Skipping.
+2025-02-27 18:35:01,995 - DEBUG - Processing zone 40 with requested map 19
+2025-02-27 18:35:01,996 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,004 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,005 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,005 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,005 - WARNING - Cannot create new map 1 without image data for zone 40. Skipping.
+2025-02-27 18:35:02,005 - DEBUG - Processing zone 41 with requested map 19
+2025-02-27 18:35:02,006 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,014 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,016 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,016 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,016 - WARNING - Cannot create new map 1 without image data for zone 41. Skipping.
+2025-02-27 18:35:02,016 - DEBUG - Processing zone 42 with requested map 19
+2025-02-27 18:35:02,017 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,025 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,026 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,026 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,026 - WARNING - Cannot create new map 1 without image data for zone 42. Skipping.
+2025-02-27 18:35:02,026 - DEBUG - Processing zone 43 with requested map 19
+2025-02-27 18:35:02,026 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,035 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,035 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,036 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,036 - WARNING - Cannot create new map 1 without image data for zone 43. Skipping.
+2025-02-27 18:35:02,036 - DEBUG - Processing zone 44 with requested map 19
+2025-02-27 18:35:02,036 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,044 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,045 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,046 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,046 - WARNING - Cannot create new map 1 without image data for zone 44. Skipping.
+2025-02-27 18:35:02,046 - DEBUG - Processing zone 45 with requested map 19
+2025-02-27 18:35:02,046 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,053 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,054 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,054 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,054 - WARNING - Cannot create new map 1 without image data for zone 45. Skipping.
+2025-02-27 18:35:02,054 - DEBUG - Processing zone 46 with requested map 19
+2025-02-27 18:35:02,054 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,062 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,063 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,063 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,063 - WARNING - Cannot create new map 1 without image data for zone 46. Skipping.
+2025-02-27 18:35:02,063 - DEBUG - Processing zone 47 with requested map 19
+2025-02-27 18:35:02,064 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,071 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,072 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,072 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,072 - WARNING - Cannot create new map 1 without image data for zone 47. Skipping.
+2025-02-27 18:35:02,072 - DEBUG - Processing zone 48 with requested map 19
+2025-02-27 18:35:02,072 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,080 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,081 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,081 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,081 - WARNING - Cannot create new map 1 without image data for zone 48. Skipping.
+2025-02-27 18:35:02,081 - DEBUG - Processing zone 49 with requested map 19
+2025-02-27 18:35:02,082 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,089 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,090 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,090 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,090 - WARNING - Cannot create new map 1 without image data for zone 49. Skipping.
+2025-02-27 18:35:02,090 - DEBUG - Processing zone 50 with requested map 19
+2025-02-27 18:35:02,090 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,098 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,099 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,099 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,099 - WARNING - Cannot create new map 1 without image data for zone 50. Skipping.
+2025-02-27 18:35:02,099 - DEBUG - Processing zone 51 with requested map 19
+2025-02-27 18:35:02,099 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,106 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,107 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,107 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,107 - WARNING - Cannot create new map 1 without image data for zone 51. Skipping.
+2025-02-27 18:35:02,107 - DEBUG - Processing zone 52 with requested map 19
+2025-02-27 18:35:02,107 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,115 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,116 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,116 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,116 - WARNING - Cannot create new map 1 without image data for zone 52. Skipping.
+2025-02-27 18:35:02,116 - DEBUG - Processing zone 53 with requested map 19
+2025-02-27 18:35:02,116 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,123 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,124 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,124 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,124 - WARNING - Cannot create new map 1 without image data for zone 53. Skipping.
+2025-02-27 18:35:02,124 - DEBUG - Processing zone 54 with requested map 19
+2025-02-27 18:35:02,125 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,132 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,132 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,132 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,133 - WARNING - Cannot create new map 1 without image data for zone 54. Skipping.
+2025-02-27 18:35:02,133 - DEBUG - Processing zone 277 with requested map 19
+2025-02-27 18:35:02,133 - WARNING - Map 19 already associated with i_zn=266. Generating new map ID.
+2025-02-27 18:35:02,140 - DEBUG - Executing query: 
+        SELECT i_map FROM maps ORDER BY i_map;
+    
+2025-02-27 18:35:02,141 - DEBUG - Existing maps: {5, 6, 11, 12, 15, 16, 17, 18, 19, 21, 22, 23}
+2025-02-27 18:35:02,141 - DEBUG - Next available map ID: 1
+2025-02-27 18:35:02,141 - WARNING - Cannot create new map 1 without image data for zone 277. Skipping.
+2025-02-27 18:35:02,141 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:35:02,143 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:35:02,143 - INFO - Zone mapping process completed.
+2025-02-27 18:35:02,144 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:36:01,259 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:36:01,260 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:36:01,262 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:36:01,262 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:36:01,278 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:36:01,280 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:36:01,281 - INFO - No unassociated zones found.
+2025-02-27 18:36:01,285 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:37:01,928 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:37:01,934 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:37:01,945 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:37:01,945 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:37:01,966 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:37:01,972 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:37:01,972 - INFO - No unassociated zones found.
+2025-02-27 18:37:01,973 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:38:01,449 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:38:01,449 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:38:01,452 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:38:01,452 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:38:01,469 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:38:01,471 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:38:01,472 - INFO - No unassociated zones found.
+2025-02-27 18:38:01,475 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:39:02,103 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:39:02,103 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:39:02,108 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:39:02,109 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:39:02,119 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:39:02,120 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:39:02,123 - INFO - No unassociated zones found.
+2025-02-27 18:39:02,124 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:40:01,758 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:40:01,759 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:40:01,762 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:40:01,762 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:40:01,795 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:40:01,797 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:40:01,798 - INFO - No unassociated zones found.
+2025-02-27 18:40:01,800 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:41:01,360 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:41:01,361 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:41:01,365 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:41:01,365 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:41:01,390 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:41:01,393 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:41:01,394 - INFO - No unassociated zones found.
+2025-02-27 18:41:01,397 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:42:01,947 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:42:01,947 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:42:01,951 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:42:01,951 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:42:01,980 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:42:01,984 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:42:01,984 - INFO - No unassociated zones found.
+2025-02-27 18:42:01,997 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:43:01,514 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:43:01,514 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:43:01,521 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:43:01,522 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:43:01,530 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:43:01,531 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:43:01,531 - INFO - No unassociated zones found.
+2025-02-27 18:43:01,534 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:44:02,090 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:44:02,091 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:44:02,096 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:44:02,097 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:44:02,106 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:44:02,107 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:44:02,109 - INFO - No unassociated zones found.
+2025-02-27 18:44:02,114 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:45:01,677 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:45:01,677 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:45:01,681 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:45:01,682 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:45:01,692 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:45:01,694 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:45:01,698 - INFO - No unassociated zones found.
+2025-02-27 18:45:01,699 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:46:01,257 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:46:01,259 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:46:01,264 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:46:01,265 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:46:01,280 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:46:01,281 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:46:01,284 - INFO - No unassociated zones found.
+2025-02-27 18:46:01,287 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:47:01,852 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:47:01,852 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:47:01,856 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:47:01,856 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:47:01,868 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:47:01,870 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:47:01,872 - INFO - No unassociated zones found.
+2025-02-27 18:47:01,875 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:48:01,422 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:48:01,423 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:48:01,427 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:48:01,428 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:48:01,454 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:48:01,457 - DEBUG - Fetched unassociated zones: []
+2025-02-27 18:48:01,459 - INFO - No unassociated zones found.
+2025-02-27 18:48:01,461 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "No unassociated zones found"}
+2025-02-27 18:49:02,064 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:49:02,064 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:49:02,066 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:49:02,066 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:49:02,084 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:49:02,095 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:49:02,157 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:49:02,158 - DEBUG - Maps with images: {24}
+2025-02-27 18:49:02,160 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:49:02,183 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:49:02,184 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:49:02,188 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:49:02,190 - INFO - Zone mapping process completed.
+2025-02-27 18:49:02,192 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:50:01,725 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:50:01,725 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:50:01,730 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:50:01,730 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:50:01,749 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:50:01,757 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:50:01,808 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:50:01,815 - DEBUG - Maps with images: {24}
+2025-02-27 18:50:01,815 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:50:01,816 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:50:01,816 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:50:01,818 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:50:01,829 - INFO - Zone mapping process completed.
+2025-02-27 18:50:01,833 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:51:01,330 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:51:01,330 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:51:01,332 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:51:01,332 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:51:01,347 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:51:01,349 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:51:01,400 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:51:01,401 - DEBUG - Maps with images: {24}
+2025-02-27 18:51:01,401 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:51:01,403 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:51:01,403 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:51:01,406 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:51:01,408 - INFO - Zone mapping process completed.
+2025-02-27 18:51:01,410 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:52:01,867 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:52:01,867 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:52:01,871 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:52:01,872 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:52:01,898 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:52:01,900 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:52:01,922 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:52:01,924 - DEBUG - Maps with images: {24}
+2025-02-27 18:52:01,924 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:52:01,932 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:52:01,935 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:52:01,939 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:52:01,940 - INFO - Zone mapping process completed.
+2025-02-27 18:52:01,941 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:53:01,466 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:53:01,466 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:53:01,481 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:53:01,483 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:53:01,505 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:53:01,506 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:53:01,534 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:53:01,535 - DEBUG - Maps with images: {24}
+2025-02-27 18:53:01,537 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:53:01,538 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:53:01,538 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:53:01,539 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:53:01,542 - INFO - Zone mapping process completed.
+2025-02-27 18:53:01,545 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:54:02,075 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:54:02,075 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:54:02,084 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:54:02,084 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:54:02,107 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:54:02,115 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:54:02,139 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:54:02,139 - DEBUG - Maps with images: {24}
+2025-02-27 18:54:02,140 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:54:02,144 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:54:02,145 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:54:02,148 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:54:02,150 - INFO - Zone mapping process completed.
+2025-02-27 18:54:02,152 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:55:01,651 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:55:01,651 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:55:01,654 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:55:01,654 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:55:01,663 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:55:01,665 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:55:01,690 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:55:01,691 - DEBUG - Maps with images: {24}
+2025-02-27 18:55:01,695 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:55:01,702 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:55:01,702 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:55:01,705 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:55:01,708 - INFO - Zone mapping process completed.
+2025-02-27 18:55:01,709 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:56:01,222 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:56:01,222 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:56:01,224 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:56:01,225 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:56:01,241 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:56:01,243 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:56:01,265 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:56:01,265 - DEBUG - Maps with images: {24}
+2025-02-27 18:56:01,268 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:56:01,268 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:56:01,269 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:56:01,269 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:56:01,274 - INFO - Zone mapping process completed.
+2025-02-27 18:56:01,275 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:57:01,797 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:57:01,797 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:57:01,800 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:57:01,800 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:57:01,810 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:57:01,811 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:57:01,855 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:57:01,859 - DEBUG - Maps with images: {24}
+2025-02-27 18:57:01,860 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:57:01,861 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:57:01,863 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:57:01,868 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:57:01,870 - INFO - Zone mapping process completed.
+2025-02-27 18:57:01,872 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:58:01,396 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:58:01,396 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:58:01,397 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:58:01,397 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:58:01,416 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:58:01,420 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:58:01,473 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:58:01,475 - DEBUG - Maps with images: {24}
+2025-02-27 18:58:01,476 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:58:01,483 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:58:01,485 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:58:01,487 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:58:01,487 - INFO - Zone mapping process completed.
+2025-02-27 18:58:01,493 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 18:59:01,981 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 18:59:01,983 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 18:59:01,988 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 18:59:01,988 - INFO - Starting zone mapping process with test log...
+2025-02-27 18:59:01,998 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 18:59:02,003 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 18:59:02,040 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 18:59:02,056 - DEBUG - Maps with images: {24}
+2025-02-27 18:59:02,056 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 18:59:02,057 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 18:59:02,057 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 18:59:02,062 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 18:59:02,065 - INFO - Zone mapping process completed.
+2025-02-27 18:59:02,066 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:00:01,620 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:00:01,621 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:00:01,626 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:00:01,626 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:00:01,636 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:00:01,637 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:00:01,673 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:00:01,674 - DEBUG - Maps with images: {24}
+2025-02-27 19:00:01,676 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:00:01,677 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:00:01,677 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:00:01,680 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:00:01,689 - INFO - Zone mapping process completed.
+2025-02-27 19:00:01,690 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:01:01,241 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:01:01,241 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:01:01,246 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:01:01,246 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:01:01,299 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:01:01,302 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:01:01,353 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:01:01,353 - DEBUG - Maps with images: {24}
+2025-02-27 19:01:01,353 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:01:01,357 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:01:01,359 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:01:01,360 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:01:01,360 - INFO - Zone mapping process completed.
+2025-02-27 19:01:01,360 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:02:01,809 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:02:01,809 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:02:01,812 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:02:01,813 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:02:01,840 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:02:01,842 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:02:01,892 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:02:01,893 - DEBUG - Maps with images: {24}
+2025-02-27 19:02:01,895 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:02:01,898 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:02:01,902 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:02:01,903 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:02:01,904 - INFO - Zone mapping process completed.
+2025-02-27 19:02:01,904 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:03:01,330 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:03:01,331 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:03:01,332 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:03:01,333 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:03:01,342 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:03:01,344 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:03:01,369 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:03:01,374 - DEBUG - Maps with images: {24}
+2025-02-27 19:03:01,374 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:03:01,375 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:03:01,375 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:03:01,376 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:03:01,380 - INFO - Zone mapping process completed.
+2025-02-27 19:03:01,381 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:04:02,025 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:04:02,026 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:04:02,036 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:04:02,037 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:04:02,061 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:04:02,063 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:04:02,098 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:04:02,098 - DEBUG - Maps with images: {24}
+2025-02-27 19:04:02,099 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:04:02,103 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:04:02,103 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:04:02,104 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:04:02,104 - INFO - Zone mapping process completed.
+2025-02-27 19:04:02,107 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:05:01,613 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:05:01,615 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:05:01,617 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:05:01,618 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:05:01,647 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:05:01,650 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:05:01,674 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:05:01,675 - DEBUG - Maps with images: {24}
+2025-02-27 19:05:01,675 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:05:01,679 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:05:01,680 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:05:01,681 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:05:01,684 - INFO - Zone mapping process completed.
+2025-02-27 19:05:01,687 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:06:01,157 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:06:01,158 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:06:01,160 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:06:01,160 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:06:01,169 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:06:01,170 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:06:01,188 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:06:01,189 - DEBUG - Maps with images: {24}
+2025-02-27 19:06:01,191 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:06:01,192 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:06:01,192 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:06:01,193 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:06:01,195 - INFO - Zone mapping process completed.
+2025-02-27 19:06:01,196 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:07:01,809 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:07:01,809 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:07:01,811 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:07:01,811 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:07:01,839 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:07:01,846 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:07:01,877 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:07:01,879 - DEBUG - Maps with images: {24}
+2025-02-27 19:07:01,881 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:07:01,882 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:07:01,883 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:07:01,890 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:07:01,893 - INFO - Zone mapping process completed.
+2025-02-27 19:07:01,895 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:08:01,402 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:08:01,404 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:08:01,408 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:08:01,409 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:08:01,426 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:08:01,427 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:08:01,462 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:08:01,464 - DEBUG - Maps with images: {24}
+2025-02-27 19:08:01,464 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:08:01,468 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:08:01,468 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:08:01,472 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:08:01,473 - INFO - Zone mapping process completed.
+2025-02-27 19:08:01,474 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:09:01,982 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:09:01,983 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:09:01,986 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:09:01,986 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:09:02,004 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:09:02,006 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:09:02,041 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:09:02,042 - DEBUG - Maps with images: {24}
+2025-02-27 19:09:02,043 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:09:02,046 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:09:02,047 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:09:02,048 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:09:02,051 - INFO - Zone mapping process completed.
+2025-02-27 19:09:02,052 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:10:01,702 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:10:01,703 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:10:01,710 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:10:01,711 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:10:01,722 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:10:01,723 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:10:01,753 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:10:01,756 - DEBUG - Maps with images: {24}
+2025-02-27 19:10:01,757 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:10:01,758 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:10:01,758 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:10:01,764 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:10:01,767 - INFO - Zone mapping process completed.
+2025-02-27 19:10:01,769 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:11:01,382 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:11:01,382 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:11:01,384 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:11:01,385 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:11:01,418 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:11:01,419 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:11:01,437 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:11:01,438 - DEBUG - Maps with images: {24}
+2025-02-27 19:11:01,440 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:11:01,440 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:11:01,441 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:11:01,443 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:11:01,445 - INFO - Zone mapping process completed.
+2025-02-27 19:11:01,446 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:12:02,023 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:12:02,023 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:12:02,026 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:12:02,026 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:12:02,042 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:12:02,044 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:12:02,095 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:12:02,096 - DEBUG - Maps with images: {24}
+2025-02-27 19:12:02,098 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:12:02,100 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:12:02,101 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:12:02,104 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:12:02,107 - INFO - Zone mapping process completed.
+2025-02-27 19:12:02,110 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:13:01,647 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:13:01,647 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:13:01,650 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:13:01,650 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:13:01,659 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:13:01,661 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:13:01,706 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:13:01,706 - DEBUG - Maps with images: {24}
+2025-02-27 19:13:01,709 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:13:01,710 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:13:01,710 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:13:01,712 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:13:01,714 - INFO - Zone mapping process completed.
+2025-02-27 19:13:01,718 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:14:01,299 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:14:01,300 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:14:01,303 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:14:01,304 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:14:01,322 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:14:01,324 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:14:01,375 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:14:01,376 - DEBUG - Maps with images: {24}
+2025-02-27 19:14:01,379 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:14:01,384 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:14:01,386 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:14:01,388 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:14:01,389 - INFO - Zone mapping process completed.
+2025-02-27 19:14:01,395 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:15:01,848 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:15:01,849 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:15:01,850 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:15:01,850 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:15:01,861 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:15:01,863 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:15:01,887 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:15:01,887 - DEBUG - Maps with images: {24}
+2025-02-27 19:15:01,888 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:15:01,890 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:15:01,891 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:15:01,893 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:15:01,898 - INFO - Zone mapping process completed.
+2025-02-27 19:15:01,901 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:15:54,318 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:15:54,319 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:15:54,320 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:15:54,320 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:15:54,330 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:15:54,331 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:15:54,347 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:15:54,348 - DEBUG - Maps with images: {24}
+2025-02-27 19:15:54,348 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:15:54,349 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:15:54,350 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:15:54,350 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:15:54,351 - INFO - Zone mapping process completed.
+2025-02-27 19:15:54,352 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:16:01,511 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:16:01,511 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:16:01,515 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:16:01,515 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:16:01,526 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:16:01,528 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:16:01,557 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:16:01,558 - DEBUG - Maps with images: {24}
+2025-02-27 19:16:01,560 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:16:01,563 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:16:01,564 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:16:01,565 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:16:01,570 - INFO - Zone mapping process completed.
+2025-02-27 19:16:01,572 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:17:01,160 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:17:01,160 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:17:01,163 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:17:01,163 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:17:01,183 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:17:01,185 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:17:01,203 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:17:01,204 - DEBUG - Maps with images: {24}
+2025-02-27 19:17:01,206 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:17:01,209 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:17:01,209 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:17:01,211 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:17:01,213 - INFO - Zone mapping process completed.
+2025-02-27 19:17:01,215 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}
+2025-02-27 19:18:01,791 - INFO - Logging configuration initialized successfully with rotation.
+2025-02-27 19:18:01,792 - INFO - Starting zone_mapper.py Version: 0P.1B.24
+2025-02-27 19:18:01,798 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone Mapper Service Started"}
+2025-02-27 19:18:01,798 - INFO - Starting zone mapping process with test log...
+2025-02-27 19:18:01,820 - DEBUG - Executing query: 
+        SELECT z.i_zn, z.x_nm_zn
+        FROM zones z
+        LEFT JOIN maps m ON m.i_zn = z.i_zn
+        WHERE z.i_typ_zn = 1 AND m.i_map IS NULL;
+    
+2025-02-27 19:18:01,827 - DEBUG - Fetched unassociated zones: [(283, '2502271146-BoomCL1')]
+2025-02-27 19:18:01,860 - DEBUG - Executing query: 
+        SELECT i_map FROM maps WHERE img_data IS NOT NULL;
+    
+2025-02-27 19:18:01,861 - DEBUG - Maps with images: {24}
+2025-02-27 19:18:01,863 - DEBUG - Processing zone 283 with requested map 19
+2025-02-27 19:18:01,864 - WARNING - Map 19 has no image data. Skipping association for zone 283.
+2025-02-27 19:18:01,864 - INFO - Updated/Inserted 0 map associations successfully.
+2025-02-27 19:18:01,866 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Updated/Inserted 0 zones"}
+2025-02-27 19:18:01,869 - INFO - Zone mapping process completed.
+2025-02-27 19:18:01,872 - INFO - MQTT message sent: {"version": "0P.1B.24", "status": "Zone mapping process completed"}

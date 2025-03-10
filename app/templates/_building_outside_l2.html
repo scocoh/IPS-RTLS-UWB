@@ -1,0 +1,12 @@
+{# {% extends "base.html" %} #}
+
+{% block content %}
+<!-- Content specific to the Building Outside L2 page -->
+<div id="buildingL2Details" class="hidden">
+    <h3>Define Building Outside L2</h3>
+    <label for="buildingL2Name">Enter Building Outside L2 Name:</label>
+    <input type="text" id="buildingL2Name" placeholder="Enter Name">
+    <button onclick="startDrawingBuildingL2()">Define Building Outline</button>
+    <div id="saveBuildingL2Container"></div>
+</div>
+{% endblock %}

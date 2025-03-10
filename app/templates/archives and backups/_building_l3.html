@@ -1,0 +1,27 @@
+{% block content %}
+<div id="buildingL3Details" class="hidden">
+    <h3>Define Building L3</h3>
+    
+    <label for="buildingL3Name">Enter Building L3 Name:</label>
+    <input type="text" id="buildingL3Name" placeholder="Enter Name">
+    
+    <button onclick="startDrawingBuildingL3()">Define Interior Outline</button>
+    <button id="finishL3Button" class="hidden" onclick="finishDrawingL3()">Finish L3 Drawing</button>
+    <button id="saveL3Button" class="hidden" onclick="saveBuildingL3()">Save Building L3</button>
+
+    <canvas id="zoneCanvasL3"></canvas>
+
+    <div id="saveBuildingL3Container"></div>
+</div>
+
+<script>
+    function showBuildingL3Form() {
+        document.getElementById("buildingL3Details").classList.remove("hidden");
+        drawL2BorderOnlyL3();
+    }
+</script>
+
+<script type="/static/vertexFormatterL3.js"></script>
+<script src="/static/drawingToolL3.js"></script>
+
+{% endblock %}

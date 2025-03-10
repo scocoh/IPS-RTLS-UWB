@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload a New Map</title>
+</head>
+<body>
+    <h2>Upload a New Map</h2>
+    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+        <label for="name">Map Name:</label>
+        <input type="text" name="name" required><br>
+
+        <label for="lat_origin">Latitude Origin:</label>
+        <input type="text" name="lat_origin" required><br>
+
+        <label for="lon_origin">Longitude Origin:</label>
+        <input type="text" name="lon_origin" required><br>
+
+        <label for="min_x">Min X:</label>
+        <input type="number" name="min_x" required><br>
+
+        <label for="min_y">Min Y:</label>
+        <input type="number" name="min_y" required><br>
+
+        <label for="min_z">Min Z:</label>
+        <input type="number" name="min_z" required><br>
+
+        <label for="max_x">Max X:</label>
+        <input type="number" name="max_x" required><br>
+
+        <label for="max_y">Max Y:</label>
+        <input type="number" name="max_y" required><br>
+
+        <label for="max_z">Max Z:</label>
+        <input type="number" name="max_z" required><br>
+
+        <label for="file">Upload Map (GIF, PNG, JPG):</label>
+        <input type="file" name="file" accept=".png,.jpg,.gif"><br>
+
+        <button type="submit">Upload</button>
+    </form>
+
+    <h3>Default Grid Map Preview:</h3>
+    <img src="{{ url_for('static', filename='default_grid_box.png') }}" alt="Default Grid Map" width="300"><br>
+
+    <h2>Existing Maps</h2>
+    <form action="{{ url_for('delete_maps') }}" method="post">
+        <ul>
+            {% for map in maps %}
+                <li>
+                    <input type="checkbox" name="selected_maps" value="{{ map.i_map }}">
+                    <strong>{{ map.x_nm_map }}</strong> (Uploaded: {{ map.d_uploaded }})
+                    <a href="{{ url_for('edit_map', map_id=map.i_map) }}">✏️ Edit</a><br>
+                    <img src="{{ url_for('map_image', map_id=map.i_map) }}" alt="{{ map.x_nm_map }}" width="300"><br>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="submit">Delete Selected Maps</button>
+    </form>
+</body>
+</html>
