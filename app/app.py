@@ -1,11 +1,4 @@
-"""
-app.py
-Version: 0.1.5 (Added CORSMiddleware for React integration)
-ParcoRTLS Middletier Services
-Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
-Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
-"""
-
+import asyncpg  # ✅ Import asyncpg to fix "asyncpg is not defined"
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -19,6 +12,7 @@ from routes.text import router as text_router
 from routes.input import router as input_router
 from routes.region import router as region_router
 from routes.vertex import router as vertex_router
+from routes.zonebuilder_routes import router as zonebuilder_router
 from routes import maps, maps_upload
 
 logging.basicConfig(level=logging.INFO)
@@ -44,8 +38,35 @@ app.include_router(text_router, prefix="/api")
 app.include_router(input_router)
 app.include_router(region_router, prefix="/api")
 app.include_router(vertex_router, prefix="/api", tags=["vertices"])
+app.include_router(zonebuilder_router, prefix="/zonebuilder", tags=["zonebuilder"])
 app.include_router(maps.router, prefix="/maps", tags=["maps"])
 app.include_router(maps_upload.router, prefix="/maps", tags=["maps_upload"])
+
+async def get_async_db_pool(db_type: str = "maint"):
+    """Creates an asyncpg connection pool with explicit parameters."""
+    from config import DB_CONFIGS_ASYNC
+    db_config = DB_CONFIGS_ASYNC[db_type]  # ✅ Ensure correct DB config
+
+    try:
+        pool = await asyncpg.create_pool(
+            database=db_config["database"],  # ✅ Explicitly pass database, not dbname
+            user=db_config["user"],
+            password=db_config["password"],
+            host=db_config["host"],
+            port=db_config["port"],
+            min_size=2,
+            max_size=20,
+            timeout=30,
+            command_timeout=60
+        )
+        async with pool.acquire() as connection:
+            await connection.execute("SELECT 1")  # ✅ Test query inside pool
+        logger.info(f"✅ Database pool created for {db_type}")
+        return pool
+
+    except Exception as e:
+        logger.error(f"❌ Error creating async database pool for {db_type}: {e}")
+        return None
 
 @app.on_event("startup")
 async def startup_event():

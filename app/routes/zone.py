@@ -1,5 +1,5 @@
 """
-routes/zone.py
+/home/parcoadmin/parco_fastapi/app/routes/zone.py
 Version: 0.1.3 (Added HEAD support for /get_map/{zone_id} endpoint)
 Zone management endpoints for ParcoRTLS FastAPI application.
 """

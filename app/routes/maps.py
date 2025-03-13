@@ -1,9 +1,9 @@
 """
-routes/maps.py
-Version: 0P.3B.005  # Increment version for changes
+/home/parcoadmin/parco_fastapi/app/routes/maps.py
+Version: 0P.3B.006  # Increment version for changes
 Maps management endpoints for ParcoRTLS FastAPI application.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
 from typing import List
 from database.db import call_stored_procedure, execute_raw_query
@@ -26,19 +26,26 @@ async def get_maps():
         logger.error(f"Error retrieving maps: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving maps: {str(e)}")
 
-# Endpoint for getting a specific map
+# Endpoint for getting a specific map 250312 update
 @router.get("/get_map/{map_id}")
 async def get_map(map_id: int):
+    """ Serve the stored map image for a given map_id. """
     try:
-        result = await call_stored_procedure("maint", "usp_map_select", map_id)
-        if result:
-            logger.info(f"Retrieved map with ID {map_id}")
-            return result
-        logger.warning(f"Map with ID {map_id} not found")
-        raise HTTPException(status_code=404, detail=f"Map with ID {map_id} not found")
+        query = "SELECT img_data, x_format FROM maps WHERE i_map = $1;"
+        result = await execute_raw_query("maint", query, map_id)
+
+        if not result or not result[0]["img_data"]:
+            logger.warning(f"No image found for map_id={map_id}")
+            raise HTTPException(status_code=404, detail="Map image not found")
+
+        img_data = result[0]["img_data"]
+        img_format = result[0]["x_format"] or "png"  # Default to PNG if no format is stored
+
+        # ✅ Serve the image as a binary response
+        return Response(content=img_data, media_type=f"image/{img_format.lower()}")
     except Exception as e:
-        logger.error(f"Error retrieving map: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error retrieving map: {str(e)}")
+        logger.error(f"Error retrieving map image: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error retrieving map image")
 
 # Endpoint for getting map data (image URL and bounds) for Map.js
 @router.get("/get_map_data/{zone_id}")
