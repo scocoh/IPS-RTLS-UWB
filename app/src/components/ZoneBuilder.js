@@ -16,6 +16,8 @@ const ZoneBuilder = () => {
     const [selectedParentZone, setSelectedParentZone] = useState(null);
     const [zoneName, setZoneName] = useState("");
     const [vertices, setVertices] = useState([]);
+    const [parentZoneVertices, setParentZoneVertices] = useState([]);
+    const [fetchError, setFetchError] = useState(null);
     const [useLeaflet, setUseLeaflet] = useState(false);
     const drawnItems = useRef(new L.FeatureGroup());
 
@@ -24,25 +26,64 @@ const ZoneBuilder = () => {
         const fetchData = async () => {
             try {
                 const mapsResponse = await fetch("/zonebuilder/get_maps");
+                if (!mapsResponse.ok) throw new Error(`Failed to fetch maps: ${mapsResponse.status}`);
                 const mapsData = await mapsResponse.json();
-                setMaps(mapsData.maps);
+                console.log("📡 Raw maps response:", mapsData);
+                setMaps(mapsData.maps || []);
                 console.log("✅ Fetched maps:", mapsData.maps);
 
                 const zonesResponse = await fetch("/zonebuilder/get_zone_types");
+                if (!zonesResponse.ok) throw new Error(`Failed to fetch zone types: ${zonesResponse.status}`);
                 const zonesData = await zonesResponse.json();
-                setZones(zonesData);
+                console.log("📡 Raw zone types response:", zonesData);
+                setZones(zonesData || []);
                 console.log("✅ Fetched zone types:", zonesData);
 
                 const parentZonesResponse = await fetch("/zonebuilder/get_parent_zones");
+                if (!parentZonesResponse.ok) throw new Error(`Failed to fetch parent zones: ${parentZonesResponse.status}`);
                 const parentZonesData = await parentZonesResponse.json();
-                setParentZones(parentZonesData.zones);
+                console.log("📡 Raw parent zones response:", parentZonesData);
+                setParentZones(parentZonesData.zones || []);
                 console.log("✅ Fetched parent zones:", parentZonesData.zones);
+
+                setFetchError(null);
             } catch (error) {
                 console.error("❌ Error fetching initial data:", error);
+                setFetchError(error.message);
             }
         };
         fetchData();
     }, []);
+
+    // Fetch parent zone vertices when selectedParentZone changes
+    useEffect(() => {
+        const fetchParentZoneVertices = async () => {
+            if (!selectedParentZone) {
+                setParentZoneVertices([]);
+                console.log("ℹ️ No parent zone selected, clearing parentZoneVertices");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/get_zone_vertices/${selectedParentZone}`);
+                if (!response.ok) throw new Error(`Failed to fetch vertices for zone ${selectedParentZone}: ${response.status}`);
+                const data = await response.json();
+                console.log("📡 Raw response from /api/get_zone_vertices:", data);
+                if (data.vertices && Array.isArray(data.vertices)) {
+                    setParentZoneVertices(data.vertices);
+                    console.log("✅ Fetched parent zone vertices:", data.vertices);
+                } else {
+                    console.warn("⚠️ No valid 'vertices' array in response:", data);
+                    setParentZoneVertices([]);
+                }
+            } catch (error) {
+                console.error("❌ Error fetching parent zone vertices:", error);
+                setParentZoneVertices([]);
+            }
+        };
+
+        fetchParentZoneVertices();
+    }, [selectedParentZone]);
 
     // Save Zone with Correct X, Y, Z Coordinates (Feet-Based), adding closing vertex
     const saveZone = async () => {
@@ -64,7 +105,6 @@ const ZoneBuilder = () => {
                     zoneVertices = [...zoneVertices, ...leafletVertices];
                 }
             });
-            // Validate only if no layers are drawn yet
             if (zoneVertices.length === 0) {
                 alert("⚠️ No polygon drawn. Please draw a zone and click 'Finish' before saving.");
                 return;
@@ -134,16 +174,21 @@ const ZoneBuilder = () => {
         }
     };
 
+    // Log parentZoneVertices to verify it’s being passed
+    console.log("📌 Current parentZoneVertices:", parentZoneVertices);
+
     return (
         <div>
             <h2>Zone Builder</h2>
+
+            {fetchError && <div style={{ color: "red", marginBottom: "10px" }}>Error: {fetchError}</div>}
 
             <label>Zone Type:</label>
             <select onChange={(e) => setSelectedZoneType(e.target.value)} value={selectedZoneType || ""}>
                 <option value="">Select Zone Type</option>
                 {zones.map(zone => (
                     <option key={zone.zone_level} value={zone.zone_level}>
-                        {zone.zone_name}
+                        {zone.zone_name || "Unknown Zone Type"}
                     </option>
                 ))}
             </select>
@@ -153,7 +198,7 @@ const ZoneBuilder = () => {
                 <option value="">Select Map</option>
                 {maps.map(map => (
                     <option key={map.map_id} value={map.map_id}>
-                        {map.name}
+                        {map.name || "Unknown Map"}
                     </option>
                 ))}
             </select>
@@ -163,7 +208,7 @@ const ZoneBuilder = () => {
                 <option value="">(None - Parent Zone)</option>
                 {parentZones.map(zone => (
                     <option key={zone.zone_id} value={zone.zone_id}>
-                        {zone.name}
+                        {`${zone.name || "Unknown Zone"} (L${zone.level || "Unknown"})`}
                     </option>
                 ))}
             </select>
@@ -191,6 +236,7 @@ const ZoneBuilder = () => {
                             onDrawComplete={setVertices}
                             useLeaflet={true}
                             drawnItems={drawnItems.current}
+                            parentZoneVertices={parentZoneVertices}
                         />
                     </div>
                 ) : (
@@ -199,6 +245,7 @@ const ZoneBuilder = () => {
                             zoneId={selectedMapId}
                             onDrawComplete={setVertices}
                             useLeaflet={false}
+                            parentZoneVertices={parentZoneVertices}
                         />
                     </div>
                 )}

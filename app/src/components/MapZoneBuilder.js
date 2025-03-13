@@ -6,7 +6,7 @@ import "leaflet-draw/dist/leaflet.draw.css";
 import "leaflet-draw";
 import "./Map.css";
 
-const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet, drawnItems }) => {
+const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet, drawnItems, parentZoneVertices }) => {
     const mapRef = useRef(null);
     const mapInstance = useRef(null);
     const canvasRef = useRef(null);
@@ -17,6 +17,8 @@ const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet,
     const isDrawing = useRef(false);
     const ctxRef = useRef(null);
     const imageRef = useRef(null);
+    const parentLayer = useRef(null); // For Leaflet mode
+    const canvasBounds = useRef({ x: 0, y: 0, width: 800, height: 600 }); // Adjusted bounds
 
     // Fetch map data
     useEffect(() => {
@@ -35,15 +37,22 @@ const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet,
                 }
             };
             fetchMapData();
+        } else {
+            setMapData(null);
+            setError(null);
         }
     }, [zoneId]);
 
     // Canvas rendering
     useEffect(() => {
         if (!useLeaflet && mapData && canvasRef.current && !isInitialized.current) {
-            console.log("🖌 Initializing Canvas rendering...");
+            console.log("🖌 Initializing Canvas rendering with mapData:", mapData);
             const canvas = canvasRef.current;
             const ctx = canvas.getContext("2d");
+            if (!ctx) {
+                console.error("❌ Canvas context is null");
+                return;
+            }
             ctxRef.current = ctx;
 
             canvas.width = 800;
@@ -55,8 +64,32 @@ const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet,
             imageRef.current = img;
 
             img.onload = () => {
-                console.log("✅ Canvas: Map image loaded:", mapData.imageUrl);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                console.log("✅ Canvas: Map image loaded:", mapData.imageUrl, "Dimensions:", img.width, "x", img.height);
+                // Calculate adjusted bounds to maintain aspect ratio
+                const mapWidth = mapData.bounds[1][1] - mapData.bounds[0][1]; // max_x - min_x
+                const mapHeight = mapData.bounds[1][0] - mapData.bounds[0][0]; // max_y - min_y
+                const mapAspect = mapWidth / mapHeight;
+                const canvasAspect = canvas.width / canvas.height;
+
+                let drawWidth = canvas.width;
+                let drawHeight = canvas.height;
+                let offsetX = 0;
+                let offsetY = 0;
+
+                if (mapAspect > canvasAspect) {
+                    // Map is wider than canvas: fit width, adjust height
+                    drawHeight = canvas.width / mapAspect;
+                    offsetY = (canvas.height - drawHeight) / 2;
+                } else {
+                    // Map is taller than canvas: fit height, adjust width
+                    drawWidth = canvas.height * mapAspect;
+                    offsetX = (canvas.width - drawWidth) / 2;
+                }
+
+                canvasBounds.current = { x: offsetX, y: offsetY, width: drawWidth, height: drawHeight };
+                console.log("🖌 Canvas adjusted bounds:", canvasBounds.current);
+
+                drawCanvas();
             };
 
             img.onerror = () => {
@@ -68,28 +101,78 @@ const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet,
                 if (e.button !== 0) return;
                 isDrawing.current = true;
                 const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / (mapData.bounds[1][1] - mapData.bounds[0][1]); // max_x - min_x
-                const scaleY = canvas.height / (mapData.bounds[1][0] - mapData.bounds[0][0]); // max_y - min_y
+                if (!rect) {
+                    console.error("❌ Canvas bounding rect is null");
+                    return;
+                }
+                const scaleX = canvasBounds.current.width / (mapData.bounds[1][1] - mapData.bounds[0][1]);
+                const scaleY = canvasBounds.current.height / (mapData.bounds[1][0] - mapData.bounds[0][0]);
 
-                const x = mapData.bounds[0][1] + ((e.clientX - rect.left) / scaleX);
-                const y = mapData.bounds[1][0] - ((e.clientY - rect.top) / scaleY);
+                const x = mapData.bounds[0][1] + ((e.clientX - rect.left - canvasBounds.current.x) / scaleX);
+                const y = mapData.bounds[1][0] - ((e.clientY - rect.top - canvasBounds.current.y) / scaleY); // Invert Y-axis to match map
 
                 points.current.push({ x, y });
                 console.log("🖱 Canvas click (feet):", { x, y });
 
-                drawPolygon(points.current);
+                drawCanvas();
                 onDrawComplete(points.current);
             };
 
-            const drawPolygon = (feetPoints) => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                if (feetPoints.length === 0) return;
+            const drawCanvas = () => {
+                if (!ctxRef.current || !imageRef.current) {
+                    console.error("❌ Canvas context or image ref is null");
+                    return;
+                }
+                const ctx = ctxRef.current;
+                const img = imageRef.current;
 
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, canvasBounds.current.x, canvasBounds.current.y, canvasBounds.current.width, canvasBounds.current.height);
+
+                // Draw parent zone vertices as a light blue shape (non-editable)
+                if (parentZoneVertices && parentZoneVertices.length > 0) {
+                    console.log("📌 Rendering parent zone vertices in Canvas:", parentZoneVertices);
+                    ctx.beginPath();
+                    let firstPoint = true;
+                    let hasValidPoints = false;
+                    parentZoneVertices.forEach((vertex, index) => {
+                        const x = vertex.n_x !== undefined ? vertex.n_x : (vertex.x || 0);
+                        const y = vertex.n_y !== undefined ? vertex.n_y : (vertex.y || 0);
+                        if (isNaN(x) || isNaN(y)) {
+                            console.warn(`⚠️ Invalid vertex at index ${index}: x=${x}, y=${y}`, vertex);
+                            return;
+                        }
+                        const canvasX = canvasBounds.current.x + (x - mapData.bounds[0][1]) * (canvasBounds.current.width / (mapData.bounds[1][1] - mapData.bounds[0][1]));
+                        const canvasY = canvasBounds.current.y + ((mapData.bounds[1][0] - y) * (canvasBounds.current.height / (mapData.bounds[1][0] - mapData.bounds[0][0])));
+                        if (firstPoint) {
+                            ctx.moveTo(canvasX, canvasY);
+                            firstPoint = false;
+                            hasValidPoints = true;
+                        } else {
+                            ctx.lineTo(canvasX, canvasY);
+                        }
+                    });
+                    if (hasValidPoints) {
+                        ctx.closePath();
+                        ctx.strokeStyle = "lightblue";
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        ctx.fillStyle = "rgba(173, 216, 230, 0.3)"; // Light blue fill with transparency
+                        ctx.fill();
+                        console.log("✅ Rendered parent zone shape in Canvas");
+                    } else {
+                        console.warn("⚠️ No valid points to render parent zone in Canvas");
+                    }
+                } else {
+                    console.log("ℹ️ No parent zone vertices to render in Canvas");
+                }
+
+                // Draw current editable polygon
+                if (points.current.length === 0) return;
                 ctx.beginPath();
-                feetPoints.forEach((point, index) => {
-                    const x = (point.x - mapData.bounds[0][1]) * (canvas.width / (mapData.bounds[1][1] - mapData.bounds[0][1]));
-                    const y = canvas.height - ((point.y - mapData.bounds[0][0]) * (canvas.height / (mapData.bounds[1][0] - mapData.bounds[0][0])));
+                points.current.forEach((point, index) => {
+                    const x = canvasBounds.current.x + (point.x - mapData.bounds[0][1]) * (canvasBounds.current.width / (mapData.bounds[1][1] - mapData.bounds[0][1]));
+                    const y = canvasBounds.current.y + ((mapData.bounds[1][0] - point.y) * (canvasBounds.current.height / (mapData.bounds[1][0] - mapData.bounds[0][0])));
                     if (index === 0) ctx.moveTo(x, y);
                     else ctx.lineTo(x, y);
 
@@ -103,15 +186,19 @@ const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet,
 
             canvas.addEventListener("mousedown", handleMouseDown);
             isInitialized.current = true;
-            return () => canvas.removeEventListener("mousedown", handleMouseDown);
+            return () => {
+                canvas.removeEventListener("mousedown", handleMouseDown);
+                isInitialized.current = false;
+            };
         }
-    }, [mapData, useLeaflet, onDrawComplete, triggerColor]);
+    }, [mapData, useLeaflet, onDrawComplete, triggerColor, parentZoneVertices]);
 
     // Leaflet rendering
     useEffect(() => {
         if (useLeaflet && mapData && mapRef.current && !mapInstance.current) {
             console.log("🗺 Initializing Leaflet with mapData:", mapData);
             mapInstance.current = L.map(mapRef.current, { crs: L.CRS.Simple }).fitBounds(mapData.bounds);
+            console.log("🗺 Leaflet fitBounds applied:", mapData.bounds);
             L.imageOverlay(mapData.imageUrl, mapData.bounds).addTo(mapInstance.current);
             mapInstance.current.addLayer(drawnItems);
 
@@ -143,6 +230,43 @@ const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet,
             console.log("✅ Leaflet map initialized with bounds:", mapData.bounds);
         }
 
+        // Draw parent zone vertices as a non-editable light blue shape
+        if (useLeaflet && mapInstance.current) {
+            if (parentLayer.current) {
+                mapInstance.current.removeLayer(parentLayer.current);
+                parentLayer.current = null;
+            }
+
+            if (parentZoneVertices && parentZoneVertices.length > 0) {
+                console.log("📌 Rendering parent zone vertices in Leaflet:", parentZoneVertices);
+                const latLngs = parentZoneVertices
+                    .map(vertex => {
+                        const x = vertex.n_x !== undefined ? vertex.n_x : (vertex.x || 0);
+                        const y = vertex.n_y !== undefined ? vertex.n_y : (vertex.y || 0);
+                        if (isNaN(x) || isNaN(y)) {
+                            console.warn(`⚠️ Invalid vertex in parentZoneVertices: x=${x}, y=${y}`, vertex);
+                            return null;
+                        }
+                        return [y, x]; // [lat, lng] for Leaflet
+                    })
+                    .filter(coord => coord !== null);
+                if (latLngs.length > 0) {
+                    parentLayer.current = L.polygon(latLngs, {
+                        color: "lightblue",
+                        weight: 2,
+                        fillColor: "lightblue",
+                        fillOpacity: 0.3,
+                        interactive: false,
+                    }).addTo(mapInstance.current);
+                    console.log("✅ Rendered parent zone shape in Leaflet:", latLngs);
+                } else {
+                    console.warn("⚠️ No valid latLngs to render parent zone in Leaflet");
+                }
+            } else {
+                console.log("ℹ️ No parent zone vertices to render in Leaflet");
+            }
+        }
+
         // Cleanup
         return () => {
             if (mapInstance.current) {
@@ -151,7 +275,7 @@ const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet,
                 console.log("🗺 Leaflet map cleaned up");
             }
         };
-    }, [mapData, useLeaflet, onDrawComplete, triggerColor, drawnItems]);
+    }, [mapData, useLeaflet, onDrawComplete, triggerColor, drawnItems, parentZoneVertices]);
 
     return (
         <div>

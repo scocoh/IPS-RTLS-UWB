@@ -1,6 +1,6 @@
 # /home/parcoadmin/parco_fastapi/app/routes/zonebuilder_routes.py
 from fastapi import APIRouter, HTTPException, Response
-from database.db import execute_raw_query  # Ensure this is defined as an async function
+from database.db import execute_raw_query
 import logging
 
 router = APIRouter()
@@ -18,7 +18,7 @@ async def get_maps():
     except Exception as e:
         logger.error(f"Error retrieving maps: {e}")
         raise HTTPException(status_code=500, detail=f"Error retrieving maps: {str(e)}")
-    
+
 @router.get("/get_map_data/{map_id}")
 async def get_map_data(map_id: int):
     """Fetches map data for zone builder without zone lookup"""
@@ -66,13 +66,13 @@ async def get_map_metadata(map_id: int):
 
 @router.get("/get_parent_zones")
 async def get_parent_zones():
-    """Fetches all parent zones (async)"""
+    """Fetches all zones (not just top-level) to allow selection as parent (async)"""
     try:
         zones_data = await execute_raw_query(
             "maint",
-            "SELECT i_zn, x_nm_zn FROM zones WHERE i_pnt_zn IS NULL"
+            "SELECT i_zn, x_nm_zn, i_typ_zn FROM zones ORDER BY i_typ_zn, x_nm_zn"
         )
-        return {"zones": [{"zone_id": z["i_zn"], "name": z["x_nm_zn"]} for z in zones_data]}
+        return {"zones": [{"zone_id": z["i_zn"], "name": z["x_nm_zn"], "level": z["i_typ_zn"]} for z in zones_data]}
     except Exception as e:
         logger.error(f"Error retrieving parent zones: {e}")
         raise HTTPException(status_code=500, detail=f"Error retrieving parent zones: {str(e)}")
@@ -94,7 +94,7 @@ async def get_zone_types():
 async def create_zone(data: dict):
     """Creates a new zone (fully async, using execute_raw_query)"""
     try:
-        # ✅ Extract & validate inputs
+        # Extract & validate inputs
         zone_name = data.get('zone_name')
         map_id = data.get('map_id')
         zone_level = data.get('zone_level')
@@ -113,7 +113,7 @@ async def create_zone(data: dict):
         # Log input data for debugging
         logger.info(f"Creating zone with data: {data}")
 
-        # ✅ Insert zone into DB (Async)
+        # Insert zone into DB (Async)
         new_zone = await execute_raw_query(
             "maint",
             """
@@ -129,7 +129,7 @@ async def create_zone(data: dict):
         zone_id = new_zone[0]["i_zn"]
         logger.info(f"✅ Inserted Zone ID: {zone_id}")
 
-        # ✅ Insert region with calculated bounds
+        # Insert region with calculated bounds
         if vertices:
             x_coords = [v.get('n_x', 0) for v in vertices]
             y_coords = [v.get('n_y', 0) for v in vertices]
@@ -155,7 +155,7 @@ async def create_zone(data: dict):
         region_id = new_region[0]["i_rgn"]
         logger.info(f"✅ Inserted Region ID: {region_id}")
 
-        # ✅ Insert vertices with region_id
+        # Insert vertices with region_id
         if vertices:
             for idx, vertex in enumerate(vertices):
                 await execute_raw_query(
