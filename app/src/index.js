@@ -5,6 +5,7 @@ import TriggerDemo from "./TriggerDemo";
 import MapUpload from "./components/MapUpload";
 import MapList from "./components/MapList";  // ✅ Import MapList.js
 import ZoneBuilder from "./components/ZoneBuilder";
+import ZoneViewer from "./components/ZoneViewer";  // Updated import
 
 const App = () => {
     const [view, setView] = useState("triggers");
@@ -18,7 +19,8 @@ const App = () => {
                 <button onClick={() => setView("triggers")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Trigger Management</button>
                 <button onClick={() => setView("zones")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Zone Management</button> 
                 <button onClick={() => setView("maps")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Map Upload</button>
-                <button onClick={() => setView("mapList")} style={{ padding: "10px", fontSize: "16px" }}>View Maps</button>
+                <button onClick={() => setView("mapList")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>View Maps</button>
+                <button onClick={() => setView("zoneviewer")} style={{ padding: "10px", fontSize: "16px" }}>Zone Viewer & Editor</button>
             </div>
 
             <hr />
@@ -28,6 +30,7 @@ const App = () => {
             {view === "zones" && <ZoneBuilder />}
             {view === "maps" && <MapUpload />}
             {view === "mapList" && <MapList />}
+            {view === "zoneviewer" && <ZoneViewer />}
         </div>
     );
 };

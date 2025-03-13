@@ -13,6 +13,7 @@ from routes.input import router as input_router
 from routes.region import router as region_router
 from routes.vertex import router as vertex_router
 from routes.zonebuilder_routes import router as zonebuilder_router
+from routes.zoneviewer_routes import router as zoneviewer_router  # New import
 from routes import maps, maps_upload
 
 logging.basicConfig(level=logging.INFO)
@@ -39,6 +40,7 @@ app.include_router(input_router)
 app.include_router(region_router, prefix="/api")
 app.include_router(vertex_router, prefix="/api", tags=["vertices"])
 app.include_router(zonebuilder_router, prefix="/zonebuilder", tags=["zonebuilder"])
+app.include_router(zoneviewer_router, prefix="/zoneviewer", tags=["zoneviewer"])  # New router
 app.include_router(maps.router, prefix="/maps", tags=["maps"])
 app.include_router(maps_upload.router, prefix="/maps", tags=["maps_upload"])
 
