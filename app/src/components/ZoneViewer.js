@@ -70,7 +70,17 @@ const ZoneViewer = () => {
                     onChange={() => handleZoneToggle(zone.zone_id)}
                 />
                 <span>{zone.zone_name}</span>
-                {zone.children && zone.children.length > 0 && renderZones(zone.children, depth + 1)}
+                {zone.children && zone.children.length > 0 && (
+                    renderZones(zone.children, depth + 1)
+                )}
+                {zone.parent_zone_id === null && (
+                    <button
+                        onClick={() => handleDeleteZone(zone.zone_id)}
+                        style={{ marginLeft: "10px", color: "red" }}
+                    >
+                        Delete Zone
+                    </button>
+                )}
             </div>
         ));
     };
@@ -144,7 +154,7 @@ const ZoneViewer = () => {
                         x: changes.x ?? vertex.x, 
                         y: changes.y ?? vertex.y, 
                         z: changes.z ?? vertex.z,
-                        order: vertex.order // Include order
+                        order: vertex.order
                     };
                 })
                 .filter(update => update !== null);
@@ -171,6 +181,181 @@ const ZoneViewer = () => {
         } catch (error) {
             console.error("❌ Error saving changes:", error);
             alert("Failed to save changes: " + error.message);
+        }
+    };
+
+    // Export vertices to JSON file
+    const exportVertices = () => {
+        if (!selectedCampus) {
+            alert("Please select a campus first.");
+            return;
+        }
+        const verticesToExport = vertices.filter(v => checkedZones.includes(v.zone_id));
+        if (verticesToExport.length === 0) {
+            alert("No vertices to export for the selected zones.");
+            return;
+        }
+        const json = JSON.stringify(verticesToExport, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `vertices_zone_${selectedCampus}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
+    // Import vertices from JSON file
+    const importVertices = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const importedVertices = JSON.parse(text);
+            if (!Array.isArray(importedVertices)) {
+                throw new Error("Imported file must contain an array of vertices.");
+            }
+
+            const validVertices = importedVertices.filter(v => {
+                return (
+                    typeof v.vertex_id === "number" &&
+                    typeof v.x === "number" &&
+                    typeof v.y === "number" &&
+                    (v.z === null || typeof v.z === "number") &&
+                    typeof v.order === "number" &&
+                    typeof v.zone_id === "number" &&
+                    checkedZones.includes(v.zone_id)
+                );
+            });
+
+            if (validVertices.length === 0) {
+                throw new Error("No valid vertices found in the imported file for the selected zones.");
+            }
+
+            const existingVertexIds = new Set(vertices.map(v => v.vertex_id));
+            const newVertices = validVertices.filter(v => !existingVertexIds.has(v.vertex_id));
+            const updatedVertices = vertices.map(v => {
+                const imported = validVertices.find(iv => iv.vertex_id === v.vertex_id);
+                return imported ? { ...v, ...imported } : v;
+            });
+
+            setVertices([...updatedVertices, ...newVertices].sort((a, b) => a.order - b.order));
+            alert(`Imported ${newVertices.length} new vertices and updated ${validVertices.length - newVertices.length} existing vertices.`);
+        } catch (error) {
+            console.error("❌ Error importing vertices:", error);
+            alert("Failed to import vertices: " + error.message);
+        }
+    };
+
+    // Export selected zones to SVG file (inspired by fetch_vertices_to_svg.py)
+    const exportToSVG = () => {
+        if (!selectedCampus) {
+            alert("Please select a campus first.");
+            return;
+        }
+        const verticesToExport = vertices.filter(v => checkedZones.includes(v.zone_id));
+        if (verticesToExport.length === 0) {
+            alert("No vertices to export for the selected zones.");
+            return;
+        }
+
+        // Step 1: Normalize coordinates
+        const width = 1000;
+        const height = 800;
+        const min_x = Math.min(...verticesToExport.map(v => v.x));
+        const min_y = Math.min(...verticesToExport.map(v => v.y));
+        const max_x = Math.max(...verticesToExport.map(v => v.x));
+        const max_y = Math.max(...verticesToExport.map(v => v.y));
+
+        const scale_x = (max_x - min_x) ? width / (max_x - min_x) : 1;
+        const scale_y = (max_y - min_y) ? height / (max_y - min_y) : 1;
+
+        const normalizedVertices = verticesToExport.map(v => ({
+            ...v,
+            x: (v.x - min_x) * scale_x,
+            y: height - (v.y - min_y) * scale_y  // Flip Y-axis
+        }));
+
+        // Step 2: Group by region (zone)
+        const regions = {};
+        normalizedVertices.forEach(v => {
+            if (!regions[v.zone_id]) {
+                regions[v.zone_id] = [];
+            }
+            regions[v.zone_id].push({ x: v.x, y: v.y, vertex_id: v.vertex_id });
+        });
+
+        // Step 3: Generate SVG
+        let svgContent = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">\n`;
+        for (const [zone_id, points] of Object.entries(regions)) {
+            // Sort points by order (assuming order is stored in vertices)
+            const zoneVertices = vertices.filter(v => v.zone_id === parseInt(zone_id)).sort((a, b) => a.order - b.order);
+            const orderedPoints = zoneVertices.map(v => {
+                const normalized = normalizedVertices.find(nv => nv.vertex_id === v.vertex_id);
+                return { x: normalized.x, y: normalized.y, vertex_id: v.vertex_id };
+            });
+
+            // Draw the polygon
+            const pointsStr = orderedPoints.map(p => `${p.x},${p.y}`).join(" ");
+            svgContent += `<polygon points="${pointsStr}" fill="rgba(173, 216, 230, 0.6)" stroke="black" stroke-width="2"/>\n`;
+
+            // Compute centroid for labeling
+            const centroid_x = orderedPoints.reduce((sum, p) => sum + p.x, 0) / orderedPoints.length;
+            const centroid_y = orderedPoints.reduce((sum, p) => sum + p.y, 0) / orderedPoints.length;
+            svgContent += `<text x="${centroid_x}" y="${centroid_y}" font-size="14" fill="black">Zone ${zone_id}</text>\n`;
+
+            // Add vertex labels
+            orderedPoints.forEach(p => {
+                svgContent += `<text x="${p.x + 5}" y="${p.y - 5}" font-size="12" fill="black">${p.vertex_id}</text>\n`;
+            });
+        }
+        svgContent += `</svg>`;
+
+        // Step 4: Trigger download
+        const blob = new Blob([svgContent], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `map_zone_${selectedCampus}.svg`;
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleDeleteZone = async (zoneId) => {
+        if (!window.confirm(`Are you sure? This will delete zone ${zoneId} and all its progeny.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/zoneviewer/delete_zone_recursive/${zoneId}`, {
+                method: "DELETE",
+            });
+            if (!response.ok) throw new Error(`Failed to delete zone: ${response.status}`);
+            const result = await response.json();
+            console.log("✅ Zone deleted:", result);
+
+            // Refresh campuses and zones
+            const campusesResponse = await fetch(`${API_BASE_URL}/zoneviewer/get_campus_zones`);
+            if (!campusesResponse.ok) throw new Error(`Failed to fetch campuses: ${campusesResponse.status}`);
+            const campusesData = await campusesResponse.json();
+            setCampuses(campusesData.campuses || []);
+
+            const zonesResponse = await fetch(`${API_BASE_URL}/zoneviewer/get_all_zones_for_campus/${selectedCampus}`);
+            if (!zonesResponse.ok) throw new Error(`Failed to fetch zones: ${zonesResponse.status}`);
+            const zonesData = await zonesResponse.json();
+            setZones(zonesData.zones || []);
+            setCheckedZones([selectedCampus]);
+
+            const verticesResponse = await fetch(`${API_BASE_URL}/zoneviewer/get_vertices_for_campus/${selectedCampus}`);
+            if (!verticesResponse.ok) throw new Error(`Failed to fetch vertices: ${verticesResponse.status}`);
+            const verticesData = await verticesResponse.json();
+            setVertices(verticesData.vertices || []);
+
+            alert(result.message);
+        } catch (error) {
+            console.error("❌ Error deleting zone:", error);
+            alert("Failed to delete zone: " + error.message);
         }
     };
 
@@ -206,6 +391,14 @@ const ZoneViewer = () => {
                     />
 
                     <h3>Edit Vertices:</h3>
+                    <button onClick={exportVertices} style={{ marginBottom: "10px" }}>Export Vertices (JSON)</button>
+                    <button onClick={exportToSVG} style={{ marginBottom: "10px", marginLeft: "10px" }}>Export to SVG</button>
+                    <input
+                        type="file"
+                        accept=".json"
+                        onChange={importVertices}
+                        style={{ marginBottom: "10px" }}
+                    />
                     <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid black" }}>
                         <thead>
                             <tr>

@@ -7608,3 +7608,2026 @@
 2025-03-14 04:45:02,475 - INFO - Found PIDs ['194880'] for port 8123
 2025-03-14 04:45:02,476 - INFO - Service for port 8123 -> python3
 2025-03-14 04:45:02,477 - INFO - Port 8123: python3
+2025-03-14 04:46:02,024 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:46:02,025 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:46:02,134 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:46:02,290 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:46:02,290 - INFO - No PID found for port 5001
+2025-03-14 04:46:02,290 - INFO - No process found for port 5001
+2025-03-14 04:46:02,290 - INFO - Port 5001: Unknown Service
+2025-03-14 04:46:02,515 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:46:02,515 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:46:02,515 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:46:02,515 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:46:02,564 - INFO - lsof output for port 5432 -> 1391290
+2025-03-14 04:46:02,564 - INFO - Found PIDs ['1391290'] for port 5432
+2025-03-14 04:46:02,565 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:46:02,565 - INFO - Port 5432: postgres
+2025-03-14 04:46:02,609 - INFO - lsof output for port 8000 -> 2996798
+2025-03-14 04:46:02,609 - INFO - Found PIDs ['2996798'] for port 8000
+2025-03-14 04:46:02,609 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:46:02,609 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:46:02,656 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:46:02,656 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:46:02,656 - INFO - Service for port 8123 -> python3
+2025-03-14 04:46:02,656 - INFO - Port 8123: python3
+2025-03-14 04:47:02,013 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:47:02,013 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:47:02,056 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:47:02,117 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:47:02,118 - INFO - No PID found for port 5001
+2025-03-14 04:47:02,118 - INFO - No process found for port 5001
+2025-03-14 04:47:02,119 - INFO - Port 5001: Unknown Service
+2025-03-14 04:47:02,272 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:47:02,272 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:47:02,272 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:47:02,272 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:47:02,319 - INFO - lsof output for port 5432 -> 1391290
+2998070
+2998071
+2998072
+2998073
+2998074
+2998075
+2998076
+2998077
+2998078
+2998079
+2998080
+2998154
+2025-03-14 04:47:02,319 - INFO - Found PIDs ['1391290', '2998070', '2998071', '2998072', '2998073', '2998074', '2998075', '2998076', '2998077', '2998078', '2998079', '2998080', '2998154'] for port 5432
+2025-03-14 04:47:02,319 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:47:02,319 - INFO - Port 5432: postgres
+2025-03-14 04:47:02,374 - INFO - lsof output for port 8000 -> 2998070
+2025-03-14 04:47:02,374 - INFO - Found PIDs ['2998070'] for port 8000
+2025-03-14 04:47:02,375 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:47:02,375 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:47:02,420 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:47:02,420 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:47:02,421 - INFO - Service for port 8123 -> python3
+2025-03-14 04:47:02,421 - INFO - Port 8123: python3
+2025-03-14 04:48:01,928 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:48:01,928 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:48:02,037 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:48:02,105 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:48:02,106 - INFO - No PID found for port 5001
+2025-03-14 04:48:02,106 - INFO - No process found for port 5001
+2025-03-14 04:48:02,106 - INFO - Port 5001: Unknown Service
+2025-03-14 04:48:02,156 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:48:02,156 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:48:02,156 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:48:02,156 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:48:02,219 - INFO - lsof output for port 5432 -> 1391290
+2998070
+2998071
+2998072
+2998073
+2998074
+2998075
+2998076
+2998077
+2998078
+2998079
+2998080
+2998154
+2025-03-14 04:48:02,219 - INFO - Found PIDs ['1391290', '2998070', '2998071', '2998072', '2998073', '2998074', '2998075', '2998076', '2998077', '2998078', '2998079', '2998080', '2998154'] for port 5432
+2025-03-14 04:48:02,220 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:48:02,220 - INFO - Port 5432: postgres
+2025-03-14 04:48:02,279 - INFO - lsof output for port 8000 -> 2998070
+2025-03-14 04:48:02,279 - INFO - Found PIDs ['2998070'] for port 8000
+2025-03-14 04:48:02,280 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:48:02,280 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:48:02,332 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:48:02,332 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:48:02,333 - INFO - Service for port 8123 -> python3
+2025-03-14 04:48:02,333 - INFO - Port 8123: python3
+2025-03-14 04:49:01,733 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:49:01,734 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:49:01,783 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:49:01,882 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:49:01,882 - INFO - No PID found for port 5001
+2025-03-14 04:49:01,882 - INFO - No process found for port 5001
+2025-03-14 04:49:01,882 - INFO - Port 5001: Unknown Service
+2025-03-14 04:49:01,934 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:49:01,934 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:49:01,935 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:49:01,935 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:49:02,014 - INFO - lsof output for port 5432 -> 1391290
+2998070
+2998071
+2998072
+2998073
+2998074
+2998075
+2998076
+2998077
+2998078
+2998079
+2998080
+2998154
+2025-03-14 04:49:02,014 - INFO - Found PIDs ['1391290', '2998070', '2998071', '2998072', '2998073', '2998074', '2998075', '2998076', '2998077', '2998078', '2998079', '2998080', '2998154'] for port 5432
+2025-03-14 04:49:02,014 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:49:02,015 - INFO - Port 5432: postgres
+2025-03-14 04:49:02,070 - INFO - lsof output for port 8000 -> 2998070
+2025-03-14 04:49:02,070 - INFO - Found PIDs ['2998070'] for port 8000
+2025-03-14 04:49:02,070 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:49:02,071 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:49:02,117 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:49:02,117 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:49:02,117 - INFO - Service for port 8123 -> python3
+2025-03-14 04:49:02,117 - INFO - Port 8123: python3
+2025-03-14 04:50:01,632 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:50:01,632 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:50:01,734 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:50:01,823 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:50:01,823 - INFO - No PID found for port 5001
+2025-03-14 04:50:01,823 - INFO - No process found for port 5001
+2025-03-14 04:50:01,823 - INFO - Port 5001: Unknown Service
+2025-03-14 04:50:01,896 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:50:01,896 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:50:01,896 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:50:01,896 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:50:01,983 - INFO - lsof output for port 5432 -> 1391290
+2998070
+2998071
+2998072
+2998073
+2998074
+2998075
+2998076
+2998077
+2998078
+2998079
+2998080
+2998154
+2025-03-14 04:50:01,983 - INFO - Found PIDs ['1391290', '2998070', '2998071', '2998072', '2998073', '2998074', '2998075', '2998076', '2998077', '2998078', '2998079', '2998080', '2998154'] for port 5432
+2025-03-14 04:50:01,983 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:50:01,983 - INFO - Port 5432: postgres
+2025-03-14 04:50:02,045 - INFO - lsof output for port 8000 -> 2998070
+2025-03-14 04:50:02,046 - INFO - Found PIDs ['2998070'] for port 8000
+2025-03-14 04:50:02,046 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:50:02,046 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:50:02,089 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:50:02,089 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:50:02,090 - INFO - Service for port 8123 -> python3
+2025-03-14 04:50:02,090 - INFO - Port 8123: python3
+2025-03-14 04:51:01,516 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:51:01,516 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:51:01,558 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:51:01,655 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:51:01,655 - INFO - No PID found for port 5001
+2025-03-14 04:51:01,655 - INFO - No process found for port 5001
+2025-03-14 04:51:01,656 - INFO - Port 5001: Unknown Service
+2025-03-14 04:51:01,915 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:51:01,915 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:51:01,915 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:51:01,915 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:51:01,987 - INFO - lsof output for port 5432 -> 1391290
+2998070
+2998071
+2998072
+2998073
+2998074
+2998075
+2998076
+2998077
+2998078
+2998079
+2998080
+2998154
+2025-03-14 04:51:01,987 - INFO - Found PIDs ['1391290', '2998070', '2998071', '2998072', '2998073', '2998074', '2998075', '2998076', '2998077', '2998078', '2998079', '2998080', '2998154'] for port 5432
+2025-03-14 04:51:01,987 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:51:01,988 - INFO - Port 5432: postgres
+2025-03-14 04:51:02,037 - INFO - lsof output for port 8000 -> 2998070
+2025-03-14 04:51:02,037 - INFO - Found PIDs ['2998070'] for port 8000
+2025-03-14 04:51:02,037 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:51:02,037 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:51:02,118 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:51:02,118 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:51:02,119 - INFO - Service for port 8123 -> python3
+2025-03-14 04:51:02,119 - INFO - Port 8123: python3
+2025-03-14 04:52:01,488 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:52:01,489 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:52:01,534 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:52:01,604 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:52:01,604 - INFO - No PID found for port 5001
+2025-03-14 04:52:01,604 - INFO - No process found for port 5001
+2025-03-14 04:52:01,604 - INFO - Port 5001: Unknown Service
+2025-03-14 04:52:01,713 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:52:01,713 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:52:01,713 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:52:01,713 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:52:01,770 - INFO - lsof output for port 5432 -> 1391290
+2025-03-14 04:52:01,770 - INFO - Found PIDs ['1391290'] for port 5432
+2025-03-14 04:52:01,770 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:52:01,770 - INFO - Port 5432: postgres
+2025-03-14 04:52:01,814 - INFO - lsof output for port 8000 -> 2998070
+2025-03-14 04:52:01,815 - INFO - Found PIDs ['2998070'] for port 8000
+2025-03-14 04:52:01,815 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:52:01,815 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:52:01,881 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:52:01,881 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:52:01,881 - INFO - Service for port 8123 -> python3
+2025-03-14 04:52:01,881 - INFO - Port 8123: python3
+2025-03-14 04:53:01,214 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:53:01,214 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:53:01,257 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:53:01,316 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:53:01,316 - INFO - No PID found for port 5001
+2025-03-14 04:53:01,316 - INFO - No process found for port 5001
+2025-03-14 04:53:01,316 - INFO - Port 5001: Unknown Service
+2025-03-14 04:53:01,383 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:53:01,383 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:53:01,383 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:53:01,383 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:53:01,486 - INFO - lsof output for port 5432 -> 1391290
+2998934
+2998935
+2998936
+2998937
+2998938
+2998939
+2998940
+2998941
+2998942
+2998943
+2998944
+2025-03-14 04:53:01,486 - INFO - Found PIDs ['1391290', '2998934', '2998935', '2998936', '2998937', '2998938', '2998939', '2998940', '2998941', '2998942', '2998943', '2998944'] for port 5432
+2025-03-14 04:53:01,486 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:53:01,486 - INFO - Port 5432: postgres
+2025-03-14 04:53:01,549 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 04:53:01,549 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 04:53:01,549 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:53:01,549 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:53:01,593 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:53:01,593 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:53:01,593 - INFO - Service for port 8123 -> python3
+2025-03-14 04:53:01,593 - INFO - Port 8123: python3
+2025-03-14 04:54:02,009 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:54:02,009 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:54:02,055 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:54:02,142 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:54:02,142 - INFO - No PID found for port 5001
+2025-03-14 04:54:02,142 - INFO - No process found for port 5001
+2025-03-14 04:54:02,142 - INFO - Port 5001: Unknown Service
+2025-03-14 04:54:02,274 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:54:02,274 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:54:02,274 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:54:02,275 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:54:02,322 - INFO - lsof output for port 5432 -> 1391290
+2998934
+2998935
+2998936
+2998937
+2998938
+2998939
+2998940
+2998941
+2998942
+2998943
+2998944
+2999120
+2025-03-14 04:54:02,323 - INFO - Found PIDs ['1391290', '2998934', '2998935', '2998936', '2998937', '2998938', '2998939', '2998940', '2998941', '2998942', '2998943', '2998944', '2999120'] for port 5432
+2025-03-14 04:54:02,323 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:54:02,323 - INFO - Port 5432: postgres
+2025-03-14 04:54:02,369 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 04:54:02,369 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 04:54:02,369 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:54:02,370 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:54:02,414 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:54:02,414 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:54:02,414 - INFO - Service for port 8123 -> python3
+2025-03-14 04:54:02,415 - INFO - Port 8123: python3
+2025-03-14 04:55:01,715 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:55:01,715 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:55:01,752 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:55:01,847 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:55:01,847 - INFO - No PID found for port 5001
+2025-03-14 04:55:01,847 - INFO - No process found for port 5001
+2025-03-14 04:55:01,847 - INFO - Port 5001: Unknown Service
+2025-03-14 04:55:01,965 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:55:01,965 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:55:01,966 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:55:01,966 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:55:02,001 - INFO - lsof output for port 5432 -> 1391290
+2998934
+2998935
+2998936
+2998937
+2998938
+2998939
+2998940
+2998941
+2998942
+2998943
+2998944
+2999120
+2025-03-14 04:55:02,001 - INFO - Found PIDs ['1391290', '2998934', '2998935', '2998936', '2998937', '2998938', '2998939', '2998940', '2998941', '2998942', '2998943', '2998944', '2999120'] for port 5432
+2025-03-14 04:55:02,001 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:55:02,001 - INFO - Port 5432: postgres
+2025-03-14 04:55:02,036 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 04:55:02,036 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 04:55:02,037 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:55:02,037 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:55:02,070 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:55:02,071 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:55:02,071 - INFO - Service for port 8123 -> python3
+2025-03-14 04:55:02,071 - INFO - Port 8123: python3
+2025-03-14 04:56:01,449 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:56:01,450 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:56:01,494 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:56:01,564 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:56:01,565 - INFO - No PID found for port 5001
+2025-03-14 04:56:01,565 - INFO - No process found for port 5001
+2025-03-14 04:56:01,565 - INFO - Port 5001: Unknown Service
+2025-03-14 04:56:01,632 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:56:01,632 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:56:01,633 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:56:01,633 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:56:01,702 - INFO - lsof output for port 5432 -> 1391290
+2998934
+2998935
+2998936
+2998937
+2998938
+2998939
+2998940
+2998941
+2998942
+2998943
+2998944
+2999120
+2025-03-14 04:56:01,702 - INFO - Found PIDs ['1391290', '2998934', '2998935', '2998936', '2998937', '2998938', '2998939', '2998940', '2998941', '2998942', '2998943', '2998944', '2999120'] for port 5432
+2025-03-14 04:56:01,702 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:56:01,702 - INFO - Port 5432: postgres
+2025-03-14 04:56:01,779 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 04:56:01,779 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 04:56:01,779 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:56:01,780 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:56:01,862 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:56:01,862 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:56:01,863 - INFO - Service for port 8123 -> python3
+2025-03-14 04:56:01,863 - INFO - Port 8123: python3
+2025-03-14 04:57:01,198 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:57:01,198 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:57:01,246 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:57:01,313 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:57:01,313 - INFO - No PID found for port 5001
+2025-03-14 04:57:01,313 - INFO - No process found for port 5001
+2025-03-14 04:57:01,313 - INFO - Port 5001: Unknown Service
+2025-03-14 04:57:01,394 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:57:01,394 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:57:01,395 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:57:01,395 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:57:01,517 - INFO - lsof output for port 5432 -> 1391290
+2998934
+2998935
+2998936
+2998937
+2998938
+2998939
+2998940
+2998941
+2998942
+2998943
+2998944
+2999120
+2025-03-14 04:57:01,517 - INFO - Found PIDs ['1391290', '2998934', '2998935', '2998936', '2998937', '2998938', '2998939', '2998940', '2998941', '2998942', '2998943', '2998944', '2999120'] for port 5432
+2025-03-14 04:57:01,517 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:57:01,517 - INFO - Port 5432: postgres
+2025-03-14 04:57:01,572 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 04:57:01,572 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 04:57:01,572 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:57:01,572 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:57:01,625 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:57:01,625 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:57:01,626 - INFO - Service for port 8123 -> python3
+2025-03-14 04:57:01,627 - INFO - Port 8123: python3
+2025-03-14 04:58:02,020 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:58:02,020 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:58:02,062 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:58:02,121 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:58:02,121 - INFO - No PID found for port 5001
+2025-03-14 04:58:02,122 - INFO - No process found for port 5001
+2025-03-14 04:58:02,122 - INFO - Port 5001: Unknown Service
+2025-03-14 04:58:02,195 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:58:02,195 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:58:02,195 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:58:02,195 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:58:02,282 - INFO - lsof output for port 5432 -> 1391290
+2998934
+2998935
+2998936
+2999120
+2025-03-14 04:58:02,282 - INFO - Found PIDs ['1391290', '2998934', '2998935', '2998936', '2999120'] for port 5432
+2025-03-14 04:58:02,283 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:58:02,283 - INFO - Port 5432: postgres
+2025-03-14 04:58:02,321 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 04:58:02,321 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 04:58:02,321 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:58:02,321 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:58:02,357 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:58:02,359 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:58:02,359 - INFO - Service for port 8123 -> python3
+2025-03-14 04:58:02,359 - INFO - Port 8123: python3
+2025-03-14 04:59:01,744 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 04:59:01,745 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 04:59:01,788 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 04:59:01,836 - INFO - lsof output for port 5001 -> 
+2025-03-14 04:59:01,836 - INFO - No PID found for port 5001
+2025-03-14 04:59:01,836 - INFO - No process found for port 5001
+2025-03-14 04:59:01,836 - INFO - Port 5001: Unknown Service
+2025-03-14 04:59:01,961 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 04:59:01,961 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 04:59:01,961 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 04:59:01,961 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 04:59:02,003 - INFO - lsof output for port 5432 -> 1391290
+2025-03-14 04:59:02,003 - INFO - Found PIDs ['1391290'] for port 5432
+2025-03-14 04:59:02,004 - INFO - Service for port 5432 -> postgres
+2025-03-14 04:59:02,004 - INFO - Port 5432: postgres
+2025-03-14 04:59:02,051 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 04:59:02,051 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 04:59:02,051 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 04:59:02,051 - INFO - Port 8000: App (FastAPI)
+2025-03-14 04:59:02,100 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 04:59:02,100 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 04:59:02,100 - INFO - Service for port 8123 -> python3
+2025-03-14 04:59:02,100 - INFO - Port 8123: python3
+2025-03-14 05:00:01,461 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:00:01,461 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:00:01,524 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:00:01,609 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:00:01,609 - INFO - No PID found for port 5001
+2025-03-14 05:00:01,609 - INFO - No process found for port 5001
+2025-03-14 05:00:01,609 - INFO - Port 5001: Unknown Service
+2025-03-14 05:00:01,685 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 05:00:01,686 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 05:00:01,686 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:00:01,686 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:00:01,723 - INFO - lsof output for port 5432 -> 1391290
+2025-03-14 05:00:01,723 - INFO - Found PIDs ['1391290'] for port 5432
+2025-03-14 05:00:01,723 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:00:01,723 - INFO - Port 5432: postgres
+2025-03-14 05:00:01,769 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 05:00:01,769 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 05:00:01,769 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:00:01,769 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:00:01,817 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:00:01,817 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:00:01,817 - INFO - Service for port 8123 -> python3
+2025-03-14 05:00:01,817 - INFO - Port 8123: python3
+2025-03-14 05:01:02,178 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:01:02,178 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:01:02,223 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:01:02,297 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:01:02,297 - INFO - No PID found for port 5001
+2025-03-14 05:01:02,297 - INFO - No process found for port 5001
+2025-03-14 05:01:02,297 - INFO - Port 5001: Unknown Service
+2025-03-14 05:01:02,383 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 05:01:02,383 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 05:01:02,383 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:01:02,383 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:01:02,428 - INFO - lsof output for port 5432 -> 1391290
+2025-03-14 05:01:02,428 - INFO - Found PIDs ['1391290'] for port 5432
+2025-03-14 05:01:02,428 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:01:02,428 - INFO - Port 5432: postgres
+2025-03-14 05:01:02,484 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 05:01:02,484 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 05:01:02,485 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:01:02,485 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:01:02,527 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:01:02,528 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:01:02,528 - INFO - Service for port 8123 -> python3
+2025-03-14 05:01:02,528 - INFO - Port 8123: python3
+2025-03-14 05:02:01,894 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:02:01,894 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:02:01,944 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:02:01,992 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:02:01,992 - INFO - No PID found for port 5001
+2025-03-14 05:02:01,993 - INFO - No process found for port 5001
+2025-03-14 05:02:01,993 - INFO - Port 5001: Unknown Service
+2025-03-14 05:02:02,100 - INFO - lsof output for port 5002 -> 2059740
+2996758
+2025-03-14 05:02:02,100 - INFO - Found PIDs ['2059740', '2996758'] for port 5002
+2025-03-14 05:02:02,101 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:02:02,101 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:02:02,186 - INFO - lsof output for port 5432 -> 1391290
+2025-03-14 05:02:02,187 - INFO - Found PIDs ['1391290'] for port 5432
+2025-03-14 05:02:02,187 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:02:02,187 - INFO - Port 5432: postgres
+2025-03-14 05:02:02,242 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 05:02:02,242 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 05:02:02,242 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:02:02,242 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:02:02,291 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:02:02,291 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:02:02,291 - INFO - Service for port 8123 -> python3
+2025-03-14 05:02:02,291 - INFO - Port 8123: python3
+2025-03-14 05:03:01,684 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:03:01,685 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:03:01,720 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:03:01,795 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:03:01,795 - INFO - No PID found for port 5001
+2025-03-14 05:03:01,795 - INFO - No process found for port 5001
+2025-03-14 05:03:01,795 - INFO - Port 5001: Unknown Service
+2025-03-14 05:03:01,886 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:03:01,888 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:03:01,888 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:03:01,889 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:03:01,949 - INFO - lsof output for port 5432 -> 1391290
+2025-03-14 05:03:01,949 - INFO - Found PIDs ['1391290'] for port 5432
+2025-03-14 05:03:01,950 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:03:01,950 - INFO - Port 5432: postgres
+2025-03-14 05:03:01,999 - INFO - lsof output for port 8000 -> 2998934
+2025-03-14 05:03:01,999 - INFO - Found PIDs ['2998934'] for port 8000
+2025-03-14 05:03:02,000 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:03:02,000 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:03:02,052 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:03:02,052 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:03:02,054 - INFO - Service for port 8123 -> python3
+2025-03-14 05:03:02,054 - INFO - Port 8123: python3
+2025-03-14 05:04:01,443 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:04:01,443 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:04:01,500 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:04:01,604 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:04:01,604 - INFO - No PID found for port 5001
+2025-03-14 05:04:01,604 - INFO - No process found for port 5001
+2025-03-14 05:04:01,604 - INFO - Port 5001: Unknown Service
+2025-03-14 05:04:01,700 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:04:01,700 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:04:01,701 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:04:01,701 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:04:01,830 - INFO - lsof output for port 5432 -> 1391290
+3000411
+3000426
+3000430
+3000438
+3000440
+3000441
+3000445
+3000472
+3000474
+2025-03-14 05:04:01,830 - INFO - Found PIDs ['1391290', '3000411', '3000426', '3000430', '3000438', '3000440', '3000441', '3000445', '3000472', '3000474'] for port 5432
+2025-03-14 05:04:01,831 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:04:01,831 - INFO - Port 5432: postgres
+2025-03-14 05:04:01,880 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:04:01,880 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:04:01,881 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:04:01,881 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:04:01,922 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:04:01,922 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:04:01,923 - INFO - Service for port 8123 -> python3
+2025-03-14 05:04:01,923 - INFO - Port 8123: python3
+2025-03-14 05:05:01,365 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:05:01,365 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:05:01,420 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:05:01,490 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:05:01,490 - INFO - No PID found for port 5001
+2025-03-14 05:05:01,490 - INFO - No process found for port 5001
+2025-03-14 05:05:01,490 - INFO - Port 5001: Unknown Service
+2025-03-14 05:05:01,547 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:05:01,547 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:05:01,548 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:05:01,548 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:05:01,633 - INFO - lsof output for port 5432 -> 1391290
+3000411
+3000426
+3000430
+3000438
+3000440
+3000441
+3000445
+3000472
+3000474
+3000478
+3000479
+3000600
+2025-03-14 05:05:01,633 - INFO - Found PIDs ['1391290', '3000411', '3000426', '3000430', '3000438', '3000440', '3000441', '3000445', '3000472', '3000474', '3000478', '3000479', '3000600'] for port 5432
+2025-03-14 05:05:01,633 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:05:01,633 - INFO - Port 5432: postgres
+2025-03-14 05:05:01,682 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:05:01,682 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:05:01,682 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:05:01,682 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:05:01,731 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:05:01,731 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:05:01,731 - INFO - Service for port 8123 -> python3
+2025-03-14 05:05:01,732 - INFO - Port 8123: python3
+2025-03-14 05:06:02,154 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:06:02,154 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:06:02,210 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:06:02,271 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:06:02,271 - INFO - No PID found for port 5001
+2025-03-14 05:06:02,273 - INFO - No process found for port 5001
+2025-03-14 05:06:02,273 - INFO - Port 5001: Unknown Service
+2025-03-14 05:06:02,396 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:06:02,397 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:06:02,397 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:06:02,397 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:06:02,463 - INFO - lsof output for port 5432 -> 1391290
+3000411
+3000426
+3000430
+3000438
+3000440
+3000441
+3000445
+3000472
+3000474
+3000478
+3000479
+3000600
+2025-03-14 05:06:02,463 - INFO - Found PIDs ['1391290', '3000411', '3000426', '3000430', '3000438', '3000440', '3000441', '3000445', '3000472', '3000474', '3000478', '3000479', '3000600'] for port 5432
+2025-03-14 05:06:02,464 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:06:02,464 - INFO - Port 5432: postgres
+2025-03-14 05:06:02,526 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:06:02,526 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:06:02,526 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:06:02,527 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:06:02,574 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:06:02,574 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:06:02,574 - INFO - Service for port 8123 -> python3
+2025-03-14 05:06:02,574 - INFO - Port 8123: python3
+2025-03-14 05:07:01,921 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:07:01,921 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:07:01,969 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:07:02,032 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:07:02,032 - INFO - No PID found for port 5001
+2025-03-14 05:07:02,032 - INFO - No process found for port 5001
+2025-03-14 05:07:02,032 - INFO - Port 5001: Unknown Service
+2025-03-14 05:07:02,161 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:07:02,161 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:07:02,161 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:07:02,162 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:07:02,216 - INFO - lsof output for port 5432 -> 1391290
+3000411
+3000426
+3000430
+3000438
+3000440
+3000441
+3000445
+3000472
+3000474
+3000478
+3000479
+3000600
+2025-03-14 05:07:02,216 - INFO - Found PIDs ['1391290', '3000411', '3000426', '3000430', '3000438', '3000440', '3000441', '3000445', '3000472', '3000474', '3000478', '3000479', '3000600'] for port 5432
+2025-03-14 05:07:02,216 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:07:02,216 - INFO - Port 5432: postgres
+2025-03-14 05:07:02,262 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:07:02,262 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:07:02,263 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:07:02,263 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:07:02,316 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:07:02,316 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:07:02,316 - INFO - Service for port 8123 -> python3
+2025-03-14 05:07:02,316 - INFO - Port 8123: python3
+2025-03-14 05:08:01,719 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:08:01,719 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:08:01,768 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:08:01,876 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:08:01,876 - INFO - No PID found for port 5001
+2025-03-14 05:08:01,877 - INFO - No process found for port 5001
+2025-03-14 05:08:01,877 - INFO - Port 5001: Unknown Service
+2025-03-14 05:08:01,990 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:08:01,990 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:08:01,991 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:08:01,991 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:08:02,061 - INFO - lsof output for port 5432 -> 1391290
+3000411
+3000426
+3000430
+3000438
+3000440
+3000441
+3000445
+3000472
+3000474
+3000478
+3000479
+3000600
+2025-03-14 05:08:02,062 - INFO - Found PIDs ['1391290', '3000411', '3000426', '3000430', '3000438', '3000440', '3000441', '3000445', '3000472', '3000474', '3000478', '3000479', '3000600'] for port 5432
+2025-03-14 05:08:02,062 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:08:02,062 - INFO - Port 5432: postgres
+2025-03-14 05:08:02,112 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:08:02,112 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:08:02,113 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:08:02,113 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:08:02,173 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:08:02,173 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:08:02,174 - INFO - Service for port 8123 -> python3
+2025-03-14 05:08:02,174 - INFO - Port 8123: python3
+2025-03-14 05:09:01,548 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:09:01,549 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:09:01,597 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:09:01,666 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:09:01,666 - INFO - No PID found for port 5001
+2025-03-14 05:09:01,666 - INFO - No process found for port 5001
+2025-03-14 05:09:01,666 - INFO - Port 5001: Unknown Service
+2025-03-14 05:09:01,742 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:09:01,742 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:09:01,742 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:09:01,742 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:09:01,815 - INFO - lsof output for port 5432 -> 1391290
+3000411
+3000426
+3000430
+3000478
+3000479
+3000600
+2025-03-14 05:09:01,826 - INFO - Found PIDs ['1391290', '3000411', '3000426', '3000430', '3000478', '3000479', '3000600'] for port 5432
+2025-03-14 05:09:01,826 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:09:01,826 - INFO - Port 5432: postgres
+2025-03-14 05:09:01,878 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:09:01,878 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:09:01,878 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:09:01,878 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:09:01,932 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:09:01,932 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:09:01,932 - INFO - Service for port 8123 -> python3
+2025-03-14 05:09:01,932 - INFO - Port 8123: python3
+2025-03-14 05:10:01,388 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:10:01,389 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:10:01,436 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:10:01,511 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:10:01,511 - INFO - No PID found for port 5001
+2025-03-14 05:10:01,511 - INFO - No process found for port 5001
+2025-03-14 05:10:01,511 - INFO - Port 5001: Unknown Service
+2025-03-14 05:10:01,602 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:10:01,602 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:10:01,603 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:10:01,603 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:10:01,639 - INFO - lsof output for port 5432 -> 1391290
+3000411
+3000426
+3000430
+3000600
+2025-03-14 05:10:01,639 - INFO - Found PIDs ['1391290', '3000411', '3000426', '3000430', '3000600'] for port 5432
+2025-03-14 05:10:01,639 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:10:01,639 - INFO - Port 5432: postgres
+2025-03-14 05:10:01,685 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:10:01,685 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:10:01,686 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:10:01,686 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:10:01,728 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:10:01,728 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:10:01,728 - INFO - Service for port 8123 -> python3
+2025-03-14 05:10:01,728 - INFO - Port 8123: python3
+2025-03-14 05:11:02,076 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:11:02,076 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:11:02,119 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:11:02,217 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:11:02,217 - INFO - No PID found for port 5001
+2025-03-14 05:11:02,218 - INFO - No process found for port 5001
+2025-03-14 05:11:02,218 - INFO - Port 5001: Unknown Service
+2025-03-14 05:11:02,307 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:11:02,307 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:11:02,307 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:11:02,307 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:11:02,350 - INFO - lsof output for port 5432 -> 1391290
+3000411
+3000426
+2025-03-14 05:11:02,350 - INFO - Found PIDs ['1391290', '3000411', '3000426'] for port 5432
+2025-03-14 05:11:02,350 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:11:02,350 - INFO - Port 5432: postgres
+2025-03-14 05:11:02,400 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:11:02,400 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:11:02,400 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:11:02,400 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:11:02,462 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:11:02,462 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:11:02,462 - INFO - Service for port 8123 -> python3
+2025-03-14 05:11:02,462 - INFO - Port 8123: python3
+2025-03-14 05:12:01,769 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:12:01,769 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:12:01,817 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:12:01,907 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:12:01,907 - INFO - No PID found for port 5001
+2025-03-14 05:12:01,907 - INFO - No process found for port 5001
+2025-03-14 05:12:01,907 - INFO - Port 5001: Unknown Service
+2025-03-14 05:12:01,957 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:12:01,957 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:12:01,961 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:12:01,962 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:12:02,028 - INFO - lsof output for port 5432 -> 1391290
+2025-03-14 05:12:02,028 - INFO - Found PIDs ['1391290'] for port 5432
+2025-03-14 05:12:02,032 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:12:02,032 - INFO - Port 5432: postgres
+2025-03-14 05:12:02,078 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:12:02,078 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:12:02,078 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:12:02,078 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:12:02,121 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:12:02,121 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:12:02,122 - INFO - Service for port 8123 -> python3
+2025-03-14 05:12:02,129 - INFO - Port 8123: python3
+2025-03-14 05:13:01,733 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:13:01,733 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:13:01,776 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:13:01,825 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:13:01,825 - INFO - No PID found for port 5001
+2025-03-14 05:13:01,825 - INFO - No process found for port 5001
+2025-03-14 05:13:01,826 - INFO - Port 5001: Unknown Service
+2025-03-14 05:13:01,874 - INFO - lsof output for port 5002 -> 2059740
+3000184
+2025-03-14 05:13:01,874 - INFO - Found PIDs ['2059740', '3000184'] for port 5002
+2025-03-14 05:13:01,875 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:13:01,875 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:13:01,916 - INFO - lsof output for port 5432 -> 1391290
+2025-03-14 05:13:01,916 - INFO - Found PIDs ['1391290'] for port 5432
+2025-03-14 05:13:01,916 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:13:01,916 - INFO - Port 5432: postgres
+2025-03-14 05:13:01,957 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:13:01,957 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:13:01,957 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:13:01,957 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:13:02,009 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:13:02,009 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:13:02,009 - INFO - Service for port 8123 -> python3
+2025-03-14 05:13:02,010 - INFO - Port 8123: python3
+2025-03-14 05:14:01,238 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:14:01,238 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:14:01,286 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:14:01,346 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:14:01,347 - INFO - No PID found for port 5001
+2025-03-14 05:14:01,347 - INFO - No process found for port 5001
+2025-03-14 05:14:01,347 - INFO - Port 5001: Unknown Service
+2025-03-14 05:14:01,400 - INFO - lsof output for port 5002 -> 2059740
+3001696
+2025-03-14 05:14:01,400 - INFO - Found PIDs ['2059740', '3001696'] for port 5002
+2025-03-14 05:14:01,400 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:14:01,400 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:14:01,520 - INFO - lsof output for port 5432 -> 1391290
+2025-03-14 05:14:01,520 - INFO - Found PIDs ['1391290'] for port 5432
+2025-03-14 05:14:01,520 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:14:01,520 - INFO - Port 5432: postgres
+2025-03-14 05:14:01,565 - INFO - lsof output for port 8000 -> 3000411
+2025-03-14 05:14:01,565 - INFO - Found PIDs ['3000411'] for port 8000
+2025-03-14 05:14:01,565 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:14:01,566 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:14:01,611 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:14:01,611 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:14:01,613 - INFO - Service for port 8123 -> python3
+2025-03-14 05:14:01,613 - INFO - Port 8123: python3
+2025-03-14 05:15:02,056 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:15:02,056 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:15:02,117 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:15:02,194 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:15:02,194 - INFO - No PID found for port 5001
+2025-03-14 05:15:02,194 - INFO - No process found for port 5001
+2025-03-14 05:15:02,194 - INFO - Port 5001: Unknown Service
+2025-03-14 05:15:02,233 - INFO - lsof output for port 5002 -> 2059740
+3001832
+2025-03-14 05:15:02,233 - INFO - Found PIDs ['2059740', '3001832'] for port 5002
+2025-03-14 05:15:02,233 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:15:02,233 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:15:02,301 - INFO - lsof output for port 5432 -> 1391290
+3001868
+3001869
+3001870
+3001871
+3001872
+3001873
+3001874
+3001875
+3001876
+3001877
+3001878
+3001955
+3001959
+2025-03-14 05:15:02,301 - INFO - Found PIDs ['1391290', '3001868', '3001869', '3001870', '3001871', '3001872', '3001873', '3001874', '3001875', '3001876', '3001877', '3001878', '3001955', '3001959'] for port 5432
+2025-03-14 05:15:02,302 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:15:02,302 - INFO - Port 5432: postgres
+2025-03-14 05:15:02,362 - INFO - lsof output for port 8000 -> 3001868
+2025-03-14 05:15:02,362 - INFO - Found PIDs ['3001868'] for port 8000
+2025-03-14 05:15:02,362 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:15:02,362 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:15:02,401 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:15:02,402 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:15:02,402 - INFO - Service for port 8123 -> python3
+2025-03-14 05:15:02,402 - INFO - Port 8123: python3
+2025-03-14 05:16:01,853 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:16:01,853 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:16:01,900 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:16:02,056 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:16:02,057 - INFO - No PID found for port 5001
+2025-03-14 05:16:02,057 - INFO - No process found for port 5001
+2025-03-14 05:16:02,057 - INFO - Port 5001: Unknown Service
+2025-03-14 05:16:02,160 - INFO - lsof output for port 5002 -> 2059740
+3001832
+2025-03-14 05:16:02,160 - INFO - Found PIDs ['2059740', '3001832'] for port 5002
+2025-03-14 05:16:02,161 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:16:02,161 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:16:02,218 - INFO - lsof output for port 5432 -> 1391290
+3001868
+3001869
+3001870
+3001871
+3001872
+3001873
+3001874
+3001875
+3001876
+3001877
+3001878
+3001955
+3001959
+2025-03-14 05:16:02,218 - INFO - Found PIDs ['1391290', '3001868', '3001869', '3001870', '3001871', '3001872', '3001873', '3001874', '3001875', '3001876', '3001877', '3001878', '3001955', '3001959'] for port 5432
+2025-03-14 05:16:02,219 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:16:02,219 - INFO - Port 5432: postgres
+2025-03-14 05:16:02,292 - INFO - lsof output for port 8000 -> 3001868
+2025-03-14 05:16:02,292 - INFO - Found PIDs ['3001868'] for port 8000
+2025-03-14 05:16:02,293 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:16:02,294 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:16:02,333 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:16:02,333 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:16:02,333 - INFO - Service for port 8123 -> python3
+2025-03-14 05:16:02,334 - INFO - Port 8123: python3
+2025-03-14 05:17:01,723 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:17:01,724 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:17:01,781 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:17:01,899 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:17:01,900 - INFO - No PID found for port 5001
+2025-03-14 05:17:01,900 - INFO - No process found for port 5001
+2025-03-14 05:17:01,900 - INFO - Port 5001: Unknown Service
+2025-03-14 05:17:02,046 - INFO - lsof output for port 5002 -> 2059740
+3001832
+2025-03-14 05:17:02,047 - INFO - Found PIDs ['2059740', '3001832'] for port 5002
+2025-03-14 05:17:02,047 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:17:02,047 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:17:02,094 - INFO - lsof output for port 5432 -> 1391290
+3002256
+3002257
+3002258
+3002259
+3002260
+3002261
+3002262
+3002263
+3002264
+3002265
+3002266
+2025-03-14 05:17:02,095 - INFO - Found PIDs ['1391290', '3002256', '3002257', '3002258', '3002259', '3002260', '3002261', '3002262', '3002263', '3002264', '3002265', '3002266'] for port 5432
+2025-03-14 05:17:02,095 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:17:02,095 - INFO - Port 5432: postgres
+2025-03-14 05:17:02,137 - INFO - lsof output for port 8000 -> 3002256
+2025-03-14 05:17:02,137 - INFO - Found PIDs ['3002256'] for port 8000
+2025-03-14 05:17:02,138 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:17:02,138 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:17:02,189 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:17:02,189 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:17:02,189 - INFO - Service for port 8123 -> python3
+2025-03-14 05:17:02,189 - INFO - Port 8123: python3
+2025-03-14 05:18:01,562 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:18:01,563 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:18:01,604 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:18:01,671 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:18:01,672 - INFO - No PID found for port 5001
+2025-03-14 05:18:01,672 - INFO - No process found for port 5001
+2025-03-14 05:18:01,672 - INFO - Port 5001: Unknown Service
+2025-03-14 05:18:01,781 - INFO - lsof output for port 5002 -> 2059740
+3001832
+2025-03-14 05:18:01,785 - INFO - Found PIDs ['2059740', '3001832'] for port 5002
+2025-03-14 05:18:01,785 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:18:01,786 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:18:01,865 - INFO - lsof output for port 5432 -> 1391290
+3002256
+3002257
+3002258
+3002259
+3002260
+3002261
+3002262
+3002263
+3002264
+3002265
+3002266
+3002444
+3002449
+2025-03-14 05:18:01,865 - INFO - Found PIDs ['1391290', '3002256', '3002257', '3002258', '3002259', '3002260', '3002261', '3002262', '3002263', '3002264', '3002265', '3002266', '3002444', '3002449'] for port 5432
+2025-03-14 05:18:01,865 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:18:01,865 - INFO - Port 5432: postgres
+2025-03-14 05:18:01,918 - INFO - lsof output for port 8000 -> 3002256
+2025-03-14 05:18:01,918 - INFO - Found PIDs ['3002256'] for port 8000
+2025-03-14 05:18:01,918 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:18:01,919 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:18:01,973 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:18:01,973 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:18:01,974 - INFO - Service for port 8123 -> python3
+2025-03-14 05:18:01,974 - INFO - Port 8123: python3
+2025-03-14 05:19:01,381 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:19:01,381 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:19:01,425 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:19:01,501 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:19:01,501 - INFO - No PID found for port 5001
+2025-03-14 05:19:01,501 - INFO - No process found for port 5001
+2025-03-14 05:19:01,502 - INFO - Port 5001: Unknown Service
+2025-03-14 05:19:01,578 - INFO - lsof output for port 5002 -> 2059740
+3001832
+2025-03-14 05:19:01,578 - INFO - Found PIDs ['2059740', '3001832'] for port 5002
+2025-03-14 05:19:01,579 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:19:01,579 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:19:01,666 - INFO - lsof output for port 5432 -> 1391290
+3002256
+3002257
+3002258
+3002259
+3002260
+3002261
+3002262
+3002263
+3002264
+3002265
+3002266
+3002444
+3002449
+2025-03-14 05:19:01,666 - INFO - Found PIDs ['1391290', '3002256', '3002257', '3002258', '3002259', '3002260', '3002261', '3002262', '3002263', '3002264', '3002265', '3002266', '3002444', '3002449'] for port 5432
+2025-03-14 05:19:01,666 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:19:01,667 - INFO - Port 5432: postgres
+2025-03-14 05:19:01,708 - INFO - lsof output for port 8000 -> 3002256
+2025-03-14 05:19:01,708 - INFO - Found PIDs ['3002256'] for port 8000
+2025-03-14 05:19:01,708 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:19:01,708 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:19:01,758 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:19:01,758 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:19:01,758 - INFO - Service for port 8123 -> python3
+2025-03-14 05:19:01,758 - INFO - Port 8123: python3
+2025-03-14 05:20:01,256 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:20:01,256 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:20:01,304 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:20:01,383 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:20:01,384 - INFO - No PID found for port 5001
+2025-03-14 05:20:01,384 - INFO - No process found for port 5001
+2025-03-14 05:20:01,384 - INFO - Port 5001: Unknown Service
+2025-03-14 05:20:01,464 - INFO - lsof output for port 5002 -> 2059740
+3001832
+2025-03-14 05:20:01,464 - INFO - Found PIDs ['2059740', '3001832'] for port 5002
+2025-03-14 05:20:01,465 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:20:01,465 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:20:01,551 - INFO - lsof output for port 5432 -> 1391290
+3002256
+3002257
+3002258
+3002259
+3002260
+3002261
+3002262
+3002263
+3002264
+3002265
+3002266
+3002444
+3002449
+2025-03-14 05:20:01,551 - INFO - Found PIDs ['1391290', '3002256', '3002257', '3002258', '3002259', '3002260', '3002261', '3002262', '3002263', '3002264', '3002265', '3002266', '3002444', '3002449'] for port 5432
+2025-03-14 05:20:01,551 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:20:01,551 - INFO - Port 5432: postgres
+2025-03-14 05:20:01,603 - INFO - lsof output for port 8000 -> 3002256
+2025-03-14 05:20:01,603 - INFO - Found PIDs ['3002256'] for port 8000
+2025-03-14 05:20:01,603 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:20:01,603 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:20:01,659 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:20:01,660 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:20:01,660 - INFO - Service for port 8123 -> python3
+2025-03-14 05:20:01,660 - INFO - Port 8123: python3
+2025-03-14 05:21:02,079 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:21:02,079 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:21:02,132 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:21:02,176 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:21:02,176 - INFO - No PID found for port 5001
+2025-03-14 05:21:02,176 - INFO - No process found for port 5001
+2025-03-14 05:21:02,176 - INFO - Port 5001: Unknown Service
+2025-03-14 05:21:02,253 - INFO - lsof output for port 5002 -> 2059740
+3002802
+2025-03-14 05:21:02,253 - INFO - Found PIDs ['2059740', '3002802'] for port 5002
+2025-03-14 05:21:02,254 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:21:02,254 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:21:02,341 - INFO - lsof output for port 5432 -> 1391290
+3002868
+3002869
+3002870
+3002871
+3002872
+3002873
+3002874
+3002875
+3002876
+3002877
+3002878
+3002952
+3002954
+2025-03-14 05:21:02,342 - INFO - Found PIDs ['1391290', '3002868', '3002869', '3002870', '3002871', '3002872', '3002873', '3002874', '3002875', '3002876', '3002877', '3002878', '3002952', '3002954'] for port 5432
+2025-03-14 05:21:02,342 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:21:02,342 - INFO - Port 5432: postgres
+2025-03-14 05:21:02,402 - INFO - lsof output for port 8000 -> 3002868
+2025-03-14 05:21:02,402 - INFO - Found PIDs ['3002868'] for port 8000
+2025-03-14 05:21:02,403 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:21:02,403 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:21:02,434 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:21:02,435 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:21:02,435 - INFO - Service for port 8123 -> python3
+2025-03-14 05:21:02,435 - INFO - Port 8123: python3
+2025-03-14 05:22:01,850 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:22:01,850 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:22:01,896 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:22:01,959 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:22:01,959 - INFO - No PID found for port 5001
+2025-03-14 05:22:01,959 - INFO - No process found for port 5001
+2025-03-14 05:22:01,959 - INFO - Port 5001: Unknown Service
+2025-03-14 05:22:02,036 - INFO - lsof output for port 5002 -> 2059740
+3002802
+2025-03-14 05:22:02,036 - INFO - Found PIDs ['2059740', '3002802'] for port 5002
+2025-03-14 05:22:02,036 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:22:02,036 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:22:02,148 - INFO - lsof output for port 5432 -> 1391290
+3002868
+3002869
+3002870
+3002871
+3002872
+3002873
+3002874
+3002875
+3002876
+3002877
+3002878
+3002952
+3002954
+2025-03-14 05:22:02,148 - INFO - Found PIDs ['1391290', '3002868', '3002869', '3002870', '3002871', '3002872', '3002873', '3002874', '3002875', '3002876', '3002877', '3002878', '3002952', '3002954'] for port 5432
+2025-03-14 05:22:02,148 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:22:02,148 - INFO - Port 5432: postgres
+2025-03-14 05:22:02,208 - INFO - lsof output for port 8000 -> 3002868
+2025-03-14 05:22:02,208 - INFO - Found PIDs ['3002868'] for port 8000
+2025-03-14 05:22:02,208 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:22:02,208 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:22:02,263 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:22:02,263 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:22:02,264 - INFO - Service for port 8123 -> python3
+2025-03-14 05:22:02,264 - INFO - Port 8123: python3
+2025-03-14 05:23:01,691 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:23:01,692 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:23:01,737 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:23:01,830 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:23:01,830 - INFO - No PID found for port 5001
+2025-03-14 05:23:01,830 - INFO - No process found for port 5001
+2025-03-14 05:23:01,831 - INFO - Port 5001: Unknown Service
+2025-03-14 05:23:01,899 - INFO - lsof output for port 5002 -> 2059740
+3002802
+2025-03-14 05:23:01,899 - INFO - Found PIDs ['2059740', '3002802'] for port 5002
+2025-03-14 05:23:01,900 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:23:01,900 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:23:01,993 - INFO - lsof output for port 5432 -> 1391290
+3002868
+3002869
+3002870
+3002871
+3002872
+3002873
+3002874
+3002875
+3002876
+3002877
+3002878
+3002952
+3002954
+2025-03-14 05:23:01,993 - INFO - Found PIDs ['1391290', '3002868', '3002869', '3002870', '3002871', '3002872', '3002873', '3002874', '3002875', '3002876', '3002877', '3002878', '3002952', '3002954'] for port 5432
+2025-03-14 05:23:01,993 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:23:01,993 - INFO - Port 5432: postgres
+2025-03-14 05:23:02,042 - INFO - lsof output for port 8000 -> 3002868
+2025-03-14 05:23:02,042 - INFO - Found PIDs ['3002868'] for port 8000
+2025-03-14 05:23:02,042 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:23:02,043 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:23:02,094 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:23:02,095 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:23:02,095 - INFO - Service for port 8123 -> python3
+2025-03-14 05:23:02,095 - INFO - Port 8123: python3
+2025-03-14 05:24:01,506 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:24:01,507 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:24:01,566 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:24:01,787 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:24:01,787 - INFO - No PID found for port 5001
+2025-03-14 05:24:01,787 - INFO - No process found for port 5001
+2025-03-14 05:24:01,787 - INFO - Port 5001: Unknown Service
+2025-03-14 05:24:01,876 - INFO - lsof output for port 5002 -> 2059740
+3002802
+2025-03-14 05:24:01,876 - INFO - Found PIDs ['2059740', '3002802'] for port 5002
+2025-03-14 05:24:01,876 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:24:01,876 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:24:01,920 - INFO - lsof output for port 5432 -> 1391290
+3002868
+3002869
+3002870
+3002871
+3002872
+3002873
+3002874
+3002875
+3002876
+3002877
+3002878
+3002952
+3002954
+2025-03-14 05:24:01,920 - INFO - Found PIDs ['1391290', '3002868', '3002869', '3002870', '3002871', '3002872', '3002873', '3002874', '3002875', '3002876', '3002877', '3002878', '3002952', '3002954'] for port 5432
+2025-03-14 05:24:01,920 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:24:01,920 - INFO - Port 5432: postgres
+2025-03-14 05:24:01,974 - INFO - lsof output for port 8000 -> 3002868
+2025-03-14 05:24:01,974 - INFO - Found PIDs ['3002868'] for port 8000
+2025-03-14 05:24:01,974 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:24:01,974 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:24:02,025 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:24:02,025 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:24:02,026 - INFO - Service for port 8123 -> python3
+2025-03-14 05:24:02,026 - INFO - Port 8123: python3
+2025-03-14 05:25:01,351 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:25:01,351 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:25:01,394 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:25:01,479 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:25:01,479 - INFO - No PID found for port 5001
+2025-03-14 05:25:01,479 - INFO - No process found for port 5001
+2025-03-14 05:25:01,479 - INFO - Port 5001: Unknown Service
+2025-03-14 05:25:01,627 - INFO - lsof output for port 5002 -> 2059740
+3002802
+2025-03-14 05:25:01,627 - INFO - Found PIDs ['2059740', '3002802'] for port 5002
+2025-03-14 05:25:01,627 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:25:01,627 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:25:01,679 - INFO - lsof output for port 5432 -> 1391290
+3002868
+3002869
+3002870
+3002871
+3002872
+3002873
+3002874
+3002875
+3002876
+3002877
+3002878
+3002952
+3002954
+2025-03-14 05:25:01,679 - INFO - Found PIDs ['1391290', '3002868', '3002869', '3002870', '3002871', '3002872', '3002873', '3002874', '3002875', '3002876', '3002877', '3002878', '3002952', '3002954'] for port 5432
+2025-03-14 05:25:01,679 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:25:01,679 - INFO - Port 5432: postgres
+2025-03-14 05:25:01,721 - INFO - lsof output for port 8000 -> 3002868
+2025-03-14 05:25:01,721 - INFO - Found PIDs ['3002868'] for port 8000
+2025-03-14 05:25:01,721 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:25:01,722 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:25:01,766 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:25:01,767 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:25:01,767 - INFO - Service for port 8123 -> python3
+2025-03-14 05:25:01,767 - INFO - Port 8123: python3
+2025-03-14 05:26:02,122 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:26:02,122 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:26:02,170 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:26:02,301 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:26:02,301 - INFO - No PID found for port 5001
+2025-03-14 05:26:02,301 - INFO - No process found for port 5001
+2025-03-14 05:26:02,301 - INFO - Port 5001: Unknown Service
+2025-03-14 05:26:02,385 - INFO - lsof output for port 5002 -> 2059740
+3002802
+2025-03-14 05:26:02,386 - INFO - Found PIDs ['2059740', '3002802'] for port 5002
+2025-03-14 05:26:02,386 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:26:02,386 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:26:02,430 - INFO - lsof output for port 5432 -> 1391290
+3002868
+3002954
+2025-03-14 05:26:02,430 - INFO - Found PIDs ['1391290', '3002868', '3002954'] for port 5432
+2025-03-14 05:26:02,431 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:26:02,431 - INFO - Port 5432: postgres
+2025-03-14 05:26:02,470 - INFO - lsof output for port 8000 -> 3002868
+2025-03-14 05:26:02,470 - INFO - Found PIDs ['3002868'] for port 8000
+2025-03-14 05:26:02,470 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:26:02,471 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:26:02,512 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:26:02,512 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:26:02,512 - INFO - Service for port 8123 -> python3
+2025-03-14 05:26:02,512 - INFO - Port 8123: python3
+2025-03-14 05:27:01,904 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:27:01,904 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:27:01,950 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:27:02,033 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:27:02,033 - INFO - No PID found for port 5001
+2025-03-14 05:27:02,033 - INFO - No process found for port 5001
+2025-03-14 05:27:02,033 - INFO - Port 5001: Unknown Service
+2025-03-14 05:27:02,082 - INFO - lsof output for port 5002 -> 2059740
+3003670
+2025-03-14 05:27:02,082 - INFO - Found PIDs ['2059740', '3003670'] for port 5002
+2025-03-14 05:27:02,083 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:27:02,083 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:27:02,183 - INFO - lsof output for port 5432 -> 1391290
+3003744
+3003745
+3003746
+3003747
+3003748
+3003749
+3003750
+3003751
+3003752
+3003753
+3003754
+3003829
+2025-03-14 05:27:02,183 - INFO - Found PIDs ['1391290', '3003744', '3003745', '3003746', '3003747', '3003748', '3003749', '3003750', '3003751', '3003752', '3003753', '3003754', '3003829'] for port 5432
+2025-03-14 05:27:02,184 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:27:02,184 - INFO - Port 5432: postgres
+2025-03-14 05:27:02,231 - INFO - lsof output for port 8000 -> 3003744
+2025-03-14 05:27:02,231 - INFO - Found PIDs ['3003744'] for port 8000
+2025-03-14 05:27:02,232 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:27:02,232 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:27:02,299 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:27:02,299 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:27:02,300 - INFO - Service for port 8123 -> python3
+2025-03-14 05:27:02,300 - INFO - Port 8123: python3
+2025-03-14 05:28:01,671 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:28:01,671 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:28:01,712 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:28:01,764 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:28:01,764 - INFO - No PID found for port 5001
+2025-03-14 05:28:01,764 - INFO - No process found for port 5001
+2025-03-14 05:28:01,764 - INFO - Port 5001: Unknown Service
+2025-03-14 05:28:01,828 - INFO - lsof output for port 5002 -> 2059740
+3003670
+2025-03-14 05:28:01,828 - INFO - Found PIDs ['2059740', '3003670'] for port 5002
+2025-03-14 05:28:01,828 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:28:01,829 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:28:01,907 - INFO - lsof output for port 5432 -> 1391290
+3003744
+3003745
+3003746
+3003747
+3003748
+3003749
+3003750
+3003751
+3003752
+3003753
+3003754
+3003829
+3003933
+2025-03-14 05:28:01,910 - INFO - Found PIDs ['1391290', '3003744', '3003745', '3003746', '3003747', '3003748', '3003749', '3003750', '3003751', '3003752', '3003753', '3003754', '3003829', '3003933'] for port 5432
+2025-03-14 05:28:01,911 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:28:01,911 - INFO - Port 5432: postgres
+2025-03-14 05:28:01,964 - INFO - lsof output for port 8000 -> 3003744
+2025-03-14 05:28:01,964 - INFO - Found PIDs ['3003744'] for port 8000
+2025-03-14 05:28:01,964 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:28:01,964 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:28:02,019 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:28:02,019 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:28:02,019 - INFO - Service for port 8123 -> python3
+2025-03-14 05:28:02,019 - INFO - Port 8123: python3
+2025-03-14 05:29:01,454 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:29:01,455 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:29:01,510 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:29:01,606 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:29:01,606 - INFO - No PID found for port 5001
+2025-03-14 05:29:01,606 - INFO - No process found for port 5001
+2025-03-14 05:29:01,606 - INFO - Port 5001: Unknown Service
+2025-03-14 05:29:01,733 - INFO - lsof output for port 5002 -> 2059740
+3003670
+2025-03-14 05:29:01,733 - INFO - Found PIDs ['2059740', '3003670'] for port 5002
+2025-03-14 05:29:01,733 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:29:01,733 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:29:01,779 - INFO - lsof output for port 5432 -> 1391290
+3003744
+3003745
+3003746
+3003747
+3003748
+3003749
+3003750
+3003751
+3003752
+3003753
+3003754
+3003829
+3003933
+2025-03-14 05:29:01,780 - INFO - Found PIDs ['1391290', '3003744', '3003745', '3003746', '3003747', '3003748', '3003749', '3003750', '3003751', '3003752', '3003753', '3003754', '3003829', '3003933'] for port 5432
+2025-03-14 05:29:01,780 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:29:01,780 - INFO - Port 5432: postgres
+2025-03-14 05:29:01,836 - INFO - lsof output for port 8000 -> 3003744
+2025-03-14 05:29:01,836 - INFO - Found PIDs ['3003744'] for port 8000
+2025-03-14 05:29:01,837 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:29:01,837 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:29:01,893 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:29:01,893 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:29:01,894 - INFO - Service for port 8123 -> python3
+2025-03-14 05:29:01,894 - INFO - Port 8123: python3
+2025-03-14 05:30:01,181 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:30:01,181 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:30:01,231 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:30:01,328 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:30:01,328 - INFO - No PID found for port 5001
+2025-03-14 05:30:01,328 - INFO - No process found for port 5001
+2025-03-14 05:30:01,328 - INFO - Port 5001: Unknown Service
+2025-03-14 05:30:01,429 - INFO - lsof output for port 5002 -> 2059740
+3003670
+2025-03-14 05:30:01,429 - INFO - Found PIDs ['2059740', '3003670'] for port 5002
+2025-03-14 05:30:01,429 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:30:01,429 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:30:01,482 - INFO - lsof output for port 5432 -> 1391290
+3003744
+3003745
+3003746
+3003747
+3003748
+3003749
+3003750
+3003751
+3003752
+3003753
+3003754
+3003829
+3003933
+2025-03-14 05:30:01,482 - INFO - Found PIDs ['1391290', '3003744', '3003745', '3003746', '3003747', '3003748', '3003749', '3003750', '3003751', '3003752', '3003753', '3003754', '3003829', '3003933'] for port 5432
+2025-03-14 05:30:01,483 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:30:01,483 - INFO - Port 5432: postgres
+2025-03-14 05:30:01,543 - INFO - lsof output for port 8000 -> 3003744
+2025-03-14 05:30:01,543 - INFO - Found PIDs ['3003744'] for port 8000
+2025-03-14 05:30:01,544 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:30:01,544 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:30:01,591 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:30:01,591 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:30:01,591 - INFO - Service for port 8123 -> python3
+2025-03-14 05:30:01,591 - INFO - Port 8123: python3
+2025-03-14 05:31:01,984 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:31:01,984 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:31:02,036 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:31:02,107 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:31:02,107 - INFO - No PID found for port 5001
+2025-03-14 05:31:02,107 - INFO - No process found for port 5001
+2025-03-14 05:31:02,107 - INFO - Port 5001: Unknown Service
+2025-03-14 05:31:02,197 - INFO - lsof output for port 5002 -> 2059740
+3003670
+2025-03-14 05:31:02,197 - INFO - Found PIDs ['2059740', '3003670'] for port 5002
+2025-03-14 05:31:02,197 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:31:02,197 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:31:02,245 - INFO - lsof output for port 5432 -> 1391290
+3003744
+3003745
+3003746
+3003747
+3003748
+3003749
+3003750
+3003751
+3003752
+3003753
+3003754
+3003829
+3003933
+2025-03-14 05:31:02,245 - INFO - Found PIDs ['1391290', '3003744', '3003745', '3003746', '3003747', '3003748', '3003749', '3003750', '3003751', '3003752', '3003753', '3003754', '3003829', '3003933'] for port 5432
+2025-03-14 05:31:02,246 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:31:02,246 - INFO - Port 5432: postgres
+2025-03-14 05:31:02,295 - INFO - lsof output for port 8000 -> 3003744
+2025-03-14 05:31:02,295 - INFO - Found PIDs ['3003744'] for port 8000
+2025-03-14 05:31:02,296 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:31:02,296 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:31:02,345 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:31:02,345 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:31:02,345 - INFO - Service for port 8123 -> python3
+2025-03-14 05:31:02,346 - INFO - Port 8123: python3
+2025-03-14 05:32:01,767 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:32:01,768 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:32:01,809 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:32:01,884 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:32:01,884 - INFO - No PID found for port 5001
+2025-03-14 05:32:01,885 - INFO - No process found for port 5001
+2025-03-14 05:32:01,885 - INFO - Port 5001: Unknown Service
+2025-03-14 05:32:01,933 - INFO - lsof output for port 5002 -> 2059740
+3003670
+2025-03-14 05:32:01,934 - INFO - Found PIDs ['2059740', '3003670'] for port 5002
+2025-03-14 05:32:01,934 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:32:01,934 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:32:02,015 - INFO - lsof output for port 5432 -> 1391290
+3003744
+3003829
+3003933
+2025-03-14 05:32:02,015 - INFO - Found PIDs ['1391290', '3003744', '3003829', '3003933'] for port 5432
+2025-03-14 05:32:02,016 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:32:02,016 - INFO - Port 5432: postgres
+2025-03-14 05:32:02,063 - INFO - lsof output for port 8000 -> 3003744
+2025-03-14 05:32:02,063 - INFO - Found PIDs ['3003744'] for port 8000
+2025-03-14 05:32:02,063 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:32:02,063 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:32:02,105 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:32:02,105 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:32:02,105 - INFO - Service for port 8123 -> python3
+2025-03-14 05:32:02,105 - INFO - Port 8123: python3
+2025-03-14 05:33:01,479 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:33:01,479 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:33:01,524 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:33:01,620 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:33:01,620 - INFO - No PID found for port 5001
+2025-03-14 05:33:01,620 - INFO - No process found for port 5001
+2025-03-14 05:33:01,620 - INFO - Port 5001: Unknown Service
+2025-03-14 05:33:01,739 - INFO - lsof output for port 5002 -> 2059740
+3003670
+2025-03-14 05:33:01,739 - INFO - Found PIDs ['2059740', '3003670'] for port 5002
+2025-03-14 05:33:01,740 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:33:01,740 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:33:01,798 - INFO - lsof output for port 5432 -> 1391290
+3003744
+3003829
+3003933
+2025-03-14 05:33:01,798 - INFO - Found PIDs ['1391290', '3003744', '3003829', '3003933'] for port 5432
+2025-03-14 05:33:01,798 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:33:01,799 - INFO - Port 5432: postgres
+2025-03-14 05:33:01,846 - INFO - lsof output for port 8000 -> 3003744
+2025-03-14 05:33:01,847 - INFO - Found PIDs ['3003744'] for port 8000
+2025-03-14 05:33:01,847 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:33:01,847 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:33:01,898 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:33:01,898 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:33:01,898 - INFO - Service for port 8123 -> python3
+2025-03-14 05:33:01,898 - INFO - Port 8123: python3
+2025-03-14 05:34:01,209 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:34:01,209 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:34:01,259 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:34:01,365 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:34:01,365 - INFO - No PID found for port 5001
+2025-03-14 05:34:01,366 - INFO - No process found for port 5001
+2025-03-14 05:34:01,366 - INFO - Port 5001: Unknown Service
+2025-03-14 05:34:01,419 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:34:01,419 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:34:01,419 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:34:01,419 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:34:01,492 - INFO - lsof output for port 5432 -> 1391290
+3003744
+3003933
+2025-03-14 05:34:01,493 - INFO - Found PIDs ['1391290', '3003744', '3003933'] for port 5432
+2025-03-14 05:34:01,493 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:34:01,493 - INFO - Port 5432: postgres
+2025-03-14 05:34:01,632 - INFO - lsof output for port 8000 -> 3003744
+2025-03-14 05:34:01,632 - INFO - Found PIDs ['3003744'] for port 8000
+2025-03-14 05:34:01,632 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:34:01,632 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:34:01,683 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:34:01,683 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:34:01,683 - INFO - Service for port 8123 -> python3
+2025-03-14 05:34:01,684 - INFO - Port 8123: python3
+2025-03-14 05:35:02,080 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:35:02,081 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:35:02,128 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:35:02,205 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:35:02,205 - INFO - No PID found for port 5001
+2025-03-14 05:35:02,205 - INFO - No process found for port 5001
+2025-03-14 05:35:02,205 - INFO - Port 5001: Unknown Service
+2025-03-14 05:35:02,302 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:35:02,302 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:35:02,303 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:35:02,303 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:35:02,364 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004852
+3004853
+3004854
+3004855
+3004856
+3004857
+3004858
+3004859
+3004860
+3004861
+3004934
+3004937
+2025-03-14 05:35:02,364 - INFO - Found PIDs ['1391290', '3004851', '3004852', '3004853', '3004854', '3004855', '3004856', '3004857', '3004858', '3004859', '3004860', '3004861', '3004934', '3004937'] for port 5432
+2025-03-14 05:35:02,364 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:35:02,364 - INFO - Port 5432: postgres
+2025-03-14 05:35:02,416 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:35:02,416 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:35:02,416 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:35:02,416 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:35:02,469 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:35:02,469 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:35:02,470 - INFO - Service for port 8123 -> python3
+2025-03-14 05:35:02,470 - INFO - Port 8123: python3
+2025-03-14 05:36:01,844 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:36:01,845 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:36:01,893 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:36:01,974 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:36:01,974 - INFO - No PID found for port 5001
+2025-03-14 05:36:01,977 - INFO - No process found for port 5001
+2025-03-14 05:36:01,977 - INFO - Port 5001: Unknown Service
+2025-03-14 05:36:02,047 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:36:02,047 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:36:02,047 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:36:02,047 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:36:02,137 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004852
+3004853
+3004854
+3004855
+3004856
+3004857
+3004858
+3004859
+3004860
+3004861
+3004934
+3004937
+2025-03-14 05:36:02,138 - INFO - Found PIDs ['1391290', '3004851', '3004852', '3004853', '3004854', '3004855', '3004856', '3004857', '3004858', '3004859', '3004860', '3004861', '3004934', '3004937'] for port 5432
+2025-03-14 05:36:02,138 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:36:02,138 - INFO - Port 5432: postgres
+2025-03-14 05:36:02,184 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:36:02,185 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:36:02,185 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:36:02,185 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:36:02,238 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:36:02,238 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:36:02,239 - INFO - Service for port 8123 -> python3
+2025-03-14 05:36:02,239 - INFO - Port 8123: python3
+2025-03-14 05:37:01,610 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:37:01,610 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:37:01,658 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:37:01,722 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:37:01,722 - INFO - No PID found for port 5001
+2025-03-14 05:37:01,722 - INFO - No process found for port 5001
+2025-03-14 05:37:01,722 - INFO - Port 5001: Unknown Service
+2025-03-14 05:37:01,784 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:37:01,785 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:37:01,786 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:37:01,786 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:37:01,926 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004852
+3004853
+3004854
+3004855
+3004856
+3004857
+3004858
+3004859
+3004860
+3004861
+3004934
+3004937
+2025-03-14 05:37:01,926 - INFO - Found PIDs ['1391290', '3004851', '3004852', '3004853', '3004854', '3004855', '3004856', '3004857', '3004858', '3004859', '3004860', '3004861', '3004934', '3004937'] for port 5432
+2025-03-14 05:37:01,927 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:37:01,927 - INFO - Port 5432: postgres
+2025-03-14 05:37:01,988 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:37:01,989 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:37:01,989 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:37:01,989 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:37:02,053 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:37:02,053 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:37:02,053 - INFO - Service for port 8123 -> python3
+2025-03-14 05:37:02,053 - INFO - Port 8123: python3
+2025-03-14 05:38:01,381 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:38:01,382 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:38:01,426 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:38:01,489 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:38:01,489 - INFO - No PID found for port 5001
+2025-03-14 05:38:01,489 - INFO - No process found for port 5001
+2025-03-14 05:38:01,489 - INFO - Port 5001: Unknown Service
+2025-03-14 05:38:01,571 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:38:01,571 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:38:01,572 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:38:01,572 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:38:01,673 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004852
+3004853
+3004854
+3004855
+3004856
+3004857
+3004858
+3004859
+3004860
+3004861
+3004934
+3004937
+2025-03-14 05:38:01,674 - INFO - Found PIDs ['1391290', '3004851', '3004852', '3004853', '3004854', '3004855', '3004856', '3004857', '3004858', '3004859', '3004860', '3004861', '3004934', '3004937'] for port 5432
+2025-03-14 05:38:01,674 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:38:01,674 - INFO - Port 5432: postgres
+2025-03-14 05:38:01,718 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:38:01,719 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:38:01,719 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:38:01,719 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:38:01,767 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:38:01,767 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:38:01,768 - INFO - Service for port 8123 -> python3
+2025-03-14 05:38:01,768 - INFO - Port 8123: python3
+2025-03-14 05:39:02,156 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:39:02,156 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:39:02,201 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:39:02,273 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:39:02,273 - INFO - No PID found for port 5001
+2025-03-14 05:39:02,273 - INFO - No process found for port 5001
+2025-03-14 05:39:02,273 - INFO - Port 5001: Unknown Service
+2025-03-14 05:39:02,390 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:39:02,390 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:39:02,390 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:39:02,390 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:39:02,437 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004852
+3004853
+3004854
+3004855
+3004856
+3004857
+3004858
+3004859
+3004860
+3004861
+3004934
+3004937
+2025-03-14 05:39:02,437 - INFO - Found PIDs ['1391290', '3004851', '3004852', '3004853', '3004854', '3004855', '3004856', '3004857', '3004858', '3004859', '3004860', '3004861', '3004934', '3004937'] for port 5432
+2025-03-14 05:39:02,437 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:39:02,437 - INFO - Port 5432: postgres
+2025-03-14 05:39:02,486 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:39:02,487 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:39:02,487 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:39:02,487 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:39:02,536 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:39:02,536 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:39:02,537 - INFO - Service for port 8123 -> python3
+2025-03-14 05:39:02,537 - INFO - Port 8123: python3
+2025-03-14 05:40:01,863 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:40:01,863 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:40:01,905 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:40:01,980 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:40:01,980 - INFO - No PID found for port 5001
+2025-03-14 05:40:01,980 - INFO - No process found for port 5001
+2025-03-14 05:40:01,980 - INFO - Port 5001: Unknown Service
+2025-03-14 05:40:02,103 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:40:02,103 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:40:02,103 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:40:02,104 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:40:02,151 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004934
+3004937
+2025-03-14 05:40:02,151 - INFO - Found PIDs ['1391290', '3004851', '3004934', '3004937'] for port 5432
+2025-03-14 05:40:02,151 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:40:02,151 - INFO - Port 5432: postgres
+2025-03-14 05:40:02,202 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:40:02,202 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:40:02,202 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:40:02,203 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:40:02,243 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:40:02,243 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:40:02,244 - INFO - Service for port 8123 -> python3
+2025-03-14 05:40:02,244 - INFO - Port 8123: python3
+2025-03-14 05:41:01,588 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:41:01,589 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:41:01,641 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:41:01,714 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:41:01,714 - INFO - No PID found for port 5001
+2025-03-14 05:41:01,714 - INFO - No process found for port 5001
+2025-03-14 05:41:01,714 - INFO - Port 5001: Unknown Service
+2025-03-14 05:41:01,807 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:41:01,807 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:41:01,807 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:41:01,807 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:41:01,867 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004934
+3004937
+2025-03-14 05:41:01,867 - INFO - Found PIDs ['1391290', '3004851', '3004934', '3004937'] for port 5432
+2025-03-14 05:41:01,867 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:41:01,867 - INFO - Port 5432: postgres
+2025-03-14 05:41:01,913 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:41:01,913 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:41:01,914 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:41:01,914 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:41:01,963 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:41:01,963 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:41:01,963 - INFO - Service for port 8123 -> python3
+2025-03-14 05:41:01,963 - INFO - Port 8123: python3
+2025-03-14 05:42:01,323 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:42:01,323 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:42:01,387 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:42:01,467 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:42:01,467 - INFO - No PID found for port 5001
+2025-03-14 05:42:01,467 - INFO - No process found for port 5001
+2025-03-14 05:42:01,467 - INFO - Port 5001: Unknown Service
+2025-03-14 05:42:01,588 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:42:01,588 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:42:01,588 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:42:01,588 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:42:01,703 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004934
+3004937
+2025-03-14 05:42:01,703 - INFO - Found PIDs ['1391290', '3004851', '3004934', '3004937'] for port 5432
+2025-03-14 05:42:01,704 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:42:01,704 - INFO - Port 5432: postgres
+2025-03-14 05:42:01,799 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:42:01,799 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:42:01,799 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:42:01,799 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:42:01,878 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:42:01,878 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:42:01,878 - INFO - Service for port 8123 -> python3
+2025-03-14 05:42:01,878 - INFO - Port 8123: python3
+2025-03-14 05:43:01,188 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:43:01,188 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:43:01,237 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:43:01,301 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:43:01,301 - INFO - No PID found for port 5001
+2025-03-14 05:43:01,301 - INFO - No process found for port 5001
+2025-03-14 05:43:01,301 - INFO - Port 5001: Unknown Service
+2025-03-14 05:43:01,375 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:43:01,375 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:43:01,376 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:43:01,376 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:43:01,459 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004934
+3004937
+3005897
+2025-03-14 05:43:01,459 - INFO - Found PIDs ['1391290', '3004851', '3004934', '3004937', '3005897'] for port 5432
+2025-03-14 05:43:01,459 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:43:01,459 - INFO - Port 5432: postgres
+2025-03-14 05:43:01,539 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:43:01,539 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:43:01,539 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:43:01,539 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:43:01,593 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:43:01,593 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:43:01,594 - INFO - Service for port 8123 -> python3
+2025-03-14 05:43:01,594 - INFO - Port 8123: python3
+2025-03-14 05:44:01,937 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:44:01,938 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:44:01,993 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:44:02,096 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:44:02,096 - INFO - No PID found for port 5001
+2025-03-14 05:44:02,097 - INFO - No process found for port 5001
+2025-03-14 05:44:02,097 - INFO - Port 5001: Unknown Service
+2025-03-14 05:44:02,197 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:44:02,197 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:44:02,198 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:44:02,198 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:44:02,245 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004934
+3004937
+3005897
+2025-03-14 05:44:02,245 - INFO - Found PIDs ['1391290', '3004851', '3004934', '3004937', '3005897'] for port 5432
+2025-03-14 05:44:02,245 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:44:02,245 - INFO - Port 5432: postgres
+2025-03-14 05:44:02,293 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:44:02,294 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:44:02,294 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:44:02,294 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:44:02,324 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:44:02,324 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:44:02,324 - INFO - Service for port 8123 -> python3
+2025-03-14 05:44:02,324 - INFO - Port 8123: python3
+2025-03-14 05:45:01,657 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:45:01,657 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:45:01,703 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:45:01,763 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:45:01,763 - INFO - No PID found for port 5001
+2025-03-14 05:45:01,763 - INFO - No process found for port 5001
+2025-03-14 05:45:01,763 - INFO - Port 5001: Unknown Service
+2025-03-14 05:45:01,913 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:45:01,913 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:45:01,913 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:45:01,914 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:45:01,966 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004934
+3004937
+3005897
+2025-03-14 05:45:01,967 - INFO - Found PIDs ['1391290', '3004851', '3004934', '3004937', '3005897'] for port 5432
+2025-03-14 05:45:01,967 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:45:01,967 - INFO - Port 5432: postgres
+2025-03-14 05:45:01,998 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:45:01,998 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:45:01,998 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:45:01,998 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:45:02,048 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:45:02,048 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:45:02,049 - INFO - Service for port 8123 -> python3
+2025-03-14 05:45:02,049 - INFO - Port 8123: python3
+2025-03-14 05:46:01,469 - INFO - lsof output for port 5000 -> 1233
+1242
+2025-03-14 05:46:01,470 - INFO - Found PIDs ['1233', '1242'] for port 5000
+2025-03-14 05:46:01,517 - INFO - Port 5000: Parco RTLS Backend (parco_rtls-backend_api)
+2025-03-14 05:46:01,580 - INFO - lsof output for port 5001 -> 
+2025-03-14 05:46:01,581 - INFO - No PID found for port 5001
+2025-03-14 05:46:01,581 - INFO - No process found for port 5001
+2025-03-14 05:46:01,581 - INFO - Port 5001: Unknown Service
+2025-03-14 05:46:01,646 - INFO - lsof output for port 5002 -> 2059740
+3004683
+2025-03-14 05:46:01,646 - INFO - Found PIDs ['2059740', '3004683'] for port 5002
+2025-03-14 05:46:01,647 - INFO - Service for port 5002 -> Zone Builder (Python)
+2025-03-14 05:46:01,647 - INFO - Port 5002: Zone Builder (Python)
+2025-03-14 05:46:01,739 - INFO - lsof output for port 5432 -> 1391290
+3004851
+3004934
+3004937
+3005897
+3006253
+2025-03-14 05:46:01,739 - INFO - Found PIDs ['1391290', '3004851', '3004934', '3004937', '3005897', '3006253'] for port 5432
+2025-03-14 05:46:01,739 - INFO - Service for port 5432 -> postgres
+2025-03-14 05:46:01,739 - INFO - Port 5432: postgres
+2025-03-14 05:46:01,786 - INFO - lsof output for port 8000 -> 3004851
+2025-03-14 05:46:01,787 - INFO - Found PIDs ['3004851'] for port 8000
+2025-03-14 05:46:01,787 - INFO - Service for port 8000 -> App (FastAPI)
+2025-03-14 05:46:01,787 - INFO - Port 8000: App (FastAPI)
+2025-03-14 05:46:01,856 - INFO - lsof output for port 8123 -> 194880
+2025-03-14 05:46:01,856 - INFO - Found PIDs ['194880'] for port 8123
+2025-03-14 05:46:01,857 - INFO - Service for port 8123 -> python3
+2025-03-14 05:46:01,858 - INFO - Port 8123: python3

@@ -1,6 +1,6 @@
 """
 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py
-Version: 0.1.10 (Fixed add_vertex by directly implementing logic)
+Version: 0.1.16 (Fixed transaction execution and added regions deletion)
 Zone Viewer & Editor endpoints for ParcoRTLS FastAPI application.
 """
 
@@ -8,9 +8,20 @@ from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
 from database.db import execute_raw_query
 import logging
+from sqlalchemy import create_engine, text
+from contextlib import contextmanager
+import traceback
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+# Ensure logging captures all levels
+logging.basicConfig(level=logging.DEBUG)
+logger.setLevel(logging.DEBUG)
+
+# Database connection for transaction support
+DATABASE_URL = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.231:5432/ParcoRTLSMaint"
+engine = create_engine(DATABASE_URL)
 
 class AddVertexRequest(BaseModel):
     zone_id: int
@@ -18,6 +29,20 @@ class AddVertexRequest(BaseModel):
     y: float
     z: float = 0.0
     order: float
+
+@contextmanager
+def get_db_connection():
+    """Provide a transactional scope around a series of operations."""
+    connection = engine.connect()
+    transaction = connection.begin()
+    try:
+        yield connection
+        transaction.commit()
+    except Exception as e:
+        transaction.rollback()
+        raise e
+    finally:
+        connection.close()
 
 @router.get("/get_campus_zones")
 async def get_campus_zones():
@@ -54,6 +79,7 @@ async def get_campus_zones():
         return {"campuses": campuses}
     except Exception as e:
         logger.error(f"Error fetching campus zones: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/get_map/{map_id}")
@@ -69,6 +95,7 @@ async def get_map(map_id: int):
         return Response(content=map_data[0]["img_data"], media_type=f"image/{map_data[0]['x_format'].lower()}")
     except Exception as e:
         logger.error(f"Error retrieving map {map_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/get_map_metadata/{map_id}")
@@ -90,6 +117,7 @@ async def get_map_metadata(map_id: int):
         }
     except Exception as e:
         logger.error(f"Error retrieving map metadata for map_id={map_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/get_map_data/{map_id}")
@@ -115,6 +143,7 @@ async def get_map_data(map_id: int):
         }
     except Exception as e:
         logger.error(f"Error retrieving map data for map_id={map_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/get_all_zones_for_campus/{campus_id}")
@@ -162,6 +191,7 @@ async def get_all_zones_for_campus(campus_id: int):
         return {"zones": zones}
     except Exception as e:
         logger.error(f"Error fetching zones for campus_id={campus_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/get_vertices_for_campus/{campus_id}")
@@ -192,6 +222,7 @@ async def get_vertices_for_campus(campus_id: int):
         return {"vertices": vertices_data}
     except Exception as e:
         logger.error(f"Error fetching vertices for campus_id={campus_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/update_vertices")
@@ -226,6 +257,7 @@ async def update_vertices(vertices: list[dict]):
         raise HTTPException(status_code=500, detail=f"Partial update: {updated_count}/{len(vertices)}")
     except Exception as e:
         logger.error(f"Error updating vertices: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/delete_vertex/{vertex_id}")
@@ -244,6 +276,7 @@ async def delete_vertex(vertex_id: int):
         return {"message": "Vertex deleted successfully", "vertex_id": vertex_id}
     except Exception as e:
         logger.error(f"Error deleting vertex {vertex_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/add_vertex")
@@ -297,4 +330,62 @@ async def add_vertex(request: AddVertexRequest):
         return new_vertex
     except Exception as e:
         logger.error(f"Error adding vertex to zone_id={request.zone_id}: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/delete_zone_recursive/{zone_id}")
+async def delete_zone_recursive(zone_id: int):
+    """Delete a zone and all its progeny recursively."""
+    try:
+        logger.info(f"Attempting to delete zone {zone_id} and its progeny")
+
+        with get_db_connection() as connection:
+            # Fetch all zones to delete (parent and progeny) using recursive CTE
+            result = connection.execute(
+                text("""
+                WITH RECURSIVE zone_hierarchy AS (
+                    SELECT i_zn FROM zones WHERE i_zn = :zone_id
+                    UNION ALL
+                    SELECT z.i_zn FROM zones z
+                    JOIN zone_hierarchy zh ON z.i_pnt_zn = zh.i_zn
+                )
+                SELECT i_zn FROM zone_hierarchy
+                """),
+                {"zone_id": zone_id}
+            )
+            zones_to_delete = result.fetchall()
+            if not zones_to_delete:
+                logger.warning(f"No zones found to delete for zone_id={zone_id}")
+                raise HTTPException(status_code=404, detail=f"Zone {zone_id} not found")
+
+            zone_ids = [row[0] for row in zones_to_delete]
+            logger.debug(f"Zones to delete: {zone_ids}")
+
+            # Delete associated vertices first to avoid foreign key constraints
+            connection.execute(
+                text("""
+                DELETE FROM vertices
+                USING regions r
+                WHERE vertices.i_rgn = r.i_rgn AND r.i_zn IN :zone_ids
+                """),
+                {"zone_ids": tuple(zone_ids)}
+            )
+
+            # Delete associated regions to avoid foreign key constraints
+            connection.execute(
+                text("DELETE FROM regions WHERE i_zn IN :zone_ids"),
+                {"zone_ids": tuple(zone_ids)}
+            )
+
+            # Delete the zones
+            connection.execute(
+                text("DELETE FROM zones WHERE i_zn IN :zone_ids"),
+                {"zone_ids": tuple(zone_ids)}
+            )
+
+        logger.info(f"Successfully deleted zone {zone_id} and its {len(zone_ids)} progeny")
+        return {"message": f"Deleted zone {zone_id} and its progeny successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting zone {zone_id} and its progeny: {str(e)}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
