@@ -87,6 +87,7 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
 
                 const mapWidth = mapData.bounds[1][1] - mapData.bounds[0][1];
                 const mapHeight = mapData.bounds[1][0] - mapData.bounds[0][0];
+                const seniorZone = checkedZones.length > 1 ? Math.min(...checkedZones) : checkedZones[0];
 
                 checkedZones.forEach(zoneId => {
                     const zoneVertices = vertices.filter(v => v.zone_id === zoneId);
@@ -99,6 +100,12 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
                             else ctx.lineTo(x, y);
                             ctx.fillStyle = "red";
                             ctx.fillRect(x - 2, y - 2, 4, 4);
+
+                            if (zoneId === seniorZone) {
+                                ctx.font = "12px Arial";
+                                ctx.fillStyle = "black";
+                                ctx.fillText(vertex.vertex_id, x + 5, y - 5); // Offset for readability
+                            }
                         });
                         ctx.closePath();
                         ctx.strokeStyle = "red";
@@ -124,12 +131,26 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
         }
 
         if (mapInstance.current) {
-            drawnItems.current.clearLayers(); // Clear existing polygons
+            drawnItems.current.clearLayers();
+            const seniorZone = checkedZones.length > 1 ? Math.min(...checkedZones) : checkedZones[0];
+
             checkedZones.forEach(zoneId => {
                 const zoneVertices = vertices.filter(v => v.zone_id === zoneId);
                 if (zoneVertices.length > 0) {
                     const latLngs = zoneVertices.map(v => [v.y, v.x]);
                     L.polygon(latLngs, { color: "red", weight: 2 }).addTo(drawnItems.current);
+
+                    if (zoneId === seniorZone) {
+                        zoneVertices.forEach(v => {
+                            L.marker([v.y, v.x], {
+                                icon: L.divIcon({
+                                    className: "vertex-label",
+                                    html: `<span>${v.vertex_id}</span>`,
+                                    iconSize: [20, 20],
+                                })
+                            }).addTo(drawnItems.current);
+                        });
+                    }
                 }
             });
         }

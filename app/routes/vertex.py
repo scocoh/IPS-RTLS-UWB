@@ -1,4 +1,5 @@
 """
+/home/parcoadmin/parco_fastapi/app/routes/vertex.py
 routes/vertex.py
 Version: 0.1.15 (Added POST /update_vertices for bulk updates)
 Vertex management endpoints for ParcoRTLS FastAPI application.

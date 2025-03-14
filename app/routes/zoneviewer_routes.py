@@ -1,19 +1,26 @@
 """
 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py
-Version: 0.1.1 (Added /get_map_data/{map_id} endpoint)
+Version: 0.1.10 (Fixed add_vertex by directly implementing logic)
 Zone Viewer & Editor endpoints for ParcoRTLS FastAPI application.
 """
 
 from fastapi import APIRouter, HTTPException, Response
+from pydantic import BaseModel
 from database.db import execute_raw_query
 import logging
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+class AddVertexRequest(BaseModel):
+    zone_id: int
+    x: float
+    y: float
+    z: float = 0.0
+    order: float
+
 @router.get("/get_campus_zones")
 async def get_campus_zones():
-    """Fetch all zones hierarchically, starting with Campus L1 zones."""
     try:
         zones_data = await execute_raw_query(
             "maint",
@@ -27,7 +34,6 @@ async def get_campus_zones():
             logger.warning("No zones found")
             raise HTTPException(status_code=404, detail="No zones found")
 
-        # Build hierarchical structure
         zone_map = {z["i_zn"]: {
             "zone_id": z["i_zn"],
             "zone_name": z["x_nm_zn"],
@@ -39,7 +45,7 @@ async def get_campus_zones():
 
         campuses = []
         for zone_id, zone_data in zone_map.items():
-            if zone_data["zone_type"] == 1:  # Campus L1
+            if zone_data["zone_type"] == 1:
                 campuses.append(zone_data)
             elif zone_data["parent_zone_id"] in zone_map:
                 zone_map[zone_data["parent_zone_id"]]["children"].append(zone_data)
@@ -52,7 +58,6 @@ async def get_campus_zones():
 
 @router.get("/get_map/{map_id}")
 async def get_map(map_id: int):
-    """Fetch binary map image for a given map_id."""
     try:
         map_data = await execute_raw_query(
             "maint",
@@ -68,7 +73,6 @@ async def get_map(map_id: int):
 
 @router.get("/get_map_metadata/{map_id}")
 async def get_map_metadata(map_id: int):
-    """Fetch metadata for a specific map."""
     try:
         map_data = await execute_raw_query(
             "maint",
@@ -90,7 +94,6 @@ async def get_map_metadata(map_id: int):
 
 @router.get("/get_map_data/{map_id}")
 async def get_map_data(map_id: int):
-    """Fetch map data (image URL and bounds) for MapZoneViewer."""
     try:
         map_data = await execute_raw_query(
             "maint",
@@ -116,7 +119,6 @@ async def get_map_data(map_id: int):
 
 @router.get("/get_all_zones_for_campus/{campus_id}")
 async def get_all_zones_for_campus(campus_id: int):
-    """Fetch all zones for a campus recursively."""
     try:
         zones_data = await execute_raw_query(
             "maint",
@@ -201,18 +203,19 @@ async def update_vertices(vertices: list[dict]):
         updated_count = 0
         for vertex in vertices:
             vertex_id = vertex.get("vertex_id")
-            x = round(float(vertex.get("x")), 6)  # 6-digit precision
+            x = round(float(vertex.get("x")), 6)
             y = round(float(vertex.get("y")), 6)
             z = round(float(vertex.get("z", 0)), 6)
+            order = int(vertex.get("order", 1))
             result = await execute_raw_query(
                 "maint",
                 """
                 UPDATE vertices
-                SET n_x = $1, n_y = $2, n_z = $3
-                WHERE i_vtx = $4
+                SET n_x = $1, n_y = $2, n_z = $3, n_ord = $4
+                WHERE i_vtx = $5
                 RETURNING i_vtx
                 """,
-                x, y, z, vertex_id
+                x, y, z, order, vertex_id
             )
             if result:
                 updated_count += 1
@@ -223,4 +226,75 @@ async def update_vertices(vertices: list[dict]):
         raise HTTPException(status_code=500, detail=f"Partial update: {updated_count}/{len(vertices)}")
     except Exception as e:
         logger.error(f"Error updating vertices: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/delete_vertex/{vertex_id}")
+async def delete_vertex(vertex_id: int):
+    """Delete a vertex by ID."""
+    try:
+        result = await execute_raw_query(
+            "maint",
+            "DELETE FROM vertices WHERE i_vtx = $1 RETURNING i_vtx",
+            vertex_id
+        )
+        if not result:
+            logger.warning(f"Vertex {vertex_id} not found")
+            raise HTTPException(status_code=404, detail=f"Vertex {vertex_id} not found")
+        logger.info(f"Deleted vertex {vertex_id}")
+        return {"message": "Vertex deleted successfully", "vertex_id": vertex_id}
+    except Exception as e:
+        logger.error(f"Error deleting vertex {vertex_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/add_vertex")
+async def add_vertex(request: AddVertexRequest):
+    """Add a new vertex to a zone, aligned with DataV2.VertexAdd."""
+    try:
+        logger.debug(f"Received add_vertex request: {request.dict()}")
+        # Get region ID for the zone
+        region_data = await execute_raw_query(
+            "maint",
+            "SELECT i_rgn FROM regions WHERE i_zn = $1 LIMIT 1",
+            request.zone_id
+        )
+        if not region_data:
+            logger.warning(f"No region found for zone_id={request.zone_id}")
+            raise HTTPException(status_code=404, detail=f"No region found for zone_id={request.zone_id}")
+        region_id = region_data[0]["i_rgn"]
+
+        # Validate region_id exists
+        region_exists = await execute_raw_query(
+            "maint",
+            "SELECT i_rgn FROM public.regions WHERE i_rgn = $1",
+            region_id
+        )
+        if not region_exists:
+            logger.warning(f"Region ID {region_id} not found")
+            raise HTTPException(status_code=400, detail=f"Region ID {region_id} does not exist")
+
+        # Insert vertex using DataV2.VertexAdd logic
+        query = """
+            INSERT INTO public.vertices (i_rgn, n_x, n_y, n_z, n_ord)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING i_vtx AS vertex_id, i_rgn, n_x AS x, n_y AS y, n_z AS z, n_ord AS "order"
+        """
+        result = await execute_raw_query(
+            "maint",
+            query,
+            region_id,
+            request.x,
+            request.y,
+            request.z,
+            int(request.order)  # Ensure integer order
+        )
+        if not result:
+            logger.error("Failed to add vertex: no rows inserted")
+            raise HTTPException(status_code=500, detail="Failed to add vertex")
+
+        new_vertex = result[0]
+        new_vertex["zone_id"] = request.zone_id  # Add zone_id for frontend consistency
+        logger.info(f"Added vertex {new_vertex['vertex_id']} to zone_id={request.zone_id}")
+        return new_vertex
+    except Exception as e:
+        logger.error(f"Error adding vertex to zone_id={request.zone_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
