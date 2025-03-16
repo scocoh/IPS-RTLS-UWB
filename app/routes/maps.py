@@ -1,7 +1,15 @@
 """
-/home/parcoadmin/parco_fastapi/app/routes/maps.py
-Version: 0P.3B.006  # Increment version for changes
 Maps management endpoints for ParcoRTLS FastAPI application.
+# VERSION 250316 /home/parcoadmin/parco_fastapi/app/routes/maps.py 0P.3B.006
+#  
+# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
+# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
+# Invented by Scott Cohen & Bertrand Dugal.
+# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
+# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
+#
+# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+
 """
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel

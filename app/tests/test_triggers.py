@@ -1,6 +1,17 @@
 """
 test_triggers.py
 Version: 0.1.0 (Comprehensive API tests for ParcoRTLS trigger management)
+// zoneManager.js - Manages Campus (L1) and Building (L2) zone creation
+// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/tests/test_triggers.py 0.1.0
+// #  
+// # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
+// # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
+// # Invented by Scott Cohen & Bertrand Dugal.
+// # Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
+// # Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
+// #
+// # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+
 """
 
 import pytest

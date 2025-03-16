@@ -8,6 +8,17 @@ Vertices are part of regions, stored in the 'vertices' table with a foreign key 
 to 'regions(i_rgn)'. Each region typically requires at least 3 vertices to form a valid
 2D or 3D shape (e.g., polygon). The endpoints use stored procedures for delete, list,
 and select, and raw queries for add/edit (edit updated to match Zone Viewer approach).
+
+# VERSION 250316 /home/parcoadmin/parco_fastapi/app/routes/vertex.py 0.1.15
+#  
+# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
+# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
+# Invented by Scott Cohen & Bertrand Dugal.
+# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
+# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
+#
+# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+
 """
 
 from fastapi import APIRouter, HTTPException, Form

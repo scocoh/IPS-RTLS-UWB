@@ -1,3 +1,14 @@
+#
+#  VERSION 250316 /home/parcoadmin/parco_fastapi/app/app.py 0P.10B.01
+#  
+# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
+# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
+# Invented by Scott Cohen & Bertrand Dugal.
+# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
+# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
+#
+# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+
 import asyncpg  # ✅ Import asyncpg to fix "asyncpg is not defined"
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
