@@ -9,11 +9,11 @@
 // # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
 
 import React, { useState, useEffect } from "react";
-import MapPreview from "./MapPreview";  // ✅ Import the new preview component
+import MapPreview from "./MapPreview";
 
 const MapList = () => {
     const [maps, setMaps] = useState([]);
-    const [selectedMapId, setSelectedMapId] = useState(null);  // ✅ Track the selected map
+    const [selectedMapId, setSelectedMapId] = useState(null);
 
     useEffect(() => {
         fetchMaps();
@@ -25,7 +25,6 @@ const MapList = () => {
             const data = await response.json();
     
             if (response.ok) {
-                // Fetch counts for each map
                 const mapsWithCounts = await Promise.all(
                     data.map(async (map) => {
                         const [zoneRes, regionRes, triggerRes] = await Promise.all([
@@ -57,7 +56,27 @@ const MapList = () => {
             console.error("Error fetching maps:", err);
         }
     };
-    
+
+    // Add deleteMap function
+    const deleteMap = async (mapId) => {
+        try {
+            const response = await fetch(`/maps/delete_map/${mapId}`, {
+                method: "DELETE",
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                // Remove the deleted map from the state
+                setMaps(maps.filter((map) => map.i_map !== mapId));
+                console.log(`Map ${mapId} deleted successfully`);
+            } else {
+                throw new Error(data.detail || "Failed to delete map");
+            }
+        } catch (err) {
+            console.error("Error deleting map:", err);
+            alert("Failed to delete map: " + err.message);
+        }
+    };
 
     return (
         <div style={{ maxWidth: "700px", margin: "auto", padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}>
@@ -80,8 +99,6 @@ const MapList = () => {
                     ))}
                 </ul>
             )}
-
-            {/* ✅ Show MapPreview when a map is selected */}
             {selectedMapId && <MapPreview mapId={selectedMapId} onClose={() => setSelectedMapId(null)} />}
         </div>
     );
