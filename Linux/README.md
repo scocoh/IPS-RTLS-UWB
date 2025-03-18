@@ -1,7 +1,7 @@
-# IPS-RTLS-UWB
-Parco RTLS SDK for integrating various hardware positioning systems into a unified format. Features tag-agnostic, scalable data streams (Full, Subscription, and Polling) and comprehensive services for real-time and historical location tracking. Includes tools for database management, map creation, and hardware setup.
+# IPS-RTLS-UWB ParcoRTLS Linux Fast API
+Parco RTLS API for integrating various hardware positioning systems into a unified format. Features tag-agnostic, scalable data streams (Full, Subscription, and Polling) and comprehensive services for real-time and historical location tracking. Includes tools for database management, map creation, and hardware setup.
 
-This repository contains the Parco Real-Time Location System (RTLS) software development kit (SDK) and related services. Parco RTLS is designed to integrate with various hardware positioning systems, providing a common format for data regardless of the hardware used. This allows for seamless upgrades or changes to hardware without impacting the end-user applications built with the Parco SDK.
+This repository contains the Parco Real-Time Location System (RTLS) API and related services. Parco RTLS is designed to integrate with various hardware positioning systems, providing a common format for data regardless of the hardware used. This allows for seamless upgrades or changes to hardware without impacting the end-user applications built with the Parco SDK.
 
 For a full history on this code visit https://asproj.com/github-rtls
 
@@ -34,10 +34,36 @@ Location Engine: Calculates tag positions based on TOA (time of arrival) message
 Zone Builder and Buildout Tools: For creating maps and precisely locating hardware.
 
 # Supported Systems and Compatibility:
-Compatible with SQL Server 2000, 2003, and 2003 x64.
+Compatible with most systems through the FastAPI.
 Works with various hardware systems and offers tag data in multiple formats (Fullstream, Subscription, and Proximity data).
-Includes a variety of SDKs and tools for different programming environments, including .Net and Java.
+Includes a variety of APIs and tools for different programming environments.
 Optional support for payload or sensor data.
 
 # NO CLOUD REQUIRED
-Designed to run on a pentium class laptop circa 2002 as part of a mass casualty scalability system.  Could be ideal for HomeAssistant.
+Designed to run on Linux.  Could be ideal for HomeAssistant.
+
+# ParcoRTLS Linux Deployment
+**VERSION 0P.1B.01**
+
+## Quickstart
+1. **Install**:
+   ```bash
+   curl -O https://github.com/scocoh/IPS-RTLS-UWB/tree/3651eeed37248791fdca68606d436201ba2984dc/Linux/scripts/setup.sh 
+   chmod +x setup.sh
+   sudo ./setup.sh
+
+Follow prompts to restore parco_fastapi/Linux/db/PostgresQL_ALLDBs_backup.sql or a custom backup.
+
+2. **Access**:
+Backend: http://<server-ip>:8000
+Frontend: http://<server-ip>:3000
+
+3. **Update**:
+   ```bash
+   sudo /home/parcoadmin/parco_fastapi/app/update.sh
+
+4. **Shutdown**:
+   ```bash
+   sudo /home/parcoadmin/parco_fastapi/app/shutdown.sh
+
+See ParcoRTLS_Manual.md at the repo root for detailed instructions.
