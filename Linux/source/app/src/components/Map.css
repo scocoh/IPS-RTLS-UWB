@@ -1,0 +1,14 @@
+#map {
+    width: 600px;
+    height: 500px;
+    display: block;
+    position: relative;
+    z-index: 1;
+  }
+  /* /home/parcoadmin/parco_fastapi/app/src/components/Map.css */
+.vertex-label span {
+  font-size: 12px;
+  color: black;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 2px;
+}

@@ -1,0 +1,30 @@
+# VERSION 0P.1B.01
+
+# Ignore logs and temporary files
+*.log
+*.log.*
+
+# Ignore Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore Node.js artifacts
+node_modules/
+dist/
+build/
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore miscellaneous
+*.bak
+*.tmp

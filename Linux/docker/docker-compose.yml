@@ -1,0 +1,64 @@
+# VERSION 0P.1B.01
+version: '3.8'
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: homeassistant/home-assistant:stable
+    volumes:
+      - ./homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - TZ=America/New_York  # Adjust timezone as needed
+    restart: unless-stopped
+    network_mode: host
+
+  mqtt:
+    container_name: mqtt
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    restart: unless-stopped
+
+  backend_api:
+    container_name: backend_api
+    build: ./backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - mqtt
+
+  frontend:
+    container_name: frontend
+    build: ./frontend  # Adjust if separate frontend build exists
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    restart: unless-stopped
+    depends_on:
+      - backend_api
+
+  postgres:
+    container_name: postgres
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=parcoadmin
+      - POSTGRES_PASSWORD=parcoMCSE04106!
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./PostgresQL_ALLDBs_backup.sql:/docker-entrypoint-initdb.d/backup.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
