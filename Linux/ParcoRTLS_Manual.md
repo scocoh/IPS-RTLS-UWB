@@ -110,29 +110,6 @@ git push origin main
 - **Docker files:** `docker/`
 - **Database backup:** `parco_fastapi/Linux/db/PostgresQL_ALLDBs_backup.sql`
 
----
-
-## 7. Instructions to Add to Visual Studio Code
-1. Open **Visual Studio Code** on your development workstation.
-2. Navigate to the directory:
-   - Click `File` > `Open Folder` > `/home/parcoadmin/github_upload/`
-   - If connected via **Remote SSH**, you should see `/home/parcoadmin/github_upload/` in the **File Explorer**.
-3. Create a new file:
-   - Right-click in **File Explorer** > `New File`
-   - Name it **ParcoRTLS_Manual.md**
-4. Copy the formatted content above.
-5. Paste it into **ParcoRTLS_Manual.md** in VS Code.
-6. Save the file (`Ctrl+S` or `Cmd+S` on Mac).
-
----
-
-## 8. Verification
-After saving, verify the file’s presence and contents on the command line:
-```bash
-ls -l /home/parcoadmin/github_upload/ParcoRTLS_Manual.md
-head -n 10 /home/parcoadmin/github_upload/ParcoRTLS_Manual.md
-```
-This should confirm the file exists and starts with the title and version.
 
 ---
 
