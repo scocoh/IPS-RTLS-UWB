@@ -1,5 +1,6 @@
-// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/MapZoneViewer.js 0P.10B.01
-// #  
+// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/MapZoneViewer.js 0P.10B.02
+// # --- CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02 for coordinate precision fix
+// # 
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 // # Invented by Scott Cohen & Bertrand Dugal.
@@ -103,8 +104,9 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
                     if (zoneVertices.length > 0) {
                         ctx.beginPath();
                         zoneVertices.forEach((vertex, index) => {
-                            const x = canvasBounds.current.x + (vertex.x - mapData.bounds[0][1]) * (canvasBounds.current.width / mapWidth);
-                            const y = canvasBounds.current.y + (mapData.bounds[1][0] - vertex.y) * (canvasBounds.current.height / mapHeight);
+                            // --- CHANGED: Round x and y coordinates to 6 decimal places for canvas rendering
+                            const x = Number(canvasBounds.current.x + (vertex.x - mapData.bounds[0][1]) * (canvasBounds.current.width / mapWidth)).toFixed(6);
+                            const y = Number(canvasBounds.current.y + (mapData.bounds[1][0] - vertex.y) * (canvasBounds.current.height / mapHeight)).toFixed(6);
                             if (index === 0) ctx.moveTo(x, y);
                             else ctx.lineTo(x, y);
                             ctx.fillStyle = "red";
@@ -146,12 +148,13 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
             checkedZones.forEach(zoneId => {
                 const zoneVertices = vertices.filter(v => v.zone_id === zoneId);
                 if (zoneVertices.length > 0) {
-                    const latLngs = zoneVertices.map(v => [v.y, v.x]);
+                    // --- CHANGED: Round x and y coordinates to 6 decimal places for Leaflet rendering
+                    const latLngs = zoneVertices.map(v => [Number(v.y).toFixed(6), Number(v.x).toFixed(6)]);
                     L.polygon(latLngs, { color: "red", weight: 2 }).addTo(drawnItems.current);
 
                     if (zoneId === seniorZone) {
                         zoneVertices.forEach(v => {
-                            L.marker([v.y, v.x], {
+                            L.marker([Number(v.y).toFixed(6), Number(v.x).toFixed(6)], {
                                 icon: L.divIcon({
                                     className: "vertex-label",
                                     html: `<span>${v.vertex_id}</span>`,
@@ -180,6 +183,10 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
             ) : (
                 <canvas ref={canvasRef} style={{ border: "2px solid black" }} />
             )}
+            {/* --- NOTE: The "Edit Vertices" table shown in the screenshot is not part of this component. 
+               If this table is in a parent component or another file, ensure that the x, y, and z coordinates 
+               are rounded to 6 decimal places using Number(value).toFixed(6) when displaying and saving. 
+               Also, add step="0.000001" to the input fields to enforce 6-decimal precision. */}
         </div>
     );
 });

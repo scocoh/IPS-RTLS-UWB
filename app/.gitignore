@@ -1,7 +1,9 @@
+# VERSION 0P.1B.01
+
 # Logs
-logs/*.log
-scripts/*.log
 *.log
+logs/
+*.log.*
 
 # Python
 __pycache__/
@@ -10,7 +12,6 @@ __pycache__/
 *.pyd
 .Python
 venv/
-../venv/
 *.egg-info/
 dist/
 build/
@@ -20,7 +21,6 @@ node_modules/
 node_modules/.cache/
 dist/
 build/
-*.lock  # Ignore lock files like package-lock.json if you don’t want them tracked
 
 # Environment variables
 .env

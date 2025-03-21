@@ -1,7 +1,6 @@
-"""
-/home/parcoadmin/parco_fastapi/app/routes/device.py
-Version: 0.1.16 (Fixed delete_device to handle 0 or 1 as success for idempotency)
-Device management endpoints for ParcoRTLS FastAPI application.
+# Version: 250319 /home/parcoadmin/parco_fastapi/app/routes/device.py 0.1.27
+# --- CHANGED: Bumped version from 0.1.26 to 0.1.27 to pass new device ID to usp_device_edit for updating x_id_dev
+# Device management endpoints for ParcoRTLS FastAPI application.
 #   
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -10,8 +9,6 @@ Device management endpoints for ParcoRTLS FastAPI application.
 # Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
 #
 # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
-
-"""
 
 from fastapi import APIRouter, HTTPException, Form
 from database.db import call_stored_procedure, DatabaseError, execute_raw_query
@@ -30,6 +27,17 @@ async def get_all_devices():
         return result
     raise HTTPException(status_code=404, detail="No devices found")
 
+@router.get("/check_device_id/{device_id}")
+async def check_device_id(device_id: str):
+    """Check if a device ID already exists in the database."""
+    try:
+        result = await call_stored_procedure("maint", "usp_device_select_by_id", device_id)
+        exists = result and isinstance(result, list) and result
+        return {"exists": exists}
+    except Exception as e:
+        logger.error(f"Error checking device ID {device_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error checking device ID: {str(e)}")
+
 @router.post("/add_device")
 async def add_device(
     device_id: str = Form(...),
@@ -37,72 +45,108 @@ async def add_device(
     device_name: str = Form(None),
     n_moe_x: float = Form(None),
     n_moe_y: float = Form(None),
-    n_moe_z: float = Form(None)
+    n_moe_z: float = Form(0),
+    zone_id: int = Form(None)
 ):
-    """Add a new device with optional location data."""
-    request = DeviceAddRequest(device_id=device_id, device_type=device_type, device_name=device_name)
+    """Add a new device with zone_id"""
     try:
-        logger.debug(f"Checking if device_id '{request.device_id}' exists")
-        existing = await execute_raw_query("maint", "SELECT x_id_dev FROM public.devices WHERE x_id_dev = $1", request.device_id)
-        if existing:
-            raise HTTPException(status_code=400, detail=f"Device ID '{request.device_id}' already exists.")
-
-        types = await call_stored_procedure("maint", "usp_device_type_list")
-        if not any(t["i_typ_dev"] == request.device_type for t in types):
-            raise HTTPException(status_code=400, detail=f"Invalid device type: {request.device_type}")
-
-        start_date = datetime.now()
-        logger.debug(f"Adding device: {request.device_id}, type: {request.device_type}, name: {request.device_name or ''}, loc: ({n_moe_x}, {n_moe_y}, {n_moe_z})")
-        result = await call_stored_procedure(
-            "maint", "usp_device_add",
-            request.device_id, request.device_type, request.device_name or "New Device", start_date,
-            n_moe_x, n_moe_y, n_moe_z or 0
+        logger.debug(f"Adding device: {device_id}, type: {device_type}, name: {device_name}, loc: ({n_moe_x}, {n_moe_y}, {n_moe_z}), zone_id: {zone_id}")
+        result = await execute_raw_query(
+            "maint",
+            """
+            SELECT * FROM usp_device_add(
+                $1::VARCHAR,
+                $2::INTEGER,
+                $3::VARCHAR,
+                $4::TIMESTAMP WITHOUT TIME ZONE,
+                $5::REAL,
+                $6::REAL,
+                $7::REAL,
+                $8::INTEGER
+            )
+            """,
+            device_id,
+            device_type,
+            device_name,
+            datetime.now(),
+            n_moe_x,
+            n_moe_y,
+            n_moe_z,
+            zone_id
         )
-        if isinstance(result, list) and result and result[0]["usp_device_add"] == 1:
-            logger.info(f"Successfully added device: {request.device_id}")
-            return {"message": "Device added successfully", "device_id": request.device_id}
-        raise HTTPException(status_code=500, detail="Failed to add device")
-    except HTTPException as e:
-        raise e
-    except DatabaseError as e:
-        logger.error(f"Database error: {e.message}")
-        raise HTTPException(status_code=e.status_code, detail=e.message)
+        if not result or result[0]["usp_device_add"] != 1:
+            raise HTTPException(status_code=500, detail="Failed to add device")
+        logger.info(f"Successfully added device: {device_id}")
+        return {"x_id_dev": device_id, "message": "Device added successfully"}
     except Exception as e:
-        logger.error(f"Error adding device: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error adding device: {e}")
+        raise HTTPException(status_code=500, detail=f"Error adding device: {str(e)}")
 
 @router.put("/edit_device/{device_id}")
 async def edit_device(
     device_id: str,
+    new_device_id: str = Form(...),  # --- CHANGED: Added new_device_id parameter to capture the updated device ID
+    device_type: int = Form(None),
     device_name: str = Form(None),
     n_moe_x: float = Form(None),
     n_moe_y: float = Form(None),
-    n_moe_z: float = Form(None)
+    n_moe_z: float = Form(None),
+    zone_id: int = Form(None),
+    d_srv_bgn: str = Form(None),
+    d_srv_end: str = Form(None),
+    f_log: bool = Form(None)
 ):
-    """Edit an existing device’s name and location."""
+    """Edit an existing device’s name, type, location, and zone_id using usp_device_edit in public schema."""
     try:
-        existing = await call_stored_procedure("maint", "usp_device_select_by_id", device_id)
-        if not existing:
-            raise HTTPException(status_code=404, detail="Device not found")
+        logger.info(f"Received edit_device request: device_id={device_id}, new_device_id={new_device_id}, device_type={device_type}, device_name={device_name}, n_moe_x={n_moe_x}, n_moe_y={n_moe_y}, n_moe_z={n_moe_z}, zone_id={zone_id}, d_srv_bgn={d_srv_bgn}, d_srv_end={d_srv_end}, f_log={f_log}")
         
-        result = await call_stored_procedure(
-            "maint", "usp_device_edit",
-            device_id, device_name, n_moe_x, n_moe_y, n_moe_z or 0
+        d_srv_bgn_timestamp = datetime.fromisoformat(d_srv_bgn.replace('Z', '+00:00')) if d_srv_bgn else None
+        d_srv_end_timestamp = datetime.fromisoformat(d_srv_end.replace('Z', '+00:00')) if d_srv_end else None
+
+        # --- CHANGED: Pass the new device ID to usp_device_edit
+        result = await execute_raw_query(
+            "maint",
+            """
+            SELECT * FROM public.usp_device_edit(
+                $1::VARCHAR,
+                $2::VARCHAR,
+                $3::INTEGER,
+                $4::VARCHAR,
+                $5::TIMESTAMP WITHOUT TIME ZONE,
+                $6::TIMESTAMP WITHOUT TIME ZONE,
+                $7::REAL,
+                $8::REAL,
+                $9::REAL,
+                $10::BOOLEAN,
+                $11::INTEGER
+            )
+            """,
+            device_id,  # Original device ID
+            new_device_id,  # New device ID
+            device_type,
+            device_name,
+            d_srv_bgn_timestamp,
+            d_srv_end_timestamp,
+            n_moe_x,
+            n_moe_y,
+            n_moe_z,
+            f_log,
+            zone_id
         )
-        if isinstance(result, list) and result and result[0]["usp_device_edit"] == 1:
-            logger.info(f"Device {device_id} updated successfully")
-            return {"message": "Device updated successfully"}
-        elif isinstance(result, list) and result and result[0]["usp_device_edit"] == 0:
-            raise HTTPException(status_code=404, detail="Device not found")
-        raise HTTPException(status_code=500, detail="Failed to update device")
-    except HTTPException as e:
-        raise e
-    except DatabaseError as e:
-        logger.error(f"Database error: {e.message}")
-        raise HTTPException(status_code=e.status_code, detail=e.message)
+        
+        if not result:
+            raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
+        
+        if result[0]["usp_device_edit"] == 1:
+            logger.info(f"Updated device: {device_id} to new ID: {new_device_id}, result: {result}")
+            return {"x_id_dev": new_device_id, "message": "Device updated successfully"}
+        elif result[0]["usp_device_edit"] == 0:
+            raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update device")
     except Exception as e:
-        logger.error(f"Error updating device: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error editing device: {e}")
+        raise HTTPException(status_code=500, detail=f"Error editing device: {str(e)}")
 
 @router.delete("/delete_device/{device_id}")
 async def delete_device(device_id: str):
@@ -332,7 +376,7 @@ async def list_zones():
         result = await call_stored_procedure("maint", "usp_zone_list")
         if result and isinstance(result, list):
             logger.info("Successfully fetched zone list")
-            return result  # Expecting [{i_zn, x_nm_zn, i_typ_zn, i_map}, ...]
+            return result
         raise HTTPException(status_code=404, detail="No zones found")
     except Exception as e:
         logger.error(f"Error fetching zone list: {str(e)}")
@@ -342,14 +386,13 @@ async def list_zones():
 async def get_zones_with_maps():
     """Fetch all zones with their map IDs for Build Out Tool."""
     try:
-        # Use execute_raw_query to fetch directly from zones table
         result = await execute_raw_query(
             "maint",
             "SELECT i_zn, x_nm_zn, i_typ_zn, i_map FROM public.zones ORDER BY i_zn"
         )
         if result and isinstance(result, list):
             logger.info("Successfully fetched zones with map IDs")
-            return result  # Returns [{i_zn, x_nm_zn, i_typ_zn, i_map}, ...]
+            return result
         raise HTTPException(status_code=404, detail="No zones found")
     except Exception as e:
         logger.error(f"Error fetching zones with maps: {str(e)}")

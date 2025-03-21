@@ -1,5 +1,6 @@
-// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/ZoneViewer.js 0P.10B.01
-// #  
+// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/ZoneViewer.js 0P.10B.02
+// # --- CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02 to add coordinate rounding and "Check All" feature for zones
+// # 
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 // # Invented by Scott Cohen & Bertrand Dugal.
@@ -70,25 +71,62 @@ const ZoneViewer = () => {
         );
     };
 
+    // --- CHANGED: Added function to toggle all zones under a parent (including nested children)
+    const toggleAllZones = (zone, check) => {
+        const toggleZoneAndChildren = (z) => {
+            if (check) {
+                setCheckedZones((prev) => prev.includes(z.zone_id) ? prev : [...prev, z.zone_id]);
+            } else {
+                setCheckedZones((prev) => prev.filter((id) => id !== z.zone_id));
+            }
+            if (z.children && z.children.length > 0) {
+                z.children.forEach(child => toggleZoneAndChildren(child));
+            }
+        };
+        toggleZoneAndChildren(zone);
+    };
+
+    // --- CHANGED: Added "Check All" functionality to toggle all zones
+    const handleCheckAll = (check) => {
+        if (check) {
+            setCheckedZones(zones.map(zone => zone.zone_id));
+        } else {
+            setCheckedZones([]);
+        }
+    };
+
+    // --- CHANGED: Updated renderZones to include "Check All" checkboxes for each parent zone
     const renderZones = (zones, depth = 0) => {
         return zones.map((zone) => (
-            <div key={zone.zone_id} style={{ marginLeft: `${depth * 20}px` }}>
-                <input
-                    type="checkbox"
-                    checked={checkedZones.includes(zone.zone_id)}
-                    onChange={() => handleZoneToggle(zone.zone_id)}
-                />
-                <span>{zone.zone_name}</span>
+            <div key={zone.zone_id} style={{ marginLeft: `${depth * 20}px`, marginBottom: "5px" }}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                    <input
+                        type="checkbox"
+                        checked={checkedZones.includes(zone.zone_id)}
+                        onChange={() => handleZoneToggle(zone.zone_id)}
+                        style={{ marginRight: "5px" }}
+                    />
+                    <span>{zone.zone_name}</span>
+                    {zone.children && zone.children.length > 0 && (
+                        <input
+                            type="checkbox"
+                            checked={zone.children.every(child => checkedZones.includes(child.zone_id))}
+                            onChange={(e) => toggleAllZones(zone, e.target.checked)}
+                            style={{ marginLeft: "10px", marginRight: "5px" }}
+                        />
+                    )}
+                    {zone.children && zone.children.length > 0 && <span style={{ fontSize: "12px", color: "#666" }}>(Check All)</span>}
+                    {zone.parent_zone_id === null && (
+                        <button
+                            onClick={() => handleDeleteZone(zone.zone_id)}
+                            style={{ marginLeft: "10px", color: "red", border: "none", background: "none", cursor: "pointer" }}
+                        >
+                            Delete Zone
+                        </button>
+                    )}
+                </div>
                 {zone.children && zone.children.length > 0 && (
                     renderZones(zone.children, depth + 1)
-                )}
-                {zone.parent_zone_id === null && (
-                    <button
-                        onClick={() => handleDeleteZone(zone.zone_id)}
-                        style={{ marginLeft: "10px", color: "red" }}
-                    >
-                        Delete Zone
-                    </button>
                 )}
             </div>
         ));
@@ -112,6 +150,7 @@ const ZoneViewer = () => {
         });
     };
 
+    // --- CHANGED: Round default coordinates to 6 decimal places when adding a new vertex
     const addVertex = async (zoneId, position, refVertexId) => {
         try {
             const zoneVertices = vertices.filter(v => v.zone_id === zoneId).sort((a, b) => a.order - b.order);
@@ -120,7 +159,13 @@ const ZoneViewer = () => {
                 ? (refVertex ? refVertex.order - 0.5 : 0) 
                 : (refVertex ? refVertex.order + 0.5 : zoneVertices.length + 1);
 
-            const payload = { zone_id: zoneId, x: 0.0, y: 0.0, z: 0.0, order };
+            const payload = { 
+                zone_id: zoneId, 
+                x: Number(0.0).toFixed(6), 
+                y: Number(0.0).toFixed(6), 
+                z: Number(0.0).toFixed(6), 
+                order 
+            };
             console.log("Sending payload to add_vertex:", payload);
             const response = await fetch(`${API_BASE_URL}/zoneviewer/add_vertex`, {
                 method: "POST",
@@ -144,6 +189,7 @@ const ZoneViewer = () => {
         }
     };
 
+    // --- CHANGED: Round coordinates to 6 decimal places before saving to backend
     const saveVertices = async () => {
         try {
             for (const vertexId of deletedVertices) {
@@ -160,15 +206,21 @@ const ZoneViewer = () => {
                     if (!vertex) return null;
                     return { 
                         vertex_id: vertex.vertex_id, 
-                        x: changes.x ?? vertex.x, 
-                        y: changes.y ?? vertex.y, 
-                        z: changes.z ?? vertex.z,
+                        x: Number(changes.x ?? vertex.x).toFixed(6), 
+                        y: Number(changes.y ?? vertex.y).toFixed(6), 
+                        z: Number(changes.z ?? vertex.z).toFixed(6),
                         order: vertex.order
                     };
                 })
                 .filter(update => update !== null);
 
-            const allUpdates = [...updates, ...vertices.filter(v => !editedVertices[v.vertex_id] && !deletedVertices.includes(v.vertex_id))];
+            const allUpdates = [...updates, ...vertices.filter(v => !editedVertices[v.vertex_id] && !deletedVertices.includes(v.vertex_id)).map(v => ({
+                vertex_id: v.vertex_id,
+                x: Number(v.x).toFixed(6),
+                y: Number(v.y).toFixed(6),
+                z: Number(v.z).toFixed(6),
+                order: v.order
+            }))];
             if (allUpdates.length > 0) {
                 const response = await fetch(`${API_BASE_URL}/zoneviewer/update_vertices`, {
                     method: "POST",
@@ -193,7 +245,6 @@ const ZoneViewer = () => {
         }
     };
 
-    // Export vertices to JSON file
     const exportVertices = () => {
         if (!selectedCampus) {
             alert("Please select a campus first.");
@@ -214,7 +265,6 @@ const ZoneViewer = () => {
         URL.revokeObjectURL(url);
     };
 
-    // Import vertices from JSON file
     const importVertices = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -257,7 +307,6 @@ const ZoneViewer = () => {
         }
     };
 
-    // Export selected zones to SVG file (inspired by fetch_vertices_to_svg.py)
     const exportToSVG = () => {
         if (!selectedCampus) {
             alert("Please select a campus first.");
@@ -269,7 +318,6 @@ const ZoneViewer = () => {
             return;
         }
 
-        // Step 1: Normalize coordinates
         const width = 1000;
         const height = 800;
         const min_x = Math.min(...verticesToExport.map(v => v.x));
@@ -283,10 +331,9 @@ const ZoneViewer = () => {
         const normalizedVertices = verticesToExport.map(v => ({
             ...v,
             x: (v.x - min_x) * scale_x,
-            y: height - (v.y - min_y) * scale_y  // Flip Y-axis
+            y: height - (v.y - min_y) * scale_y
         }));
 
-        // Step 2: Group by region (zone)
         const regions = {};
         normalizedVertices.forEach(v => {
             if (!regions[v.zone_id]) {
@@ -295,33 +342,27 @@ const ZoneViewer = () => {
             regions[v.zone_id].push({ x: v.x, y: v.y, vertex_id: v.vertex_id });
         });
 
-        // Step 3: Generate SVG
         let svgContent = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">\n`;
         for (const [zone_id, points] of Object.entries(regions)) {
-            // Sort points by order (assuming order is stored in vertices)
             const zoneVertices = vertices.filter(v => v.zone_id === parseInt(zone_id)).sort((a, b) => a.order - b.order);
             const orderedPoints = zoneVertices.map(v => {
                 const normalized = normalizedVertices.find(nv => nv.vertex_id === v.vertex_id);
                 return { x: normalized.x, y: normalized.y, vertex_id: v.vertex_id };
             });
 
-            // Draw the polygon
             const pointsStr = orderedPoints.map(p => `${p.x},${p.y}`).join(" ");
             svgContent += `<polygon points="${pointsStr}" fill="rgba(173, 216, 230, 0.6)" stroke="black" stroke-width="2"/>\n`;
 
-            // Compute centroid for labeling
             const centroid_x = orderedPoints.reduce((sum, p) => sum + p.x, 0) / orderedPoints.length;
             const centroid_y = orderedPoints.reduce((sum, p) => sum + p.y, 0) / orderedPoints.length;
             svgContent += `<text x="${centroid_x}" y="${centroid_y}" font-size="14" fill="black">Zone ${zone_id}</text>\n`;
 
-            // Add vertex labels
             orderedPoints.forEach(p => {
                 svgContent += `<text x="${p.x + 5}" y="${p.y - 5}" font-size="12" fill="black">${p.vertex_id}</text>\n`;
             });
         }
         svgContent += `</svg>`;
 
-        // Step 4: Trigger download
         const blob = new Blob([svgContent], { type: "image/svg+xml" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -344,7 +385,6 @@ const ZoneViewer = () => {
             const result = await response.json();
             console.log("✅ Zone deleted:", result);
 
-            // Refresh campuses and zones
             const campusesResponse = await fetch(`${API_BASE_URL}/zoneviewer/get_campus_zones`);
             if (!campusesResponse.ok) throw new Error(`Failed to fetch campuses: ${campusesResponse.status}`);
             const campusesData = await campusesResponse.json();
@@ -389,6 +429,16 @@ const ZoneViewer = () => {
             {selectedCampus && (
                 <>
                     <h3>Zones:</h3>
+                    {/* --- CHANGED: Added "Check All" checkbox for all zones */}
+                    <div style={{ marginBottom: "10px" }}>
+                        <input
+                            type="checkbox"
+                            checked={zones.every(zone => checkedZones.includes(zone.zone_id))}
+                            onChange={(e) => handleCheckAll(e.target.checked)}
+                            style={{ marginRight: "5px" }}
+                        />
+                        <span style={{ fontSize: "14px", color: "#666" }}>Check All Zones</span>
+                    </div>
                     <div>{renderZones(zones)}</div>
 
                     <MapZoneViewer
@@ -424,28 +474,31 @@ const ZoneViewer = () => {
                                 .map((v) => (
                                     <tr key={v.vertex_id}>
                                         <td style={{ border: "1px solid black", padding: "8px" }}>{v.vertex_id}</td>
+                                        {/* --- CHANGED: Round displayed x coordinate to 6 decimal places */}
                                         <td style={{ border: "1px solid black", padding: "8px" }}>
                                             <input
                                                 type="number"
-                                                value={editedVertices[v.vertex_id]?.x ?? v.x}
+                                                value={Number(editedVertices[v.vertex_id]?.x ?? v.x).toFixed(6)}
                                                 onChange={(e) => handleVertexChange(v.vertex_id, "x", e.target.value)}
                                                 step="0.000001"
                                                 style={{ width: "100px" }}
                                             />
                                         </td>
+                                        {/* --- CHANGED: Round displayed y coordinate to 6 decimal places */}
                                         <td style={{ border: "1px solid black", padding: "8px" }}>
                                             <input
                                                 type="number"
-                                                value={editedVertices[v.vertex_id]?.y ?? v.y}
+                                                value={Number(editedVertices[v.vertex_id]?.y ?? v.y).toFixed(6)}
                                                 onChange={(e) => handleVertexChange(v.vertex_id, "y", e.target.value)}
                                                 step="0.000001"
                                                 style={{ width: "100px" }}
                                             />
                                         </td>
+                                        {/* --- CHANGED: Round displayed z coordinate to 6 decimal places */}
                                         <td style={{ border: "1px solid black", padding: "8px" }}>
                                             <input
                                                 type="number"
-                                                value={editedVertices[v.vertex_id]?.z ?? v.z}
+                                                value={Number(editedVertices[v.vertex_id]?.z ?? v.z).toFixed(6)}
                                                 onChange={(e) => handleVertexChange(v.vertex_id, "z", e.target.value)}
                                                 step="0.000001"
                                                 style={{ width: "100px" }}
