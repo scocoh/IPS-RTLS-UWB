@@ -9,11 +9,12 @@
 #
 # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
 
-from fastapi import APIRouter, HTTPException, Response, Form
+from fastapi import APIRouter, HTTPException, Response, Form, Body
 from database.db import execute_raw_query
 import logging
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from PIL import Image
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -115,6 +116,45 @@ async def get_zone_types():
     except Exception as e:
         logger.error(f"Error retrieving zone types: {e}")
         raise HTTPException(status_code=500, detail=f"Error retrieving zone types: {str(e)}")
+    
+@router.get("/internal-metadata", include_in_schema=False)
+def get_internal_metadata(format: str = None):
+    """
+    Hidden internal endpoint that extracts and returns the concealed text
+    embedded in the PNG file's metadata.
+
+    Query Parameters:
+      - format: if "html", returns a formatted HTML page; otherwise returns JSON.
+    """
+    try:
+        # Adjust the file path if necessary.
+        with Image.open("static/default_grid_box.png") as img:
+            concealed_text = img.text.get("concealed_text")
+            if not concealed_text:
+                raise HTTPException(status_code=404, detail="Concealed metadata not found")
+            
+            if format == "html":
+                html_output = f"""
+                <html>
+                  <head>
+                    <title>Internal Metadata</title>
+                    <style>
+                      body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                      pre {{ background-color: #f4f4f4; padding: 1em; border: 1px solid #ccc; }}
+                    </style>
+                  </head>
+                  <body>
+                    <h1>Internal Metadata</h1>
+                    <pre>{concealed_text}</pre>
+                  </body>
+                </html>
+                """
+                return Response(content=html_output, media_type="text/html")
+            else:
+                return {"internal_metadata": concealed_text}
+    except Exception as e:
+        logger.error(f"Error retrieving internal metadata: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create_zone")
 async def create_zone(data: dict):
@@ -384,3 +424,16 @@ async def delete_device(device_id: str):
     except Exception as e:
         logger.error(f"Error deleting device: {e}")
         raise HTTPException(status_code=500, detail=f"Error deleting device: {str(e)}")
+    
+@router.post("/validate-support-access", include_in_schema=False)
+def validate_support_access(payload: dict = Body(...)):
+    """
+    Validates support access by checking the provided password.
+    The secret password is stored only in the backend.
+    """
+    # The secret password is hidden here.
+    secret_password = "gene"
+    if payload.get("password") == secret_password:
+        return {"status": "ok"}
+    else:
+        raise HTTPException(status_code=403, detail="Invalid password")
