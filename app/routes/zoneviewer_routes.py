@@ -3,7 +3,9 @@
 Version: 0.1.16 (Fixed transaction execution and added regions deletion)
 Zone Viewer & Editor endpoints for ParcoRTLS FastAPI application.
 # VERSION 250316 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py 0P.10B.01
-#  
+# --- CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02
+# --- FIXED: Exclude trigger regions in /get_vertices_for_campus/{campus_id} by adding r.i_trg IS NULL
+# 
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 # Invented by Scott Cohen & Bertrand Dugal.
@@ -11,7 +13,6 @@ Zone Viewer & Editor endpoints for ParcoRTLS FastAPI application.
 # Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
 #
 # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
-
 """
 
 from fastapi import APIRouter, HTTPException, Response
@@ -206,7 +207,7 @@ async def get_all_zones_for_campus(campus_id: int):
 
 @router.get("/get_vertices_for_campus/{campus_id}")
 async def get_vertices_for_campus(campus_id: int):
-    """Fetch all vertices for zones under a campus."""
+    """Fetch all vertices for zones under a campus, excluding trigger regions."""
     try:
         vertices_data = await execute_raw_query(
             "maint",
@@ -221,6 +222,7 @@ async def get_vertices_for_campus(campus_id: int):
             FROM vertices v
             JOIN regions r ON v.i_rgn = r.i_rgn
             JOIN zone_hierarchy zh ON r.i_zn = zh.i_zn
+            WHERE r.i_trg IS NULL  -- Exclude trigger regions
             ORDER BY r.i_zn, v.n_ord
             """,
             campus_id

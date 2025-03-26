@@ -21,11 +21,35 @@ router = APIRouter()
 
 @router.get("/get_all_devices")
 async def get_all_devices():
-    """Fetch all devices."""
-    result = await call_stored_procedure("maint", "usp_device_select_all")
-    if result and isinstance(result, list) and result:
-        return result
-    raise HTTPException(status_code=404, detail="No devices found")
+    """Fetches all devices with zone_id"""
+    try:
+        devices_data = await execute_raw_query(
+            "maint",
+            "SELECT x_id_dev, i_typ_dev, x_nm_dev, n_moe_x, n_moe_y, n_moe_z, zone_id FROM devices"
+        )
+        # Ensure devices_data is a list; fallback to [] if not
+        if not isinstance(devices_data, list):
+            logger.warning(f"execute_raw_query returned non-list type: {type(devices_data)}. Forcing to empty list.")
+            devices_data = []
+        
+        # Format the response to match frontend expectations
+        response = [
+            {
+                "x_id_dev": d["x_id_dev"],
+                "i_typ_dev": d["i_typ_dev"],
+                "x_nm_dev": d["x_nm_dev"],
+                "n_moe_x": float(d["n_moe_x"]) if d["n_moe_x"] is not None else None,
+                "n_moe_y": float(d["n_moe_y"]) if d["n_moe_y"] is not None else None,
+                "n_moe_z": float(d["n_moe_z"]) if d["n_moe_z"] is not None else None,
+                "zone_id": d["zone_id"]
+            } for d in devices_data
+        ]
+        logger.info(f"Fetched {len(devices_data)} devices: {response}")
+        return response
+    except Exception as e:
+        logger.error(f"Error retrieving devices: {e}")
+        # Return an empty array on error to prevent frontend crashes
+        return []
 
 @router.get("/check_device_id/{device_id}")
 async def check_device_id(device_id: str):

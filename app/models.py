@@ -5,7 +5,7 @@ Pydantic models for ParcoRTLS FastAPI application.
 
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict
 
 class DeviceAddRequest(BaseModel):
     device_id: str
@@ -108,6 +108,7 @@ class TriggerAddRequest(BaseModel):
     name: str
     ignore: bool
     zone_id: int  # Must be present
+    vertices: List[Dict[str, float]] = []  # Optional list of vertices with x, y, z
 
 class TriggerMoveRequest(BaseModel):
     new_x: float

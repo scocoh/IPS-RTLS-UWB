@@ -1,6 +1,8 @@
 // 
-// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/ZoneBuilder.js 0P.10B.01
-// #  
+// # VERSION 250325 /home/parcoadmin/parco_fastapi/app/src/components/ZoneBuilder.js 0P.10B.02
+// # --- CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02
+// # --- FIXED: Append suffix to zone name for child zones to avoid naming conflicts
+// # 
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 // # Invented by Scott Cohen & Bertrand Dugal.
@@ -150,8 +152,15 @@ const ZoneBuilder = () => {
             }
         }
 
+        // Append a suffix to the zone name if it's a child zone
+        let finalZoneName = zoneName;
+        if (parentZoneId) {
+            finalZoneName = `${zoneName}-Child`;
+            console.log(`ℹ️ Appended suffix to zone name for child zone: ${finalZoneName}`);
+        }
+
         const zoneData = {
-            zone_name: zoneName,
+            zone_name: finalZoneName,
             map_id: selectedMapId,
             zone_level: selectedZoneType,
             parent_zone_id: parentZoneId,
@@ -170,7 +179,7 @@ const ZoneBuilder = () => {
             const result = await response.json();
             if (response.ok) {
                 console.log("✅ Zone creation response:", result);
-                alert(`✅ Zone '${zoneName}' created successfully! Zone ID: ${result.zone_id}`);
+                alert(`✅ Zone '${finalZoneName}' created successfully! Zone ID: ${result.zone_id}`);
                 setVertices([]); // Clear vertices after saving
                 drawnItems.current.clearLayers(); // Clear Leaflet layers
             } else {

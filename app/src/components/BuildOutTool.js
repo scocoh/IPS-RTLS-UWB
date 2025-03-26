@@ -1,5 +1,5 @@
-// # VERSION 250320 /home/parcoadmin/parco_fastapi/app/src/components/BuildOutTool.js 0P.10B.31
-// # --- CHANGED: Bumped version from 0P.10B.30 to 0P.10B.31 to fix device ID update persistence by using new_device_id parameter
+// # VERSION 250320 /home/parcoadmin/parco_fastapi/app/src/components/BuildOutTool.js 0P.10B.33
+// # --- CHANGED: Bumped version from 0P.10B.32 to 0P.10B.33 to fix crash when all devices are deleted (ensure devices and filteredDevices are always arrays)
 // # 
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -35,6 +35,7 @@ const BuildOutTool = () => {
     const [locationErrors, setLocationErrors] = useState({ x: false, y: false, z: false });
     const [deploymentMode, setDeploymentMode] = useState(false);
     const [clickMarker, setClickMarker] = useState(null);
+    const [activeTab, setActiveTab] = useState("addEditDevice");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -42,7 +43,8 @@ const BuildOutTool = () => {
                 const devicesRes = await fetch("/api/get_all_devices");
                 const devicesData = await devicesRes.json();
                 console.log("Raw devices response:", JSON.stringify(devicesData, null, 2));
-                setDevices(devicesData);
+                // Ensure devicesData is an array; fallback to [] if not
+                setDevices(Array.isArray(devicesData) ? devicesData : []);
 
                 const typesRes = await fetch("/api/list_device_types");
                 const typesData = await typesRes.json();
@@ -64,6 +66,7 @@ const BuildOutTool = () => {
                 setMaps(mapsData.maps || []);
             } catch (err) {
                 console.error("Error fetching initial data:", err);
+                setDevices([]); // Fallback to empty array on error
                 setZones([]);
                 setZoneTypes([]);
             }
@@ -210,7 +213,7 @@ const BuildOutTool = () => {
         }
 
         const formData = new FormData();
-        formData.append("new_device_id", deviceId); // --- CHANGED: Use new_device_id parameter to match the endpoint
+        formData.append("new_device_id", deviceId);
         if (deviceTypeValue !== null) {
             formData.append("device_type", deviceTypeValue);
         }
@@ -411,213 +414,264 @@ const BuildOutTool = () => {
         <div style={{ padding: "20px" }}>
             <h2>Build Out Tool</h2>
 
-            <div ref={addEditSectionRef} style={{ marginBottom: "20px" }}>
-                <h3>Add/Edit Device</h3>
-                <label>Zone Type: </label>
-                <select 
-                    value={zoneType} 
-                    onChange={(e) => setZoneType(e.target.value)} 
-                    style={{ marginRight: "10px" }} 
-                    disabled={estimatingMode}
-                >
-                    <option value="">Select Zone Type</option>
-                    {zoneTypes.map(zt => (
-                        <option key={zt.zone_level} value={zt.zone_level}>{zt.zone_name}</option>
-                    ))}
-                </select>
-                <label>Zone/Map: </label>
-                <select 
-                    value={selectedZone} 
-                    onChange={(e) => setSelectedZone(e.target.value)} 
-                    style={{ marginRight: "10px" }} 
-                    disabled={estimatingMode}
-                >
-                    <option value="">Select Zone</option>
-                    {filteredZones.map(z => (
-                        <option key={z.i_zn} value={z.i_zn}>{z.x_nm_zn}</option>
-                    ))}
-                </select>
-                <label>Use Leaflet: </label>
-                <input 
-                    type="checkbox" 
-                    checked={useLeaflet} 
-                    onChange={(e) => setUseLeaflet(e.target.checked)} 
-                />
-                <label style={{ marginLeft: "20px" }}>Estimating Mode: </label>
-                <input 
-                    type="checkbox" 
-                    checked={estimatingMode} 
-                    onChange={handleEstimatingModeToggle} 
-                />
-                <label style={{ marginLeft: "20px" }}>Deployment Mode: </label>
-                <input 
-                    type="checkbox" 
-                    checked={deploymentMode} 
-                    onChange={handleDeploymentModeToggle} 
-                />
-                {estimatingMode && (
-                    <>
-                        <label style={{ marginLeft: "20px" }}>Starting Device ID: </label>
-                        <input
-                            type="number"
-                            value={startingDeviceId}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                setStartingDeviceId(value);
-                                const startId = parseInt(value) || 0;
-                                setCurrentDeviceId(startId);
-                                setDeviceId(startId.toString());
-                                setDeviceName(startId.toString());
-                            }}
-                            style={{ width: "100px", marginRight: "10px" }}
+            {/* Tab Navigation */}
+            <div className="mb-4">
+                <ul className="nav nav-tabs">
+                    <li className="nav-item">
+                        <button
+                            className={`nav-link ${activeTab === "addEditDevice" ? "active" : ""}`}
+                            onClick={() => setActiveTab("addEditDevice")}
+                        >
+                            Add/Edit Device
+                        </button>
+                    </li>
+                    <li className="nav-item">
+                        <button
+                            className={`nav-link ${activeTab === "deviceTypes" ? "active" : ""}`}
+                            onClick={() => setActiveTab("deviceTypes")}
+                        >
+                            Device Types
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === "addEditDevice" && (
+                <div>
+                    <div ref={addEditSectionRef} className="card p-4 mb-4 shadow-sm">
+                        <h3 className="mb-3">Add/Edit Device</h3>
+
+                        <div className="row g-3 align-items-end">
+                            <div className="col-md-4">
+                                <label className="form-label">Zone Type</label>
+                                <select 
+                                    className="form-select"
+                                    value={zoneType} 
+                                    onChange={(e) => setZoneType(e.target.value)} 
+                                    disabled={estimatingMode}
+                                >
+                                    <option value="">Select Zone Type</option>
+                                    {zoneTypes.map(zt => (
+                                        <option key={zt.zone_level} value={zt.zone_level}>{zt.zone_name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="col-md-4">
+                                <label className="form-label">Zone/Map</label>
+                                <select 
+                                    className="form-select"
+                                    value={selectedZone} 
+                                    onChange={(e) => setSelectedZone(e.target.value)} 
+                                    disabled={estimatingMode}
+                                >
+                                    <option value="">Select Zone</option>
+                                    {filteredZones.map(z => (
+                                        <option key={z.i_zn} value={z.i_zn}>{z.x_nm_zn}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="col-md-4">
+                                <div className="form-check form-check-inline">
+                                    <input className="form-check-input" type="checkbox" checked={useLeaflet} onChange={(e) => setUseLeaflet(e.target.checked)} id="leafletCheck" />
+                                    <label className="form-check-label" htmlFor="leafletCheck">Use Leaflet</label>
+                                </div>
+                                <div className="form-check form-check-inline">
+                                    <input className="form-check-input" type="checkbox" checked={estimatingMode} onChange={handleEstimatingModeToggle} id="estimatingCheck" />
+                                    <label className="form-check-label" htmlFor="estimatingCheck">Estimating</label>
+                                </div>
+                                <div className="form-check form-check-inline">
+                                    <input className="form-check-input" type="checkbox" checked={deploymentMode} onChange={handleDeploymentModeToggle} id="deploymentCheck" />
+                                    <label className="form-check-label" htmlFor="deploymentCheck">Deploy</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {estimatingMode && (
+                            <div className="row mt-3">
+                                <div className="col-md-4">
+                                    <label className="form-label">Starting Device ID</label>
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        value={startingDeviceId}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            setStartingDeviceId(value);
+                                            const startId = parseInt(value) || 0;
+                                            setCurrentDeviceId(startId);
+                                            setDeviceId(startId.toString());
+                                            setDeviceName(startId.toString());
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="row g-3 mt-3">
+                            <div className="col-md-3">
+                                <label className="form-label">Device ID/Serial</label>
+                                <input 
+                                    className="form-control"
+                                    value={deviceId} 
+                                    onChange={(e) => {
+                                        setDeviceId(e.target.value);
+                                        if (estimatingMode) setDeviceName(e.target.value);
+                                    }} 
+                                    disabled={editingDevice !== null && !deploymentMode}
+                                />
+                            </div>
+
+                            <div className="col-md-3">
+                                <label className="form-label">Name</label>
+                                <input 
+                                    className="form-control"
+                                    value={deviceName} 
+                                    onChange={(e) => setDeviceName(e.target.value)} 
+                                    disabled={estimatingMode}
+                                />
+                            </div>
+
+                            <div className="col-md-3">
+                                <label className="form-label">Type</label>
+                                <select 
+                                    className="form-select"
+                                    value={deviceType} 
+                                    onChange={(e) => setDeviceType(e.target.value)}
+                                >
+                                    <option value="">Select Type</option>
+                                    {deviceTypes.map(t => (
+                                        <option key={t.i_typ_dev} value={t.i_typ_dev}>{t.x_dsc_dev}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="row g-3 mt-3">
+                            <div className="col-md-2">
+                                <label className="form-label">X</label>
+                                <input 
+                                    className={`form-control ${locationErrors.x ? 'is-invalid' : ''}`}
+                                    type="text" 
+                                    inputMode="decimal"
+                                    pattern="^-?\\d*\\.?\\d*$"
+                                    value={displayLocation.x}
+                                    onChange={(e) => handleLocationChange("x", e.target.value)}
+                                    onBlur={() => handleLocationBlur("x")}
+                                />
+                            </div>
+
+                            <div className="col-md-2">
+                                <label className="form-label">Y</label>
+                                <input 
+                                    className={`form-control ${locationErrors.y ? 'is-invalid' : ''}`}
+                                    type="text" 
+                                    inputMode="decimal"
+                                    pattern="^-?\\d*\\.?\\d*$"
+                                    value={displayLocation.y}
+                                    onChange={(e) => handleLocationChange("y", e.target.value)}
+                                    onBlur={() => handleLocationBlur("y")}
+                                />
+                            </div>
+
+                            <div className="col-md-2">
+                                <label className="form-label">Z</label>
+                                <input 
+                                    className={`form-control ${locationErrors.z ? 'is-invalid' : ''}`}
+                                    type="text" 
+                                    inputMode="decimal"
+                                    pattern="^-?\\d*\\.?\\d*$"
+                                    value={displayLocation.z}
+                                    onChange={(e) => handleLocationChange("z", e.target.value)}
+                                    onBlur={() => handleLocationBlur("z")}
+                                    disabled={estimatingMode}
+                                />
+                            </div>
+
+                            <div className="col-md-3 d-flex align-items-end">
+                                <button onClick={editingDevice ? handleEditDevice : handleAddDevice} className="btn btn-primary me-2">
+                                    {editingDevice ? "Update" : "Add"}
+                                </button>
+                                {editingDevice && (
+                                    <button onClick={resetForm} className="btn btn-secondary">Cancel</button>
+                                )}
+                            </div>
+                        </div>
+
+                        {mapId && (
+                            <div className="mt-4">
+                                <MapBuildOut 
+                                    zoneId={mapId} 
+                                    onDrawComplete={handleMapClick} 
+                                    devices={filteredDevices} 
+                                    useLeaflet={useLeaflet} 
+                                    onDeviceSelect={handleDeviceSelect} 
+                                    deploymentMode={deploymentMode}
+                                    clickMarker={clickMarker}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <h3>Devices</h3>
+                        {/* Ensure filteredDevices is an array before mapping; fallback to [] if not */}
+                        {Array.isArray(filteredDevices) && filteredDevices.length > 0 ? (
+                            <ul style={{ listStyle: "none", padding: 0 }}>
+                                {filteredDevices.map(d => (
+                                    <li key={d.x_id_dev} style={{ marginBottom: "10px" }}>
+                                        {d.x_id_dev} - {d.x_nm_dev} (Type: {d.i_typ_dev}, Zone: {zones.find(z => parseInt(z.i_zn) === parseInt(d.zone_id))?.x_nm_zn || "N/A"}, 
+                                        Loc: {d.n_moe_x != null ? Number(d.n_moe_x).toFixed(6) : "N/A"}, 
+                                        {d.n_moe_y != null ? Number(d.n_moe_y).toFixed(6) : "N/A"}, 
+                                        {d.n_moe_z != null ? Number(d.n_moe_z).toFixed(6) : "N/A"})
+                                        <button 
+                                            onClick={() => handleDeviceSelect(d)} 
+                                            style={{ marginLeft: "10px", padding: "5px" }}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button onClick={() => handleDeleteDevice(d.x_id_dev)} style={{ marginLeft: "10px", padding: "5px" }}>Delete</button>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>No devices available.</p>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {activeTab === "deviceTypes" && (
+                <div className="card p-4 shadow-sm">
+                    <h3>Device Types</h3>
+                    <div className="mb-3">
+                        <input 
+                            className="form-control d-inline-block" 
+                            style={{ width: "300px", marginRight: "10px" }} 
+                            value={newDeviceType} 
+                            onChange={(e) => setNewDeviceType(e.target.value)} 
+                            placeholder="New Device Type" 
                         />
-                    </>
-                )}
-                <br />
-                <label>Device ID/Serial: </label>
-                <input 
-                    value={deviceId} 
-                    onChange={(e) => {
-                        setDeviceId(e.target.value);
-                        if (estimatingMode) {
-                            setDeviceName(e.target.value);
-                        }
-                    }} 
-                    disabled={editingDevice !== null && !deploymentMode}
-                    style={{ marginRight: "10px", width: "150px" }} 
-                />
-                <label>Name: </label>
-                <input 
-                    value={deviceName} 
-                    onChange={(e) => setDeviceName(e.target.value)} 
-                    disabled={estimatingMode}
-                    style={{ marginRight: "10px", width: "150px" }} 
-                />
-                <label>Type: </label>
-                <select 
-                    value={deviceType} 
-                    onChange={(e) => {
-                        console.log("Selected device type:", e.target.value);
-                        setDeviceType(e.target.value);
-                    }} 
-                    style={{ marginRight: "10px" }}
-                >
-                    <option value="">Select Type</option>
-                    {deviceTypes.map(t => (
-                        <option key={t.i_typ_dev} value={t.i_typ_dev}>{t.x_dsc_dev}</option>
-                    ))}
-                </select>
-                <label>X: </label>
-                <input 
-                    type="text" 
-                    inputMode="decimal"
-                    pattern="^-?\d*\.?\d*$"
-                    value={displayLocation.x}
-                    onChange={(e) => handleLocationChange("x", e.target.value)}
-                    onBlur={() => handleLocationBlur("x")}
-                    style={{ 
-                        width: "100px", 
-                        marginRight: "10px", 
-                        border: locationErrors.x ? "2px solid red" : "1px solid #ccc" 
-                    }} 
-                />
-                <label>Y: </label>
-                <input 
-                    type="text" 
-                    inputMode="decimal"
-                    pattern="^-?\d*\.?\d*$"
-                    value={displayLocation.y}
-                    onChange={(e) => handleLocationChange("y", e.target.value)}
-                    onBlur={() => handleLocationBlur("y")}
-                    style={{ 
-                        width: "100px", 
-                        marginRight: "10px", 
-                        border: locationErrors.y ? "2px solid red" : "1px solid #ccc" 
-                    }} 
-                />
-                <label>Z: </label>
-                <input 
-                    type="text" 
-                    inputMode="decimal"
-                    pattern="^-?\d*\.?\d*$"
-                    value={displayLocation.z}
-                    onChange={(e) => handleLocationChange("z", e.target.value)}
-                    onBlur={() => handleLocationBlur("z")}
-                    disabled={estimatingMode}
-                    style={{ 
-                        width: "100px", 
-                        marginRight: "10px", 
-                        border: locationErrors.z ? "2px solid red" : "1px solid #ccc" 
-                    }} 
-                />
-                <button onClick={editingDevice ? handleEditDevice : handleAddDevice} style={{ padding: "5px 10px" }}>
-                    {editingDevice ? "Update" : "Add"}
-                </button>
-                {editingDevice && (
-                    <button onClick={resetForm} style={{ padding: "5px 10px", marginLeft: "10px" }}>Cancel</button>
-                )}
-                {mapId && (
-                    <MapBuildOut 
-                        zoneId={mapId} 
-                        onDrawComplete={handleMapClick} 
-                        devices={filteredDevices} 
-                        useLeaflet={useLeaflet} 
-                        onDeviceSelect={handleDeviceSelect} 
-                        deploymentMode={deploymentMode}
-                        clickMarker={clickMarker}
-                    />
-                )}
-            </div>
-
-            <div style={{ marginBottom: "20px" }}>
-                <h3>Device Types</h3>
-                <input value={newDeviceType} onChange={(e) => setNewDeviceType(e.target.value)} placeholder="New Device Type" style={{ marginRight: "10px" }} />
-                <button onClick={handleAddDeviceType} style={{ padding: "5px 10px" }}>Add Type</button>
-                <ul style={{ listStyle: "none", padding: 0 }}>
-                    {deviceTypes.map(t => (
-                        <li key={t.i_typ_dev}>
-                            {t.x_dsc_dev} (ID: {t.i_typ_dev})
-                            <button onClick={() => handleDeleteDeviceType(t.i_typ_dev)} style={{ marginLeft: "10px", padding: "5px" }}>Delete</button>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
-            <div>
-                <h3>Devices</h3>
-                <ul style={{ listStyle: "none", padding: 0 }}>
-                    {filteredDevices.map(d => (
-                        <li key={d.x_id_dev} style={{ marginBottom: "10px" }}>
-                            {d.x_id_dev} - {d.x_nm_dev} (Type: {d.i_typ_dev}, Zone: {zones.find(z => parseInt(z.i_zn) === parseInt(d.zone_id))?.x_nm_zn || "N/A"}, 
-                            Loc: {d.n_moe_x != null ? Number(d.n_moe_x).toFixed(6) : "N/A"}, 
-                            {d.n_moe_y != null ? Number(d.n_moe_y).toFixed(6) : "N/A"}, 
-                            {d.n_moe_z != null ? Number(d.n_moe_z).toFixed(6) : "N/A"})
-                            <button 
-                                onClick={() => { 
-                                    setEditingDevice(d); 
-                                    setDeviceId(d.x_id_dev); 
-                                    setDeviceName(d.x_nm_dev); 
-                                    setDeviceType(String(d.i_typ_dev)); 
-                                    const newLocation = { x: d.n_moe_x, y: d.n_moe_y, z: d.n_moe_z || 0 };
-                                    setLocation(newLocation);
-                                    setDisplayLocation({
-                                        x: newLocation.x != null ? newLocation.x.toString() : "",
-                                        y: newLocation.y != null ? newLocation.y.toString() : "",
-                                        z: newLocation.z != null ? newLocation.z.toString() : ""
-                                    });
-                                    setLocationErrors({ x: false, y: false, z: false });
-                                    setSelectedZone(String(d.zone_id || "")); 
-                                    addEditSectionRef.current.scrollIntoView({ behavior: "smooth" });
-                                }} 
-                                style={{ marginLeft: "10px", padding: "5px" }}
-                            >
-                                Edit
-                            </button>
-                            <button onClick={() => handleDeleteDevice(d.x_id_dev)} style={{ marginLeft: "10px", padding: "5px" }}>Delete</button>
-                        </li>
-                    ))}
-                </ul>
-            </div>
+                        <button onClick={handleAddDeviceType} className="btn btn-primary">Add Type</button>
+                    </div>
+                    <ul style={{ listStyle: "none", padding: 0 }}>
+                        {deviceTypes.map(t => (
+                            <li key={t.i_typ_dev} className="mb-2">
+                                {t.x_dsc_dev} (ID: {t.i_typ_dev})
+                                <button 
+                                    onClick={() => handleDeleteDeviceType(t.i_typ_dev)} 
+                                    className="btn btn-danger btn-sm" 
+                                    style={{ marginLeft: "10px" }}
+                                >
+                                    Delete
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
         </div>
     );
 };

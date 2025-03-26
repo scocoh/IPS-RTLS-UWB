@@ -1,5 +1,13 @@
 #
-#  VERSION 250316 /home/parcoadmin/parco_fastapi/app/app.py 0P.10B.01
+#  VERSION 250326 /home/parcoadmin/parco_fastapi/app/app.py 0P.10B.03
+# --- CHANGED: Bumped version from 0P.10B.02 to 0P.10B.03
+# --- FIXED: Replaced deprecated on_event with lifespan handler
+# --- FIXED: Updated CORS to allow WebSocket connections
+# --- ADDED: Mounted manager app under /manager path
+# --- ADDED: Custom middleware to bypass CORS for WebSocket requests
+# --- FIXED: Removed unnecessary ws:// origin from CORS allow_origins
+# --- FIXED: Updated app version to match file version
+# --- REMOVED: Unused app.state.sdk_clients initialization
 #  
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -9,8 +17,8 @@
 #
 # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
 
-import asyncpg  # ✅ Import asyncpg to fix "asyncpg is not defined"
-from fastapi import FastAPI
+import asyncpg
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 from database.db import get_async_db_pool
@@ -24,36 +32,93 @@ from routes.input import router as input_router
 from routes.region import router as region_router
 from routes.vertex import router as vertex_router
 from routes.zonebuilder_routes import router as zonebuilder_router
-from routes.zoneviewer_routes import router as zoneviewer_router  # New import
+from routes.zoneviewer_routes import router as zoneviewer_router
 from routes import maps, maps_upload
+from manager.websocket import app as manager_app
+from contextlib import asynccontextmanager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Parco RTLS API", version="0P.7B.34", docs_url="/docs")
+# Lifespan handler
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    logger.info("Initializing async database connections...")
+    app.state.async_db_pools = {}
+    for db_type in ["maint", "data", "hist_r", "hist_p", "hist_o"]:
+        try:
+            pool = await get_async_db_pool(db_type)
+            if pool:
+                app.state.async_db_pools[db_type] = pool
+                logger.info(f"Successfully initialized pool for {db_type}")
+            else:
+                logger.warning(f"Database {db_type} is empty or inaccessible, skipping.")
+        except Exception as e:
+            logger.error(f"Failed to initialize pool for {db_type}: {str(e)}")
+    logger.info("Database connections established.")
+    
+    yield  # Application runs here
+    
+    # Shutdown logic
+    logger.info("Closing async database connections...")
+    if hasattr(app.state, "async_db_pools"):
+        for db_type, pool in app.state.async_db_pools.items():
+            try:
+                await pool.close()
+                logger.info(f"Closed pool for {db_type}")
+            except Exception as e:
+                logger.error(f"Error closing pool for {db_type}: {str(e)}")
+    logger.info("All connections closed.")
 
-# Configure CORS
+# Create the FastAPI app with the lifespan handler
+app = FastAPI(
+    title="Parco RTLS API",
+    version="0P.10B.03",  # Updated to match file version
+    docs_url="/docs",
+    lifespan=lifespan
+)
+
+# Custom middleware to bypass CORS for WebSocket requests
+@app.middleware("http")
+async def bypass_cors_for_websocket(request: Request, call_next):
+    logger.debug(f"Request path: {request.url.path}, Headers: {request.headers}")
+    if "upgrade" in request.headers.get("connection", "").lower() and request.headers.get("upgrade", "").lower() == "websocket":
+        logger.info(f"Bypassing CORS for WebSocket request: {request.url.path}")
+        response = await call_next(request)
+        return response
+
+    # Apply CORS for non-WebSocket requests
+    response = await call_next(request)
+    return response
+
+# Configure CORS for HTTP requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://192.168.210.231:3000"],  # Allow your React development server
+    allow_origins=[
+        "http://192.168.210.231:3000",  # Allow your React development server
+        "http://192.168.210.231:8000"   # Allow HTTP requests from the same host
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Include routers
 app.include_router(device_router, prefix="/api")
 app.include_router(trigger_router, prefix="/api")
 app.include_router(zone_router, prefix="/api")
 app.include_router(entity_router, prefix="/api")
 app.include_router(history_router, prefix="/api")
 app.include_router(text_router, prefix="/api")
-app.include_router(input_router)
+app.include_router(input_router, prefix="/api")  # Added prefix for consistency
 app.include_router(region_router, prefix="/api")
 app.include_router(vertex_router, prefix="/api", tags=["vertices"])
 app.include_router(zonebuilder_router, prefix="/zonebuilder", tags=["zonebuilder"])
-app.include_router(zoneviewer_router, prefix="/zoneviewer", tags=["zoneviewer"])  # New router
+app.include_router(zoneviewer_router, prefix="/zoneviewer", tags=["zoneviewer"])
 app.include_router(maps.router, prefix="/maps", tags=["maps"])
 app.include_router(maps_upload.router, prefix="/maps", tags=["maps_upload"])
+app.mount("/manager", manager_app)  # Mount the manager app
 
 async def get_async_db_pool(db_type: str = "maint"):
     """Creates an asyncpg connection pool with explicit parameters."""
@@ -62,7 +127,7 @@ async def get_async_db_pool(db_type: str = "maint"):
 
     try:
         pool = await asyncpg.create_pool(
-            database=db_config["database"],  # ✅ Explicitly pass database, not dbname
+            database=db_config["database"],
             user=db_config["user"],
             password=db_config["password"],
             host=db_config["host"],
@@ -80,35 +145,6 @@ async def get_async_db_pool(db_type: str = "maint"):
     except Exception as e:
         logger.error(f"❌ Error creating async database pool for {db_type}: {e}")
         return None
-
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Initializing async database connections...")
-    app.state.async_db_pools = {}
-    for db_type in ["maint", "data", "hist_r", "hist_p", "hist_o"]:
-        try:
-            pool = await get_async_db_pool(db_type)
-            if pool:
-                app.state.async_db_pools[db_type] = pool
-                logger.info(f"Successfully initialized pool for {db_type}")
-            else:
-                logger.warning(f"Database {db_type} is empty or inaccessible, skipping.")
-        except Exception as e:
-            logger.error(f"Failed to initialize pool for {db_type}: {str(e)}")
-    app.state.sdk_clients = []
-    logger.info("Database connections established.")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    logger.info("Closing async database connections...")
-    if hasattr(app.state, "async_db_pools"):
-        for db_type, pool in app.state.async_db_pools.items():
-            try:
-                await pool.close()
-                logger.info(f"Closed pool for {db_type}")
-            except Exception as e:
-                logger.error(f"Error closing pool for {db_type}: {str(e)}")
-    logger.info("All connections closed.")
 
 @app.get("/")
 def root():

@@ -1,5 +1,7 @@
 # /home/parcoadmin/parco_fastapi/app/routes/zonebuilder_routes.py
-# VERSION 250320 /home/parcoadmin/parco_fastapi/app/routes/zonebuilder_routes.py 0P.10B.20
+# VERSION 250325 /home/parcoadmin/parco_fastapi/app/routes/zonebuilder_routes.py 0P.10B.21
+# --- CHANGED: Bumped version from 0P.10B.20 to 0P.10B.21
+# --- ADDED: /get_zone_vertices/{zone_id} endpoint to fetch vertices for a specific zone, excluding child zones and trigger regions
 # 
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -116,6 +118,30 @@ async def get_zone_types():
     except Exception as e:
         logger.error(f"Error retrieving zone types: {e}")
         raise HTTPException(status_code=500, detail=f"Error retrieving zone types: {str(e)}")
+
+@router.get("/get_zone_vertices/{zone_id}")
+async def get_zone_vertices(zone_id: int):
+    """Fetch vertices for a specific zone, excluding child zones and trigger regions."""
+    try:
+        vertices_data = await execute_raw_query(
+            "maint",
+            """
+            SELECT v.i_vtx, v.i_rgn, v.n_x, v.n_y, v.n_z, v.n_ord
+            FROM vertices v
+            JOIN regions r ON v.i_rgn = r.i_rgn
+            WHERE r.i_zn = $1 AND r.i_trg IS NULL
+            ORDER BY v.n_ord
+            """,
+            zone_id
+        )
+        if not vertices_data:
+            logger.warning(f"No vertices found for zone_id={zone_id}")
+            return {"vertices": []}
+        logger.info(f"Retrieved {len(vertices_data)} vertices for zone_id={zone_id}")
+        return {"vertices": vertices_data}
+    except Exception as e:
+        logger.error(f"Error fetching vertices for zone_id={zone_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
     
 @router.get("/internal-metadata", include_in_schema=False)
 def get_internal_metadata(format: str = None):

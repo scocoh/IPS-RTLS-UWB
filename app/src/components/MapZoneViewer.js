@@ -1,5 +1,7 @@
-// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/MapZoneViewer.js 0P.10B.02
-// # --- CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02 for coordinate precision fix
+// # VERSION 250325 /home/parcoadmin/parco_fastapi/app/src/components/MapZoneViewer.js 0P.10B.03
+// # --- CHANGED: Bumped version from 0P.10B.02 to 0P.10B.04
+// # --- FIXED: Changed fetch to use /zoneviewer/get_vertices_for_campus/{zone_id} instead of /zoneviewer/get_zone_vertices/{zone_id} to resolve 404 error
+// # --- FIXED: Updated vertex mapping to match the response format of /get_vertices_for_campus endpoint
 // # 
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -21,6 +23,7 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
     const mapInstance = useRef(null);
     const canvasRef = useRef(null);
     const [mapData, setMapData] = useState(null);
+    const [zoneVertices, setZoneVertices] = useState([]); // Store vertices for the selected zone
     const [error, setError] = useState(null);
     const isInitialized = useRef(false);
     const ctxRef = useRef(null);
@@ -47,6 +50,46 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
             fetchMapData();
         }
     }, [mapId]);
+
+    // Fetch vertices for the selected zone
+    useEffect(() => {
+        if (checkedZones.length === 0) {
+            setZoneVertices([]);
+            if (onVerticesUpdate) onVerticesUpdate([]);
+            return;
+        }
+
+        const fetchZoneVertices = async () => {
+            try {
+                // Fetch vertices for each checked zone using /get_vertices_for_campus
+                const verticesPromises = checkedZones.map(async (zoneId) => {
+                    const response = await fetch(`/zoneviewer/get_vertices_for_campus/${zoneId}`);
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    const data = await response.json();
+                    return data.vertices.map(vertex => ({
+                        i_vtx: vertex.vertex_id, // Map vertex_id to i_vtx
+                        zone_id: vertex.zone_id, // Use zone_id from the endpoint response
+                        n_x: Number(vertex.x).toFixed(6), // Round to 6 decimal places
+                        n_y: Number(vertex.y).toFixed(6),
+                        n_z: Number(vertex.z).toFixed(6),
+                        n_ord: vertex.order,
+                    }));
+                });
+
+                const allVertices = (await Promise.all(verticesPromises)).flat();
+                console.log("✅ Fetched vertices for checked zones:", allVertices);
+                setZoneVertices(allVertices);
+                if (onVerticesUpdate) onVerticesUpdate(allVertices);
+            } catch (error) {
+                console.error("❌ Error fetching vertices for checked zones:", error);
+                setError(`Error fetching vertices: ${error.message}`);
+                setZoneVertices([]);
+                if (onVerticesUpdate) onVerticesUpdate([]);
+            }
+        };
+
+        fetchZoneVertices();
+    }, [checkedZones, onVerticesUpdate]);
 
     // Canvas rendering
     useEffect(() => {
@@ -100,13 +143,13 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
                 const seniorZone = checkedZones.length > 1 ? Math.min(...checkedZones) : checkedZones[0];
 
                 checkedZones.forEach(zoneId => {
-                    const zoneVertices = vertices.filter(v => v.zone_id === zoneId);
-                    if (zoneVertices.length > 0) {
+                    const filteredVertices = zoneVertices.filter(v => v.zone_id === zoneId);
+                    if (filteredVertices.length > 0) {
                         ctx.beginPath();
-                        zoneVertices.forEach((vertex, index) => {
-                            // --- CHANGED: Round x and y coordinates to 6 decimal places for canvas rendering
-                            const x = Number(canvasBounds.current.x + (vertex.x - mapData.bounds[0][1]) * (canvasBounds.current.width / mapWidth)).toFixed(6);
-                            const y = Number(canvasBounds.current.y + (mapData.bounds[1][0] - vertex.y) * (canvasBounds.current.height / mapHeight)).toFixed(6);
+                        filteredVertices.forEach((vertex, index) => {
+                            // Use pre-rounded x and y coordinates
+                            const x = Number(canvasBounds.current.x + (vertex.n_x - mapData.bounds[0][1]) * (canvasBounds.current.width / mapWidth));
+                            const y = Number(canvasBounds.current.y + (mapData.bounds[1][0] - vertex.n_y) * (canvasBounds.current.height / mapHeight));
                             if (index === 0) ctx.moveTo(x, y);
                             else ctx.lineTo(x, y);
                             ctx.fillStyle = "red";
@@ -115,12 +158,14 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
                             if (zoneId === seniorZone) {
                                 ctx.font = "12px Arial";
                                 ctx.fillStyle = "black";
-                                ctx.fillText(vertex.vertex_id, x + 5, y - 5); // Offset for readability
+                                ctx.fillText(vertex.i_vtx, x + 5, y - 5); // Offset for readability
                             }
                         });
                         ctx.closePath();
                         ctx.strokeStyle = "red";
                         ctx.stroke();
+                    } else {
+                        console.log(`ℹ️ No vertices to render for zone ${zoneId}`);
                     }
                 });
             };
@@ -130,7 +175,7 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
                 isInitialized.current = false;
             };
         }
-    }, [mapData, useLeaflet, checkedZones, vertices]);
+    }, [mapData, useLeaflet, checkedZones, zoneVertices]);
 
     // Leaflet rendering
     useEffect(() => {
@@ -146,23 +191,25 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
             const seniorZone = checkedZones.length > 1 ? Math.min(...checkedZones) : checkedZones[0];
 
             checkedZones.forEach(zoneId => {
-                const zoneVertices = vertices.filter(v => v.zone_id === zoneId);
-                if (zoneVertices.length > 0) {
-                    // --- CHANGED: Round x and y coordinates to 6 decimal places for Leaflet rendering
-                    const latLngs = zoneVertices.map(v => [Number(v.y).toFixed(6), Number(v.x).toFixed(6)]);
+                const filteredVertices = zoneVertices.filter(v => v.zone_id === zoneId);
+                if (filteredVertices.length > 0) {
+                    // Use pre-rounded x and y coordinates
+                    const latLngs = filteredVertices.map(v => [Number(v.n_y), Number(v.n_x)]);
                     L.polygon(latLngs, { color: "red", weight: 2 }).addTo(drawnItems.current);
 
                     if (zoneId === seniorZone) {
-                        zoneVertices.forEach(v => {
-                            L.marker([Number(v.y).toFixed(6), Number(v.x).toFixed(6)], {
+                        filteredVertices.forEach(v => {
+                            L.marker([Number(v.n_y), Number(v.n_x)], {
                                 icon: L.divIcon({
                                     className: "vertex-label",
-                                    html: `<span>${v.vertex_id}</span>`,
+                                    html: `<span>${v.i_vtx}</span>`,
                                     iconSize: [20, 20],
                                 })
                             }).addTo(drawnItems.current);
                         });
                     }
+                } else {
+                    console.log(`ℹ️ No vertices to render for zone ${zoneId}`);
                 }
             });
         }
@@ -173,7 +220,7 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
                 mapInstance.current = null;
             }
         };
-    }, [mapData, useLeaflet, checkedZones, vertices]);
+    }, [mapData, useLeaflet, checkedZones, zoneVertices]);
 
     return (
         <div>

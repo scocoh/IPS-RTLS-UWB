@@ -1,5 +1,7 @@
-// # VERSION 250317 /home/parcoadmin/parco_fastapi/app/src/TriggerDemo.js 0P.10B.02
-// #  
+// # VERSION 250325 /home/parcoadmin/parco_fastapi/app/src/TriggerDemo.js 0P.10B.04
+// # CHANGED: Bumped version from 0P.10B.03 to 0P.10B.04
+// # ADDED: Added Delete Triggers tab to list and delete triggers
+// # 
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 // # Invented by Scott Cohen & Bertrand Dugal.
@@ -17,6 +19,7 @@ const TriggerDemo = () => {
   const [maps, setMaps] = useState([]);
   const [zones, setZones] = useState([]);
   const [triggerDirections, setTriggerDirections] = useState([]);
+  const [triggers, setTriggers] = useState([]); // New state for triggers
   const [selectedZone, setSelectedZone] = useState(null);
   const [selectedMapId, setSelectedMapId] = useState(null); // Store map_id
   const [triggerName, setTriggerName] = useState("");
@@ -36,6 +39,7 @@ const TriggerDemo = () => {
     triggerDirections: false,
     zones: false,
     vertices: false,
+    triggers: false, // Add loading state for triggers
   });
   const [error, setError] = useState(null);
   const [showMapForDrawing, setShowMapForDrawing] = useState(false);
@@ -67,6 +71,7 @@ const TriggerDemo = () => {
     fetchData("/maps/get_maps", setMaps, "maps");
     fetchData("/api/get_parent_zones", setParentZones, "parentZones", (data) => data.zones);
     fetchData("/api/list_trigger_directions", setTriggerDirections, "triggerDirections");
+    fetchData("/api/list_triggers", setTriggers, "triggers"); // Fetch triggers
   }, []);
 
   // Flatten zones hierarchy
@@ -132,12 +137,18 @@ const TriggerDemo = () => {
       return;
     }
 
+    // Parse the coordinates and transform them to the expected format
+    const parsedCoordinates = JSON.parse(coordinates);
     const triggerData = {
       name: triggerName,
       direction: directionId,
       zone_id: parseInt(selectedZone),
       ignore: true,
-      coordinates: JSON.parse(coordinates),
+      vertices: parsedCoordinates.map(coord => ({
+        x: coord.n_x,
+        y: coord.n_y,
+        z: coord.n_z || 0, // Default to 0 if n_z is missing
+      })), // Rename "coordinates" to "vertices" and map n_x, n_y, n_z to x, y, z
     };
 
     console.log("Sending triggerData to /api/add_trigger:", triggerData);
@@ -154,14 +165,41 @@ const TriggerDemo = () => {
       }
       const result = await response.json();
       alert(`Trigger created with ID: ${result.trigger_id}`);
-      setEventList([...eventList, `${triggerName} created at ${coordinates} with ${triggerDirection} direction`]);
+      setEventList([...eventList, `${triggerName} created with vertices and ${triggerDirection} direction`]);
       setCoordinates("");
       setShowMapForDrawing(false);
+      // Refresh the triggers list
+      fetchData("/api/list_triggers", setTriggers, "triggers");
     } catch (error) {
       console.error("Error creating trigger:", error);
       alert(`Error creating trigger: ${error.message}`);
     }
   }, [triggerName, selectedZone, triggerDirection, coordinates, showMapForDrawing, triggerDirections]);
+
+  // Handle trigger deletion
+  const handleDeleteTrigger = useCallback(async (triggerId) => {
+    if (!window.confirm(`Are you sure you want to delete trigger ID ${triggerId}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/delete_trigger/${triggerId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, response: ${text}`);
+      }
+      const result = await response.json();
+      alert(result.message);
+      // Refresh the triggers list
+      fetchData("/api/list_triggers", setTriggers, "triggers");
+    } catch (error) {
+      console.error("Error deleting trigger:", error);
+      alert(`Error deleting trigger: ${error.message}`);
+    }
+  }, []);
 
   // Memoized onDrawComplete to prevent re-renders
   const handleDrawComplete = useCallback((coords) => {
@@ -404,6 +442,41 @@ const TriggerDemo = () => {
             <button onClick={saveAllVertices} disabled={loading.vertices}>
               {loading.vertices ? "Saving..." : "Save All Changes"}
             </button>
+          </div>
+        </Tab>
+        <Tab eventKey="deleteTriggers" title="Delete Triggers">
+          <div className="trigger-delete-section">
+            <h3>Delete Triggers</h3>
+            {loading.triggers ? (
+              <p>Loading triggers...</p>
+            ) : triggers.length === 0 ? (
+              <p>No triggers available.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Trigger ID</th>
+                    <th>Name</th>
+                    <th>Direction</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {triggers.map((trigger) => (
+                    <tr key={trigger.i_trg}>
+                      <td>{trigger.i_trg}</td>
+                      <td>{trigger.x_nm_trg}</td>
+                      <td>{trigger.i_dir}</td>
+                      <td>
+                        <button onClick={() => handleDeleteTrigger(trigger.i_trg)}>
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </Tab>
       </Tabs>
