@@ -52,7 +52,14 @@ while true; do
     echo "What would you like to do?"
     select action in "Run" "Edit" "Cancel"; do
       case $REPLY in
-        1) echo -e "▶️  Executing $script_path...\n"; bash "$script_path"; break ;;
+        1) 
+  echo -e "▶️  Executing $script_path...\n"
+  bash "$script_path"
+  echo -e "\n📥 Press ENTER to return to the menu..."
+  read
+  break
+  ;;
+
         2) echo -e "✏️  Opening $script_path in nano...\n"; nano "$script_path"; break ;;
         3) echo "❌ Cancelled."; break ;;
         *) echo "Invalid option." ;;
