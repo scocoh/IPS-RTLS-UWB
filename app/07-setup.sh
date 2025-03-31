@@ -1,4 +1,6 @@
 #!/bin/bash
+# DESC: Initial ParcoRTLS setup script — installs dependencies, creates config files, etc.
+
 # VERSION 0P.1B.01
 
 # ===================================

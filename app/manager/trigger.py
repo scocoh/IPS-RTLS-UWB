@@ -1,3 +1,15 @@
+# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/trigger.py 1.0.11
+#
+# Trigger Module for Manager for ParcoRTLS
+#   
+# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
+# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
+# Invented by Scott Cohen & Bertrand Dugal.
+# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
+# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
+#
+# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+
 from typing import Dict, List, Optional, Callable
 from .enums import TriggerDirections, TriggerState
 from .models import Tag

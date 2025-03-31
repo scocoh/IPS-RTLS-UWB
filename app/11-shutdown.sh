@@ -1,4 +1,5 @@
 #!/bin/bash
+# DESC: Stops backend, frontend, Mosquitto, and PostgreSQL services, syncs filesystem, and shuts down server
 # VERSION 0P.1B.01
 
 # Define log file

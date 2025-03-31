@@ -205,6 +205,7 @@ async def delete_trigger(trigger_id: int):
         logger.error(f"Unexpected error deleting trigger: {str(e)}")
         raise HTTPException(status_code=500, detail="Unexpected error deleting trigger")
 
+
 # Endpoint to list all triggers
 @router.get("/list_triggers")
 async def list_triggers():
@@ -213,6 +214,44 @@ async def list_triggers():
     if result and isinstance(result, list) and result:
         return result
     raise HTTPException(status_code=404, detail="No triggers found")
+
+# Endpoint to list all triggers - 250330 Revised for New Trigger Demo by Grok
+@router.get("/list_newtriggers")
+async def list_newtriggers():
+    """List all triggers with zone information (experimental)."""
+    try:
+        # Fetch triggers using the stored procedure
+        triggers_data = await call_stored_procedure("maint", "usp_trigger_list")
+        if not triggers_data:
+            raise HTTPException(status_code=404, detail="No triggers found")
+
+        # Fetch zone information using raw SQL query
+        trigger_ids = [trigger["i_trg"] for trigger in triggers_data]
+        if not trigger_ids:
+            return triggers_data
+
+        zone_query = """
+            SELECT t.i_trg, t.i_zn AS zone_id, z.x_nm_zn AS zone_name
+            FROM triggers t
+            LEFT JOIN zones z ON t.i_zn = z.i_zn
+            WHERE t.i_trg = ANY($1)
+        """
+        zone_data = await execute_raw_query("maint", zone_query, trigger_ids)
+        zone_map = {item["i_trg"]: {"zone_id": item["zone_id"], "zone_name": item["zone_name"]} for item in zone_data}
+
+        # Merge zone information into triggers data
+        for trigger in triggers_data:
+            trigger_id = trigger["i_trg"]
+            zone_info = zone_map.get(trigger_id, {"zone_id": None, "zone_name": None})
+            trigger["zone_id"] = zone_info["zone_id"]
+            trigger["zone_name"] = zone_info["zone_name"]
+
+        return triggers_data
+    except Exception as e:
+        logger.error(f"Error retrieving new triggers: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving new triggers: {str(e)}")
+
+
 
 # Endpoint to list all trigger directions
 @router.get("/list_trigger_directions")
@@ -232,13 +271,39 @@ async def list_trigger_directions():
         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint to fetch trigger details by ID
+# @router.get("/get_trigger_details/{trigger_id}")
+# async def get_trigger_details(trigger_id: int):
+#    """Fetch detailed trigger information including regions and zones."""
+#    result = await call_stored_procedure("maint", "usp_trigger_select", trigger_id)
+#    if result:
+#        return result
+#    raise HTTPException(status_code=404, detail="Trigger not found")
 @router.get("/get_trigger_details/{trigger_id}")
 async def get_trigger_details(trigger_id: int):
-    """Fetch detailed trigger information including regions and zones."""
-    result = await call_stored_procedure("maint", "usp_trigger_select", trigger_id)
-    if result:
-        return result
-    raise HTTPException(status_code=404, detail="Trigger not found")
+    """Fetch details of a specific trigger, including its vertices."""
+    try:
+        # Fetch the region associated with the trigger
+        region_query = """
+            SELECT i_rgn FROM regions WHERE i_trg = $1
+        """
+        region = await call_stored_procedure("maint", region_query, [trigger_id])
+        if not region:
+            raise HTTPException(status_code=404, detail=f"No region found for trigger ID {trigger_id}")
+        region_id = region[0]["i_rgn"]
+
+        # Fetch the vertices for the region
+        vertices_query = """
+            SELECT n_x AS x, n_y AS y, n_z AS z, n_ord
+            FROM vertices
+            WHERE i_rgn = $1
+            ORDER BY n_ord
+        """
+        vertices = await call_stored_procedure("maint", vertices_query, [region_id])
+        return {"vertices": vertices}
+    except Exception as e:
+        logger.error(f"Error fetching trigger details for ID {trigger_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching trigger details: {str(e)}")
+
 
 # Endpoint to move a trigger to a new position
 @router.put("/move_trigger/{trigger_id}")
