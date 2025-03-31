@@ -22,29 +22,32 @@ else
     read -p "Choose an option (1/2/3/4): " choice
     if [ "$choice" = "1" ]; then
         echo "Continuing... Changes may be lost."
-    elif [ "$choice" = "2" ]; then
-        # Save changes to a new branch and proceed
+    elif [ "$choice" = "2" ] || [ "$choice" = "4" ]; then
+        # Save changes to a new branch
         CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         TIMESTAMP=$(date +%Y%m%d_%H%M%S)
         NEW_BRANCH="backup-$TIMESTAMP"
         echo "Saving changes to branch: $NEW_BRANCH"
         git checkout -b "$NEW_BRANCH"
-        git add .
-        git commit -m "Saved changes before rebuild on $TIMESTAMP"
+        # Add all changes except this script
+        git status --porcelain | grep -v "15-rebuild_stuff.sh" | while read -r line; do
+            file=$(echo "$line" | awk '{print $2}')
+            git add "$file"
+        done
+        # Check if there are changes to commit
+        if git status --porcelain | grep -q .; then
+            git commit -m "Saved changes on $TIMESTAMP"
+        else
+            echo "No changes to commit (excluding 15-rebuild_stuff.sh)."
+        fi
         git checkout "$CURRENT_BRANCH"
-        echo "Changes saved to $NEW_BRANCH. Proceeding with rebuild..."
-    elif [ "$choice" = "4" ]; then
-        # Save changes to a new branch and stop
-        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-        NEW_BRANCH="backup-$TIMESTAMP"
-        echo "Saving changes to branch: $NEW_BRANCH"
-        git checkout -b "$NEW_BRANCH"
-        git add .
-        git commit -m "Saved changes before stopping on $TIMESTAMP"
-        git checkout "$CURRENT_BRANCH"
-        echo "Changes saved to $NEW_BRANCH. Stopping the script."
-        exit 0
+        echo "Changes saved to $NEW_BRANCH."
+        if [ "$choice" = "4" ]; then
+            echo "Stopping the script."
+            exit 0
+        else
+            echo "Proceeding with rebuild..."
+        fi
     else
         echo "Stopping the script."
         exit 1
