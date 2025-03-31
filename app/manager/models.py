@@ -1,9 +1,22 @@
+# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/models.py 1.0.1
+# 
+# Model Module for Manager
+#   
+# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
+# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
+# Invented by Scott Cohen & Bertrand Dugal.
+# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
+# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
+#
+# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel
-import xml.etree.ElementTree as ET  # Add this import
+import xml.etree.ElementTree as ET
 from .utils import MessageUtilities
-from .enums import RequestType, ResponseType  # Add these imports
+from .enums import RequestType, ResponseType
+import json  # NEW: Added for JSON support
 
 class Tag(BaseModel):
     id: str
@@ -24,6 +37,16 @@ class Tag(BaseModel):
 
     def to_xml(self) -> str:
         return f'<tagid data="{str(self.send_payload_data).lower()}">{self.id}</tagid>'
+
+    # NEW: Added JSON method
+    def to_json(self) -> str:
+        """Converts Tag to JSON string."""
+        data = MessageUtilities.json_base()
+        data.update({
+            "id": self.id,
+            "data": str(self.send_payload_data).lower()
+        })
+        return json.dumps(data)
 
     def __str__(self) -> str:
         return f"{self.id} ({self.x},{self.y},{self.z})"
@@ -72,6 +95,32 @@ class GISData(BaseModel):
             data=root.find("data").text or ""
         )
 
+    # NEW: Added validation method (already present, kept for completeness)
+    def validate(self) -> bool:
+        """Validates that all required GISData fields are present and not None."""
+        required = [self.id, self.type, self.ts, self.x, self.y, self.z, self.bat, self.cnf, self.gwid]
+        return all(field is not None for field in required)
+
+    # NEW: Added JSON method
+    def to_json(self) -> str:
+        """Converts GISData to JSON string."""
+        data = MessageUtilities.json_base()
+        data.update({
+            "type": self.type,
+            "gis": {
+                "id": self.id,
+                "ts": self.ts.isoformat(),
+                "gwid": self.gwid,
+                "cnf": self.cnf,
+                "x": self.x,
+                "y": self.y,
+                "z": self.z,
+                "bat": self.bat
+            },
+            "data": self.data
+        })
+        return json.dumps(data)
+
 class HeartBeat(BaseModel):
     ticks: int
 
@@ -85,6 +134,16 @@ class HeartBeat(BaseModel):
     def from_xml(cls, xml_str: str):
         root = ET.fromstring(xml_str)
         return cls(ticks=int(root.find("ts").text))
+
+    # NEW: Added JSON method
+    def to_json(self) -> str:
+        """Converts HeartBeat to JSON string."""
+        data = MessageUtilities.json_base()
+        data.update({
+            "type": "HeartBeat",
+            "ts": self.ticks
+        })
+        return json.dumps(data)
 
 class Request(BaseModel):
     req_type: RequestType
@@ -113,6 +172,18 @@ class Request(BaseModel):
             tags.append(Tag(id=tag_id, send_payload_data=data))
         return cls(req_type=req_type, req_id=req_id, tags=tags)
 
+    # NEW: Added JSON method
+    def to_json(self) -> str:
+        """Converts Request to JSON string."""
+        data = MessageUtilities.json_base()
+        data.update({
+            "type": "request",
+            "request": self.req_type.value,
+            "reqid": self.req_id,
+            "params": [json.loads(tag.to_json()) for tag in self.tags]
+        })
+        return json.dumps(data)
+
 class Response(BaseModel):
     response_type: ResponseType
     req_id: str
@@ -133,6 +204,18 @@ class Response(BaseModel):
         req_id = root.find("reqid").text
         message = root.find("msg").text or ""
         return cls(response_type=response_type, req_id=req_id, message=message)
+
+    # NEW: Added JSON method
+    def to_json(self) -> str:
+        """Converts Response to JSON string."""
+        data = MessageUtilities.json_base()
+        data.update({
+            "type": "response",
+            "request": self.response_type.value,
+            "reqid": self.req_id,
+            "msg": self.message
+        })
+        return json.dumps(data)
 
 class Ave:
     def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0):

@@ -1,7 +1,8 @@
-console.log("🔥 Live build version 250324 loaded");
-
 //
-// # VERSION 250324 /home/parcoadmin/parco_fastapi/app/src/index.js 0P.10B.02
+// # VERSION 250325 /home/parcoadmin/parco_fastapi/app/src/index_new.js 0.0.1
+// #
+// # Index for the New Trigger Demo
+// #
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Invented by Scott Cohen & Bertrand Dugal.
@@ -9,7 +10,6 @@ console.log("🔥 Live build version 250324 loaded");
 // # Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
 //
 // # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
-
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -21,6 +21,7 @@ import TriggerUX2025 from "./components/TriggerUX2025";
 import ZoneBuilder from "./components/ZoneBuilder";
 import ZoneViewer from "./components/ZoneViewer";
 import BuildOutTool from "./components/BuildOutTool";
+import NewTriggerDemo from "./components/NewTriggerDemo"; // Import the new component
 
 const App = () => {
   const [view, setView] = useState("triggers");
@@ -35,7 +36,8 @@ const App = () => {
         <button onClick={() => setView("maps")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Map Upload</button>
         <button onClick={() => setView("mapList")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>View Maps</button>
         <button onClick={() => setView("zoneviewer")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Zone Viewer & Editor</button>
-        <button onClick={() => setView("buildout")} style={{ padding: "10px", fontSize: "16px" }}>Build Out Tool</button>
+        <button onClick={() => setView("buildout")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Build Out Tool</button>
+        <button onClick={() => setView("newTriggerDemo")} style={{ padding: "10px", fontSize: "16px" }}>Alpha New Trigger Demo</button>
       </div>
 
       <hr />
@@ -47,6 +49,7 @@ const App = () => {
       {view === "mapList" && <MapList />}
       {view === "zoneviewer" && <ZoneViewer />}
       {view === "buildout" && <BuildOutTool />}
+      {view === "newTriggerDemo" && <NewTriggerDemo />}
     </div>
   );
 };

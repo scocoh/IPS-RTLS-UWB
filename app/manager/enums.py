@@ -27,6 +27,7 @@ class ResponseType(Enum):
     EndStream = "EndStrm"
     AddTag = "AddTag"
     RemoveTag = "RemTag"
+    Unknown = "Unknown"  # NEW: Added for fallback
 
 class ConnectionState(Enum):
     NotKnown = "NotKnown"

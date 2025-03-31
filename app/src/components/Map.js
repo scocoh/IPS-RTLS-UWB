@@ -1,5 +1,5 @@
-// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/Map.js 0P.10B.01
-// #  
+// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/Map.js 0P.10B.02
+// #  has updated code from grok for new trigger demo
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 // # Invented by Scott Cohen & Bertrand Dugal.
@@ -8,6 +8,7 @@
 // #
 // # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
 
+// src/components/Map.js
 import React, { useEffect, useRef, useState, memo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css"; // Leaflet core CSS
@@ -15,7 +16,7 @@ import "leaflet-draw/dist/leaflet.draw.css"; // Leaflet.Draw CSS
 import "leaflet-draw"; // Import Leaflet.Draw
 import "./Map.css"; // Canvas styling
 
-const Map = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet }) => {
+const Map = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet, onMapCreated }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const drawnItems = useRef(new L.FeatureGroup());
@@ -261,6 +262,11 @@ const Map = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet }) => {
           if (onDrawComplete) onDrawComplete(JSON.stringify(coords));
         });
 
+        // Call onMapCreated to pass the map instance to the parent
+        if (onMapCreated) {
+          onMapCreated(mapInstance.current);
+        }
+
         isInitialized.current = true;
       };
 
@@ -269,7 +275,7 @@ const Map = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet }) => {
         setError("Failed to load map image. Please check the server response.");
       };
     }
-  }, [mapData, onDrawComplete, triggerColor, useLeaflet]);
+  }, [mapData, onDrawComplete, triggerColor, useLeaflet, onMapCreated]);
 
   // Cleanup
   useEffect(() => {

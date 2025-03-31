@@ -38,4 +38,9 @@ build/
 
 # Misc
 *.bak
-*.tmp
+*.tmpnode_modules/
+venv/
+__pycache__/
+*.pyc
+venv/
+logs/

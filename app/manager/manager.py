@@ -1,3 +1,15 @@
+# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/manager.py 1.0.11
+#
+# Manager for ParcoRTLS
+#   
+# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
+# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
+# Invented by Scott Cohen & Bertrand Dugal.
+# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
+# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
+#
+# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+
 from typing import Dict, List
 import asyncpg
 import asyncio
@@ -7,9 +19,11 @@ from .enums import eMode, eRunState, TriggerDirections
 from .trigger import Trigger
 from .sdk_client import SDKClient
 from .region import Region3D, Region3DCollection
-from .utils import FASTAPI_BASE_URL
+from .utils import FASTAPI_BASE_URL, track_metrics
+from .data_processor import DataProcessor
 import httpx
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -33,14 +47,19 @@ class Manager:
         self.sdk_clients: Dict[str, SDKClient] = {}
         self.kill_list: List[SDKClient] = []
         self.last_heartbeat = 0
-        # Updated connection strings to use parcoadmin user and correct password
         self.conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.231:5432/ParcoRTLSMaint"
         self.hist_conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.231:5432/ParcoRTLSHistR"
         self.db_pool = None
         self.response_callback = None
         self.triggers: List[Trigger] = []
+        self.processor = DataProcessor(min_cnf=50.0)
+        self.tag_rate_counter = 0
+        self.last_rate_time = asyncio.get_event_loop().time()
+        self.tcp_server = None
+        self._heartbeat_task = None
 
     async def load_config_from_db(self):
+        logger.debug(f"Loading config for manager {self.name} from DB")
         async with asyncpg.create_pool(self.conn_string) as pool:
             async with pool.acquire() as conn:
                 row = await conn.fetchrow(
@@ -59,16 +78,17 @@ class Manager:
                     self.mode = eMode.Stream if row['f_fs'] else eMode.Subscription
                     self.resrc_type = row['i_typ_res']
                     self.resrc_type_name = row['x_dsc_res']
+                    logger.debug(f"Config loaded: mode={self.mode}, ip={self.sdk_ip}, port={self.sdk_port}")
                 else:
                     self.sdk_ip = "127.0.0.1"
                     self.sdk_port = 5000
                     self.mode = eMode.Subscription
+                    logger.debug("No config found, using defaults")
 
     async def load_triggers(self, zone_id: int):
-        """Fetch triggers for a given zone and create runtime Trigger instances."""
+        logger.debug(f"Loading triggers for zone {zone_id}")
         try:
             async with httpx.AsyncClient() as client:
-                # Fetch triggers for the zone
                 response = await client.get(f"{FASTAPI_BASE_URL}/api/get_triggers_by_zone/{zone_id}")
                 response.raise_for_status()
                 triggers_data = response.json()
@@ -78,7 +98,6 @@ class Manager:
                     trigger_name = trigger_data["name"]
                     direction_name = trigger_data["direction_name"]
 
-                    # Map direction_name to TriggerDirections
                     direction_map = {
                         "WhileIn": TriggerDirections.WhileIn,
                         "WhileOut": TriggerDirections.WhileOut,
@@ -88,7 +107,6 @@ class Manager:
                     }
                     direction = direction_map.get(direction_name, TriggerDirections.NotSet)
 
-                    # Fetch trigger details to get regions and vertices
                     detail_response = await client.get(f"{FASTAPI_BASE_URL}/api/get_trigger_details/{trigger_id}")
                     detail_response.raise_for_status()
                     trigger_details = detail_response.json()
@@ -110,7 +128,7 @@ class Manager:
                         name=trigger_name,
                         direction=direction,
                         regions=regions,
-                        ignore_unknowns=False  # Adjust based on trigger settings if available
+                        ignore_unknowns=False
                     )
                     self.triggers.append(trigger)
                     logger.info(f"Loaded trigger {trigger_name} (ID: {trigger_id}) for zone {zone_id}")
@@ -131,28 +149,35 @@ class Manager:
 
             self.db_pool = await asyncpg.create_pool(self.hist_conn_string)
             
-            # Load triggers for a specific zone (e.g., zone_id=1)
-            await self.load_triggers(zone_id=1)  # Replace with desired zone_id
-
+            await self.load_triggers(zone_id=1)
             self.run_state = eRunState.Started
+            if self._heartbeat_task is None:
+                self._heartbeat_task = asyncio.create_task(self.heartbeat_loop())
+                logger.debug("Heartbeat loop started")
         except Exception as ex:
             logger.error(f"Start Error: {str(ex)}")
             raise
 
     async def heartbeat_loop(self):
+        logger.debug("Entering heartbeat_loop")
         while self.run_state in [eRunState.Started, eRunState.Starting]:
+            logger.debug(f"Heartbeat loop iteration, run_state: {self.run_state}, clients: {len(self.sdk_clients)}")
             try:
                 if not self.send_sdk_heartbeat:
+                    logger.debug("Heartbeats disabled, exiting loop")
                     return
 
                 to_kill = []
                 hb = HeartBeat(ticks=int(datetime.now().timestamp() * 1000))
                 message = hb.to_xml()
-
+                json_message = hb.to_json()
+                logger.debug(f"Sending heartbeat to {len(self.sdk_clients)} clients, ts: {hb.ticks}")
                 for client_id, client in list(self.sdk_clients.items()):
                     if client.is_closing:
+                        logger.debug(f"Skipping client {client_id}: already closing")
                         continue
                     if client.heartbeat < self.last_heartbeat and client.heartbeat != 0:
+                        logger.debug(f"Client {client_id} failed heartbeat check, marking to kill")
                         client.is_closing = True
                         to_kill.append(client)
                     else:
@@ -160,13 +185,16 @@ class Manager:
                             if client.heartbeat == 0:
                                 client.heartbeat = self.last_heartbeat
                             client.failed_heartbeat = False
-                            await client.websocket.send_text(message)
-                        except:
+                            await client.websocket.send_text(json_message)
+                            logger.debug(f"Sent heartbeat to client {client_id}")
+                        except Exception as ex:
+                            logger.debug(f"Failed to send heartbeat to client {client_id}: {str(ex)}")
                             client.failed_heartbeat = True
                             client.is_closing = True
                             to_kill.append(client)
 
                 self.last_heartbeat = hb.ticks
+                logger.debug(f"Updated last_heartbeat to {self.last_heartbeat}")
 
                 if to_kill:
                     resp = Response(
@@ -174,9 +202,11 @@ class Manager:
                         req_id="",
                         message=f"Failed to respond to heart beat {self.last_heartbeat}"
                     )
+                    resp_message = resp.to_xml()
+                    json_resp_message = resp.to_json()
                     for client in to_kill:
                         try:
-                            await client.websocket.send_text(resp.to_xml())
+                            await client.websocket.send_text(json_resp_message)
                             logger.info(f"SDK Client Heartbeat Failure response sent for {client.client_id}")
                         except:
                             pass
@@ -191,19 +221,24 @@ class Manager:
                 logger.error(f"SDK HeartBeat Timer Error: {str(ex)}")
 
             if self.run_state == eRunState.Started and self.send_sdk_heartbeat:
-                await asyncio.sleep(15)
+                logger.debug("Sleeping for 30 seconds")
+                await asyncio.sleep(30)
+                logger.debug("Finished sleeping")
+        logger.debug("Exiting heartbeat_loop")
 
     async def close_client(self, client: SDKClient):
+        logger.debug(f"Closing client {client.client_id}")
         try:
-            if client:
-                client.is_closing = True
-                await client.websocket.close()
+            if client and not client.is_closing:
+                await client.close()
                 if client.client_id in self.sdk_clients:
                     del self.sdk_clients[client.client_id]
+                    logger.debug(f"Client {client.client_id} removed from sdk_clients")
         except Exception as ex:
             logger.error(f"CloseClient Error: {str(ex)}")
 
     async def parser_data_arrived(self, sm: dict):
+        logger.debug(f"Parser data arrived: {sm}")
         try:
             msg = GISData(
                 id=sm['ID'],
@@ -217,6 +252,17 @@ class Manager:
                 gwid=sm['GWID'],
                 data=""
             )
+            if not msg.validate():
+                logger.debug(f"Invalid tag data: missing field for ID:{msg.id}")
+                return
+
+            if not self.processor.filter_data(msg):
+                logger.debug(f"Filtered tag ID:{msg.id}, duplicate or low CNF")
+                return
+
+            self.processor.compute_raw_average(msg)
+            logger.debug(f"Raw average for tag ID:{msg.id} over 5 positions (2D)")
+
             if self.is_ave:
                 self.tag_ave(msg)
 
@@ -235,10 +281,14 @@ class Manager:
                 await self.queue_full(msg)
 
             self.tag_count += 1
+            self.tag_rate_counter += 1
+            self.last_rate_time = track_metrics(self.tag_rate_counter, self.last_rate_time)
+            
         except Exception as ex:
             logger.warning(f"ParserDataArrived Error: {str(ex)}")
 
     def tag_ave(self, msg: GISData):
+        logger.debug(f"Computing tag average for ID:{msg.id}")
         if msg.id in self.ave_hash:
             a = self.ave_hash[msg.id]
             x = round((1.0 - self.ave_factor) * a.x + (msg.x * self.ave_factor), 1)
@@ -253,12 +303,30 @@ class Manager:
 
     async def queue_full(self, msg: GISData):
         message = msg.to_xml()
+        json_message = msg.to_json()
+        logger.debug(f"Queueing full message: {json_message}")
+        try:
+            msg_dict = json.loads(json_message)
+            if msg_dict.get("type") == "HeartBeat":
+                logger.debug("Skipping heartbeat message in queue_full")
+                return
+        except json.JSONDecodeError:
+            pass
         for client in self.sdk_clients.values():
             if not client.is_closing and client.has_request:
-                client.q.put_nowait(message)
+                client.q.put_nowait(json_message)
 
     async def queue_sub(self, msg: GISData):
         message = msg.to_xml()
+        json_message = msg.to_json()
+        logger.debug(f"Queueing subscription message: {json_message}")
+        try:
+            msg_dict = json.loads(json_message)
+            if msg_dict.get("type") == "HeartBeat":
+                logger.debug("Skipping heartbeat message in queue_sub")
+                return
+        except json.JSONDecodeError:
+            pass
         for client in self.sdk_clients.values():
             if not client.is_closing and client.contains_tag(msg.id):
-                client.q.put_nowait(message)
+                client.q.put_nowait(json_message)

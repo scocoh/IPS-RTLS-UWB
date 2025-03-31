@@ -1,5 +1,5 @@
-# Version: 250319 /home/parcoadmin/parco_fastapi/app/routes/device.py 0.1.27
-# --- CHANGED: Bumped version from 0.1.26 to 0.1.27 to pass new device ID to usp_device_edit for updating x_id_dev
+# Version: 250319 /home/parcoadmin/parco_fastapi/app/routes/device.py 0.1.30
+# --- CHANGED: Bumped version from 0.1.29 to 0.1.30 to fix handling of usp_device_type_delete return value
 # Device management endpoints for ParcoRTLS FastAPI application.
 #   
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
@@ -109,7 +109,7 @@ async def add_device(
 @router.put("/edit_device/{device_id}")
 async def edit_device(
     device_id: str,
-    new_device_id: str = Form(...),  # --- CHANGED: Added new_device_id parameter to capture the updated device ID
+    new_device_id: str = Form(...),
     device_type: int = Form(None),
     device_name: str = Form(None),
     n_moe_x: float = Form(None),
@@ -127,7 +127,6 @@ async def edit_device(
         d_srv_bgn_timestamp = datetime.fromisoformat(d_srv_bgn.replace('Z', '+00:00')) if d_srv_bgn else None
         d_srv_end_timestamp = datetime.fromisoformat(d_srv_end.replace('Z', '+00:00')) if d_srv_end else None
 
-        # --- CHANGED: Pass the new device ID to usp_device_edit
         result = await execute_raw_query(
             "maint",
             """
@@ -145,8 +144,8 @@ async def edit_device(
                 $11::INTEGER
             )
             """,
-            device_id,  # Original device ID
-            new_device_id,  # New device ID
+            device_id,
+            new_device_id,
             device_type,
             device_name,
             d_srv_bgn_timestamp,
@@ -255,18 +254,43 @@ async def set_device_state(device_id: str = Form(...), new_state: str = Form(...
 @router.post("/add_device_type")
 async def add_device_type(request: DeviceTypeRequest):
     """Add a new device type."""
-    result = await call_stored_procedure("maint", "usp_device_type_add", request.description)
-    if result and isinstance(result, (int, str)):
-        return {"message": "Device type added successfully", "type_id": result if isinstance(result, int) else result[0]["i_typ_dev"] if isinstance(result, list) and result else None}
-    raise HTTPException(status_code=500, detail="Failed to add device type")
+    try:
+        result = await call_stored_procedure("maint", "usp_device_type_add", request.description)
+        if isinstance(result, list) and result:
+            return_value = result[0].get("usp_device_type_add")
+            if isinstance(return_value, int):
+                if return_value == -2:
+                    raise HTTPException(status_code=400, detail=f"Device type description '{request.description}' already exists")
+                elif return_value == -1:
+                    raise HTTPException(status_code=500, detail="Failed to add device type due to a database error")
+                else:
+                    return {"message": "Device type added successfully", "type_id": return_value}
+        raise HTTPException(status_code=500, detail="Failed to add device type: Invalid response from database")
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Error adding device type: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error adding device type: {str(e)}")
 
 @router.delete("/delete_device_type/{type_id}")
 async def delete_device_type(type_id: int):
     """Delete a device type by ID."""
-    result = await call_stored_procedure("maint", "usp_device_type_delete", type_id)
-    if result and isinstance(result, (int, str)):
-        return {"message": "Device type deleted successfully"}
-    raise HTTPException(status_code=500, detail="Failed to delete device type")
+    try:
+        result = await call_stored_procedure("maint", "usp_device_type_delete", type_id)
+        # --- CHANGED: Handle the return value as a list of records
+        if isinstance(result, list) and result:
+            return_value = result[0].get("usp_device_type_delete")
+            if isinstance(return_value, int):
+                if return_value in (0, 1):  # 0 means already deleted, 1 means successfully deleted
+                    return {"message": "Device type deleted successfully"}
+                else:
+                    raise HTTPException(status_code=500, detail="Failed to delete device type: Unexpected return value")
+        raise HTTPException(status_code=500, detail="Failed to delete device type: Invalid response from database")
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Error deleting device type: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error deleting device type: {str(e)}")
 
 @router.put("/edit_device_type")
 async def edit_device_type(type_id: int, request: DeviceTypeRequest):

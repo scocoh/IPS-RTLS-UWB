@@ -1,0 +1,6 @@
+{
+  "path": "src/components/ui",
+  "aliases": {
+    "@": "src"
+  }
+}
