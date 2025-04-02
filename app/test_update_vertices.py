@@ -3,7 +3,7 @@ import requests
 import json
 
 # Define the URL for the endpoint
-url = "http://192.168.210.231:8000/zoneviewer/update_vertices"
+url = "http://192.168.210.226:8000/zoneviewer/update_vertices"
 
 # Payload with vertices to update (same as before)
 payload = [
@@ -34,7 +34,7 @@ try:
 
     # If successful, fetch updated vertices to confirm
     if response.status_code == 200:
-        verify_url = "http://192.168.210.231:8000/zoneviewer/get_vertices_for_campus/360"
+        verify_url = "http://192.168.210.226:8000/zoneviewer/get_vertices_for_campus/360"
         verify_response = requests.get(verify_url)
         print(f"Verification Status Code: {verify_response.status_code}")
         print(f"Updated Vertices: {verify_response.text}")

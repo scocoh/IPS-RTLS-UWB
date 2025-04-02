@@ -288,7 +288,7 @@ class DataStream:
 
 # Example Usage of DataStream with Trigger
 async def main():
-    ds = DataStream(tcp_ip="192.168.210.231", port=8000)
+    ds = DataStream(tcp_ip="192.168.210.226", port=8000)
     ds.name = "Manager1"
 
     await ds.load_triggers(zone_id=1)

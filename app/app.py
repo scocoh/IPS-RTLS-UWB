@@ -1,25 +1,9 @@
-#
-#  VERSION 250326 /home/parcoadmin/parco_fastapi/app/app.py 0P.10B.03
-# --- CHANGED: Bumped version from 0P.10B.02 to 0P.10B.03
-# --- FIXED: Replaced deprecated on_event with lifespan handler
-# --- FIXED: Updated CORS to allow WebSocket connections
-# --- ADDED: Mounted manager app under /manager path
-# --- ADDED: Custom middleware to bypass CORS for WebSocket requests
-# --- FIXED: Removed unnecessary ws:// origin from CORS allow_origins
-# --- FIXED: Updated app version to match file version
-# --- REMOVED: Unused app.state.sdk_clients initialization
-#  
-# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
-# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
-# Invented by Scott Cohen & Bertrand Dugal.
-# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
-# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
-#
-# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
-
+# /home/parcoadmin/parco_fastapi/app/app.py
+# Version: 0P.10B.06 - Restored original, ensured CORS
 import asyncpg
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import logging
 from database.db import get_async_db_pool
 from routes.device import router as device_router
@@ -74,7 +58,7 @@ async def lifespan(app: FastAPI):
 # Create the FastAPI app with the lifespan handler
 app = FastAPI(
     title="Parco RTLS API",
-    version="0P.10B.03",  # Updated to match file version
+    version="0P.10B.06",  # Updated to match file version
     docs_url="/docs",
     lifespan=lifespan
 )
@@ -83,21 +67,37 @@ app = FastAPI(
 @app.middleware("http")
 async def bypass_cors_for_websocket(request: Request, call_next):
     logger.debug(f"Request path: {request.url.path}, Headers: {request.headers}")
-    if "upgrade" in request.headers.get("connection", "").lower() and request.headers.get("upgrade", "").lower() == "websocket":
-        logger.info(f"Bypassing CORS for WebSocket request: {request.url.path}")
-        response = await call_next(request)
-        return response
+    try:
+        if "upgrade" in request.headers.get("connection", "").lower() and request.headers.get("upgrade", "").lower() == "websocket":
+            logger.info(f"Bypassing CORS for WebSocket request: {request.url.path}")
+            response = await call_next(request)
+            return response
 
-    # Apply CORS for non-WebSocket requests
-    response = await call_next(request)
-    return response
+        response = await call_next(request)
+        response.headers["Access-Control-Allow-Origin"] = "http://192.168.210.226:3000"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        return response
+    except Exception as e:
+        logger.error(f"Middleware error: {str(e)}")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "Internal Server Error"},
+            headers={
+                "Access-Control-Allow-Origin": "http://192.168.210.226:3000",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*"
+            }
+        )
 
 # Configure CORS for HTTP requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://192.168.210.231:3000",  # Allow your React development server
-        "http://192.168.210.231:8000"   # Allow HTTP requests from the same host
+        "http://192.168.210.226:3000",  # Allow your React development server
+        "http://192.168.210.226:8000"   # Allow HTTP requests from the same host
     ],
     allow_credentials=True,
     allow_methods=["*"],

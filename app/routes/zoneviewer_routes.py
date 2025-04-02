@@ -31,7 +31,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger.setLevel(logging.DEBUG)
 
 # Database connection for transaction support
-DATABASE_URL = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.231:5432/ParcoRTLSMaint"
+DATABASE_URL = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
 engine = create_engine(DATABASE_URL)
 
 class AddVertexRequest(BaseModel):
@@ -146,7 +146,7 @@ async def get_map_data(map_id: int):
         logger.info(f"Retrieved map data for map_id={map_id}")
         data = map_data[0]
         return {
-            "imageUrl": f"http://192.168.210.231:8000/zoneviewer/get_map/{map_id}",
+            "imageUrl": f"http://192.168.210.226:8000/zoneviewer/get_map/{map_id}",
             "bounds": [
                 [float(data["min_y"]), float(data["min_x"])],
                 [float(data["max_y"]), float(data["max_x"])]

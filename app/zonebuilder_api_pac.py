@@ -34,8 +34,8 @@ import traceback  # For stack tracing
 # ✅ **Fix: Define Flask App Before Registering Routes**
 app = Flask(__name__, template_folder="templates", static_folder="static")
 CORS(app, resources={
-    r"/get_*": {"origins": ["http://192.168.210.231:5004", "http://192.168.210.231:5012"]},  # Allow CORS for get endpoints from zonebuilder_ui and zoneviewer_ui
-    r"/update_vertices": {"origins": ["http://192.168.210.231:5004", "http://192.168.210.231:5012"]}  # Allow CORS for update_vertices
+    r"/get_*": {"origins": ["http://192.168.210.226:5004", "http://192.168.210.226:5012"]},  # Allow CORS for get endpoints from zonebuilder_ui and zoneviewer_ui
+    r"/update_vertices": {"origins": ["http://192.168.210.226:5004", "http://192.168.210.226:5012"]}  # Allow CORS for update_vertices
 })
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

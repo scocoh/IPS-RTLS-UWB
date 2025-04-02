@@ -8,7 +8,7 @@ import io
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploaded_maps'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://parcoadmin:parcoMCSE04106!@192.168.210.231:5432/ParcoRTLSMaint'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint'
 db = SQLAlchemy(app)
 
 class Map(db.Model):

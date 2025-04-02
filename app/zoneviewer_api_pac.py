@@ -20,8 +20,8 @@ import json  # Added for JSON parsing (if needed for future ParcoRTLS functions)
 
 app = Flask(__name__, template_folder="templates")
 CORS(app, resources={  # Allow same-origin requests
-    r"/get_*": {"origins": ["http://192.168.210.231:5014"]},
-    r"/update_*": {"origins": ["http://192.168.210.231:5014"]},  # Allow POST for update endpoints
+    r"/get_*": {"origins": ["http://192.168.210.226:5014"]},
+    r"/update_*": {"origins": ["http://192.168.210.226:5014"]},  # Allow POST for update endpoints
 })
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

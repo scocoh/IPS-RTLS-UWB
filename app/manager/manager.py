@@ -1,27 +1,17 @@
-# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/manager.py 1.0.11
-#
-# Manager for ParcoRTLS
-#   
-# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
-# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
-# Invented by Scott Cohen & Bertrand Dugal.
-# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
-# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
-#
-# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
-
+# /home/parcoadmin/parco_fastapi/app/manager/manager.py
+# Version: 1.0.17 - Added TriggerEvent broadcasting
 from typing import Dict, List
 import asyncpg
 import asyncio
-from datetime import datetime
-from .models import GISData, HeartBeat, Response, ResponseType, Ave
+from datetime import datetime, timedelta
+import httpx
+from .models import GISData, HeartBeat, Response, ResponseType, Ave, Tag  # Added Tag import
 from .enums import eMode, eRunState, TriggerDirections
 from .trigger import Trigger
 from .sdk_client import SDKClient
 from .region import Region3D, Region3DCollection
 from .utils import FASTAPI_BASE_URL, track_metrics
 from .data_processor import DataProcessor
-import httpx
 import logging
 import json
 
@@ -47,8 +37,8 @@ class Manager:
         self.sdk_clients: Dict[str, SDKClient] = {}
         self.kill_list: List[SDKClient] = []
         self.last_heartbeat = 0
-        self.conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.231:5432/ParcoRTLSMaint"
-        self.hist_conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.231:5432/ParcoRTLSHistR"
+        self.conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
+        self.hist_conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSHistR"
         self.db_pool = None
         self.response_callback = None
         self.triggers: List[Trigger] = []
@@ -57,6 +47,15 @@ class Manager:
         self.last_rate_time = asyncio.get_event_loop().time()
         self.tcp_server = None
         self._heartbeat_task = None
+        self.last_tag_time = 0
+        self.simulator_active = False
+        self.tag_rate = {}
+        self.tag_averages: Dict[str, List[Ave]] = {}
+        self.tag_averages_2d: Dict[str, List[Ave]] = {}
+        self.tag_averages_3d: Dict[str, List[Ave]] = {}
+        self.tag_timestamps: Dict[str, List[datetime]] = {}
+        self.tag_timestamps_2d: Dict[str, List[datetime]] = {}
+        self.tag_timestamps_3d: Dict[str, List[datetime]] = {}
 
     async def load_config_from_db(self):
         logger.debug(f"Loading config for manager {self.name} from DB")
@@ -154,6 +153,7 @@ class Manager:
             if self._heartbeat_task is None:
                 self._heartbeat_task = asyncio.create_task(self.heartbeat_loop())
                 logger.debug("Heartbeat loop started")
+            asyncio.create_task(self.monitor_tag_data())
         except Exception as ex:
             logger.error(f"Start Error: {str(ex)}")
             raise
@@ -250,7 +250,8 @@ class Manager:
                 bat=sm['Bat'],
                 cnf=sm['CNF'],
                 gwid=sm['GWID'],
-                data=""
+                data="",
+                sequence=sm.get('Sequence')
             )
             if not msg.validate():
                 logger.debug(f"Invalid tag data: missing field for ID:{msg.id}")
@@ -266,14 +267,37 @@ class Manager:
             if self.is_ave:
                 self.tag_ave(msg)
 
-            async with self.db_pool.acquire() as conn:
-                await conn.execute(
-                    """
-                    INSERT INTO positionhistory (X_ID_DEV, D_POS_BGN, N_X, N_Y, N_Z, CNF, GWID, BAT)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                    """,
-                    msg.id, msg.ts, msg.x, msg.y, msg.z, msg.cnf, msg.gwid, str(msg.bat)
-                )
+            if msg.type != "Sim":
+                async with self.db_pool.acquire() as conn:
+                    await conn.execute(
+                        """
+                        INSERT INTO positionhistory (X_ID_DEV, D_POS_BGN, N_X, N_Y, N_Z, CNF, GWID, BAT)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                        """,
+                        msg.id, msg.ts, msg.x, msg.y, msg.z, msg.cnf, msg.gwid, str(msg.bat)
+                    )
+                    logger.debug(f"Stored real data for tag ID:{msg.id} in positionhistory")
+            else:
+                logger.debug(f"Skipped DB storage for simulated tag ID:{msg.id}")
+
+            # Convert GISData to Tag for trigger checking
+            tag = Tag(id=msg.id, x=msg.x, y=msg.y, z=msg.z)
+
+            # Check triggers and broadcast events
+            for trigger in self.triggers:
+                if await trigger.check_trigger(tag):
+                    event_message = {
+                        "type": "TriggerEvent",
+                        "trigger_id": trigger.i_trg,
+                        "direction": trigger.direction.name,
+                        "tag_id": msg.id,
+                        "timestamp": msg.ts.isoformat()
+                    }
+                    json_message = json.dumps(event_message)
+                    for client_id, client in self.sdk_clients.items():
+                        if not client.is_closing and client.contains_tag(msg.id):
+                            client.q.put_nowait(json_message)
+                            logger.debug(f"Sent TriggerEvent to client {client_id}: {json_message}")
 
             if self.mode == eMode.Subscription:
                 await self.queue_sub(msg)
@@ -283,7 +307,7 @@ class Manager:
             self.tag_count += 1
             self.tag_rate_counter += 1
             self.last_rate_time = track_metrics(self.tag_rate_counter, self.last_rate_time)
-            
+            self.last_tag_time = asyncio.get_event_loop().time()
         except Exception as ex:
             logger.warning(f"ParserDataArrived Error: {str(ex)}")
 
@@ -327,6 +351,40 @@ class Manager:
                 return
         except json.JSONDecodeError:
             pass
-        for client in self.sdk_clients.values():
+        for client_id, client in self.sdk_clients.items():
             if not client.is_closing and client.contains_tag(msg.id):
+                logger.debug(f"Client {client_id} subscribed to tag {msg.id}, queuing message")
                 client.q.put_nowait(json_message)
+            else:
+                logger.debug(f"Client {client_id} not subscribed to tag {msg.id} or closing")
+
+    async def monitor_tag_data(self):
+        """Monitor tag data and control simulator via WebSocket."""
+        logger.debug("Starting tag data monitor")
+        while self.run_state == eRunState.Started:
+            try:
+                current_time = asyncio.get_event_loop().time()
+                if current_time - self.last_tag_time > 5.0:
+                    if not self.simulator_active:
+                        logger.info("No real tag data for 5s, signaling simulator to start")
+                        await self.signal_simulator("start_simulator")
+                        self.simulator_active = True
+                elif self.simulator_active:
+                    logger.info("Real tag data resumed, signaling simulator to stop")
+                    await self.signal_simulator("stop_simulator")
+                    self.simulator_active = False
+                await asyncio.sleep(1.0)
+            except Exception as ex:
+                logger.error(f"Tag data monitor error: {str(ex)}")
+                await asyncio.sleep(1.0)
+
+    async def signal_simulator(self, command: str):
+        """Send command to simulator via WebSocket."""
+        message = json.dumps({"command": command})
+        for client_id, client in list(self.sdk_clients.items()):
+            if client_id.startswith("sim_"):
+                try:
+                    await client.websocket.send_text(message)
+                    logger.debug(f"Sent {command} to simulator client {client_id}")
+                except Exception as ex:
+                    logger.error(f"Failed to signal simulator {client_id}: {str(ex)}")

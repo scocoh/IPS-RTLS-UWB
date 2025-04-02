@@ -1,13 +1,3 @@
-// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/Map.js 0P.10B.02
-// #  has updated code from grok for new trigger demo
-// # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
-// # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
-// # Invented by Scott Cohen & Bertrand Dugal.
-// # Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
-// # Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
-// #
-// # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
-
 // src/components/Map.js
 import React, { useEffect, useRef, useState, memo } from "react";
 import L from "leaflet";
@@ -52,6 +42,141 @@ const Map = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet, onMapCreat
       fetchMapData();
     }
   }, [zoneId, mapData]);
+
+  // Leaflet rendering logic
+  useEffect(() => {
+    if (!mapData || !mapRef.current || !useLeaflet || isInitialized.current) {
+      console.log("Skipping map initialization:", {
+        hasMapData: !!mapData,
+        hasMapRef: !!mapRef.current,
+        useLeaflet,
+        isInitialized: isInitialized.current
+      });
+      return;
+    }
+
+    // Ensure the map container is in the DOM
+    if (!document.body.contains(mapRef.current)) {
+      console.error("Map container is not in the DOM, cannot initialize map.");
+      setError("Map container is not in the DOM.");
+      return;
+    }
+
+    // Initialize the map only if it hasn't been initialized
+    try {
+      mapInstance.current = L.map(mapRef.current, {
+        crs: L.CRS.Simple,
+        minZoom: -5,
+        maxZoom: 5,
+        zoomControl: true,
+        attributionControl: false,
+      });
+      isInitialized.current = true;
+      console.log("Map initialized successfully:", mapInstance.current);
+    } catch (error) {
+      console.error("Error initializing map:", error);
+      setError("Error initializing map: " + error.message);
+      return;
+    }
+
+    // Remove any existing tile layers
+    mapInstance.current.eachLayer((layer) => {
+      if (layer instanceof L.TileLayer) mapInstance.current.removeLayer(layer);
+    });
+
+    const xMin = mapData.bounds[0][1]; // -80
+    const xMax = mapData.bounds[1][1]; // 160
+    const yMin = mapData.bounds[0][0]; // -40
+    const yMax = mapData.bounds[1][0]; // 160
+    const xRange = xMax - xMin; // 240
+    const yRange = yMax - yMin; // 200
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = mapData.imageUrl;
+
+    img.onload = () => {
+      console.log("Leaflet: Map image loaded successfully:", mapData.imageUrl, "Dimensions:", img.width, "x", img.height);
+      if (!mapInstance.current) {
+        console.error("Map instance is null, cannot add layers.");
+        setError("Map instance is null, cannot load map.");
+        return;
+      }
+
+      const pixelBounds = [
+        [0, 0], // Bottom-left in pixel coordinates
+        [600, 500], // Top-right in pixel coordinates
+      ];
+
+      // Use logical bounds for image overlay
+      L.imageOverlay(mapData.imageUrl, [
+        [yMin, xMin], // Bottom-left [-40, -80]
+        [yMax, xMax], // Top-right [160, 160]
+      ]).addTo(mapInstance.current);
+      mapInstance.current.fitBounds([
+        [yMin, xMin],
+        [yMax, xMax],
+      ]);
+
+      mapInstance.current.addLayer(drawnItems.current);
+
+      const colorMap = {
+        red: "#ff0000",
+        green: "#00ff00",
+        blue: "#0000ff",
+      };
+
+      const drawControl = new L.Control.Draw({
+        edit: { featureGroup: drawnItems.current },
+        draw: {
+          polygon: {
+            shapeOptions: { color: colorMap[triggerColor] || "#ff0000", weight: 2 },
+          },
+          rectangle: false,
+          polyline: false,
+          circle: false,
+          marker: false,
+          circlemarker: false,
+        },
+      });
+      mapInstance.current.addControl(drawControl);
+
+      mapInstance.current.on(L.Draw.Event.CREATED, (event) => {
+        const layer = event.layer;
+        drawnItems.current.addLayer(layer);
+        const coords = layer.getLatLngs()[0].map((latLng, index) => {
+          console.log(`Raw latLng for point ${index + 1}:`, { lat: latLng.lat, lng: latLng.lng });
+          const normalizedLat = (latLng.lat - yMin) / yRange;
+          const normalizedLng = (latLng.lng - xMin) / xRange;
+          const x = xMin + normalizedLng * xRange;
+          const y = yMin + normalizedLat * yRange;
+          return { n_x: x, n_y: y, n_z: 0, n_ord: index + 1 };
+        });
+        console.log("Scaled points (Leaflet):", coords);
+        if (onDrawComplete) onDrawComplete(JSON.stringify(coords));
+      });
+
+      // Call onMapCreated to pass the map instance to the parent
+      if (onMapCreated) {
+        onMapCreated(mapInstance.current);
+      }
+    };
+
+    img.onerror = () => {
+      console.error("Failed to load map image:", mapData.imageUrl);
+      setError("Failed to load map image. Please check the server response.");
+    };
+
+    // Cleanup
+    return () => {
+      if (mapInstance.current) {
+        console.log("Cleaning up map instance for zoneId:", zoneId);
+        mapInstance.current.remove();
+        mapInstance.current = null;
+        isInitialized.current = false;
+      }
+    };
+  }, [mapData, useLeaflet, onDrawComplete, triggerColor, onMapCreated, zoneId]);
 
   // Canvas rendering logic
   useEffect(() => {
@@ -179,118 +304,6 @@ const Map = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet, onMapCreat
       };
     }
   }, [mapData, onDrawComplete, triggerColor, useLeaflet]);
-
-  // Leaflet rendering logic
-  useEffect(() => {
-    if (mapData && mapRef.current && useLeaflet && !isInitialized.current) {
-      mapInstance.current = L.map(mapRef.current, {
-        crs: L.CRS.Simple,
-        minZoom: -5,
-        maxZoom: 5,
-        zoomControl: true,
-        attributionControl: false,
-      });
-
-      mapInstance.current.eachLayer((layer) => {
-        if (layer instanceof L.TileLayer) mapInstance.current.removeLayer(layer);
-      });
-
-      const xMin = mapData.bounds[0][1]; // -80
-      const xMax = mapData.bounds[1][1]; // 160
-      const yMin = mapData.bounds[0][0]; // -40
-      const yMax = mapData.bounds[1][0]; // 160
-      const xRange = xMax - xMin; // 240
-      const yRange = yMax - yMin; // 200
-
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = mapData.imageUrl;
-
-      img.onload = () => {
-        console.log("Leaflet: Map image loaded successfully:", mapData.imageUrl, "Dimensions:", img.width, "x", img.height);
-        const pixelBounds = [
-          [0, 0], // Bottom-left in pixel coordinates
-          [600, 500], // Top-right in pixel coordinates
-        ];
-
-        // Use logical bounds for image overlay
-        L.imageOverlay(mapData.imageUrl, [
-          [yMin, xMin], // Bottom-left [-40, -80]
-          [yMax, xMax], // Top-right [160, 160]
-        ]).addTo(mapInstance.current);
-        mapInstance.current.fitBounds([
-          [yMin, xMin],
-          [yMax, xMax],
-        ]);
-
-        mapInstance.current.addLayer(drawnItems.current);
-
-        const colorMap = {
-          red: "#ff0000",
-          green: "#00ff00",
-          blue: "#0000ff",
-        };
-
-        const drawControl = new L.Control.Draw({
-          edit: { featureGroup: drawnItems.current },
-          draw: {
-            polygon: {
-              shapeOptions: { color: colorMap[triggerColor] || "#ff0000", weight: 2 },
-            },
-            rectangle: false,
-            polyline: false,
-            circle: false,
-            marker: false,
-            circlemarker: false,
-          },
-        });
-        mapInstance.current.addControl(drawControl);
-
-        mapInstance.current.on(L.Draw.Event.CREATED, (event) => {
-          const layer = event.layer;
-          drawnItems.current.addLayer(layer);
-          const coords = layer.getLatLngs()[0].map((latLng, index) => {
-            console.log(`Raw latLng for point ${index + 1}:`, { lat: latLng.lat, lng: latLng.lng });
-            // Normalize latLng to pixel bounds and map to logical coordinates
-            const normalizedLat = (latLng.lat - yMin) / yRange; // Normalize to [0, 1]
-            const normalizedLng = (latLng.lng - xMin) / xRange; // Normalize to [0, 1]
-            const x = xMin + normalizedLng * xRange; // Map to [-80, 160]
-            const y = yMin + normalizedLat * yRange; // Map to [-40, 160]
-            return { n_x: x, n_y: y, n_z: 0, n_ord: index + 1 };
-          });
-          console.log("Scaled points (Leaflet):", coords);
-          if (onDrawComplete) onDrawComplete(JSON.stringify(coords));
-        });
-
-        // Call onMapCreated to pass the map instance to the parent
-        if (onMapCreated) {
-          onMapCreated(mapInstance.current);
-        }
-
-        isInitialized.current = true;
-      };
-
-      img.onerror = () => {
-        console.error("Failed to load map image:", mapData.imageUrl);
-        setError("Failed to load map image. Please check the server response.");
-      };
-    }
-  }, [mapData, onDrawComplete, triggerColor, useLeaflet, onMapCreated]);
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      if (mapInstance.current) {
-        mapInstance.current.remove();
-        mapInstance.current = null;
-        isInitialized.current = false;
-      }
-      if (mapData && imageRef.current) {
-        const img = new Image();
-        img.src = mapData.imageUrl; // Clear any pending loads
-      }
-    };
-  }, [mapData]);
 
   if (useLeaflet) {
     return (

@@ -65,7 +65,7 @@ async def get_map(zone_id: int):
     """Fetch the map image associated with a selected zone as a downloadable file.
 
     Supports both GET and HEAD requests to allow browsers to check the resource before fetching.
-    Note: Ensure CORS middleware is configured in app.py to allow requests from the React app (http://192.168.210.231:3000).
+    Note: Ensure CORS middleware is configured in app.py to allow requests from the React app (http://192.168.210.226:3000).
     """
     try:
         # Get map ID from zone

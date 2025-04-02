@@ -1,9 +1,5 @@
-"""
-database/db.py
-Version: 0.1.5 (Enhanced debug logging for execute_raw_query)
-Database connection management for ParcoRTLS FastAPI application.
-"""
-
+# /home/parcoadmin/parco_fastapi/app/database/db.py
+# Version: 0.1.7 - Fixed circular import by moving app import inside functions
 import asyncpg
 import asyncio
 from fastapi import HTTPException
@@ -20,7 +16,6 @@ class DatabaseError(Exception):
         super().__init__(self.message)
 
 async def get_async_db_pool(db_type: str = "maint") -> Optional[asyncpg.Pool]:
-    # [Existing code unchanged]
     max_retries = 10
     retry_delay = 5
     for attempt in range(max_retries):
@@ -37,7 +32,6 @@ async def get_async_db_pool(db_type: str = "maint") -> Optional[asyncpg.Pool]:
             logger.info(f"Successfully created connection pool for {db_type}")
             return pool
         except asyncpg.TooManyConnectionsError as e:
-            # [Existing retry logic unchanged]
             logger.error(f"Attempt {attempt + 1}/{max_retries} failed to connect to {db_type}: {str(e)}")
             if attempt < max_retries - 1:
                 await asyncio.sleep(retry_delay)
@@ -48,7 +42,6 @@ async def get_async_db_pool(db_type: str = "maint") -> Optional[asyncpg.Pool]:
                     return None
                 raise HTTPException(status_code=503, detail=f"Failed to connect to {db_type} after retries: too many clients")
         except asyncpg.PostgresError as e:
-            # [Existing retry logic unchanged]
             logger.error(f"Attempt {attempt + 1}/{max_retries} failed to connect to {db_type}: {str(e)}")
             if "database does not exist" in str(e) or "no such database" in str(e):
                 logger.warning(f"Database {db_type} may be empty or missing. Falling back to maintenance-only mode.")
@@ -69,7 +62,7 @@ async def get_async_db_pool(db_type: str = "maint") -> Optional[asyncpg.Pool]:
 async def call_stored_procedure(db_type: str, procedure_name: str, *args, pool: Optional[asyncpg.Pool] = None) -> Union[List[Dict[str, Any]], Any]:
     """Call a stored procedure and return its results, with fallback for missing procedures."""
     if pool is None:
-        from app import app
+        from app import app  # Moved import inside function to avoid circular import
         pool = app.state.async_db_pools.get(db_type)
         if not pool:
             logger.warning(f"No connection pool available for {db_type}. Attempting to create one.")
@@ -94,18 +87,6 @@ async def call_stored_procedure(db_type: str, procedure_name: str, *args, pool: 
         except asyncpg.UndefinedFunctionError as e:
             error_msg = f"Stored procedure {procedure_name} does not exist in {db_type}: {str(e)}"
             logger.warning(error_msg)
-            # Fallback to raw query for SELECT operations (assuming SELECT-like behavior)
-            if procedure_name.startswith("usp_") and "select" in procedure_name.lower():
-                table_name = procedure_name.replace("usp_", "").replace("_select", "").lower()
-                if table_name == "device_select_by_id":
-                    table_name = "devices"
-                    query = f"SELECT * FROM public.{table_name} WHERE x_id_dev = $1"
-                    logger.debug(f"Falling back to raw query: {query} with args: {args}")
-                    rows = await connection.fetch(query, *args[0])  # Use only the first arg for device_id
-                    logger.debug(f"Raw query result: {rows}")
-                    if rows:
-                        return [dict(row) for row in rows]
-                    return None
             raise HTTPException(status_code=500, detail=error_msg)
         except asyncpg.PostgresError as e:
             error_msg = f"Error calling {procedure_name} in {db_type}: {str(e)}"
@@ -119,21 +100,10 @@ async def call_stored_procedure(db_type: str, procedure_name: str, *args, pool: 
 async def execute_raw_query(db_type: str, query: str, *args, pool: Optional[asyncpg.Pool] = None) -> List[Dict[str, Any]]:
     """
     Execute a raw SQL query and return the results.
-
-    Args:
-        db_type (str): The database type (e.g., "maint", "data").
-        query (str): The raw SQL query to execute.
-        *args: Variable arguments to pass to the query.
-        pool (Optional[asyncpg.Pool]): An optional connection pool; if None, uses app.state.async_db_pools.
-
-    Returns:
-        List[Dict[str, Any]]: A list of dictionaries representing the query results.
-
-    Raises:
-        HTTPException: If the query fails or the database is unavailable.
+    Logs are now sanitized to avoid logging binary (bytea) fields.
     """
     if pool is None:
-        from app import app
+        from app import app  # Moved import inside function to avoid circular import
         pool = app.state.async_db_pools.get(db_type)
         if not pool:
             logger.warning(f"No connection pool available for {db_type}. Attempting to create one.")
@@ -146,8 +116,17 @@ async def execute_raw_query(db_type: str, query: str, *args, pool: Optional[asyn
         try:
             logger.debug(f"Executing raw query: {query} with args: {args}")
             rows = await connection.fetch(query, *args)
-            logger.debug(f"Raw query result (before dict conversion): {rows}")
-            logger.debug(f"Raw query result (after dict conversion): {[dict(row) for row in rows]}")
+
+            # 🔐 Sanitize binary results before logging
+            def sanitize(row):
+                return {
+                    k: (f"<{len(v)} bytes>" if isinstance(v, (bytes, bytearray)) else v)
+                    for k, v in dict(row).items()
+                }
+
+            safe_preview = [sanitize(row) for row in rows]
+            logger.debug(f"Raw query result (sanitized): {safe_preview}")
+
             return [dict(row) for row in rows]
         except asyncpg.PostgresError as e:
             error_msg = f"Error executing raw query in {db_type}: {str(e)}"
@@ -159,7 +138,7 @@ async def execute_raw_query(db_type: str, query: str, *args, pool: Optional[asyn
             raise HTTPException(status_code=500, detail=error_msg)
 
 async def close_db_pools():
-    from app import app
+    from app import app  # Moved import inside function to avoid circular import
     if hasattr(app.state, "async_db_pools"):
         for db_type, pool in app.state.async_db_pools.items():
             if pool:

@@ -32,8 +32,8 @@ import psycopg2
 # ✅ **Fix: Define Flask App Before Registering Routes**
 app = Flask(__name__, template_folder="templates", static_folder="static")
 CORS(app, resources={
-    r"/get_*": {"origins": "http://192.168.210.231:5004"},  # Allow CORS for get endpoints from zoneviewer_ui
-    r"/update_vertices": {"origins": "http://192.168.210.231:5004"}  # Allow CORS for update_vertices from zoneviewer_ui
+    r"/get_*": {"origins": "http://192.168.210.226:5004"},  # Allow CORS for get endpoints from zoneviewer_ui
+    r"/update_vertices": {"origins": "http://192.168.210.226:5004"}  # Allow CORS for update_vertices from zoneviewer_ui
 })
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -76,7 +76,7 @@ async def get_map_data(zone_id: int):
 
         logger.info(f"Retrieved map data for zone_id={zone_id}, map_id={i_map}")
         return {
-            "imageUrl": f"http://192.168.210.231:8000/api/get_map/{zone_id}",  # Construct URL to binary image endpoint
+            "imageUrl": f"http://192.168.210.226:8000/api/get_map/{zone_id}",  # Construct URL to binary image endpoint
             "bounds": [
                 [map_data[0]["min_y"] or 0, map_data[0]["min_x"] or 0],
                 [map_data[0]["max_y"] or 100, map_data[0]["max_x"] or 100]

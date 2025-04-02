@@ -30,7 +30,7 @@ const TriggerDemo = () => {
 
   // Fetch Maps from Backend
   useEffect(() => {
-    fetch('http://192.168.210.231:8000/maps/get_maps') // Use full URL
+    fetch('http://192.168.210.226:8000/maps/get_maps') // Use full URL
       .then((response) => response.json())
       .then((data) => setMaps(data))
       .catch((error) => console.error('Error fetching maps:', error));
@@ -38,7 +38,7 @@ const TriggerDemo = () => {
 
   // Fetch Trigger Directions from Backend
   useEffect(() => {
-    fetch('http://192.168.210.231:8000/api/list_trigger_directions')  // FastAPI endpoint for trigger directions
+    fetch('http://192.168.210.226:8000/api/list_trigger_directions')  // FastAPI endpoint for trigger directions
       .then((response) => response.json())
       .then((data) => setTriggerDirections(data))  // Set trigger directions to state
       .catch((error) => console.error('Error fetching trigger directions:', error));
@@ -48,7 +48,7 @@ const TriggerDemo = () => {
   useEffect(() => {
     if (selectedMap) {
       const campusId = selectedMap.i_map;  // Assuming the map has an `i_map` field
-      fetch(`http://192.168.210.231:8000/maps/get_campus_zones/${campusId}`)  // Full API URL for zones
+      fetch(`http://192.168.210.226:8000/maps/get_campus_zones/${campusId}`)  // Full API URL for zones
         .then((response) => response.json())
         .then((data) => setZones(data))
         .catch((error) => console.error('Error fetching zones:', error));
@@ -63,7 +63,7 @@ const TriggerDemo = () => {
 
   // Handle Map Selection
   const handleMapSelect = (mapId) => {
-    fetch(`http://192.168.210.231:8000/maps/get_map/${mapId}`)  // Use full API URL for map data
+    fetch(`http://192.168.210.226:8000/maps/get_map/${mapId}`)  // Use full API URL for map data
       .then((response) => response.json())
       .then((data) => setSelectedMap(data[0]))  // Assuming data is the map object
       .catch((error) => console.error('Error fetching map:', error));

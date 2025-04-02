@@ -14,7 +14,7 @@ import pytest
 import httpx
 from datetime import datetime
 
-BASE_URL = "http://192.168.210.231:8000"
+BASE_URL = "http://192.168.210.226:8000"
 
 @pytest.mark.asyncio
 async def test_input_screen():

@@ -22,7 +22,7 @@ DB_CONFIG = {
     'dbname': 'ParcoRTLSMaint',
     'user': 'parcoadmin',
     'password': 'parcoMCSE04106!',
-    'host': '192.168.210.231',
+    'host': '192.168.210.226',
     'port': '5432'
 }
 
@@ -68,7 +68,7 @@ def send_mqtt_message(message):
         mqtt_publish.single(
             "parco/zone_mapper",
             json.dumps(message),
-            hostname="192.168.210.231",
+            hostname="192.168.210.226",
             port=1883
         )
         logger.info(f"MQTT message sent: {json.dumps(message)}")

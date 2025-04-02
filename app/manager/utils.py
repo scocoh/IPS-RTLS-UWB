@@ -28,7 +28,7 @@ class MessageUtilities:
         return {"version": "1.0"}
 
 # Constants
-FASTAPI_BASE_URL = "http://192.168.210.231:8000"
+FASTAPI_BASE_URL = "http://192.168.210.226:8000"
 MQTT_BROKER = "localhost"
 
 # NEW: Added metrics tracking function

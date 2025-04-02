@@ -13,7 +13,7 @@ from sqlalchemy import create_engine, text
 import json
 
 # Database connection
-DATABASE_URL = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.231:5432/ParcoRTLSMaint"
+DATABASE_URL = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
 engine = create_engine(DATABASE_URL)
 
 def get_vertices():

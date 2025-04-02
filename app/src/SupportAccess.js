@@ -21,7 +21,7 @@ function SupportAccess() {
           if (result.status === "ok") {
             // Open the internal metadata page in a new tab
             window.open(
-              "http://192.168.210.231:8000/zonebuilder/internal-metadata?format=html",
+              "http://192.168.210.226:8000/zonebuilder/internal-metadata?format=html",
               "_blank"
             );
           }

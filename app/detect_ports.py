@@ -5,10 +5,10 @@ import psutil
 import json
 import paho.mqtt.publish as publish
 
-MQTT_BROKER = "192.168.210.231"
+MQTT_BROKER = "192.168.210.226"
 MQTT_TOPIC = "homeassistant/sensor/rtls_ports"
 
-def get_open_ports(host="192.168.210.231", port_range=(5000, 9000)):
+def get_open_ports(host="192.168.210.226", port_range=(5000, 9000)):
     open_ports = {}
     
     for port in range(port_range[0], port_range[1]):

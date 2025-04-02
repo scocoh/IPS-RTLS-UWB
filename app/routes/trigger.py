@@ -231,9 +231,10 @@ async def list_newtriggers():
             return triggers_data
 
         zone_query = """
-            SELECT t.i_trg, t.i_zn AS zone_id, z.x_nm_zn AS zone_name
+            SELECT t.i_trg, r.i_zn AS zone_id, z.x_nm_zn AS zone_name
             FROM triggers t
-            LEFT JOIN zones z ON t.i_zn = z.i_zn
+            LEFT JOIN regions r ON t.i_trg = r.i_trg
+            LEFT JOIN zones z ON r.i_zn = z.i_zn
             WHERE t.i_trg = ANY($1)
         """
         zone_data = await execute_raw_query("maint", zone_query, trigger_ids)
@@ -286,19 +287,19 @@ async def get_trigger_details(trigger_id: int):
         region_query = """
             SELECT i_rgn FROM regions WHERE i_trg = $1
         """
-        region = await call_stored_procedure("maint", region_query, [trigger_id])
+        region = await execute_raw_query("maint", region_query, trigger_id)
         if not region:
             raise HTTPException(status_code=404, detail=f"No region found for trigger ID {trigger_id}")
         region_id = region[0]["i_rgn"]
 
         # Fetch the vertices for the region
         vertices_query = """
-            SELECT n_x AS x, n_y AS y, n_z AS z, n_ord
+            SELECT n_x AS x, n_y AS y, COALESCE(n_z, 0.0) AS z, n_ord
             FROM vertices
             WHERE i_rgn = $1
             ORDER BY n_ord
         """
-        vertices = await call_stored_procedure("maint", vertices_query, [region_id])
+        vertices = await execute_raw_query("maint", vertices_query, region_id)
         return {"vertices": vertices}
     except Exception as e:
         logger.error(f"Error fetching trigger details for ID {trigger_id}: {e}")

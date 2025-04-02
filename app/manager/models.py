@@ -1,4 +1,5 @@
-# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/models.py 1.0.1
+# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/models.py 1.0.2
+# Added Sequence field to GISData
 # 
 # Model Module for Manager
 #   
@@ -62,6 +63,7 @@ class GISData(BaseModel):
     cnf: float = -1.0
     gwid: str = ""
     data: str = ""
+    sequence: Optional[int] = None  # Added Sequence field
 
     def to_xml(self) -> str:
         root = ET.Element("parco", version="1.0")
@@ -76,12 +78,16 @@ class GISData(BaseModel):
         ET.SubElement(gis, "z").text = str(self.z)
         ET.SubElement(gis, "bat").text = str(self.bat)
         ET.SubElement(root, "data").text = self.data
+        if self.sequence is not None:  # Include Sequence in XML if present
+            ET.SubElement(root, "sequence").text = str(self.sequence)
         return MessageUtilities.XMLDefTag + ET.tostring(root, encoding='unicode')
 
     @classmethod
     def from_xml(cls, xml_str: str):
         root = ET.fromstring(xml_str)
         gis = root.find("gis")
+        sequence = root.find("sequence")
+        sequence_value = int(sequence.text) if sequence is not None else None
         return cls(
             id=gis.find("id").text,
             type=root.find("type").text,
@@ -92,7 +98,8 @@ class GISData(BaseModel):
             bat=int(gis.find("bat").text) if gis.find("bat").text else -1,
             cnf=float(gis.find("cnf").text) if gis.find("cnf").text else -1.0,
             gwid=gis.find("gwid").text or "",
-            data=root.find("data").text or ""
+            data=root.find("data").text or "",
+            sequence=sequence_value  # Added Sequence field
         )
 
     # NEW: Added validation method (already present, kept for completeness)
@@ -119,6 +126,8 @@ class GISData(BaseModel):
             },
             "data": self.data
         })
+        if self.sequence is not None:  # Include Sequence in JSON if present
+            data["Sequence"] = self.sequence
         return json.dumps(data)
 
 class HeartBeat(BaseModel):

@@ -7,7 +7,7 @@ async def test_connection():
             database="ParcoRTLSMaint",
             user="parcoadmin",
             password="parcoMCSE04106!",
-            host="192.168.210.231",
+            host="192.168.210.226",
             port=5432
         )
         print("✅ Connected to database!")

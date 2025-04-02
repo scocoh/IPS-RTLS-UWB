@@ -251,7 +251,7 @@ function loadCampusMap() {
     }
 
     // Fetch and display the map from zoneviewer_api_pac.py on port 5014
-    fetch(`http://192.168.210.231:5014/get_map/${selectedCampus}`)
+    fetch(`http://192.168.210.226:5014/get_map/${selectedCampus}`)
         .then(response => {
             console.log(`[DEBUG] Map fetch response for /get_map/${selectedCampus} (Version 0P.7B.58g):`, response);
             if (!response.ok) throw new Error(`Map fetch failed: ${response.status}`);
@@ -262,7 +262,7 @@ function loadCampusMap() {
             mapImage = new Image();
             mapImage.crossOrigin = "Anonymous";
             mapImage.onload = () => {
-                fetch(`http://192.168.210.231:5014/get_map_metadata/${selectedCampus}`)
+                fetch(`http://192.168.210.226:5014/get_map_metadata/${selectedCampus}`)
                     .then(metaResponse => {
                         console.log(`[DEBUG] Map metadata fetch response for /get_map_metadata/${selectedCampus} (Version 0P.7B.58g):`, metaResponse);
                         if (!metaResponse.ok) throw new Error(`Metadata fetch failed: ${metaResponse.status}`);
@@ -294,7 +294,7 @@ function loadCampusMap() {
         .catch(error => console.error(`[ERROR] Loading map failed (Version 0P.7B.58g):`, error));
 
     // Fetch zones for the specific campus, matching non-pac /get_all_zones_for_campus/<campus_id>
-    fetch(`http://192.168.210.231:5014/get_campus_zones?campus_id=${campusId}`)
+    fetch(`http://192.168.210.226:5014/get_campus_zones?campus_id=${campusId}`)
         .then(response => {
             console.log(`[DEBUG] Zones fetch response for /get_campus_zones?campus_id=${campusId} (Version 0P.7B.58g):`, response);
             if (!response.ok) {
@@ -319,7 +319,7 @@ function loadCampusMap() {
         });
 
     // Fetch and display vertices from zoneviewer_api_pac.py on port 5014
-    fetch(`http://192.168.210.231:5014/get_vertices_for_campus/${campusId}`)
+    fetch(`http://192.168.210.226:5014/get_vertices_for_campus/${campusId}`)
         .then(response => {
             console.log(`[DEBUG] Vertices fetch response for /get_vertices_for_campus/${campusId} (Version 0P.7B.58g):`, response);
             if (!response.ok) {
@@ -396,7 +396,7 @@ function saveAllVertices() {
 
     console.log(`[INFO] Saving updated vertices:`, updatedVertices);
 
-    fetch('http://192.168.210.231:5014/update_vertices', {
+    fetch('http://192.168.210.226:5014/update_vertices', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vertices: updatedVertices })

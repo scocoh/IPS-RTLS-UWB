@@ -96,7 +96,7 @@ fi
 
 # Update configuration files with user-provided IP
 echo "Updating configuration files..."
-sed -i "s/192.168.210.231/$SERVER_IP/g" $(grep -rl "192.168.210.231" $INSTALL_DIR --exclude-dir=node_modules --exclude=*.log)
+sed -i "s/192.168.210.226/$SERVER_IP/g" $(grep -rl "192.168.210.226" $INSTALL_DIR --exclude-dir=node_modules --exclude=*.log)
 
 # ----------------------------------
 # Step 6: Set Up Systemd Services

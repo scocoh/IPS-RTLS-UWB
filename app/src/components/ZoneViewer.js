@@ -22,7 +22,7 @@ const ZoneViewer = () => {
     const [editedVertices, setEditedVertices] = useState({});
     const [deletedVertices, setDeletedVertices] = useState([]);
     const [fetchError, setFetchError] = useState(null);
-    const API_BASE_URL = "http://192.168.210.231:8000";
+    const API_BASE_URL = "http://192.168.210.226:8000";
 
     useEffect(() => {
         const fetchCampuses = async () => {

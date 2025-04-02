@@ -16,7 +16,7 @@ from process_mapper import get_service_name
 from concurrent.futures import ThreadPoolExecutor
 
 # MQTT Configuration
-MQTT_BROKER = "192.168.210.231"  # Change if different
+MQTT_BROKER = "192.168.210.226"  # Change if different
 MQTT_TOPIC = "homeassistant/sensor/rtls_ports"
 
 # Logging Configuration (with Log Rotation)
@@ -33,7 +33,7 @@ def is_port_open(host, port):
         s.settimeout(0.5)
         return s.connect_ex((host, port)) == 0
 
-def get_open_ports(host="192.168.210.231", port_range=(5000, 9000)):
+def get_open_ports(host="192.168.210.226", port_range=(5000, 9000)):
     """Scans ports and finds open ones."""
     open_ports = {}
 

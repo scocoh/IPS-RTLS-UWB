@@ -1,4 +1,5 @@
-# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/websocket.py 1.0.14
+# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/websocket.py 1.0.15
+# Added subscription debugging
 # 
 # Websocket Module for Manager
 #   
@@ -41,7 +42,7 @@ _MANAGER_INSTANCES = {}
 async def lifespan(app: FastAPI):
     logger.debug("Starting lifespan: Initializing DB pool")
     try:
-        async with asyncpg.create_pool("postgresql://parcoadmin:parcoMCSE04106!@192.168.210.231:5432/ParcoRTLSMaint") as pool:
+        async with asyncpg.create_pool("postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint") as pool:
             logger.debug("DB pool created successfully")
             async with pool.acquire() as conn:
                 logger.debug("Acquired DB connection, querying tlkresources")
@@ -61,7 +62,7 @@ app = FastAPI(lifespan=lifespan)
 @app.websocket("/ws/{manager_name}")
 async def websocket_endpoint(websocket: WebSocket, manager_name: str):
     logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {websocket.client.host}:{websocket.client.port}")
-    async with asyncpg.create_pool("postgresql://parcoadmin:parcoMCSE04106!@192.168.210.231:5432/ParcoRTLSMaint") as pool:
+    async with asyncpg.create_pool("postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint") as pool:
         async with pool.acquire() as conn:
             res = await conn.fetchval("SELECT COUNT(*) FROM tlkresources WHERE X_NM_RES = $1", manager_name)
             if not res:
@@ -138,6 +139,8 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                                     else:
                                         for t in req.tags:
                                             sdk_client.add_tag(t.id, t)
+                                            logger.debug(f"Added tag {t.id} to client {client_id}")  # Added debug log
+                                        logger.debug(f"Client {client_id} subscribed to tags: {list(sdk_client.tags.keys())}")  # Added debug log
                                 sdk_client.sent_begin_msg = True
                                 sdk_client.sent_req = True
                                 await websocket.send_text(resp.to_json())
@@ -183,6 +186,9 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                             logger.warning(f"Manager {manager_name}: Unrecognized SDK request ({req.req_type}) from {client_id}")
                             logger.debug(f"Sent unrecognized request response to client {client_id}: {resp.to_json()}")
 
+                    elif msg_type == "GISData":
+                        logger.debug(f"Received GISData from client {client_id}")
+                        await manager.parser_data_arrived(json_data)
                     else:
                         logger.warning(f"Unknown message type from client {client_id}: {msg_type}")
 

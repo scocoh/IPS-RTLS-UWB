@@ -30,7 +30,7 @@ app = FastAPI(title="Parco RTLS API", version="0P.7B.34", docs_url="/docs")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://192.168.210.231:3000"],  # Allow your React development server
+    allow_origins=["http://192.168.210.226:3000"],  # Allow your React development server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

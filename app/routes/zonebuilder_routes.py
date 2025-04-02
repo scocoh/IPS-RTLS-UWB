@@ -11,15 +11,17 @@
 #
 # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
 
-from fastapi import APIRouter, HTTPException, Response, Form, Body
-from database.db import execute_raw_query
+from fastapi import APIRouter, Depends, HTTPException, Response, Form, Body
+from database.db import execute_raw_query, get_async_db_pool
 import logging
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from PIL import Image
+import sys
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+logger.debug(f"sys.path: {sys.path}")
 
 # Database connection configuration (adjust as per your setup)
 DB_CONFIG = {
@@ -90,21 +92,99 @@ async def get_map_metadata(map_id: int):
     except Exception as e:
         logger.error(f"Error retrieving map metadata for map_id={map_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Error retrieving map metadata: {str(e)}")
+#
+#router.get("/get_parent_zones")
+#sync def get_parent_zones():
+#   """Fetches all zones (not just top-level) to allow selection as parent (async)"""
+#   try:
+#       zones_data = await execute_raw_query(
+#           "maint",
+#           "SELECT i_zn, x_nm_zn, i_typ_zn FROM zones ORDER BY i_typ_zn, x_nm_zn"
+#       )
+#       logger.info(f"Fetched {len(zones_data)} parent zones")
+#       return {"zones": [{"zone_id": z["i_zn"], "name": z["x_nm_zn"], "level": z["i_typ_zn"]} for z in zones_data]}
+#   except Exception as e:
+#       logger.error(f"Error retrieving parent zones: {e}")
+#       raise HTTPException(status_code=500, detail=f"Error retrieving parent zones: {str(e)}")
 
 @router.get("/get_parent_zones")
 async def get_parent_zones():
-    """Fetches all zones (not just top-level) to allow selection as parent (async)"""
     try:
-        zones_data = await execute_raw_query(
-            "maint",
-            "SELECT i_zn, x_nm_zn, i_typ_zn FROM zones ORDER BY i_typ_zn, x_nm_zn"
-        )
-        logger.info(f"Fetched {len(zones_data)} parent zones")
-        return {"zones": [{"zone_id": z["i_zn"], "name": z["x_nm_zn"], "level": z["i_typ_zn"]} for z in zones_data]}
+        logger.debug("Attempting to get database pool for maint in get_parent_zones")
+        pool = await get_async_db_pool("maint")
+        if not pool:
+            logger.error("Database pool unavailable for maint in get_parent_zones")
+            raise HTTPException(status_code=500, detail="Database pool unavailable")
+        async with pool.acquire() as conn:
+            logger.debug("Executing query: SELECT i_zn, x_nm_zn, i_typ_zn FROM zones ORDER BY i_typ_zn, x_nm_zn")
+            zones = await conn.fetch(
+                "SELECT i_zn, x_nm_zn, i_typ_zn FROM zones ORDER BY i_typ_zn, x_nm_zn"
+            )
+            logger.info(f"Fetched {len(zones)} parent zones")
+            return {
+                "zones": [
+                    {
+                        "zone_id": zone["i_zn"],
+                        "name": zone["x_nm_zn"],
+                        "level": zone["i_typ_zn"]
+                    }
+                    for zone in zones
+                ]
+            }
     except Exception as e:
-        logger.error(f"Error retrieving parent zones: {e}")
-        raise HTTPException(status_code=500, detail=f"Error retrieving parent zones: {str(e)}")
+        logger.error(f"Error fetching parent zones: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
 
+@router.get("/get_parent_zones_for_trigger_demo")
+async def get_parent_zones_for_trigger_demo():
+    try:
+        logger.debug("Starting get_parent_zones_for_trigger_demo")
+        logger.debug("Attempting to get database pool for maint")
+        pool = await get_async_db_pool("maint")
+        if not pool:
+            logger.error("Database pool unavailable for maint")
+            raise HTTPException(status_code=500, detail="Database pool unavailable for maint")
+        logger.debug("Successfully acquired database pool")
+        async with pool.acquire() as conn:
+            logger.debug("Acquired connection from pool")
+            logger.debug("Executing query: SELECT i_zn, x_nm_zn, i_typ_zn, i_map, i_pnt_zn FROM zones ORDER BY i_typ_zn, x_nm_zn")
+            zones = await conn.fetch(
+                "SELECT i_zn, x_nm_zn, i_typ_zn, i_map, i_pnt_zn FROM zones ORDER BY i_typ_zn, x_nm_zn"
+            )
+            logger.info(f"Fetched {len(zones)} parent zones for trigger demo")
+            # Added parent zone ID to the response
+            return {
+                "zones": [
+                    {
+                        "zone_id": zone["i_zn"],
+                        "name": zone["x_nm_zn"],
+                        "level": zone["i_typ_zn"],
+                        "i_map": zone["i_map"],
+                        "parent_zone_id": zone["i_pnt_zn"]
+                    }
+                    for zone in zones
+                ]
+            }
+    except Exception as e:
+        logger.error(f"Error fetching parent zones for trigger demo: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+@router.get("/test_db_connection")
+async def test_db_connection():
+    try:
+        logger.debug("Testing database connection for maint")
+        pool = await get_async_db_pool("maint")
+        if not pool:
+            logger.error("Database pool unavailable for maint in test_db_connection")
+            raise HTTPException(status_code=500, detail="Database pool unavailable")
+        async with pool.acquire() as conn:
+            result = await conn.fetchval("SELECT 1")
+            logger.info("Database connection test successful")
+            return {"status": "success", "result": result}
+    except Exception as e:
+        logger.error(f"Error testing database connection: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+        
 @router.get("/get_zone_types")
 async def get_zone_types():
     """Fetches all zone types (async)"""
