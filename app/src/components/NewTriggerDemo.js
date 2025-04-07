@@ -1,21 +1,7 @@
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo.js
-// Version: v0.10.30 - Pass isConnected to NewTriggerViewer
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback
-} from "react";
-import {
-  Form,
-  Tabs,
-  Tab,
-  Table,
-  Button,
-  FormCheck,
-  InputGroup,
-  FormControl
-} from "react-bootstrap";
+// Version: v0.10.49 - Added Clear System Events button
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Form, Tabs, Tab, Table, Button, FormCheck, InputGroup, FormControl } from "react-bootstrap";
 import NewTriggerViewer from "./NewTriggerViewer";
 import L from "leaflet";
 
@@ -33,7 +19,10 @@ const NewTriggerDemo = () => {
   const [triggers, setTriggers] = useState([]);
   const [coordinates, setCoordinates] = useState([]);
   const [showMapForDrawing, setShowMapForDrawing] = useState(false);
-  const [eventList, setEventList] = useState([]);
+  const [eventList, setEventList] = useState(() => {
+    const savedEvents = localStorage.getItem("eventList");
+    return savedEvents ? JSON.parse(savedEvents) : [];
+  });
   const [loading, setLoading] = useState(true);
   const [showExistingTriggers, setShowExistingTriggers] = useState(true);
   const [existingTriggerPolygons, setExistingTriggerPolygons] = useState([]);
@@ -42,12 +31,35 @@ const NewTriggerDemo = () => {
   const [tagIdInput, setTagIdInput] = useState("SIM1");
   const [isConnected, setIsConnected] = useState(false);
   const [tagData, setTagData] = useState(null);
+  const [tagCount, setTagCount] = useState(0);
+  const [tagRate, setTagRate] = useState(0);
+  const [tagTimestamps, setTagTimestamps] = useState([]);
+  const [activeTab, setActiveTab] = useState("mapAndTrigger");
   const wsRef = useRef(null);
+  const reconnectAttempts = useRef(0);
+  const maxReconnectAttempts = 5;
+  const reconnectInterval = 5000; // 5 seconds
+
+  useEffect(() => {
+    localStorage.setItem("eventList", JSON.stringify(eventList));
+  }, [eventList]);
 
   const getFormattedTimestamp = () => {
     const now = new Date();
     const pad = (val) => String(val).padStart(2, "0");
     return `${String(now.getFullYear()).slice(-2)}${pad(now.getMonth() + 1)}${pad(now.getDate())} ${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  };
+
+  const fetchTriggers = async () => {
+    try {
+      const res = await fetch("http://192.168.210.226:8000/api/list_newtriggers");
+      if (!res.ok) throw new Error(`Failed to fetch triggers: ${res.status}`);
+      const data = await res.json();
+      Array.isArray(data) ? setTriggers(data) : setTriggers([]);
+      console.log('Fetched triggers:', data);
+    } catch (e) {
+      setFetchError(`Error fetching triggers: ${e.message}`);
+    }
   };
 
   const connectWebSocket = () => {
@@ -58,6 +70,7 @@ const NewTriggerDemo = () => {
 
     const ws = new WebSocket("ws://192.168.210.226:8001/ws/Manager1");
     wsRef.current = ws;
+    reconnectAttempts.current = 0;
 
     ws.onopen = () => {
       console.log("WebSocket connected to Manager1");
@@ -65,17 +78,31 @@ const NewTriggerDemo = () => {
         type: "request",
         request: "BeginStream",
         reqid: "triggerDemo1",
-        params: [{ id: tagIdInput, data: "true" }]
+        params: [{ id: tagIdInput, data: "true" }],
+        zone_id: selectedZone ? parseInt(selectedZone.i_zn) : 1
       };
+      console.log("Subscribing with zone_id:", subscription.zone_id);
       ws.send(JSON.stringify(subscription));
       console.log("Sent subscription:", subscription);
       setIsConnected(true);
+      setTagCount(0);
+      setTagTimestamps([]);
+      setTagRate(0);
+      reconnectAttempts.current = 0; // Reset reconnect attempts on successful connection
     };
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log("Received WebSocket message:", data);
+    ws.onmessage = async (event) => {
+      console.log("Raw WebSocket message received:", event.data);
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch (e) {
+        console.error("Failed to parse WebSocket message:", e);
+        return;
+      }
+      console.log("Parsed WebSocket message:", data);
       if (data.type === "Sim" && data.gis) {
+        console.log("Processing Sim message:", data);
         const newTagData = {
           id: data.gis.id,
           x: data.gis.x,
@@ -85,26 +112,62 @@ const NewTriggerDemo = () => {
           timestamp: Date.now()
         };
         setTagData(newTagData);
+        setTagCount(prev => prev + 1);
+        setTagTimestamps(prev => {
+          const now = Date.now();
+          const windowStart = now - 10000;
+          const newTimestamps = [...prev, now].filter(ts => ts >= windowStart);
+          if (newTimestamps.length > 1) {
+            const timeSpan = (newTimestamps[newTimestamps.length - 1] - newTimestamps[0]) / 1000;
+            const rate = timeSpan > 0 ? (newTimestamps.length - 1) / timeSpan : 0;
+            setTagRate(rate);
+          } else {
+            setTagRate(0);
+          }
+          return newTimestamps;
+        });
       } else if (data.type === "TriggerEvent" && selectedZone) {
-        const trigger = triggers.find(t => t.i_trg === data.trigger_id && t.zone_id === selectedZone.i_zn);
-        if (trigger) {
-          setEventList(prev => [...prev, `Tag ${data.tag_id} ${data.direction} trigger ${trigger.x_nm_trg} at ${getFormattedTimestamp()}`]);
+        let trigger = triggers.find(t => t.i_trg === data.trigger_id && t.zone_id === parseInt(selectedZone.i_zn));
+        if (!trigger) {
+          try {
+            const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${data.trigger_id}`);
+            if (!res.ok) throw new Error(`Failed to fetch trigger details: ${res.status}`);
+            const triggerData = await res.json();
+            trigger = { i_trg: data.trigger_id, x_nm_trg: triggerData.name, i_dir: triggerData.direction_id, zone_id: parseInt(selectedZone.i_zn) };
+            setTriggers(prev => [...prev, trigger]);
+            console.log(`Fetched trigger details for ID ${data.trigger_id}:`, triggerData);
+          } catch (e) {
+            console.error(`Error fetching trigger details for ID ${data.trigger_id}:`, e);
+            return;
+          }
         }
+        const eventMessage = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.x_nm_trg} at ${data.timestamp}`;
+        setEventList(prev => [...prev, eventMessage]);
+      } else if (data.type === "HeartBeat") {
+        ws.send(JSON.stringify({ type: "HeartBeat", ts: data.ts }));
+        console.log("Sent heartbeat response:", data.ts);
+      } else {
+        console.log("Unhandled WebSocket message type:", data.type);
       }
     };
 
     ws.onclose = () => {
       console.log("WebSocket disconnected");
       setIsConnected(false);
-      setTagData(null);
-      wsRef.current = null;
+      setTagRate(0);
+      if (reconnectAttempts.current < maxReconnectAttempts) {
+        reconnectAttempts.current += 1;
+        console.log(`Attempting to reconnect (${reconnectAttempts.current}/${maxReconnectAttempts})...`);
+        setTimeout(connectWebSocket, reconnectInterval);
+      } else {
+        console.error("Max reconnect attempts reached. Please reconnect manually.");
+      }
     };
 
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);
       setIsConnected(false);
-      setTagData(null);
-      wsRef.current = null;
+      setTagRate(0);
     };
   };
 
@@ -119,91 +182,86 @@ const NewTriggerDemo = () => {
     const fetchZones = async () => {
       try {
         const response = await fetch("http://192.168.210.226:8000/zonebuilder/get_parent_zones_for_trigger_demo");
-        if (!response.ok) {
-          throw new Error(`Failed to fetch zones: ${response.status} ${response.statusText}`);
+        console.log("Raw response status:", response.status);
+        console.log("Raw response headers:", [...response.headers.entries()]);
+        const text = await response.text();
+        console.log("Raw response text:", text);
+        if (!response.ok) throw new Error(`Failed to fetch zones: ${response.status}`);
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(`Failed to parse response as JSON: ${e.message}`);
         }
-        const data = await response.json();
-        if (Array.isArray(data.zones)) {
-          const mappedZones = data.zones.map(zone => ({
-            i_zn: zone.zone_id,
-            x_nm_zn: zone.name,
-            i_typ_zn: zone.level,
-            i_map: zone.i_map || null,
-            parent_zone_id: zone.parent_zone_id
-          }));
+        console.log("Parsed response data:", data);
 
-          const hierarchy = [];
-          const zoneMap = new Map(mappedZones.map(zone => [zone.i_zn, { ...zone, children: [] }]));
-
-          zoneMap.forEach(zone => {
-            if (zone.parent_zone_id && zoneMap.has(zone.parent_zone_id)) {
-              zoneMap.get(zone.parent_zone_id).children.push(zone);
-            } else {
-              hierarchy.push(zone);
-            }
-          });
-
-          hierarchy.sort((a, b) => a.x_nm_zn.localeCompare(b.x_nm_zn));
-          const customOrder = [1, 10, 2];
-          const sortChildren = (children) => {
-            children.sort((a, b) => {
-              const aIndex = customOrder.indexOf(a.i_typ_zn);
-              const bIndex = customOrder.indexOf(b.i_typ_zn);
-              if (aIndex !== -1 && bIndex !== -1) {
-                return aIndex - bIndex;
-              }
-              if (aIndex !== -1) return -1;
-              if (bIndex !== -1) return 1;
-              if (a.i_typ_zn !== b.i_typ_zn) {
-                return a.i_typ_zn - b.i_typ_zn;
-              }
-              return a.x_nm_zn.localeCompare(b.x_nm_zn);
-            });
-            children.forEach(child => sortChildren(child.children));
-          };
-
-          hierarchy.forEach(parent => sortChildren(parent.children));
-          console.log("✅ Zone hierarchy:", JSON.stringify(hierarchy, null, 2));
-          setZoneHierarchy(hierarchy);
-          setZones(mappedZones);
-          const campusZone = hierarchy.find(z => z.i_typ_zn === 1);
-          if (campusZone) {
-            console.log("Selected campus zone:", campusZone);
-            setSelectedZone(campusZone);
-          }
+        let zonesArray;
+        if (Array.isArray(data)) {
+          zonesArray = data;
+        } else if (data && Array.isArray(data.zones)) {
+          zonesArray = data.zones;
         } else {
-          setFetchError("Invalid zones response from server.");
+          throw new Error("Invalid zones response from server: Expected an array or object with zones array.");
+        }
+
+        const mappedZones = zonesArray.map(zone => ({
+          i_zn: parseInt(zone.zone_id),
+          x_nm_zn: zone.name,
+          i_typ_zn: zone.level,
+          i_map: zone.i_map || null,
+          parent_zone_id: zone.parent_zone_id ? parseInt(zone.parent_zone_id) : null
+        }));
+
+        const hierarchy = [];
+        const zoneMap = new Map(mappedZones.map(zone => [zone.i_zn, { ...zone, children: [] }]));
+        zoneMap.forEach(zone => {
+          if (zone.parent_zone_id && zoneMap.has(zone.parent_zone_id)) {
+            zoneMap.get(zone.parent_zone_id).children.push(zone);
+          } else {
+            hierarchy.push(zone);
+          }
+        });
+
+        hierarchy.sort((a, b) => a.x_nm_zn.localeCompare(b.x_nm_zn));
+        const customOrder = [1, 10, 2];
+        const sortChildren = (children) => {
+          children.sort((a, b) => {
+            const aIndex = customOrder.indexOf(a.i_typ_zn);
+            const bIndex = customOrder.indexOf(b.i_typ_zn);
+            if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+            if (aIndex !== -1) return -1;
+            if (bIndex !== -1) return 1;
+            if (a.i_typ_zn !== b.i_typ_zn) return a.i_typ_zn - b.i_typ_zn;
+            return a.x_nm_zn.localeCompare(b.x_nm_zn);
+          });
+          children.forEach(child => sortChildren(child.children));
+        };
+
+        hierarchy.forEach(parent => sortChildren(parent.children));
+        console.log("✅ Zone hierarchy:", JSON.stringify(hierarchy, null, 2));
+        setZoneHierarchy(hierarchy);
+        setZones(mappedZones);
+        const campusZone = hierarchy.find(z => z.i_typ_zn === 1);
+        if (campusZone) {
+          console.log("Selected campus zone:", campusZone);
+          setSelectedZone(campusZone);
+        } else if (hierarchy.length > 0) {
+          console.log("No campus zone found, selecting first zone:", hierarchy[0]);
+          setSelectedZone(hierarchy[0]);
         }
       } catch (e) {
-        setFetchError(`Error fetching zones: ${e.message}. Please check the server logs for more details.`);
+        setFetchError(`Error fetching zones: ${e.message}`);
       }
     };
 
     const fetchTriggerDirections = async () => {
       try {
         const res = await fetch("http://192.168.210.226:8000/api/list_trigger_directions");
-        if (!res.ok) {
-          throw new Error(`Failed to fetch trigger directions: ${res.status} ${res.statusText}`);
-        }
+        if (!res.ok) throw new Error(`Failed to fetch trigger directions: ${res.status}`);
         const data = await res.json();
         setTriggerDirections(data);
       } catch (e) {
         setFetchError(`Error fetching directions: ${e.message}`);
-      }
-    };
-
-    const fetchTriggers = async () => {
-      try {
-        const res = await fetch("http://192.168.210.226:8000/api/list_newtriggers");
-        if (!res.ok) {
-          throw new Error(`Failed to fetch triggers: ${res.status} ${res.statusText}`);
-        }
-        const data = await res.json();
-        Array.isArray(data) ? setTriggers(data) : setTriggers([]);
-      } catch (e) {
-        setFetchError(`Error fetching triggers: ${e.message}`);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -212,52 +270,32 @@ const NewTriggerDemo = () => {
     fetchTriggers();
 
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
+      if (wsRef.current) wsRef.current.close();
     };
   }, []);
 
   useEffect(() => {
     if (!selectedZone) return;
-    const zoneTriggers = triggers.filter(t => t.zone_id === selectedZone.i_zn);
+    const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn));
 
-    const fetchPolygons = async (retries = 3, delay = 1000) => {
-      for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-          const polygons = await Promise.all(
-            zoneTriggers.map(async (t) => {
-              try {
-                const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${t.i_trg}`, {
-                  mode: 'cors'
-                });
-                if (!res.ok) {
-                  const errorText = await res.text();
-                  throw new Error(`HTTP error! Status: ${res.status}, Details: ${errorText}`);
-                }
-                const data = await res.json();
-                if (Array.isArray(data.vertices)) {
-                  const latLngs = data.vertices.map(v => [v.y, v.x]);
-                  return { id: t.i_trg, name: t.x_nm_trg, latLngs };
-                }
-                console.warn(`No vertices found for trigger ${t.i_trg}`);
-                return null;
-              } catch (e) {
-                console.error(`Error fetching trigger ${t.i_trg}:`, e.message);
-                return null;
-              }
-            })
-          );
-          setExistingTriggerPolygons(polygons.filter(p => p));
-          break;
-        } catch (e) {
-          if (attempt === retries) {
-            console.error("Failed to fetch polygons after retries:", e);
-            setFetchError("Failed to fetch trigger polygons.");
-          } else {
-            await new Promise(resolve => setTimeout(resolve, delay));
-          }
-        }
+    const fetchPolygons = async () => {
+      try {
+        const polygons = await Promise.all(
+          zoneTriggers.map(async (t) => {
+            const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${t.i_trg}`);
+            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+            const data = await res.json();
+            if (Array.isArray(data.vertices)) {
+              const latLngs = data.vertices.map(v => [v.y, v.x]);
+              return { id: t.i_trg, name: t.x_nm_trg, latLngs };
+            }
+            return null;
+          })
+        );
+        setExistingTriggerPolygons(polygons.filter(p => p));
+      } catch (e) {
+        console.error("Failed to fetch polygons:", e);
+        setFetchError("Failed to fetch trigger polygons.");
       }
     };
 
@@ -298,42 +336,55 @@ const NewTriggerDemo = () => {
         const formattedCoords = parsed.map((coord, index) => {
           const x = Number(coord.lng);
           const y = Number(coord.lat);
-          if (isNaN(x) || isNaN(y)) {
-            throw new Error(`Invalid coordinates at index ${index}: lng=${coord.lng}, lat=${coord.lat}`);
-          }
-          let n_z;
-          if (index === 0) {
-            n_z = zMin;
-          } else if (index === 1) {
-            n_z = effectiveZMax;
-          } else {
-            n_z = zMin;
-          }
-          return {
-            n_x: x.toFixed(6),
-            n_y: y.toFixed(6),
-            n_z: n_z
-          };
+          if (isNaN(x) || isNaN(y)) throw new Error(`Invalid coordinates at index ${index}`);
+          let n_z = index === 0 ? zMin : (index === 1 ? effectiveZMax : zMin);
+          return { n_x: x.toFixed(6), n_y: y.toFixed(6), n_z: n_z };
         });
         console.log("Formatted coordinates:", formattedCoords);
         setCoordinates(formattedCoords);
       }
     } catch (e) {
       console.error("Error parsing draw coords:", e);
-      alert("Failed to process drawn coordinates. Please try again.");
+      alert("Failed to process drawn coordinates.");
     }
   }, [zMin, zMax, customZMax]);
 
   const handleZoneChange = (zoneId) => {
-    const zone = zones.find(z => z.i_zn === parseInt(zoneId));
-    if (zone?.i_zn !== selectedZone?.i_zn) {
+    const parsedZoneId = parseInt(zoneId);
+    console.log("Selected zone ID:", parsedZoneId);
+    const zone = zones.find(z => z.i_zn === parsedZoneId);
+    console.log("Found zone:", zone);
+    if (zone && (!selectedZone || zone.i_zn !== selectedZone.i_zn)) {
       setSelectedZone(zone);
       setCoordinates([]);
       setShowMapForDrawing(false);
       setZMin(null);
       setZMax(null);
       setCustomZMax(null);
+      console.log("Updated selectedZone:", zone);
     }
+  };
+
+  const retryReloadTriggers = async (retries = 3, delay = 1000) => {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const reloadRes = await fetch("http://192.168.210.226:8001/api/reload_triggers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        if (!reloadRes.ok) throw new Error(`Failed to reload triggers: ${reloadRes.status}`);
+        console.log("Successfully sent reload triggers request");
+        return true;
+      } catch (e) {
+        console.error(`Attempt ${attempt} failed: ${e.message}`);
+        if (attempt === retries) {
+          console.error("All retry attempts failed.");
+          return false;
+        }
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    return false;
   };
 
   const handleCreateTrigger = async () => {
@@ -361,14 +412,15 @@ const NewTriggerDemo = () => {
     const payload = {
       name: triggerName,
       direction: dir.i_dir,
-      zone_id: selectedZone.i_zn,
-      ignore: true,
+      zone_id: parseInt(selectedZone.i_zn),
+      ignore: false,
       vertices: coordinates.map(({ n_x, n_y, n_z }) => ({
         x: Number(n_x),
         y: Number(n_y),
         z: Number(n_z)
       }))
     };
+    console.log("Creating trigger in zone:", selectedZone.i_zn);
     console.log("Payload after conversion:", JSON.stringify(payload, null, 2));
 
     try {
@@ -380,37 +432,16 @@ const NewTriggerDemo = () => {
 
       const result = await res.json();
       alert(`Trigger ID: ${result.trigger_id}`);
-      setEventList([...eventList, `Trigger ${triggerName} created on ${getFormattedTimestamp()}`]);
+      setEventList(prev => [...prev, `Trigger ${triggerName} created on ${getFormattedTimestamp()}`]);
       setCoordinates([]);
       setShowMapForDrawing(false);
 
-      const updateRes = await fetch("http://192.168.210.226:8000/api/list_newtriggers");
-      const data = await updateRes.json();
-      if (Array.isArray(data)) {
-        setTriggers(data);
-        const zoneTriggers = data.filter(t => t.zone_id === selectedZone.i_zn);
-        const polygons = await Promise.all(
-          zoneTriggers.map(async (t) => {
-            try {
-              const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${t.i_trg}`, {
-                mode: 'cors'
-              });
-              if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-              const data = await res.json();
-              if (Array.isArray(data.vertices)) {
-                const latLngs = data.vertices.map(v => [v.y, v.x]);
-                return { id: t.i_trg, name: t.x_nm_trg, latLngs };
-              }
-            } catch (e) {
-              console.error(`Error fetching trigger ${t.i_trg}:`, e);
-              return null;
-            }
-          })
-        );
-        setExistingTriggerPolygons(polygons.filter(p => p));
-      } else {
-        setTriggers([]);
+      const reloadSuccess = await retryReloadTriggers(3, 1000);
+      if (!reloadSuccess) {
+        alert("Trigger created, but failed to reload triggers on the server. Please restart the WebSocket server or try again.");
       }
+
+      await fetchTriggers();
     } catch (e) {
       console.error("Trigger create error:", e);
       alert("Failed to create trigger.");
@@ -420,16 +451,16 @@ const NewTriggerDemo = () => {
   const handleDeleteTrigger = async (id) => {
     if (!window.confirm(`Delete trigger ID ${id}?`)) return;
     try {
-      const res = await fetch(`http://192.168.210.226:8000/api/delete_trigger/${id}`, {
-        method: "DELETE"
-      });
+      const res = await fetch(`http://192.168.210.226:8000/api/delete_trigger/${id}`, { method: "DELETE" });
       const result = await res.json();
       alert(`Deleted trigger ${id}`);
-      setEventList([...eventList, `Trigger ID ${id} deleted on ${getFormattedTimestamp()}`]);
+      setEventList(prev => [...prev, `Trigger ID ${id} deleted on ${getFormattedTimestamp()}`]);
+      await fetchTriggers();
 
-      const refresh = await fetch("http://192.168.210.226:8000/api/list_newtriggers");
-      const data = await refresh.json();
-      Array.isArray(data) ? setTriggers(data) : setTriggers([]);
+      const reloadSuccess = await retryReloadTriggers(3, 1000);
+      if (!reloadSuccess) {
+        alert("Trigger deleted, but failed to reload triggers on the server. Please restart the WebSocket server or try again.");
+      }
     } catch (e) {
       console.error("Delete error:", e);
       alert("Failed to delete trigger.");
@@ -452,9 +483,15 @@ const NewTriggerDemo = () => {
   return (
     <div>
       <h2>New Trigger Demo</h2>
+      <Button variant="secondary" onClick={() => { setEventList([]); localStorage.setItem("eventList", JSON.stringify([])); }}>
+        Clear System Events
+      </Button>
       {fetchError && <div style={{ color: "red" }}>{fetchError}</div>}
       {loading && <p>Loading...</p>}
-      <Tabs defaultActiveKey="mapAndTrigger">
+      <Tabs 
+        defaultActiveKey="mapAndTrigger" 
+        onSelect={(key) => setActiveTab(key)}
+      >
         <Tab eventKey="mapAndTrigger" title="Map & Trigger">
           <Form.Group>
             <Form.Label>Tag ID to Subscribe</Form.Label>
@@ -479,7 +516,8 @@ const NewTriggerDemo = () => {
           {tagData && (
             <div style={{ marginTop: "10px" }}>
               <p>
-                Tag {tagData.id}: X={tagData.x}, Y={tagData.y}, Z={tagData.z}, Sequence={tagData.sequence}
+                Tag {tagData.id}: X={tagData.x}, Y={tagData.y}, Z={tagData.z}, 
+                Sequence={tagData.sequence}, Count={tagCount}, Tags/sec={tagRate.toFixed(2)}
               </p>
             </div>
           )}
@@ -536,12 +574,11 @@ const NewTriggerDemo = () => {
             style={{ marginTop: "10px" }}
           />
 
-          {selectedZone && (
+          {selectedZone && activeTab === "mapAndTrigger" && (
             <div style={{ marginTop: "15px" }}>
               <strong>Zone Preview:</strong>
               {selectedZone.i_map ? (
                 <NewTriggerViewer
-                  key={selectedZone.i_zn}
                   mapId={selectedZone.i_map}
                   zones={[selectedZone]}
                   checkedZones={[selectedZone.i_zn]}
@@ -552,10 +589,10 @@ const NewTriggerDemo = () => {
                   showExistingTriggers={showExistingTriggers}
                   existingTriggerPolygons={existingTriggerPolygons}
                   tagData={tagData}
-                  isConnected={isConnected} // Pass isConnected
+                  isConnected={isConnected}
                 />
               ) : (
-                <div style={{ color: "red" }}>No map ID available for this zone. Please assign a map ID in the database.</div>
+                <div style={{ color: "red" }}>No map ID available for this zone.</div>
               )}
             </div>
           )}
@@ -565,9 +602,7 @@ const NewTriggerDemo = () => {
           {triggers.length === 0 ? <p>No triggers found.</p> : (
             <Table striped bordered hover>
               <thead>
-                <tr>
-                  <th>ID</th><th>Name</th><th>Direction</th><th>Zone</th><th>Actions</th>
-                </tr>
+                <tr><th>ID</th><th>Name</th><th>Direction</th><th>Zone</th><th>Actions</th></tr>
               </thead>
               <tbody>
                 {triggers.map(t => (
@@ -584,8 +619,8 @@ const NewTriggerDemo = () => {
           )}
         </Tab>
 
-        <Tab eventKey="events" title="Trigger Events">
-          {eventList.length === 0 ? <p>No events recorded.</p> : (
+        <Tab eventKey="events" title="System Events">
+          {eventList.length === 0 ? <p>No system events recorded.</p> : (
             <ul>{eventList.map((e, i) => <li key={i}>{e}</li>)}</ul>
           )}
         </Tab>

@@ -1,19 +1,13 @@
-# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/websocket.py 1.0.15
-# Added subscription debugging
-# 
-# Websocket Module for Manager
-#   
-# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
-# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
-# Invented by Scott Cohen & Bertrand Dugal.
-# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
-# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
-#
-# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+# /home/parcoadmin/parco_fastapi/app/manager/websocket.py
+# Version: 250404 /home/parcoadmin/parco_fastapi/app/manager/websocket.py 1.0.18
+# --- CHANGED: Bumped version from 1.0.17 to 1.0.18
+# --- FIXED: Define FastAPI app only once to ensure CORS middleware is applied correctly
+# --- FIXED: Moved lifespan function definition before app definition to resolve Pylance warning
 
 import asyncio
 import logging
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncpg
 from .manager import Manager
@@ -27,17 +21,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-app = FastAPI()
-
-REQUEST_TYPE_MAP = {
-    "BeginStream": RequestType.BeginStream,
-    "EndStream": RequestType.EndStream,
-    "AddTag": RequestType.AddTag,
-    "RemoveTag": RequestType.RemoveTag
-}
-
-_MANAGER_INSTANCES = {}
-
+# Define the lifespan function before using it
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.debug("Starting lifespan: Initializing DB pool")
@@ -57,7 +41,28 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("Application shutdown")
 
+# Initialize FastAPI app with lifespan
 app = FastAPI(lifespan=lifespan)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://192.168.210.226:3000"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+logger.debug("CORS middleware added with allow_origins: http://192.168.210.226:3000")
+
+REQUEST_TYPE_MAP = {
+    "BeginStream": RequestType.BeginStream,
+    "EndStream": RequestType.EndStream,
+    "AddTag": RequestType.AddTag,
+    "RemoveTag": RequestType.RemoveTag
+}
+
+_MANAGER_INSTANCES = {}
+_WEBSOCKET_CLIENTS = {}
 
 @app.websocket("/ws/{manager_name}")
 async def websocket_endpoint(websocket: WebSocket, manager_name: str):
@@ -78,7 +83,7 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
         logger.info(f"WebSocket connection accepted for /ws/{manager_name}")
         logger.debug(f"Creating or retrieving Manager instance for {manager_name}")
         if manager_name not in _MANAGER_INSTANCES:
-            manager = Manager(manager_name)
+            manager = Manager(manager_name, zone_id=417)
             await manager.start()
             _MANAGER_INSTANCES[manager_name] = manager
         else:
@@ -90,6 +95,11 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
         manager.sdk_clients[client_id] = sdk_client
         logger.debug(f"Starting q_timer for {client_id}")
         sdk_client.start_q_timer()
+
+        if manager_name not in _WEBSOCKET_CLIENTS:
+            _WEBSOCKET_CLIENTS[manager_name] = []
+        _WEBSOCKET_CLIENTS[manager_name].append(sdk_client)
+        logger.debug(f"Added client {client_id} to _WEBSOCKET_CLIENTS for manager {manager_name}")
 
         while True:
             try:
@@ -129,6 +139,15 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                         sdk_client.request_msg = req
                         resp = Response(response_type=ResponseType(req.req_type.value), req_id=req.req_id)
 
+                        if "zone_id" in json_data:
+                            new_zone_id = int(json_data["zone_id"])
+                            if manager.zone_id != new_zone_id:
+                                manager.zone_id = new_zone_id
+                                logger.info(f"Updated manager {manager_name} zone_id to {new_zone_id}")
+                                manager.triggers = []
+                                await manager.load_triggers(new_zone_id)
+                                logger.debug(f"Reloaded triggers for zone {new_zone_id}")
+
                         if req.req_type == RequestType.BeginStream:
                             if not sdk_client.sent_begin_msg:
                                 if manager.mode == eMode.Stream:
@@ -139,8 +158,8 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                                     else:
                                         for t in req.tags:
                                             sdk_client.add_tag(t.id, t)
-                                            logger.debug(f"Added tag {t.id} to client {client_id}")  # Added debug log
-                                        logger.debug(f"Client {client_id} subscribed to tags: {list(sdk_client.tags.keys())}")  # Added debug log
+                                            logger.debug(f"Added tag {t.id} to client {client_id}")
+                                        logger.debug(f"Client {client_id} subscribed to tags: {list(sdk_client.tags.keys())}")
                                 sdk_client.sent_begin_msg = True
                                 sdk_client.sent_req = True
                                 await websocket.send_text(resp.to_json())
@@ -189,6 +208,12 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                     elif msg_type == "GISData":
                         logger.debug(f"Received GISData from client {client_id}")
                         await manager.parser_data_arrived(json_data)
+                    elif msg_type == "ReloadTriggers":
+                        logger.info(f"Received ReloadTriggers message for manager {manager_name}")
+                        manager.triggers = []
+                        current_zone_id = manager.get_current_zone_id()
+                        await manager.load_triggers(current_zone_id)
+                        logger.info(f"Triggers reloaded for manager {manager_name}, zone {current_zone_id}")
                     else:
                         logger.warning(f"Unknown message type from client {client_id}: {msg_type}")
 
@@ -204,13 +229,17 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                     del manager.sdk_clients[client_id]
                 if manager.log_sdk_connections:
                     logger.info(f"SDK client connection closed - {client_id}")
-                # NEW: Ensure q_timer is canceled immediately
+                if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
+                    _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
+                    logger.debug(f"Removed client {client_id} from _WEBSOCKET_CLIENTS for manager {manager_name}")
                 if sdk_client is not None:
                     await sdk_client.close()
                 break
             except Exception as e:
                 logger.error(f"Error in WebSocket handler for /ws/{manager_name}: {str(e)}")
-                # NEW: Ensure q_timer is canceled immediately
+                if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
+                    _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
+                    logger.debug(f"Removed client {client_id} from _WEBSOCKET_CLIENTS for manager {manager_name}")
                 if sdk_client is not None:
                     await sdk_client.close()
                 break
@@ -222,3 +251,20 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
             await sdk_client.close()
             if client_id in manager.sdk_clients:
                 del manager.sdk_clients[client_id]
+            if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
+                _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
+                logger.debug(f"Removed client {client_id} from _WEBSOCKET_CLIENTS for manager {manager_name} in finally block")
+
+@app.post("/api/reload_triggers")
+async def reload_triggers():
+    logger.info("Received request to reload triggers for all managers")
+    reload_message = {"type": "ReloadTriggers"}
+    for manager_name, clients in _WEBSOCKET_CLIENTS.items():
+        for client in clients:
+            if not client.is_closing:
+                try:
+                    await client.websocket.send_json(reload_message)
+                    logger.debug(f"Sent ReloadTriggers message to client {client.client_id} for manager {manager_name}")
+                except Exception as e:
+                    logger.error(f"Failed to send ReloadTriggers to client {client.client_id}: {str(e)}")
+    return {"status": "success", "message": "Reload triggers message sent to all clients"}

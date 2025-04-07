@@ -1,7 +1,7 @@
-# VERSION 250325 /home/parcoadmin/parco_fastapi/app/routes/trigger.py 0P.10B.13
-# --- CHANGED: Bumped version from 0P.10B.12 to 0P.10B.13
-# --- FIXED: Modified /get_zone_vertices/{zone_id} to only return vertices for regions not associated with triggers (i_trg IS NULL)
-# 
+# VERSION 250325 /home/parcoadmin/parco_fastapi/app/routes/trigger.py 0P.10B.14
+# --- CHANGED: Bumped version from 0P.10B.13 to 0P.10B.15
+# --- ADDED: New endpoint /get_triggers_by_zone_with_id to return direction_id instead of direction_name
+#
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 # Invented by Scott Cohen & Bertrand Dugal.
@@ -51,6 +51,48 @@ async def fire_trigger(trigger_name: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint to add a new trigger
+async def get_zone_bounding_box(zone_id: int):
+    """Fetch the bounding box of a zone by aggregating its region vertices."""
+    try:
+        # Fetch the zone's region (excluding trigger regions)
+        query = """
+            SELECT r.i_rgn
+            FROM regions r
+            WHERE r.i_zn = $1 AND r.i_trg IS NULL
+        """
+        region_result = await execute_raw_query("maint", query, zone_id)
+        if not region_result:
+            raise HTTPException(status_code=404, detail=f"No region found for zone ID {zone_id}")
+
+        region_id = region_result[0]["i_rgn"]
+
+        # Fetch vertices for the zone's region
+        vertices_query = """
+            SELECT n_x AS x, n_y AS y, COALESCE(n_z, 0.0) AS z
+            FROM vertices
+            WHERE i_rgn = $1
+        """
+        vertices = await execute_raw_query("maint", vertices_query, region_id)
+        if not vertices or len(vertices) < 3:
+            raise HTTPException(status_code=400, detail=f"Zone ID {zone_id} has insufficient vertices")
+
+        # Calculate bounding box
+        min_x = min(v["x"] for v in vertices)
+        max_x = max(v["x"] for v in vertices)
+        min_y = min(v["y"] for v in vertices)
+        max_y = max(v["y"] for v in vertices)
+        min_z = min(v["z"] for v in vertices)
+        max_z = max(v["z"] for v in vertices)
+
+        return {
+            "min_x": min_x, "max_x": max_x,
+            "min_y": min_y, "max_y": max_y,
+            "min_z": min_z, "max_z": max_z
+        }
+    except Exception as e:
+        logger.error(f"Error fetching bounding box for zone {zone_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error fetching zone bounding box: {str(e)}")
+
 @router.post("/add_trigger")
 async def add_trigger(request: TriggerAddRequest):
     """Add a new trigger and ensure it is assigned to a region with proper vertices."""
@@ -63,34 +105,32 @@ async def add_trigger(request: TriggerAddRequest):
         logger.debug(f"DEBUG: usp_trigger_add result: {result}")
 
         if isinstance(result, list) and result and isinstance(result[0], dict) and "usp_trigger_add" in result[0]:
-            trigger_id = int(result[0]["usp_trigger_add"])  # Ensure INTEGER type
+            trigger_id = int(result[0]["usp_trigger_add"])
         elif isinstance(result, int):
             trigger_id = int(result)
         else:
             raise HTTPException(status_code=500, detail=f"Unexpected result format: {result}")
 
-        # Step 2: Fetch the available zone (or pass zone_id in the request)
-        zone_id = request.zone_id  # Assume zone_id is provided in the request
+        # Step 2: Fetch the zone
+        zone_id = request.zone_id
         if not zone_id:
             raise HTTPException(status_code=400, detail="Zone ID must be provided")
-        
-        logger.debug(f"Received vertices: {request.vertices}")  # Add this line
 
-        # Step 3: Assign a region to the trigger
-        region_name = f"Region for Trigger {trigger_id}"
+        # Step 3: Fetch zone bounding box for validation
+        zone_bbox = await get_zone_bounding_box(zone_id)
 
-        # Calculate bounding box from vertices
+        # Step 4: Calculate trigger bounding box from vertices
+        logger.debug(f"Received vertices: {request.vertices}")
         if request.vertices and len(request.vertices) >= 3:
-            # Use provided vertices
             vertices = request.vertices
             min_x = min(v["x"] for v in vertices)
             max_x = max(v["x"] for v in vertices)
             min_y = min(v["y"] for v in vertices)
             max_y = max(v["y"] for v in vertices)
-            min_z = min(v.get("z", 0.0) for v in vertices)  # Default to 0 if z is missing
+            min_z = min(v.get("z", 0.0) for v in vertices)
             max_z = max(v.get("z", 0.0) for v in vertices)
         else:
-            # Fall back to default triangle
+            # Default triangle
             vertices = [
                 {"x": 0.0, "y": 0.0, "z": 0.0},
                 {"x": 10.0, "y": 0.0, "z": 0.0},
@@ -100,15 +140,27 @@ async def add_trigger(request: TriggerAddRequest):
             min_x, min_y, min_z = 0.0, 0.0, 0.0
             max_x, max_y, max_z = 10.0, 10.0, 10.0
 
-        # Call usp_region_add with calculated bounding box
+        # Step 5: Validate that the trigger is inside the zone (for non-portable triggers)
+        # Assuming all triggers created via this endpoint are non-portable
+        if (min_x < zone_bbox["min_x"] or max_x > zone_bbox["max_x"] or
+            min_y < zone_bbox["min_y"] or max_y > zone_bbox["max_y"] or
+            min_z < zone_bbox["min_z"] or max_z > zone_bbox["max_z"]):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Trigger region (min: ({min_x}, {min_y}, {min_z}), max: ({max_x}, {max_y}, {max_z})) "
+                       f"is not fully contained within zone {zone_id} boundaries "
+                       f"(min: ({zone_bbox['min_x']}, {zone_bbox['min_y']}, {zone_bbox['min_z']}), "
+                       f"max: ({zone_bbox['max_x']}, {zone_bbox['max_y']}, {zone_bbox['max_z']}))"
+            )
+
+        # Step 6: Assign a region to the trigger
+        region_name = f"Region for Trigger {trigger_id}"
         region_result = await call_stored_procedure(
             "maint", "usp_region_add",
-            trigger_id,  # i_trg (INTEGER)
-            zone_id,  # i_zn (INTEGER)
-            str(region_name),  # x_nm_rgn (VARCHAR)
-            float(max_x), float(max_y), float(max_z),  # n_max_x, n_max_y, n_max_z (FLOAT)
-            float(min_x), float(min_y), float(min_z),  # n_min_x, n_min_y, n_min_z (FLOAT)
-            trigger_id  # Extra INTEGER parameter at the end
+            trigger_id, zone_id, str(region_name),
+            float(max_x), float(max_y), float(max_z),
+            float(min_x), float(min_y), float(min_z),
+            trigger_id
         )
 
         if not region_result:
@@ -118,20 +170,16 @@ async def add_trigger(request: TriggerAddRequest):
                 "trigger_id": trigger_id
             }
 
-        region_id = int(region_result[0]["usp_region_add"])  # Correctly extract region ID from dictionary
+        region_id = int(region_result[0]["usp_region_add"])
 
-        # Step 4: Add vertices to the region
+        # Step 7: Add vertices to the region
         for i, vertex in enumerate(vertices, 1):
             await call_stored_procedure(
                 "maint", "usp_vertex_add",
-                region_id,  # i_rgn (INTEGER)
-                float(vertex["x"]),  # n_x (FLOAT)
-                float(vertex["y"]),  # n_y (FLOAT)
-                float(vertex.get("z", 0.0)),  # n_z (FLOAT), default to 0 if missing
-                i  # n_ord (INTEGER)
+                region_id, float(vertex["x"]), float(vertex["y"]), float(vertex.get("z", 0.0)), i
             )
 
-        # Step 5: Verify the region has sufficient vertices
+        # Step 8: Verify the region has sufficient vertices
         vertices_result = await call_stored_procedure("maint", "usp_zone_vertices_select_by_region", region_id)
         if not vertices_result or len(vertices_result) < 3:
             logger.warning(f"Region {region_id} assigned to trigger {trigger_id}, but has insufficient vertices.")
@@ -152,7 +200,6 @@ async def add_trigger(request: TriggerAddRequest):
         if "already exists" in e.message:
             raise HTTPException(status_code=400, detail=f"Trigger name '{request.name}' already exists")
         raise HTTPException(status_code=500, detail=f"Database error: {e.message}")
-
     except Exception as e:
         logger.error(f"Error adding trigger: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -379,6 +426,33 @@ async def get_triggers_by_zone(zone_id: int):
         if not result:
             return []
         logger.info(f"Fetched {len(result)} triggers for zone {zone_id}")
+        return result
+    except DatabaseError as e:
+        logger.error(f"Database error fetching triggers for zone {zone_id}: {e.message}")
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        logger.error(f"Error fetching triggers for zone {zone_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# New endpoint to fetch triggers by zone ID with direction_id
+@router.get("/get_triggers_by_zone_with_id/{zone_id}")
+async def get_triggers_by_zone_with_id(zone_id: int):
+    """Fetch all triggers for a given zone, including direction_id (i_dir)."""
+    try:
+        query = """
+            SELECT 
+                t.i_trg AS trigger_id, 
+                t.x_nm_trg AS name, 
+                t.i_dir AS direction_id, 
+                r.i_zn AS zone_id
+            FROM public.triggers t
+            JOIN public.regions r ON t.i_trg = r.i_trg
+            WHERE r.i_zn = $1
+        """
+        result = await execute_raw_query("maint", query, zone_id)
+        if not result:
+            return []
+        logger.info(f"Fetched {len(result)} triggers for zone {zone_id} with direction_id")
         return result
     except DatabaseError as e:
         logger.error(f"Database error fetching triggers for zone {zone_id}: {e.message}")

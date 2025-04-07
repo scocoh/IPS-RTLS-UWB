@@ -1,40 +1,45 @@
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerViewer.js
-// Version: 0.0.10 - Restore initial bounds, maintain zoom after connect and interaction
-import React, { useEffect, useRef, useState, memo } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "leaflet-draw/dist/leaflet.draw.css";
-import "leaflet-draw";
-import "./Map.css";
+// Version: 0.0.13 - Fixed sporadic marker display with delayed updates, improved map view stability, enhanced logging
+// Enhanced with detailed comments for clarity
+import React, { useEffect, useRef, useState, memo } from "react"; // Core React imports for state and effects
+import L from "leaflet"; // Leaflet library for interactive maps
+import "leaflet/dist/leaflet.css"; // Leaflet base styles
+import "leaflet-draw/dist/leaflet.draw.css"; // Styles for drawing plugin
+import "leaflet-draw"; // Plugin for drawing shapes on the map
+import "./Map.css"; // Custom styles for this component
 
-const NewTriggerViewer = memo(({ 
-  mapId, 
-  zones, 
-  checkedZones, 
-  vertices, 
-  onVerticesUpdate, 
-  useLeaflet, 
-  enableDrawing, 
-  onDrawComplete, 
-  showExistingTriggers, 
-  existingTriggerPolygons,
-  tagData,
-  isConnected // New prop
+// Memoized component to prevent unnecessary re-renders
+const NewTriggerViewer = memo(({
+  mapId,              // ID of the map to fetch from API
+  zones,              // Array of zone objects
+  checkedZones,       // Array of zone IDs currently selected
+  vertices,           // Pre-fetched vertices (not used directly here)
+  onVerticesUpdate,   // Callback to notify parent of vertex changes
+  useLeaflet,         // Boolean to toggle between Leaflet and canvas rendering
+  enableDrawing,      // Boolean to enable polygon drawing
+  onDrawComplete,     // Callback when drawing is completed
+  showExistingTriggers, // Boolean to display existing triggers
+  existingTriggerPolygons, // Array of existing trigger polygons
+  tagData,            // Current tag position data (x, y, z, etc.)
+  isConnected         // WebSocket connection status
 }) => {
-  const mapRef = useRef(null);
-  const mapInstance = useRef(null);
-  const canvasRef = useRef(null);
-  const [mapData, setMapData] = useState(null);
-  const [zoneVertices, setZoneVertices] = useState([]);
-  const [error, setError] = useState(null);
-  const isInitialized = useRef(false);
-  const ctxRef = useRef(null);
-  const imageRef = useRef(null);
-  const drawnItems = useRef(new L.FeatureGroup());
-  const canvasBounds = useRef({ x: 0, y: 0, width: 800, height: 600 });
-  const tagMarkerRef = useRef(null);
-  const userInteracted = useRef(false); // Track user zoom/pan
+  // Refs for managing DOM and Leaflet elements
+  const mapRef = useRef(null);           // DOM reference for Leaflet map container
+  const mapInstance = useRef(null);      // Leaflet map instance
+  const canvasRef = useRef(null);        // DOM reference for canvas (non-Leaflet mode)
+  const [mapData, setMapData] = useState(null); // State for map data (image URL, bounds)
+  const [zoneVertices, setZoneVertices] = useState([]); // State for fetched zone vertices
+  const [error, setError] = useState(null); // State for error messages
+  const isInitialized = useRef(false);   // Flag to prevent multiple initializations
+  const ctxRef = useRef(null);           // Canvas 2D context for drawing
+  const imageRef = useRef(null);         // Image object for canvas map
+  const drawnItems = useRef(new L.FeatureGroup()); // Leaflet group for drawn layers
+  const canvasBounds = useRef({ x: 0, y: 0, width: 800, height: 600 }); // Canvas drawing area
+  const tagMarkerRef = useRef(null);     // Reference to the tag’s marker on the map
+  const userInteracted = useRef(false);  // Tracks if user has manually zoomed/panned
+  const updateTimeout = useRef(null);    // Timeout for delayed marker updates
 
+  // Effect to fetch map data when mapId changes
   useEffect(() => {
     if (mapId) {
       const fetchMapData = async () => {
@@ -54,6 +59,7 @@ const NewTriggerViewer = memo(({
     }
   }, [mapId]);
 
+  // Effect to fetch zone vertices when checkedZones change
   useEffect(() => {
     if (checkedZones.length === 0) {
       setZoneVertices([]);
@@ -73,7 +79,7 @@ const NewTriggerViewer = memo(({
             n_x: Number(vertex.x).toFixed(6),
             n_y: Number(vertex.y).toFixed(6),
             n_z: Number(vertex.z).toFixed(6),
-            n_ord: vertex.order,
+            n_ord: vertex.order
           }));
         });
 
@@ -90,6 +96,7 @@ const NewTriggerViewer = memo(({
     fetchZoneVertices();
   }, [checkedZones, onVerticesUpdate]);
 
+  // Effect to initialize canvas-based map (non-Leaflet mode)
   useEffect(() => {
     if (!useLeaflet && mapData && canvasRef.current && !isInitialized.current) {
       const canvas = canvasRef.current;
@@ -129,8 +136,18 @@ const NewTriggerViewer = memo(({
       img.onerror = () => setError("Failed to load map image.");
       isInitialized.current = true;
     }
+
+    return () => {
+      if (!useLeaflet && canvasRef.current) {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        isInitialized.current = false;
+      }
+    };
   }, [mapData, useLeaflet, zoneVertices]);
 
+  // Function to draw zone boundaries on the canvas
   const drawZones = (ctx, offsetX, offsetY, drawWidth, drawHeight, boundsWidth, boundsHeight) => {
     const seniorZone = checkedZones.length > 1 ? Math.min(...checkedZones) : checkedZones[0];
     checkedZones.forEach(zoneId => {
@@ -159,17 +176,19 @@ const NewTriggerViewer = memo(({
     });
   };
 
+  // Effect to initialize Leaflet map and draw initial elements
   useEffect(() => {
     if (useLeaflet && mapData && mapRef.current && !mapInstance.current) {
       mapInstance.current = L.map(mapRef.current, { 
         crs: L.CRS.Simple,
-        zoomControl: true
-      }).fitBounds(mapData.bounds); // Restore initial full view
+        zoomControl: true,
+        minZoom: -5,
+        maxZoom: 5
+      }).fitBounds(mapData.bounds);
       L.imageOverlay(mapData.imageUrl, mapData.bounds).addTo(mapInstance.current);
       mapInstance.current.addLayer(drawnItems.current);
       console.log("Map bounds:", mapData.bounds);
 
-      // Track user interaction
       mapInstance.current.on('zoomend moveend', () => {
         userInteracted.current = true;
         console.log("User interacted with map, zoom/center locked");
@@ -258,56 +277,101 @@ const NewTriggerViewer = memo(({
           if (onDrawComplete) onDrawComplete(coords);
         });
       }
-
-      if (tagData && !tagMarkerRef.current) {
-        tagMarkerRef.current = L.circle([tagData.y, tagData.x], {
-          color: "red",
-          fillColor: "red",
-          fillOpacity: 0.8,
-          radius: 0.4572,
-          zIndexOffset: 1000
-        }).addTo(mapInstance.current);
-        console.log("Tag marker created at:", [tagData.y, tagData.x]);
-      }
     }
 
     return () => {
       if (mapInstance.current) {
-        mapInstance.current.remove();
+        try {
+          mapInstance.current.off();
+          mapInstance.current.remove();
+          console.log("Leaflet map cleaned up");
+        } catch (error) {
+          console.error("Error cleaning up Leaflet map:", error);
+        }
         mapInstance.current = null;
         tagMarkerRef.current = null;
         userInteracted.current = false;
+        isInitialized.current = false;
+        if (updateTimeout.current) {
+          clearTimeout(updateTimeout.current);
+          updateTimeout.current = null;
+        }
       }
     };
   }, [mapData, useLeaflet, zoneVertices, checkedZones, enableDrawing, onDrawComplete, showExistingTriggers, existingTriggerPolygons]);
 
+  // Effect to manage tag marker updates and map view adjustments
   useEffect(() => {
-    if (!useLeaflet || !mapInstance.current) return;
+    if (!useLeaflet || !mapInstance.current || !mapData) return;
 
-    if (tagData && !tagMarkerRef.current) {
-      tagMarkerRef.current = L.circle([tagData.y, tagData.x], {
-        color: "red",
-        fillColor: "red",
-        fillOpacity: 0.8,
-        radius: 0.4572,
-        zIndexOffset: 1000
-      }).addTo(mapInstance.current);
-      console.log("Tag marker created at:", [tagData.y, tagData.x]);
-    } else if (tagData && tagMarkerRef.current) {
-      tagMarkerRef.current.setLatLng([tagData.y, tagData.x]);
-      console.log("Tag marker updated to:", [tagData.y, tagData.x]);
-      // Only reset to full bounds if not connected or not interacted
-      if (!isConnected || !userInteracted.current) {
-        mapInstance.current.fitBounds(mapData.bounds);
-      }
-    } else if (!tagData && tagMarkerRef.current) {
-      mapInstance.current.removeLayer(tagMarkerRef.current);
-      tagMarkerRef.current = null;
-      console.log("Tag marker removed");
-      mapInstance.current.fitBounds(mapData.bounds); // Reset view when disconnected
+    // Clear any existing timeout to prevent multiple updates
+    if (updateTimeout.current) {
+      clearTimeout(updateTimeout.current);
     }
+
+    // Delay marker update to reduce flickering
+    updateTimeout.current = setTimeout(() => {
+      if (tagData && isConnected) {
+        const { x, y } = tagData;
+        const latLng = [y, x];
+
+        // Check if the position is within map bounds
+        const bounds = L.latLngBounds(mapData.bounds);
+        if (!bounds.contains(latLng)) {
+          console.warn(`Tag position ${latLng} is outside map bounds:`, mapData.bounds);
+          return;
+        }
+
+        if (!tagMarkerRef.current) {
+          // Create a new marker
+          tagMarkerRef.current = L.circle(latLng, {
+            color: "red",
+            fillColor: "red",
+            fillOpacity: 0.8,
+            radius: 0.4572,
+            zIndexOffset: 1000
+          }).addTo(mapInstance.current);
+          console.log("Tag marker created at:", latLng);
+        } else {
+          // Update existing marker position
+          tagMarkerRef.current.setLatLng(latLng);
+          tagMarkerRef.current.setStyle({ color: "red", fillColor: "red" });
+          console.log("Tag marker updated to:", latLng);
+        }
+
+        if (!userInteracted.current) {
+          const tagBounds = L.latLngBounds(latLng, latLng);
+          mapInstance.current.fitBounds(tagBounds.pad(0.5), { animate: false });
+          console.log("Map centered on tag:", latLng);
+        }
+      } else if (tagData && !isConnected && tagMarkerRef.current) {
+        // Change marker to gray when disconnected
+        tagMarkerRef.current.setStyle({ color: "gray", fillColor: "gray" });
+        console.log("Tag marker turned gray due to disconnect");
+        if (!userInteracted.current) {
+          mapInstance.current.fitBounds(mapData.bounds);
+          console.log("Map reset to full view on disconnect");
+        }
+      } else if (!tagData && tagMarkerRef.current) {
+        // Remove marker if tag data is cleared
+        mapInstance.current.removeLayer(tagMarkerRef.current);
+        tagMarkerRef.current = null;
+        console.log("Tag marker removed due to no tag data");
+        if (!userInteracted.current) {
+          mapInstance.current.fitBounds(mapData.bounds);
+          console.log("Map reset to full view");
+        }
+      }
+    }, 100); // 100ms delay to reduce flickering
+
+    return () => {
+      if (updateTimeout.current) {
+        clearTimeout(updateTimeout.current);
+      }
+    };
   }, [useLeaflet, tagData, isConnected, mapData]);
 
+  // Render the component: either Leaflet map or canvas
   return (
     <div>
       {error && <div style={{ color: "red" }}>{error}</div>}
