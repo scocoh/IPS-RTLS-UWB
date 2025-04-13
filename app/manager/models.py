@@ -1,8 +1,9 @@
-# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/models.py 1.0.2
-# Added Sequence field to GISData
-# 
+# /home/parcoadmin/parco_fastapi/app/manager/models.py
+# Version: 1.0.3 - Added zone_id field to GISData, bumped from 1.0.2
+# Previous: Added Sequence field to GISData (1.0.2)
+#
 # Model Module for Manager
-#   
+#
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 # Invented by Scott Cohen & Bertrand Dugal.
@@ -10,6 +11,7 @@
 # Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
 #
 # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
@@ -17,7 +19,7 @@ from pydantic import BaseModel
 import xml.etree.ElementTree as ET
 from .utils import MessageUtilities
 from .enums import RequestType, ResponseType
-import json  # NEW: Added for JSON support
+import json
 
 class Tag(BaseModel):
     id: str
@@ -39,7 +41,6 @@ class Tag(BaseModel):
     def to_xml(self) -> str:
         return f'<tagid data="{str(self.send_payload_data).lower()}">{self.id}</tagid>'
 
-    # NEW: Added JSON method
     def to_json(self) -> str:
         """Converts Tag to JSON string."""
         data = MessageUtilities.json_base()
@@ -63,7 +64,8 @@ class GISData(BaseModel):
     cnf: float = -1.0
     gwid: str = ""
     data: str = ""
-    sequence: Optional[int] = None  # Added Sequence field
+    sequence: Optional[int] = None
+    zone_id: Optional[int] = None  # NEW: Added zone_id field
 
     def to_xml(self) -> str:
         root = ET.Element("parco", version="1.0")
@@ -78,8 +80,10 @@ class GISData(BaseModel):
         ET.SubElement(gis, "z").text = str(self.z)
         ET.SubElement(gis, "bat").text = str(self.bat)
         ET.SubElement(root, "data").text = self.data
-        if self.sequence is not None:  # Include Sequence in XML if present
+        if self.sequence is not None:
             ET.SubElement(root, "sequence").text = str(self.sequence)
+        if self.zone_id is not None:  # NEW: Include zone_id in XML
+            ET.SubElement(root, "zone_id").text = str(self.zone_id)
         return MessageUtilities.XMLDefTag + ET.tostring(root, encoding='unicode')
 
     @classmethod
@@ -88,6 +92,8 @@ class GISData(BaseModel):
         gis = root.find("gis")
         sequence = root.find("sequence")
         sequence_value = int(sequence.text) if sequence is not None else None
+        zone_id = root.find("zone_id")
+        zone_id_value = int(zone_id.text) if zone_id is not None else None  # NEW: Parse zone_id
         return cls(
             id=gis.find("id").text,
             type=root.find("type").text,
@@ -99,16 +105,15 @@ class GISData(BaseModel):
             cnf=float(gis.find("cnf").text) if gis.find("cnf").text else -1.0,
             gwid=gis.find("gwid").text or "",
             data=root.find("data").text or "",
-            sequence=sequence_value  # Added Sequence field
+            sequence=sequence_value,
+            zone_id=zone_id_value  # NEW: Set zone_id
         )
 
-    # NEW: Added validation method (already present, kept for completeness)
     def validate(self) -> bool:
         """Validates that all required GISData fields are present and not None."""
         required = [self.id, self.type, self.ts, self.x, self.y, self.z, self.bat, self.cnf, self.gwid]
         return all(field is not None for field in required)
 
-    # NEW: Added JSON method
     def to_json(self) -> str:
         """Converts GISData to JSON string."""
         data = MessageUtilities.json_base()
@@ -126,8 +131,10 @@ class GISData(BaseModel):
             },
             "data": self.data
         })
-        if self.sequence is not None:  # Include Sequence in JSON if present
+        if self.sequence is not None:
             data["Sequence"] = self.sequence
+        if self.zone_id is not None:  # NEW: Include zone_id in JSON
+            data["zone_id"] = self.zone_id
         return json.dumps(data)
 
 class HeartBeat(BaseModel):
@@ -144,7 +151,6 @@ class HeartBeat(BaseModel):
         root = ET.fromstring(xml_str)
         return cls(ticks=int(root.find("ts").text))
 
-    # NEW: Added JSON method
     def to_json(self) -> str:
         """Converts HeartBeat to JSON string."""
         data = MessageUtilities.json_base()
@@ -181,7 +187,6 @@ class Request(BaseModel):
             tags.append(Tag(id=tag_id, send_payload_data=data))
         return cls(req_type=req_type, req_id=req_id, tags=tags)
 
-    # NEW: Added JSON method
     def to_json(self) -> str:
         """Converts Request to JSON string."""
         data = MessageUtilities.json_base()
@@ -214,7 +219,6 @@ class Response(BaseModel):
         message = root.find("msg").text or ""
         return cls(response_type=response_type, req_id=req_id, message=message)
 
-    # NEW: Added JSON method
     def to_json(self) -> str:
         """Converts Response to JSON string."""
         data = MessageUtilities.json_base()

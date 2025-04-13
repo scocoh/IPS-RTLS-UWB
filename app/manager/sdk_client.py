@@ -1,7 +1,9 @@
-# Version: 250327 /home/parcoadmin/parco_fastapi/app/manager/sdk_client.py 1.0.6
-# 
+# /home/parcoadmin/parco_fastapi/app/manager/sdk_client.py
+# Version: 1.0.8 - Added logging and validation for zone_id, bumped from 1.0.7
+# Previous: Added zone_id attribute to SDKClient to track client subscription zone (1.0.7)
+#
 # SDK Client Module for Manager
-#   
+#
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 # Invented by Scott Cohen & Bertrand Dugal.
@@ -21,9 +23,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 class SDKClient:
-    def __init__(self, websocket: WebSocket, client_id: str):
+    def __init__(self, websocket: WebSocket, client_id: str, zone_id: int = None):
         self.websocket = websocket
         self.client_id = client_id
+        self._zone_id = zone_id  # NEW: Zone ID this client is subscribed to
+        logger.debug(f"Initialized SDKClient {client_id} with zone_id={self._zone_id}")
         self.heartbeat = 0
         self.failed_heartbeat = False
         self.received_data = False
@@ -37,7 +41,19 @@ class SDKClient:
         self.parent = None
         self.last_sent_message = None
         self.q_timer_task = None
-        self._is_closed = False  # NEW: Track if the WebSocket is already closed
+        self._is_closed = False
+
+    @property
+    def zone_id(self) -> int:
+        return self._zone_id
+
+    @zone_id.setter
+    def zone_id(self, value: int):
+        if value is not None and not isinstance(value, int):
+            logger.error(f"Invalid zone_id for client {self.client_id}: {value}, must be an integer")
+            raise ValueError("zone_id must be an integer")
+        logger.debug(f"Setting zone_id for client {self.client_id} to {value}")
+        self._zone_id = value
 
     async def q_timer(self):
         while not self.is_closing:
@@ -84,7 +100,7 @@ class SDKClient:
                 await self.q_timer_task
             except asyncio.CancelledError:
                 logger.debug(f"q_timer task for client {self.client_id} cancelled")
-        if not self._is_closed:  # NEW: Only close if not already closed
+        if not self._is_closed:
             try:
                 await self.websocket.close()
                 logger.debug(f"Closed WebSocket for client {self.client_id}")

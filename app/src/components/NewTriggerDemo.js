@@ -1,5 +1,8 @@
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo.js
-// Version: v0.10.49 - Added Clear System Events button
+// Version: v0.10.74 - Fixed sequence number display and show trigger events checkbox, bumped from v0.10.73
+// Previous: Fixed alert box for zone switching, fixed show trigger events checkbox, fixed sequence number (v0.10.73)
+// Previous: Fixed sequence number in trigger events, fixed disconnect button, fixed checkbox reset (v0.10.72)
+// Previous: Added sequence number to trigger events, added checkbox to enable/disable trigger events (v0.10.71)
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Form, Tabs, Tab, Table, Button, FormCheck, InputGroup, FormControl } from "react-bootstrap";
 import NewTriggerViewer from "./NewTriggerViewer";
@@ -23,6 +26,9 @@ const NewTriggerDemo = () => {
     const savedEvents = localStorage.getItem("eventList");
     return savedEvents ? JSON.parse(savedEvents) : [];
   });
+  const [triggerEvents, setTriggerEvents] = useState([]);
+  const [showTriggerEvents, setShowTriggerEvents] = useState(true); // State to enable/disable trigger events
+  const showTriggerEventsRef = useRef(true); // Ref to track showTriggerEvents value
   const [loading, setLoading] = useState(true);
   const [showExistingTriggers, setShowExistingTriggers] = useState(true);
   const [existingTriggerPolygons, setExistingTriggerPolygons] = useState([]);
@@ -31,6 +37,7 @@ const NewTriggerDemo = () => {
   const [tagIdInput, setTagIdInput] = useState("SIM1");
   const [isConnected, setIsConnected] = useState(false);
   const [tagData, setTagData] = useState(null);
+  const [sequenceNumbers, setSequenceNumbers] = useState({}); // Map to store sequence numbers by tag ID
   const [tagCount, setTagCount] = useState(0);
   const [tagRate, setTagRate] = useState(0);
   const [tagTimestamps, setTagTimestamps] = useState([]);
@@ -38,7 +45,22 @@ const NewTriggerDemo = () => {
   const wsRef = useRef(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
-  const reconnectInterval = 5000; // 5 seconds
+  const reconnectInterval = 5000;
+  const shouldReconnect = useRef(true);
+  const lastDataTime = useRef(null); // Track last data received time
+  const dataTimeout = 10000; // 10 seconds timeout for no data
+  const hasPromptedForZone = useRef(false); // Track if we've prompted for a zone switch
+
+  // Debug triggerEvents updates
+  useEffect(() => {
+    console.log("triggerEvents state updated:", triggerEvents);
+  }, [triggerEvents]);
+
+  // Debug showTriggerEvents updates and sync with ref
+  useEffect(() => {
+    console.log("showTriggerEvents state updated:", showTriggerEvents);
+    showTriggerEventsRef.current = showTriggerEvents;
+  }, [showTriggerEvents]);
 
   useEffect(() => {
     localStorage.setItem("eventList", JSON.stringify(eventList));
@@ -64,8 +86,8 @@ const NewTriggerDemo = () => {
 
   const connectWebSocket = () => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      disconnectWebSocket();
-      return;
+      wsRef.current.close();
+      console.log("WebSocket close initiated due to reconnect");
     }
 
     const ws = new WebSocket("ws://192.168.210.226:8001/ws/Manager1");
@@ -79,16 +101,20 @@ const NewTriggerDemo = () => {
         request: "BeginStream",
         reqid: "triggerDemo1",
         params: [{ id: tagIdInput, data: "true" }],
-        zone_id: selectedZone ? parseInt(selectedZone.i_zn) : 1
+        zone_id: selectedZone ? parseInt(selectedZone.i_zn) : 417
       };
-      console.log("Subscribing with zone_id:", subscription.zone_id);
       ws.send(JSON.stringify(subscription));
       console.log("Sent subscription:", subscription);
       setIsConnected(true);
-      setTagCount(0);
-      setTagTimestamps([]);
-      setTagRate(0);
-      reconnectAttempts.current = 0; // Reset reconnect attempts on successful connection
+      setEventList(prev => [...prev, `WebSocket connected on ${getFormattedTimestamp()}`]);
+      if (!tagCount) {
+        setTagCount(0);
+        setTagTimestamps([]);
+        setTagRate(0);
+        // Do not reset triggerEvents here to preserve events across reconnects
+      }
+      fetchTriggers(); // Reload triggers on connect
+      hasPromptedForZone.current = false; // Reset prompt tracking on new connection
     };
 
     ws.onmessage = async (event) => {
@@ -103,15 +129,46 @@ const NewTriggerDemo = () => {
       console.log("Parsed WebSocket message:", data);
       if (data.type === "Sim" && data.gis) {
         console.log("Processing Sim message:", data);
+        lastDataTime.current = Date.now(); // Update last data time
+        const tagZoneId = data.zone_id || (selectedZone ? selectedZone.i_zn : 417);
+        console.log("Tag zone ID determination:", {
+          zone_id_in_message: data.zone_id,
+          selectedZone_i_zn: selectedZone ? selectedZone.i_zn : "N/A",
+          fallback_zone: 417,
+          final_tagZoneId: tagZoneId
+        });
+        const zoneMatch = zones.find(z => z.i_zn === parseInt(tagZoneId));
+        if (zoneMatch && selectedZone && selectedZone.i_zn !== parseInt(tagZoneId) && !hasPromptedForZone.current) {
+          console.log("Found zone mismatch:", zoneMatch);
+          // Prompt user to switch zones
+          const shouldSwitch = window.confirm(
+            `Tag ${data.gis.id} is in Zone ${zoneMatch.i_zn} (${zoneMatch.x_nm_zn}). Do you want to switch to this zone?`
+          );
+          if (shouldSwitch) {
+            setSelectedZone(zoneMatch);
+            setEventList(prev => [...prev, `Zone synced to ${zoneMatch.i_zn} - ${zoneMatch.x_nm_zn} on ${getFormattedTimestamp()}`]);
+            hasPromptedForZone.current = true; // Prevent further prompts until next connection or zone change
+          } else {
+            console.log("User chose not to switch zones");
+            setEventList(prev => [...prev, `User declined to sync to Zone ${zoneMatch.i_zn} on ${getFormattedTimestamp()}`]);
+            hasPromptedForZone.current = true; // Prevent further prompts until next connection or zone change
+          }
+        }
         const newTagData = {
           id: data.gis.id,
           x: data.gis.x,
           y: data.gis.y,
           z: data.gis.z,
           sequence: data.Sequence,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          zone_id: tagZoneId // Store tag's zone for display
         };
         setTagData(newTagData);
+        setSequenceNumbers(prev => ({
+          ...prev,
+          [data.gis.id]: data.Sequence || "N/A" // Store sequence number by tag ID
+        }));
+        console.log(`Updated sequence for tag ${data.gis.id}: ${data.Sequence}`);
         setTagCount(prev => prev + 1);
         setTagTimestamps(prev => {
           const now = Date.now();
@@ -126,26 +183,43 @@ const NewTriggerDemo = () => {
           }
           return newTimestamps;
         });
-      } else if (data.type === "TriggerEvent" && selectedZone) {
-        let trigger = triggers.find(t => t.i_trg === data.trigger_id && t.zone_id === parseInt(selectedZone.i_zn));
+      } else if (data.type === "TriggerEvent") {
+        console.log("Processing TriggerEvent:", data);
+        lastDataTime.current = Date.now(); // Update last data time
+        let trigger = triggers.find(t => t.i_trg === data.trigger_id);
         if (!trigger) {
           try {
             const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${data.trigger_id}`);
             if (!res.ok) throw new Error(`Failed to fetch trigger details: ${res.status}`);
             const triggerData = await res.json();
-            trigger = { i_trg: data.trigger_id, x_nm_trg: triggerData.name, i_dir: triggerData.direction_id, zone_id: parseInt(selectedZone.i_zn) };
-            setTriggers(prev => [...prev, trigger]);
+            trigger = { i_trg: data.trigger_id, x_nm_trg: triggerData.name, i_dir: triggerData.direction_id, zone_id: data.zone_id || parseInt(selectedZone?.i_zn) };
+            setTriggers(prev => {
+              const newTriggers = [...prev, trigger];
+              console.log("Updated triggers:", newTriggers);
+              return newTriggers;
+            });
             console.log(`Fetched trigger details for ID ${data.trigger_id}:`, triggerData);
           } catch (e) {
             console.error(`Error fetching trigger details for ID ${data.trigger_id}:`, e);
             return;
           }
         }
-        const eventMessage = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.x_nm_trg} at ${data.timestamp}`;
+        const zoneName = zones.find(z => z.i_zn === trigger.zone_id)?.x_nm_zn || "Unknown";
+        const sequenceNumber = sequenceNumbers[data.tag_id] || (tagData?.sequence || "N/A");
+        const eventMsg = `Tag ${data.tag_id} ${data.direction} trigger ${data.trigger_id} (Zone ${trigger.zone_id} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+        if (showTriggerEventsRef.current) {
+          setTriggerEvents(prev => {
+            const newEvents = [...prev, eventMsg].slice(-10); // Keep only the latest 10 events
+            console.log("Updated triggerEvents:", newEvents);
+            return newEvents;
+          });
+        }
+        const eventMessage = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.x_nm_trg} (Zone ${trigger.zone_id} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
         setEventList(prev => [...prev, eventMessage]);
       } else if (data.type === "HeartBeat") {
         ws.send(JSON.stringify({ type: "HeartBeat", ts: data.ts }));
         console.log("Sent heartbeat response:", data.ts);
+        lastDataTime.current = Date.now(); // Update last data time
       } else {
         console.log("Unhandled WebSocket message type:", data.type);
       }
@@ -155,10 +229,15 @@ const NewTriggerDemo = () => {
       console.log("WebSocket disconnected");
       setIsConnected(false);
       setTagRate(0);
-      if (reconnectAttempts.current < maxReconnectAttempts) {
+      setTagData(null); // Clear tag data to gray marker
+      setSequenceNumbers({}); // Reset sequence numbers
+      setEventList(prev => [...prev, `WebSocket disconnected on ${getFormattedTimestamp()}`]);
+      if (shouldReconnect.current && reconnectAttempts.current < maxReconnectAttempts) {
         reconnectAttempts.current += 1;
         console.log(`Attempting to reconnect (${reconnectAttempts.current}/${maxReconnectAttempts})...`);
         setTimeout(connectWebSocket, reconnectInterval);
+      } else if (!shouldReconnect.current) {
+        console.log("WebSocket closed manually, no reconnect attempted.");
       } else {
         console.error("Max reconnect attempts reached. Please reconnect manually.");
       }
@@ -168,15 +247,48 @@ const NewTriggerDemo = () => {
       console.error("WebSocket error:", error);
       setIsConnected(false);
       setTagRate(0);
+      setTagData(null); // Clear tag data to gray marker
+      setSequenceNumbers({}); // Reset sequence numbers
     };
   };
 
-  const disconnectWebSocket = () => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.close();
-      console.log("WebSocket close initiated");
+  const disconnectWebSocket = async () => {
+    if (wsRef.current) {
+      shouldReconnect.current = false;
+      if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+        wsRef.current.close();
+        console.log("WebSocket close initiated");
+        // Wait for the WebSocket to fully close
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      setIsConnected(false);
+      wsRef.current = null;
+      setTagData(null); // Clear tag data to gray marker
+      setSequenceNumbers({}); // Reset sequence numbers
+      setEventList(prev => [...prev, `WebSocket disconnected manually on ${getFormattedTimestamp()}`]);
+      hasPromptedForZone.current = false; // Reset prompt tracking on disconnect
     }
   };
+
+  // Add a timeout to detect if no data is received
+  useEffect(() => {
+    const checkDataTimeout = () => {
+      if (isConnected && lastDataTime.current) {
+        const timeSinceLastData = Date.now() - lastDataTime.current;
+        if (timeSinceLastData > dataTimeout) {
+          console.log("No data received for 10 seconds, assuming disconnected");
+          setIsConnected(false);
+          setTagData(null); // Clear tag data to gray marker
+          setSequenceNumbers({}); // Reset sequence numbers
+          setEventList(prev => [...prev, `No data received for 10 seconds, assumed disconnected on ${getFormattedTimestamp()}`]);
+          hasPromptedForZone.current = false; // Reset prompt tracking on timeout
+        }
+      }
+    };
+
+    const interval = setInterval(checkDataTimeout, 1000);
+    return () => clearInterval(interval);
+  }, [isConnected]);
 
   useEffect(() => {
     const fetchZones = async () => {
@@ -270,29 +382,46 @@ const NewTriggerDemo = () => {
     fetchTriggers();
 
     return () => {
-      if (wsRef.current) wsRef.current.close();
+      if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
+        wsRef.current.close();
+        shouldReconnect.current = false;
+        setIsConnected(false);
+      }
     };
   }, []);
 
   useEffect(() => {
     if (!selectedZone) return;
+    console.log("useEffect triggered with selectedZone:", selectedZone.i_zn, "isConnected:", isConnected);
     const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn));
+    console.log("Zone triggers for zone", selectedZone.i_zn, ":", zoneTriggers);
 
     const fetchPolygons = async () => {
+      console.log("Fetching polygons for triggers:", zoneTriggers);
+      if (zoneTriggers.length === 0) {
+        console.log("No triggers found for zone", selectedZone.i_zn);
+        setExistingTriggerPolygons([]);
+        return;
+      }
       try {
         const polygons = await Promise.all(
           zoneTriggers.map(async (t) => {
+            console.log(`Fetching details for trigger ID ${t.i_trg}`);
             const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${t.i_trg}`);
             if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
             const data = await res.json();
+            console.log(`Trigger ${t.i_trg} details:`, data);
             if (Array.isArray(data.vertices)) {
               const latLngs = data.vertices.map(v => [v.y, v.x]);
               return { id: t.i_trg, name: t.x_nm_trg, latLngs };
             }
+            console.log(`No vertices for trigger ${t.i_trg}`);
             return null;
           })
         );
-        setExistingTriggerPolygons(polygons.filter(p => p));
+        const validPolygons = polygons.filter(p => p);
+        console.log("Fetched polygons:", validPolygons);
+        setExistingTriggerPolygons(validPolygons);
       } catch (e) {
         console.error("Failed to fetch polygons:", e);
         setFetchError("Failed to fetch trigger polygons.");
@@ -326,7 +455,8 @@ const NewTriggerDemo = () => {
 
     fetchPolygons();
     fetchZoneVertices();
-  }, [selectedZone, triggers]);
+    hasPromptedForZone.current = false; // Reset prompt tracking on zone change
+  }, [selectedZone]);
 
   const handleDrawComplete = useCallback((coords) => {
     try {
@@ -362,6 +492,12 @@ const NewTriggerDemo = () => {
       setZMax(null);
       setCustomZMax(null);
       console.log("Updated selectedZone:", zone);
+      setEventList(prev => [...prev, `Zone changed to ${zone.i_zn} - ${zone.x_nm_zn} on ${getFormattedTimestamp()}`]);
+      hasPromptedForZone.current = false; // Reset prompt tracking on zone change
+      if (isConnected && shouldReconnect.current) {
+        console.log("Zone changed, reconnecting WebSocket with new zone_id:", zone.i_zn);
+        connectWebSocket();
+      }
     }
   };
 
@@ -372,7 +508,7 @@ const NewTriggerDemo = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" }
         });
-        if (!reloadRes.ok) throw new Error(`Failed to reload triggers: ${reloadRes.status}`);
+        if (!reloadRes.ok) throw new Error(`Failed to reload triggers: ${res.status}`);
         console.log("Successfully sent reload triggers request");
         return true;
       } catch (e) {
@@ -473,12 +609,16 @@ const NewTriggerDemo = () => {
     return zoneList.map(zone => (
       <React.Fragment key={zone.i_zn}>
         <option value={zone.i_zn}>
-          {`${"  ".repeat(indentLevel)}${indentLevel > 0 ? "- " : ""}${zone.x_nm_zn} (Level ${zone.i_typ_zn})`}
+          {`${"  ".repeat(indentLevel)}${indentLevel > 0 ? "- " : ""}${zone.i_zn} - ${zone.x_nm_zn} (Level ${zone.i_typ_zn})`}
         </option>
         {zone.children && zone.children.length > 0 && renderZoneOptions(zone.children, indentLevel + 1)}
       </React.Fragment>
     ));
   };
+
+  const infoLine = tagData
+    ? `Tag ${tagData.id} (Zone ${tagData.zone_id || selectedZone?.i_zn || "N/A"} - ${zones.find(z => z.i_zn === (tagData.zone_id || selectedZone?.i_zn))?.x_nm_zn || "Unknown"}): X=${tagData.x}, Y=${tagData.y}, Z=${tagData.z}, Sequence=${tagData.sequence}, Count=${tagCount}, Tags/sec=${tagRate.toFixed(2)}`
+    : "No tag data";
 
   return (
     <div>
@@ -505,7 +645,14 @@ const NewTriggerDemo = () => {
               />
               <Button
                 variant={isConnected ? "danger" : "primary"}
-                onClick={isConnected ? disconnectWebSocket : connectWebSocket}
+                onClick={() => {
+                  if (isConnected) {
+                    disconnectWebSocket();
+                  } else {
+                    shouldReconnect.current = true;
+                    connectWebSocket();
+                  }
+                }}
                 disabled={!tagIdInput}
               >
                 {isConnected ? "Disconnect" : "Connect"}
@@ -515,12 +662,31 @@ const NewTriggerDemo = () => {
 
           {tagData && (
             <div style={{ marginTop: "10px" }}>
-              <p>
-                Tag {tagData.id}: X={tagData.x}, Y={tagData.y}, Z={tagData.z}, 
-                Sequence={tagData.sequence}, Count={tagCount}, Tags/sec={tagRate.toFixed(2)}
-              </p>
+              <p>{infoLine}</p>
             </div>
           )}
+
+          <div style={{ marginTop: "10px" }}>
+            <h3>Trigger Events</h3>
+            <FormCheck
+              type="checkbox"
+              label="Show Trigger Events"
+              checked={showTriggerEvents}
+              onChange={(e) => setShowTriggerEvents(e.target.checked)}
+              style={{ marginBottom: "10px" }}
+            />
+            {triggerEvents.length === 0 ? (
+              <p>No trigger events recorded.</p>
+            ) : (
+              <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #ccc", padding: "10px" }}>
+                <ul style={{ margin: 0, padding: 0, listStyleType: "none" }}>
+                  {triggerEvents.map((event, index) => (
+                    <li key={index}>{event}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
 
           <Form.Group>
             <Form.Label>Trigger Name</Form.Label>

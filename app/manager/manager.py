@@ -1,7 +1,7 @@
 # /home/parcoadmin/parco_fastapi/app/manager/manager.py
-# Version: 250407 /home/parcoadmin/parco_fastapi/app/manager/manager.py 1.0.27
-# --- CHANGED: Bumped version from 1.0.26 to 1.0.27
-# --- ADDED: Detailed debug logging in parser_data_arrived to trace trigger evaluation and event broadcasting
+# Version: 1.0.35 - Send TriggerEvent to all subscribed clients regardless of zone_id, bumped from 1.0.34
+# Previous: Ensure triggers are loaded for GISData zone_id (1.0.34)
+# Previous: Fixed zone_id handling in parser_data_arrived and ensured it's preserved in Sim messages (1.0.33)
 
 from typing import Dict, List
 import asyncpg
@@ -21,10 +21,11 @@ import json
 logger = logging.getLogger(__name__)
 
 class Manager:
-    def __init__(self, name: str, zone_id: int = 417):  # Updated default to 417
+    def __init__(self, name: str, zone_id: int):  # zone_id required, no default
         # Core attributes for Manager instance
         self.name = name              # Name of this manager instance
-        self.zone_id = zone_id        # Zone ID this manager operates in, set to 417 to match 2303251508CL1
+        self.zone_id = zone_id        # Zone ID this manager operates in, must be specified
+        self.zone_id_locked = False   # Flag to lock zone_id after first subscription
         self.sdk_ip = None            # IP address for SDK connections
         self.sdk_port = None          # Port for SDK connections
         self.is_ave = False           # Flag for averaging tag positions
@@ -39,7 +40,7 @@ class Manager:
         self.resrc_type = 0           # Resource type ID
         self.resrc_type_name = ""     # Resource type name
         self.ave_hash: Dict[str, Ave] = {} # Hash for averaged tag positions
-        self.sdk_clients: Dict[str, SDKClient] = {} # Active SDK clients
+        self.sdk_clients: Dict[str, SDKClient] = {} # Active SDK clients with zone_id
         self.kill_list: List[SDKClient] = [] # Clients marked for termination
         self.last_heartbeat = 0       # Last heartbeat timestamp
         self.conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint" # Maintenance DB connection
@@ -64,7 +65,6 @@ class Manager:
         self.tag_timestamps_3d: Dict[str, List[datetime]] = {} # 3D timestamps
 
     async def load_config_from_db(self):
-        # Load configuration from the database for this manager
         logger.debug(f"Loading config for manager {self.name} from DB")
         async with asyncpg.create_pool(self.conn_string) as pool:
             async with pool.acquire() as conn:
@@ -92,7 +92,6 @@ class Manager:
                     logger.debug("No config found, using defaults")
 
     async def load_triggers(self, zone_id: int):
-        # Fetch and load triggers for the specified zone from the API using the new endpoint
         logger.debug(f"Loading triggers for zone {zone_id}")
         try:
             async with httpx.AsyncClient() as client:
@@ -101,12 +100,15 @@ class Manager:
                 triggers_data = response.json()
                 logger.debug(f"Retrieved triggers data: {triggers_data}")
 
+                # Clear existing triggers for this zone_id
+                self.triggers = [t for t in self.triggers if t.zone_id != zone_id]
+                logger.debug(f"Cleared existing triggers for zone {zone_id}, remaining triggers: {len(self.triggers)}")
+
                 for trigger_data in triggers_data:
                     trigger_id = trigger_data["trigger_id"]
                     trigger_name = trigger_data["name"]
-                    direction_id = trigger_data.get("direction_id")  # Use direction_id
+                    direction_id = trigger_data.get("direction_id")
 
-                    # Map direction_id to TriggerDirections
                     direction_map = {
                         1: TriggerDirections.WhileIn,
                         2: TriggerDirections.WhileOut,
@@ -117,7 +119,6 @@ class Manager:
                     direction = direction_map.get(direction_id, TriggerDirections.NotSet)
                     logger.debug(f"Mapping direction_id {direction_id} to {direction} for trigger {trigger_name}")
 
-                    # Fetch trigger details (regions)
                     detail_response = await client.get(f"{FASTAPI_BASE_URL}/api/get_trigger_details/{trigger_id}")
                     detail_response.raise_for_status()
                     trigger_details = detail_response.json()
@@ -125,10 +126,8 @@ class Manager:
 
                     regions = Region3DCollection()
                     if isinstance(trigger_details, dict) and "vertices" in trigger_details:
-                        # Handle case where vertices are provided (polygonal regions)
                         vertices = trigger_details["vertices"]
                         if vertices and len(vertices) >= 3:
-                            # Calculate bounding box from vertices
                             x_coords = [v["x"] for v in vertices]
                             y_coords = [v["y"] for v in vertices]
                             z_coords = [v["z"] for v in vertices]
@@ -145,7 +144,6 @@ class Manager:
                             ))
                             logger.debug(f"Added region for trigger {trigger_id}: min=({min_x}, {min_y}, {min_z}), max=({max_x}, {max_y}, {max_z})")
                     else:
-                        # Handle case where trigger_details is a list (rectangular regions)
                         for detail in trigger_details:
                             if "n_min_x" in detail and "n_max_x" in detail:
                                 regions.add(Region3D(
@@ -158,7 +156,6 @@ class Manager:
                                 ))
                                 logger.debug(f"Added region for trigger {trigger_id}: min=({detail['n_min_x']}, {detail['n_min_y']}, {detail['n_min_z']}), max=({detail['n_max_x']}, {detail['n_max_y']}, {detail['n_max_z']})")
 
-                    # Check if regions are empty by checking the length of the internal list
                     if len(regions.regions) == 0:
                         logger.warning(f"No regions loaded for trigger {trigger_name} (ID: {trigger_id})")
 
@@ -167,7 +164,8 @@ class Manager:
                         name=trigger_name,
                         direction=direction,
                         regions=regions,
-                        ignore_unknowns=False
+                        ignore_unknowns=False,
+                        zone_id=zone_id  # Explicitly set zone_id on the Trigger object
                     )
                     self.triggers.append(trigger)
                     logger.info(f"Loaded trigger {trigger_name} (ID: {trigger_id}) for zone {zone_id} with direction {direction}")
@@ -178,11 +176,9 @@ class Manager:
             logger.error(f"Error loading triggers for zone {zone_id}: {str(e)}")
 
     def get_current_zone_id(self) -> int:
-        # Return the current zone ID, defaulting to 417 if not set
-        return getattr(self, 'zone_id', 417)
+        return getattr(self, 'zone_id')
 
     async def start(self):
-        # Start the manager instance and initialize its components
         self.run_state = eRunState.Starting
         try:
             self.start_date = datetime.now()
@@ -208,7 +204,6 @@ class Manager:
             raise
 
     async def heartbeat_loop(self):
-        # Periodically send heartbeats to SDK clients to maintain connections
         logger.debug("Entering heartbeat_loop")
         while self.run_state in [eRunState.Started, eRunState.Starting]:
             logger.debug(f"Heartbeat loop iteration, run_state: {self.run_state}, clients: {len(self.sdk_clients)}")
@@ -271,13 +266,12 @@ class Manager:
                 logger.error(f"SDK HeartBeat Timer Error: {str(ex)}")
 
             if self.run_state == eRunState.Started and self.send_sdk_heartbeat:
-                logger.debug("Sleeping for 60 seconds")  # Extended from 30s to 60s for stability
+                logger.debug("Sleeping for 60 seconds")
                 await asyncio.sleep(60)
                 logger.debug("Finished sleeping")
         logger.debug("Exiting heartbeat_loop")
 
     async def close_client(self, client: SDKClient):
-        # Close an SDK client connection cleanly
         logger.debug(f"Closing client {client.client_id}")
         try:
             if client and not client.is_closing:
@@ -289,9 +283,12 @@ class Manager:
             logger.error(f"CloseClient Error: {str(ex)}")
 
     async def parser_data_arrived(self, sm: dict):
-        # Process incoming tag data and evaluate triggers
         logger.debug(f"Parser data arrived: {sm}")
         try:
+            # Extract zone_id from the incoming sm dictionary
+            zone_id = sm.get('zone_id', self.zone_id)
+            logger.debug(f"Extracted zone_id from sm: {zone_id}, manager zone_id: {self.zone_id}")
+
             msg = GISData(
                 id=sm['ID'],
                 type=sm['Type'],
@@ -305,6 +302,16 @@ class Manager:
                 data="",
                 sequence=sm.get('Sequence')
             )
+            # Explicitly set zone_id on the GISData object
+            msg.zone_id = zone_id
+            logger.debug(f"Set msg.zone_id to {msg.zone_id}")
+
+            # Ensure triggers are loaded for the zone_id of the incoming message
+            if not any(t.zone_id == zone_id for t in self.triggers):
+                logger.debug(f"No triggers loaded for zone {zone_id}, loading now")
+                await self.load_triggers(zone_id)
+                logger.debug(f"Loaded triggers for zone {zone_id} based on GISData message")
+
             if not msg.validate():
                 logger.debug(f"Invalid tag data: missing field for ID:{msg.id}")
                 return
@@ -332,20 +339,18 @@ class Manager:
             else:
                 logger.debug(f"Skipped DB storage for simulated tag ID:{msg.id}")
 
-            # Convert GISData to Tag object for trigger evaluation
             tag = Tag(id=msg.id, x=msg.x, y=msg.y, z=msg.z)
             logger.debug(f"Created Tag object: id={tag.id}, position=({tag.x}, {tag.y}, {tag.z})")
 
-            # Evaluate all triggers for this tag
             logger.debug(f"Checking {len(self.triggers)} triggers for tag {tag.id} at ({tag.x}, {tag.y}, {tag.z})")
             for trigger in self.triggers:
-                # Portability check: Move triggers named "Portable*" to tag position
-                # Retained for future "Portable Triggers" tab functionality
+                if trigger.zone_id != msg.zone_id:
+                    logger.debug(f"Skipping trigger {trigger.name} (ID: {trigger.i_trg}) - zone mismatch (trigger zone: {trigger.zone_id}, message zone: {msg.zone_id})")
+                    continue
                 if trigger.name.startswith("Portable"):
                     trigger.move_to(tag.x, tag.y, tag.z)
                     logger.debug(f"Moved portable trigger {trigger.name} to ({tag.x}, {tag.y}, {tag.z})")
                 
-                # Check trigger conditions and fire events if met
                 logger.debug(f"Evaluating trigger {trigger.name} (ID: {trigger.i_trg}) with direction {trigger.direction.name}")
                 trigger_fired = await trigger.check_trigger(tag)
                 logger.debug(f"Trigger {trigger.name} (ID: {trigger.i_trg}) fired: {trigger_fired}")
@@ -361,16 +366,13 @@ class Manager:
                     logger.debug(f"Event message created: {event_message}")
                     for client_id, client in self.sdk_clients.items():
                         client_contains_tag = client.contains_tag(msg.id)
-                        logger.debug(f"Client {client_id}: is_closing={client.is_closing}, contains_tag={client_contains_tag}")
+                        logger.debug(f"Client {client_id}: is_closing={client.is_closing}, contains_tag={client_contains_tag}, zone_id={client.zone_id}")
                         if not client.is_closing and client_contains_tag:
                             logger.debug(f"Sending TriggerEvent to client {client_id}: {event_message}")
-                            client.q.put_nowait(json.dumps(event_message))
+                            await client.websocket.send_json(event_message)
                         else:
                             logger.debug(f"Skipping client {client_id}: closing={client.is_closing}, contains_tag={client_contains_tag}")
-                else:
-                    logger.debug(f"Trigger {trigger.name} did not fire for tag {tag.id}")
 
-            # Queue tag data based on mode
             if self.mode == eMode.Subscription:
                 await self.queue_sub(msg)
             else:
@@ -385,7 +387,6 @@ class Manager:
             logger.warning(f"ParserDataArrived Error: {str(ex)}")
 
     def tag_ave(self, msg: GISData):
-        # Compute moving average for tag position if enabled
         logger.debug(f"Computing tag average for ID:{msg.id}")
         if msg.id in self.ave_hash:
             a = self.ave_hash[msg.id]
@@ -400,42 +401,55 @@ class Manager:
             self.ave_hash[msg.id] = a
 
     async def queue_full(self, msg: GISData):
-        # Queue full tag data for all clients in Stream mode
+        # Convert GISData to JSON and ensure zone_id is included
         message = msg.to_xml()
         json_message = msg.to_json()
-        logger.debug(f"Queueing full message: {json_message}")
+        logger.debug(f"Original JSON message from GISData: {json_message}")
         try:
             msg_dict = json.loads(json_message)
             if msg_dict.get("type") == "HeartBeat":
                 logger.debug("Skipping heartbeat message in queue_full")
                 return
+            # Add zone_id to the message, preferring msg.zone_id
+            msg_dict["zone_id"] = getattr(msg, 'zone_id', self.zone_id)
+            logger.debug(f"Set zone_id in queue_full: {msg_dict['zone_id']}")
+            json_message = json.dumps(msg_dict)
+            logger.debug(f"Queueing full message with zone_id: {json_message}")
         except json.JSONDecodeError:
-            pass
-        for client in self.sdk_clients.values():
-            if not client.is_closing and client.has_request:
+            logger.warning("Failed to decode JSON message in queue_full")
+            return
+        for client in self.sdk_clients.items():
+            if not client.is_closing and client.has_request and client.zone_id == msg.zone_id:
                 client.q.put_nowait(json_message)
 
     async def queue_sub(self, msg: GISData):
-        # Queue tag data only for subscribed clients in Subscription mode
+        # Convert GISData to JSON and ensure zone_id is included
         message = msg.to_xml()
         json_message = msg.to_json()
-        logger.debug(f"Queueing subscription message: {json_message}")
+        logger.debug(f"Original JSON message from GISData: {json_message}")
         try:
             msg_dict = json.loads(json_message)
             if msg_dict.get("type") == "HeartBeat":
                 logger.debug("Skipping heartbeat message in queue_sub")
                 return
+            # Add zone_id to the message, preferring msg.zone_id
+            msg_dict["zone_id"] = getattr(msg, 'zone_id', self.zone_id)
+            logger.debug(f"Set zone_id in queue_sub: {msg_dict['zone_id']}")
+            json_message = json.dumps(msg_dict)
+            logger.debug(f"Queueing subscription message for tag {msg.id} with zone_id: {json_message}")
         except json.JSONDecodeError:
-            pass
+            logger.warning("Failed to decode JSON message in queue_sub")
+            return
         for client_id, client in self.sdk_clients.items():
-            if not client.is_closing and client.contains_tag(msg.id):
-                logger.debug(f"Client {client_id} subscribed to tag {msg.id}, queuing message")
+            tag_match = client.contains_tag(msg.id)
+            zone_match = client.zone_id == msg.zone_id
+            if not client.is_closing and tag_match and zone_match:
+                logger.debug(f"Client {client_id} subscribed to tag {msg.id} in zone {msg.zone_id}, queuing message")
                 client.q.put_nowait(json_message)
             else:
-                logger.debug(f"Client {client_id} not subscribed to tag {msg.id} or closing")
+                logger.debug(f"Skipping client {client_id}: closing={client.is_closing}, tag_match={tag_match}, zone_match={zone_match} (client zone: {client.zone_id})")
 
     async def monitor_tag_data(self):
-        # Monitor tag data flow and control simulator activation
         logger.debug("Starting tag data monitor")
         while self.run_state == eRunState.Started:
             try:
@@ -455,7 +469,6 @@ class Manager:
                 await asyncio.sleep(1.0)
 
     async def signal_simulator(self, command: str):
-        # Send commands to the simulator via WebSocket
         message = json.dumps({"command": command})
         for client_id, client in list(self.sdk_clients.items()):
             if client_id.startswith("sim_"):
