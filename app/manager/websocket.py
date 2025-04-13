@@ -1,8 +1,7 @@
 # /home/parcoadmin/parco_fastapi/app/manager/websocket.py
-# Version: 250404 /home/parcoadmin/parco_fastapi/app/manager/websocket.py 1.0.18
-# --- CHANGED: Bumped version from 1.0.17 to 1.0.18
-# --- FIXED: Define FastAPI app only once to ensure CORS middleware is applied correctly
-# --- FIXED: Moved lifespan function definition before app definition to resolve Pylance warning
+# Version: 1.0.21 - Removed hardcoded zone_id, added logging for zone_id assignment, bumped from 1.0.20
+# Previous: Fixed sdk_client.zone_id setting and usage in subscription logic (1.0.20)
+# Previous: Added debug logs for zone_id assignment (1.0.20)
 
 import asyncio
 import logging
@@ -16,12 +15,10 @@ from .models import HeartBeat, Response, ResponseType, Request, Tag
 from .enums import RequestType, eMode
 import json
 
-# Configure logging to ensure DEBUG level
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# Define the lifespan function before using it
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.debug("Starting lifespan: Initializing DB pool")
@@ -41,10 +38,8 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("Application shutdown")
 
-# Initialize FastAPI app with lifespan
 app = FastAPI(lifespan=lifespan)
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://192.168.210.226:3000"],
@@ -81,13 +76,14 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
         logger.debug(f"Attempting to accept WebSocket for {manager_name}")
         await websocket.accept()
         logger.info(f"WebSocket connection accepted for /ws/{manager_name}")
-        logger.debug(f"Creating or retrieving Manager instance for {manager_name}")
         if manager_name not in _MANAGER_INSTANCES:
-            manager = Manager(manager_name, zone_id=417)
-            await manager.start()
+            # Initialize Manager without a default zone_id; it will be set by the first BeginStream request
+            manager = Manager(manager_name, zone_id=None)
+            logger.debug(f"Created new Manager instance for {manager_name} with initial zone_id=None")
             _MANAGER_INSTANCES[manager_name] = manager
         else:
             manager = _MANAGER_INSTANCES[manager_name]
+            logger.debug(f"Using existing Manager instance for {manager_name}, current zone_id={manager.zone_id}")
         client_id = f"{websocket.client.host}:{websocket.client.port}"
         logger.debug(f"Creating SDKClient for {client_id}")
         sdk_client = SDKClient(websocket, client_id)
@@ -139,14 +135,19 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                         sdk_client.request_msg = req
                         resp = Response(response_type=ResponseType(req.req_type.value), req_id=req.req_id)
 
+                        # Set zone_id on SDKClient and Manager from BeginStream request
                         if "zone_id" in json_data:
                             new_zone_id = int(json_data["zone_id"])
-                            if manager.zone_id != new_zone_id:
+                            sdk_client.zone_id = new_zone_id
+                            logger.debug(f"Set sdk_client.zone_id={new_zone_id} for client {client_id}")
+                            if manager.zone_id is None or manager.zone_id != new_zone_id:
                                 manager.zone_id = new_zone_id
                                 logger.info(f"Updated manager {manager_name} zone_id to {new_zone_id}")
                                 manager.triggers = []
                                 await manager.load_triggers(new_zone_id)
                                 logger.debug(f"Reloaded triggers for zone {new_zone_id}")
+                            else:
+                                logger.debug(f"Manager {manager_name} zone_id already set to {new_zone_id}, no update needed")
 
                         if req.req_type == RequestType.BeginStream:
                             if not sdk_client.sent_begin_msg:

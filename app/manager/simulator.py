@@ -1,5 +1,6 @@
 # /home/parcoadmin/parco_fastapi/app/manager/simulator.py
-# Version: 1.0.22 - Fixed duration handling with precise timing, limited interpolated coordinates to 2 decimal places, added debug logging for interpolation
+# Version: 1.0.27 - Re-ensured zone_id in GISData with added logging, bumped from 1.0.26
+# Previous: Re-ensured zone_id is included in GISData messages (1.0.26)
 #
 # Simulator for ParcoRTLS
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -52,17 +53,19 @@ async def receive_messages(websocket, running):
         except Exception as ex:
             logger.error(f"Error receiving WebSocket message: {str(ex)}")
 
-async def send_data(websocket, tag_configs: List[TagConfig], running: List[bool], duration: float):
+async def send_data(websocket, tag_configs: List[TagConfig], running: List[bool], duration: float, zone_id: int):
     """Send GISData messages for all tags at their specified ping rates for the specified duration."""
     start_time = datetime.now()
     tasks = []
     for tag_config in tag_configs:
-        task = asyncio.create_task(send_tag_data(websocket, tag_config, running, start_time, duration))
+        task = asyncio.create_task(send_tag_data(websocket, tag_config, running, start_time, duration, zone_id))
         tasks.append(task)
 
     await asyncio.gather(*tasks, return_exceptions=True)
+    logger.info("All tag simulations complete, closing WebSocket.")
+    await websocket.close()  # Close WebSocket after all tasks finish
 
-async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], start_time: datetime, duration: float):
+async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], start_time: datetime, duration: float, zone_id: int):
     """Send GISData messages for a single tag at its specified ping rate."""
     while True:
         elapsed_time = (datetime.now() - start_time).total_seconds()
@@ -75,35 +78,28 @@ async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], s
 
             # If the tag has multiple positions and a move interval, interpolate the position
             if len(tag_config.positions) > 1 and tag_config.move_interval > 0:
-                # Determine the current cycle (one cycle = move from pos1 to pos2 and back)
                 cycle_time = elapsed_time % (2 * tag_config.move_interval)
                 logger.debug(f"Cycle time for {tag_config.tag_id}: {cycle_time:.2f}, move_interval: {tag_config.move_interval}")
                 if cycle_time < tag_config.move_interval:
-                    # Moving from pos1 to pos2
-                    t = cycle_time / tag_config.move_interval  # Interpolation factor (0 to 1)
+                    t = cycle_time / tag_config.move_interval
                     start_pos = tag_config.positions[0]
                     end_pos = tag_config.positions[1]
                     logger.debug(f"Moving from {start_pos} to {end_pos}, t={t:.2f}")
                 else:
-                    # Moving from pos2 to pos1
                     t = (cycle_time - tag_config.move_interval) / tag_config.move_interval
                     start_pos = tag_config.positions[1]
                     end_pos = tag_config.positions[0]
                     logger.debug(f"Moving from {start_pos} to {end_pos}, t={t:.2f}")
 
-                # Linear interpolation: x = x1 + t*(x2-x1), y = y1 + t*(y2-y1), z = z1 + t*(z2-z1)
                 x = start_pos[0] + t * (end_pos[0] - start_pos[0])
                 y = start_pos[1] + t * (end_pos[1] - start_pos[1])
                 z = start_pos[2] + t * (end_pos[2] - start_pos[2])
-                # Round to 2 decimal places
                 x = round(x, 2)
                 y = round(y, 2)
                 z = round(z, 2)
                 logger.debug(f"Interpolated position for {tag_config.tag_id}: t={t:.2f}, pos=({x:.2f}, {y:.2f}, {z:.2f})")
             else:
-                # Stationary tag: use the first position
                 x, y, z = tag_config.positions[0]
-                # Ensure stationary positions are also rounded to 2 decimal places
                 x = round(x, 2)
                 y = round(y, 2)
                 z = round(z, 2)
@@ -120,13 +116,13 @@ async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], s
                 "Bat": 100,
                 "CNF": 95.0,
                 "GWID": "SIM-GW",
-                "Sequence": tag_config.sequence_number
+                "Sequence": tag_config.sequence_number,
+                "zone_id": zone_id  # Ensure zone_id is included
             }
+            logger.info(f"Sending GISData with zone_id {zone_id} for {tag_config.tag_id}: {mock_data}")
             await websocket.send(json.dumps(mock_data))
-            logger.info(f"Sent data for {tag_config.tag_id}: {mock_data}")
             tag_config.increment_sequence()
 
-        # Calculate remaining time to avoid overshooting the duration
         remaining_time = duration - (datetime.now() - start_time).total_seconds()
         sleep_time = min(tag_config.sleep_interval, max(remaining_time, 0))
         if sleep_time <= 0:
@@ -134,7 +130,7 @@ async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], s
             break
         await asyncio.sleep(sleep_time)
 
-async def handle_user_input(running: List[bool], receive_task, send_task):
+async def handle_user_input(running: List[bool], receive_task, send_task, websocket):
     """Handle user input for start/stop/quit in a separate task."""
     print("Press 's' to start, 't' to stop, 'q' to quit")
     while True:
@@ -150,13 +146,14 @@ async def handle_user_input(running: List[bool], receive_task, send_task):
                 logger.info("Quitting simulator")
                 receive_task.cancel()
                 send_task.cancel()
+                await websocket.close()  # Close WebSocket on quit
                 break
         await asyncio.sleep(0.1)
 
 async def simulator():
     uri = "ws://192.168.210.226:8001/ws/Manager1"
 
-    print("Select simulation mode:")
+    print("Select simulation mode (v1.0.27):")
     print("1. Single tag at a fixed point")
     print("2. Single tag moving between two points (with linear interpolation)")
     print("3. Multiple tags at fixed points")
@@ -238,29 +235,29 @@ async def simulator():
 
     running = [True]
 
-    while True:
-        try:
-            async with websockets.connect(uri) as websocket:
-                for tag_config in tag_configs:
-                    handshake = json.dumps({
-                        "type": "request",
-                        "request": "BeginStream",
-                        "reqid": f"sim_init_{tag_config.tag_id}",
-                        "params": [{"id": tag_config.tag_id, "data": "true"}],
-                        "zone_id": zone_id
-                    })
-                    await websocket.send(handshake)
-                    logger.info(f"Sent handshake for {tag_config.tag_id}: {handshake}")
+    try:
+        async with websockets.connect(uri) as websocket:
+            for tag_config in tag_configs:
+                handshake = json.dumps({
+                    "type": "request",
+                    "request": "BeginStream",
+                    "reqid": f"sim_init_{tag_config.tag_id}",
+                    "params": [{"id": tag_config.tag_id, "data": "true"}],
+                    "zone_id": zone_id
+                })
+                logger.info(f"Simulator targeting zone {zone_id} with handshake for {tag_config.tag_id}: {handshake}")
+                await websocket.send(handshake)
 
-                receive_task = asyncio.create_task(receive_messages(websocket, running))
-                send_task = asyncio.create_task(send_data(websocket, tag_configs, running, duration))
-                user_input_task = asyncio.create_task(handle_user_input(running, receive_task, send_task))
+            receive_task = asyncio.create_task(receive_messages(websocket, running))
+            send_task = asyncio.create_task(send_data(websocket, tag_configs, running, duration, zone_id))  # Pass zone_id
+            user_input_task = asyncio.create_task(handle_user_input(running, receive_task, send_task, websocket))
 
-                await asyncio.gather(receive_task, send_task, user_input_task, return_exceptions=True)
+            await asyncio.gather(receive_task, send_task, user_input_task, return_exceptions=True)
+    except Exception as ex:
+        logger.error(f"Connection error: {str(ex)}")
 
-        except Exception as ex:
-            logger.error(f"Connection error: {str(ex)}")
-            await asyncio.sleep(5)
+    logger.info("Simulation complete, exiting.")
+    sys.exit(0)  # Exit script cleanly
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
