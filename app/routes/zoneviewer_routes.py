@@ -1,9 +1,11 @@
 """
 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py
-Version: 0.1.16 (Fixed transaction execution and added regions deletion)
+Version: 0.1.17 (Added /get_maps_with_zone_types endpoint)
 Zone Viewer & Editor endpoints for ParcoRTLS FastAPI application.
-# VERSION 250316 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py 0P.10B.01
+# VERSION 250417 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py 0P.10B.02
 # --- CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02
+# --- ADDED: /get_maps_with_zone_types endpoint to fetch unique maps with zone types
+# --- FIXED: SQL query for /get_maps_with_zone_types to include CASE in SELECT for DISTINCT
 # --- FIXED: Exclude trigger regions in /get_vertices_for_campus/{campus_id} by adding r.i_trg IS NULL
 # 
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
@@ -20,7 +22,7 @@ from pydantic import BaseModel
 from database.db import execute_raw_query
 import logging
 from sqlalchemy import create_engine, text
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 import traceback
 
 router = APIRouter()
@@ -41,8 +43,8 @@ class AddVertexRequest(BaseModel):
     z: float = 0.0
     order: float
 
-@contextmanager
-def get_db_connection():
+@asynccontextmanager
+async def get_db_connection():
     """Provide a transactional scope around a series of operations."""
     connection = engine.connect()
     transaction = connection.begin()
@@ -157,6 +159,43 @@ async def get_map_data(map_id: int):
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/get_maps_with_zone_types")
+async def get_maps_with_zone_types():
+    """Fetch unique maps with their associated zone types, sorted by hierarchy."""
+    try:
+        maps_data = await execute_raw_query(
+            "maint",
+            """
+            SELECT i_map, x_nm_map, i_typ_zn
+            FROM (
+                SELECT DISTINCT z.i_map, m.x_nm_map,
+                    MIN(CASE z.i_typ_zn
+                        WHEN 1 THEN 1
+                        WHEN 10 THEN 2
+                        WHEN 2 THEN 3
+                        WHEN 3 THEN 4
+                        WHEN 4 THEN 5
+                        WHEN 5 THEN 6
+                        ELSE 7
+                    END) AS type_order,
+                    MIN(z.i_typ_zn) AS i_typ_zn
+                FROM public.zones z
+                JOIN public.maps m ON z.i_map = m.i_map
+                GROUP BY z.i_map, m.x_nm_map
+            ) t
+            ORDER BY type_order, x_nm_map;
+            """
+        )
+        if not maps_data:
+            logger.warning("No maps found")
+            raise HTTPException(status_code=404, detail="No maps found")
+        logger.info(f"Retrieved {len(maps_data)} unique maps with zone types")
+        return {"maps": [{k: v for k, v in m.items() if k != "type_order"} for m in maps_data]}
+    except Exception as e:
+        logger.error(f"Error retrieving maps with zone types: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/get_all_zones_for_campus/{campus_id}")
 async def get_all_zones_for_campus(campus_id: int):
     try:
@@ -222,7 +261,7 @@ async def get_vertices_for_campus(campus_id: int):
             FROM vertices v
             JOIN regions r ON v.i_rgn = r.i_rgn
             JOIN zone_hierarchy zh ON r.i_zn = zh.i_zn
-            WHERE r.i_trg IS NULL  -- Exclude trigger regions
+            WHERE r.i_trg IS NULL
             ORDER BY r.i_zn, v.n_ord
             """,
             campus_id
@@ -296,7 +335,6 @@ async def add_vertex(request: AddVertexRequest):
     """Add a new vertex to a zone, aligned with DataV2.VertexAdd."""
     try:
         logger.debug(f"Received add_vertex request: {request.dict()}")
-        # Get region ID for the zone
         region_data = await execute_raw_query(
             "maint",
             "SELECT i_rgn FROM regions WHERE i_zn = $1 LIMIT 1",
@@ -307,7 +345,6 @@ async def add_vertex(request: AddVertexRequest):
             raise HTTPException(status_code=404, detail=f"No region found for zone_id={request.zone_id}")
         region_id = region_data[0]["i_rgn"]
 
-        # Validate region_id exists
         region_exists = await execute_raw_query(
             "maint",
             "SELECT i_rgn FROM public.regions WHERE i_rgn = $1",
@@ -317,7 +354,6 @@ async def add_vertex(request: AddVertexRequest):
             logger.warning(f"Region ID {region_id} not found")
             raise HTTPException(status_code=400, detail=f"Region ID {region_id} does not exist")
 
-        # Insert vertex using DataV2.VertexAdd logic
         query = """
             INSERT INTO public.vertices (i_rgn, n_x, n_y, n_z, n_ord)
             VALUES ($1, $2, $3, $4, $5)
@@ -330,14 +366,14 @@ async def add_vertex(request: AddVertexRequest):
             request.x,
             request.y,
             request.z,
-            int(request.order)  # Ensure integer order
+            int(request.order)
         )
         if not result:
             logger.error("Failed to add vertex: no rows inserted")
             raise HTTPException(status_code=500, detail="Failed to add vertex")
 
         new_vertex = result[0]
-        new_vertex["zone_id"] = request.zone_id  # Add zone_id for frontend consistency
+        new_vertex["zone_id"] = request.zone_id
         logger.info(f"Added vertex {new_vertex['vertex_id']} to zone_id={request.zone_id}")
         return new_vertex
     except Exception as e:
@@ -351,8 +387,7 @@ async def delete_zone_recursive(zone_id: int):
     try:
         logger.info(f"Attempting to delete zone {zone_id} and its progeny")
 
-        with get_db_connection() as connection:
-            # Fetch all zones to delete (parent and progeny) using recursive CTE
+        async with get_db_connection() as connection:
             result = connection.execute(
                 text("""
                 WITH RECURSIVE zone_hierarchy AS (
@@ -373,7 +408,6 @@ async def delete_zone_recursive(zone_id: int):
             zone_ids = [row[0] for row in zones_to_delete]
             logger.debug(f"Zones to delete: {zone_ids}")
 
-            # Delete associated vertices first to avoid foreign key constraints
             connection.execute(
                 text("""
                 DELETE FROM vertices
@@ -383,13 +417,11 @@ async def delete_zone_recursive(zone_id: int):
                 {"zone_ids": tuple(zone_ids)}
             )
 
-            # Delete associated regions to avoid foreign key constraints
             connection.execute(
                 text("DELETE FROM regions WHERE i_zn IN :zone_ids"),
                 {"zone_ids": tuple(zone_ids)}
             )
 
-            # Delete the zones
             connection.execute(
                 text("DELETE FROM zones WHERE i_zn IN :zone_ids"),
                 {"zone_ids": tuple(zone_ids)}

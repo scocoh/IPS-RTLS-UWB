@@ -1,5 +1,7 @@
 # /home/parcoadmin/parco_fastapi/app/manager/manager.py
-# Version: 1.0.35 - Send TriggerEvent to all subscribed clients regardless of zone_id, bumped from 1.0.34
+# Version: 1.0.37-250423 - Added dynamic zone assignment for portable triggers, bumped from 1.0.36
+# Previous: Added PortableTrigger support, updated trigger movement logic (1.0.36)
+# Previous: Send TriggerEvent to all subscribed clients regardless of zone_id (1.0.35)
 # Previous: Ensure triggers are loaded for GISData zone_id (1.0.34)
 # Previous: Fixed zone_id handling in parser_data_arrived and ensured it's preserved in Sim messages (1.0.33)
 
@@ -11,6 +13,7 @@ import httpx
 from .models import GISData, HeartBeat, Response, ResponseType, Ave, Tag
 from .enums import eMode, eRunState, TriggerDirections
 from .trigger import Trigger
+from .portable_trigger import PortableTrigger
 from .sdk_client import SDKClient
 from .region import Region3D, Region3DCollection
 from .utils import FASTAPI_BASE_URL, track_metrics
@@ -108,6 +111,11 @@ class Manager:
                     trigger_id = trigger_data["trigger_id"]
                     trigger_name = trigger_data["name"]
                     direction_id = trigger_data.get("direction_id")
+                    is_portable = trigger_data.get("is_portable", False)
+                    assigned_tag_id = trigger_data.get("assigned_tag_id")
+                    radius_ft = trigger_data.get("radius_ft")
+                    z_min = trigger_data.get("z_min")
+                    z_max = trigger_data.get("z_max")
 
                     direction_map = {
                         1: TriggerDirections.WhileIn,
@@ -119,54 +127,67 @@ class Manager:
                     direction = direction_map.get(direction_id, TriggerDirections.NotSet)
                     logger.debug(f"Mapping direction_id {direction_id} to {direction} for trigger {trigger_name}")
 
-                    detail_response = await client.get(f"{FASTAPI_BASE_URL}/api/get_trigger_details/{trigger_id}")
-                    detail_response.raise_for_status()
-                    trigger_details = detail_response.json()
-                    logger.debug(f"Trigger details for {trigger_id}: {trigger_details}")
-
-                    regions = Region3DCollection()
-                    if isinstance(trigger_details, dict) and "vertices" in trigger_details:
-                        vertices = trigger_details["vertices"]
-                        if vertices and len(vertices) >= 3:
-                            x_coords = [v["x"] for v in vertices]
-                            y_coords = [v["y"] for v in vertices]
-                            z_coords = [v["z"] for v in vertices]
-                            min_x, max_x = min(x_coords), max(x_coords)
-                            min_y, max_y = min(y_coords), max(y_coords)
-                            min_z, max_z = min(z_coords), max(z_coords)
-                            regions.add(Region3D(
-                                min_x=min_x,
-                                max_x=max_x,
-                                min_y=min_y,
-                                max_y=max_y,
-                                min_z=min_z,
-                                max_z=max_z
-                            ))
-                            logger.debug(f"Added region for trigger {trigger_id}: min=({min_x}, {min_y}, {min_z}), max=({max_x}, {max_y}, {max_z})")
+                    if is_portable:
+                        trigger = PortableTrigger(
+                            tag_id=assigned_tag_id,
+                            radius_ft=radius_ft,
+                            z_min=z_min,
+                            z_max=z_max,
+                            i_trg=trigger_id,
+                            name=trigger_name,
+                            direction=direction,
+                            zone_id=zone_id
+                        )
+                        logger.debug(f"Created PortableTrigger {trigger_name} for tag {assigned_tag_id}")
                     else:
-                        for detail in trigger_details:
-                            if "n_min_x" in detail and "n_max_x" in detail:
+                        detail_response = await client.get(f"{FASTAPI_BASE_URL}/api/get_trigger_details/{trigger_id}")
+                        detail_response.raise_for_status()
+                        trigger_details = detail_response.json()
+                        logger.debug(f"Trigger details for {trigger_id}: {trigger_details}")
+
+                        regions = Region3DCollection()
+                        if isinstance(trigger_details, dict) and "vertices" in trigger_details:
+                            vertices = trigger_details["vertices"]
+                            if vertices and len(vertices) >= 3:
+                                x_coords = [v["x"] for v in vertices]
+                                y_coords = [v["y"] for v in vertices]
+                                z_coords = [v["z"] for v in vertices]
+                                min_x, max_x = min(x_coords), max(x_coords)
+                                min_y, max_y = min(y_coords), max(y_coords)
+                                min_z, max_z = min(z_coords), max(z_coords)
                                 regions.add(Region3D(
-                                    min_x=detail["n_min_x"],
-                                    max_x=detail["n_max_x"],
-                                    min_y=detail["n_min_y"],
-                                    max_y=detail["n_max_y"],
-                                    min_z=detail["n_min_z"],
-                                    max_z=detail["n_max_z"]
+                                    min_x=min_x,
+                                    max_x=max_x,
+                                    min_y=min_y,
+                                    max_y=max_y,
+                                    min_z=min_z,
+                                    max_z=max_z
                                 ))
-                                logger.debug(f"Added region for trigger {trigger_id}: min=({detail['n_min_x']}, {detail['n_min_y']}, {detail['n_min_z']}), max=({detail['n_max_x']}, {detail['n_max_y']}, {detail['n_max_z']})")
+                                logger.debug(f"Added region for trigger {trigger_id}: min=({min_x}, {min_y}, {min_z}), max=({max_x}, {max_y}, {max_z})")
+                        else:
+                            for detail in trigger_details:
+                                if "n_min_x" in detail and "n_max_x" in detail:
+                                    regions.add(Region3D(
+                                        min_x=detail["n_min_x"],
+                                        max_x=detail["n_max_x"],
+                                        min_y=detail["n_min_y"],
+                                        max_y=detail["n_max_y"],
+                                        min_z=detail["n_min_z"],
+                                        max_z=detail["n_max_z"]
+                                    ))
+                                    logger.debug(f"Added region for trigger {trigger_id}: min=({detail['n_min_x']}, {detail['n_min_y']}, {detail['n_min_z']}), max=({detail['n_max_x']}, {detail['n_max_y']}, {detail['n_max_z']})")
 
-                    if len(regions.regions) == 0:
-                        logger.warning(f"No regions loaded for trigger {trigger_name} (ID: {trigger_id})")
+                        if len(regions.regions) == 0:
+                            logger.warning(f"No regions loaded for trigger {trigger_name} (ID: {trigger_id})")
 
-                    trigger = Trigger(
-                        i_trg=trigger_id,
-                        name=trigger_name,
-                        direction=direction,
-                        regions=regions,
-                        ignore_unknowns=False,
-                        zone_id=zone_id  # Explicitly set zone_id on the Trigger object
-                    )
+                        trigger = Trigger(
+                            i_trg=trigger_id,
+                            name=trigger_name,
+                            direction=direction,
+                            regions=regions,
+                            ignore_unknowns=False,
+                            zone_id=zone_id
+                        )
                     self.triggers.append(trigger)
                     logger.info(f"Loaded trigger {trigger_name} (ID: {trigger_id}) for zone {zone_id} with direction {direction}")
 
@@ -342,14 +363,46 @@ class Manager:
             tag = Tag(id=msg.id, x=msg.x, y=msg.y, z=msg.z)
             logger.debug(f"Created Tag object: id={tag.id}, position=({tag.x}, {tag.y}, {tag.z})")
 
+            # --- NEW: Dynamic zone assignment for portable triggers (optional, revert if not applied) ---
+            for trigger in self.triggers:
+                if trigger.is_portable and tag.id == trigger.assigned_tag_id:
+                    try:
+                        async with httpx.AsyncClient() as client:
+                            response = await client.get(
+                                f"{FASTAPI_BASE_URL}/api/zones_by_point",
+                                params={"x": tag.x, "y": tag.y, "z": tag.z}
+                            )
+                            response.raise_for_status()
+                            zones = response.json()
+                            if zones:
+                                # Prioritize smallest zone (child)
+                                new_zone_id = min(
+                                    zones,
+                                    key=lambda z: (z["n_max_x"] - z["n_min_x"]) * (z["n_max_y"] - z["n_min_y"])
+                                )["zone_id"]
+                                if new_zone_id != trigger.zone_id:
+                                    trigger.zone_id = new_zone_id
+                                    async with self.db_pool.acquire() as conn:
+                                        await conn.execute(
+                                            "UPDATE triggers SET i_zn = $1 WHERE i_trg = $2",
+                                            new_zone_id, trigger.i_trg
+                                        )
+                                    logger.debug(f"Updated portable trigger {trigger.name} to zone {new_zone_id}")
+                    except Exception as e:
+                        logger.error(f"Failed to update zone for trigger {trigger.name}: {str(e)}")
+            # --- END NEW ---
+
             logger.debug(f"Checking {len(self.triggers)} triggers for tag {tag.id} at ({tag.x}, {tag.y}, {tag.z})")
             for trigger in self.triggers:
                 if trigger.zone_id != msg.zone_id:
                     logger.debug(f"Skipping trigger {trigger.name} (ID: {trigger.i_trg}) - zone mismatch (trigger zone: {trigger.zone_id}, message zone: {msg.zone_id})")
                     continue
-                if trigger.name.startswith("Portable"):
-                    trigger.move_to(tag.x, tag.y, tag.z)
-                    logger.debug(f"Moved portable trigger {trigger.name} to ({tag.x}, {tag.y}, {tag.z})")
+                if trigger.is_portable and tag.id == trigger.assigned_tag_id:
+                    if hasattr(trigger, 'update_position_from_tag'):
+                        trigger.update_position_from_tag(tag)
+                    else:
+                        trigger.move_to(tag.x, tag.y, tag.z)
+                        logger.debug(f"Moved portable trigger {trigger.name} to ({tag.x}, {tag.y}, {tag.z})")
                 
                 logger.debug(f"Evaluating trigger {trigger.name} (ID: {trigger.i_trg}) with direction {trigger.direction.name}")
                 trigger_fired = await trigger.check_trigger(tag)
@@ -418,7 +471,7 @@ class Manager:
         except json.JSONDecodeError:
             logger.warning("Failed to decode JSON message in queue_full")
             return
-        for client in self.sdk_clients.items():
+        for client_id, client in self.sdk_clients.items():
             if not client.is_closing and client.has_request and client.zone_id == msg.zone_id:
                 client.q.put_nowait(json_message)
 

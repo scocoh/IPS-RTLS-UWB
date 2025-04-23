@@ -1,8 +1,7 @@
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo.js
-// Version: v0.10.74 - Fixed sequence number display and show trigger events checkbox, bumped from v0.10.73
-// Previous: Fixed alert box for zone switching, fixed show trigger events checkbox, fixed sequence number (v0.10.73)
-// Previous: Fixed sequence number in trigger events, fixed disconnect button, fixed checkbox reset (v0.10.72)
-// Previous: Added sequence number to trigger events, added checkbox to enable/disable trigger events (v0.10.71)
+// Version: v0.10.86-250424 - Handled fetchPolygons errors gracefully, added WebSocket debug logging, bumped from v0.10.85
+// Previous: Enhanced fetchTriggers to handle response formats, added WebSocket logging (v0.10.85)
+// Previous: Added logging for get_trigger_details (v0.10.84)
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Form, Tabs, Tab, Table, Button, FormCheck, InputGroup, FormControl } from "react-bootstrap";
 import NewTriggerViewer from "./NewTriggerViewer";
@@ -27,36 +26,36 @@ const NewTriggerDemo = () => {
     return savedEvents ? JSON.parse(savedEvents) : [];
   });
   const [triggerEvents, setTriggerEvents] = useState([]);
-  const [showTriggerEvents, setShowTriggerEvents] = useState(true); // State to enable/disable trigger events
-  const showTriggerEventsRef = useRef(true); // Ref to track showTriggerEvents value
+  const [showTriggerEvents, setShowTriggerEvents] = useState(true);
+  const showTriggerEventsRef = useRef(true);
   const [loading, setLoading] = useState(true);
   const [showExistingTriggers, setShowExistingTriggers] = useState(true);
   const [existingTriggerPolygons, setExistingTriggerPolygons] = useState([]);
   const [useLeaflet, setUseLeaflet] = useState(true);
   const [fetchError, setFetchError] = useState(null);
-  const [tagIdInput, setTagIdInput] = useState("SIM1");
+  const [tagIdsInput, setTagIdsInput] = useState("SIM1,SIM2");
   const [isConnected, setIsConnected] = useState(false);
-  const [tagData, setTagData] = useState(null);
-  const [sequenceNumbers, setSequenceNumbers] = useState({}); // Map to store sequence numbers by tag ID
+  const [tagsData, setTagsData] = useState({});
+  const [sequenceNumbers, setSequenceNumbers] = useState({});
   const [tagCount, setTagCount] = useState(0);
   const [tagRate, setTagRate] = useState(0);
   const [tagTimestamps, setTagTimestamps] = useState([]);
   const [activeTab, setActiveTab] = useState("mapAndTrigger");
+  const [portableTriggerContainment, setPortableTriggerContainment] = useState({});
   const wsRef = useRef(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
   const reconnectInterval = 5000;
   const shouldReconnect = useRef(true);
-  const lastDataTime = useRef(null); // Track last data received time
-  const dataTimeout = 10000; // 10 seconds timeout for no data
-  const hasPromptedForZone = useRef(false); // Track if we've prompted for a zone switch
+  const lastDataTime = useRef(null);
+  const dataTimeout = 10000;
+  const hasPromptedForZone = useRef(false);
+  const retryIntervalRef = useRef(null);
 
-  // Debug triggerEvents updates
   useEffect(() => {
     console.log("triggerEvents state updated:", triggerEvents);
   }, [triggerEvents]);
 
-  // Debug showTriggerEvents updates and sync with ref
   useEffect(() => {
     console.log("showTriggerEvents state updated:", showTriggerEvents);
     showTriggerEventsRef.current = showTriggerEvents;
@@ -75,12 +74,57 @@ const NewTriggerDemo = () => {
   const fetchTriggers = async () => {
     try {
       const res = await fetch("http://192.168.210.226:8000/api/list_newtriggers");
+      console.log("Fetch triggers response status:", res.status);
       if (!res.ok) throw new Error(`Failed to fetch triggers: ${res.status}`);
       const data = await res.json();
-      Array.isArray(data) ? setTriggers(data) : setTriggers([]);
-      console.log('Fetched triggers:', data);
+      console.log("Raw trigger data:", data);
+      let triggerArray = Array.isArray(data) ? data : (data.triggers || []);
+      setTriggers(triggerArray);
+      console.log("Processed triggers:", triggerArray);
     } catch (e) {
       setFetchError(`Error fetching triggers: ${e.message}`);
+      console.error("Fetch triggers error:", e);
+    }
+  };
+
+  const checkPortableTriggerContainment = async (triggerId, tagId, x, y, z) => {
+    try {
+      const res = await fetch(`http://192.168.210.226:8000/api/trigger_contains_point/${triggerId}?x=${x}&y=${y}&z=${z}`);
+      if (!res.ok) throw new Error(`Failed to check containment: ${res.status}`);
+      const { contains } = await res.json();
+      setPortableTriggerContainment(prev => ({
+        ...prev,
+        [triggerId]: { ...prev[triggerId], [tagId]: contains }
+      }));
+      if (contains && showTriggerEventsRef.current) {
+        const trigger = triggers.find(t => t.i_trg === triggerId);
+        console.log(`Trigger ${triggerId} data for containment:`, trigger);
+        const zoneId = trigger?.i_zn || (trigger?.is_portable ? selectedZone?.i_zn : selectedZone?.i_zn);
+        const zoneName = zones.find(z => z.i_zn === zoneId)?.x_nm_zn || "Unknown";
+        setTriggerEvents(prev => [
+          ...prev,
+          `Tag ${tagId} entered trigger ${trigger?.x_nm_trg} (ID: ${triggerId}, Zone: ${zoneName}) at ${getFormattedTimestamp()}`
+        ].slice(-10));
+      }
+    } catch (e) {
+      console.error(`Error checking containment for trigger ${triggerId}, tag ${tagId}:`, e);
+    }
+  };
+
+  const movePortableTrigger = async (triggerId, x, y, z) => {
+    try {
+      const res = await fetch(
+        `http://192.168.210.226:8000/api/move_trigger/${triggerId}?new_x=${x}&new_y=${y}&new_z=${z}`,
+        { method: "PUT" }
+      );
+      if (!res.ok) throw new Error(`Failed to move trigger: ${res.status}`);
+      const result = await res.json();
+      setEventList(prev => [...prev, `Moved trigger ${triggerId} to (${x}, ${y}, ${z}) on ${getFormattedTimestamp()}`]);
+      console.log(`Moved trigger ${triggerId}:`, result);
+      await fetchTriggers();
+    } catch (e) {
+      console.error(`Error moving trigger ${triggerId}:`, e);
+      setFetchError(`Error moving trigger: ${e.message}`);
     }
   };
 
@@ -96,11 +140,12 @@ const NewTriggerDemo = () => {
 
     ws.onopen = () => {
       console.log("WebSocket connected to Manager1");
+      const tagIds = tagIdsInput.split(',').map(id => id.trim()).filter(id => id);
       const subscription = {
         type: "request",
         request: "BeginStream",
         reqid: "triggerDemo1",
-        params: [{ id: tagIdInput, data: "true" }],
+        params: tagIds.map(id => ({ id, data: "true" })),
         zone_id: selectedZone ? parseInt(selectedZone.i_zn) : 417
       };
       ws.send(JSON.stringify(subscription));
@@ -111,10 +156,9 @@ const NewTriggerDemo = () => {
         setTagCount(0);
         setTagTimestamps([]);
         setTagRate(0);
-        // Do not reset triggerEvents here to preserve events across reconnects
       }
-      fetchTriggers(); // Reload triggers on connect
-      hasPromptedForZone.current = false; // Reset prompt tracking on new connection
+      fetchTriggers();
+      hasPromptedForZone.current = false;
     };
 
     ws.onmessage = async (event) => {
@@ -129,7 +173,8 @@ const NewTriggerDemo = () => {
       console.log("Parsed WebSocket message:", data);
       if (data.type === "Sim" && data.gis) {
         console.log("Processing Sim message:", data);
-        lastDataTime.current = Date.now(); // Update last data time
+        console.log("Current tagsData before update:", tagsData);
+        lastDataTime.current = Date.now();
         const tagZoneId = data.zone_id || (selectedZone ? selectedZone.i_zn : 417);
         console.log("Tag zone ID determination:", {
           zone_id_in_message: data.zone_id,
@@ -140,18 +185,17 @@ const NewTriggerDemo = () => {
         const zoneMatch = zones.find(z => z.i_zn === parseInt(tagZoneId));
         if (zoneMatch && selectedZone && selectedZone.i_zn !== parseInt(tagZoneId) && !hasPromptedForZone.current) {
           console.log("Found zone mismatch:", zoneMatch);
-          // Prompt user to switch zones
           const shouldSwitch = window.confirm(
             `Tag ${data.gis.id} is in Zone ${zoneMatch.i_zn} (${zoneMatch.x_nm_zn}). Do you want to switch to this zone?`
           );
           if (shouldSwitch) {
             setSelectedZone(zoneMatch);
             setEventList(prev => [...prev, `Zone synced to ${zoneMatch.i_zn} - ${zoneMatch.x_nm_zn} on ${getFormattedTimestamp()}`]);
-            hasPromptedForZone.current = true; // Prevent further prompts until next connection or zone change
+            hasPromptedForZone.current = true;
           } else {
             console.log("User chose not to switch zones");
             setEventList(prev => [...prev, `User declined to sync to Zone ${zoneMatch.i_zn} on ${getFormattedTimestamp()}`]);
-            hasPromptedForZone.current = true; // Prevent further prompts until next connection or zone change
+            hasPromptedForZone.current = true;
           }
         }
         const newTagData = {
@@ -161,12 +205,16 @@ const NewTriggerDemo = () => {
           z: data.gis.z,
           sequence: data.Sequence,
           timestamp: Date.now(),
-          zone_id: tagZoneId // Store tag's zone for display
+          zone_id: tagZoneId
         };
-        setTagData(newTagData);
+        setTagsData(prev => {
+          const updated = { ...prev, [data.gis.id]: newTagData };
+          console.log("Updated tagsData:", updated);
+          return updated;
+        });
         setSequenceNumbers(prev => ({
           ...prev,
-          [data.gis.id]: data.Sequence || "N/A" // Store sequence number by tag ID
+          [data.gis.id]: data.Sequence || "N/A"
         }));
         console.log(`Updated sequence for tag ${data.gis.id}: ${data.Sequence}`);
         setTagCount(prev => prev + 1);
@@ -183,16 +231,20 @@ const NewTriggerDemo = () => {
           }
           return newTimestamps;
         });
+        const portableTriggers = triggers.filter(t => t.is_portable);
+        for (const trigger of portableTriggers) {
+          await checkPortableTriggerContainment(trigger.i_trg, newTagData.id, newTagData.x, newTagData.y, newTagData.z);
+        }
       } else if (data.type === "TriggerEvent") {
         console.log("Processing TriggerEvent:", data);
-        lastDataTime.current = Date.now(); // Update last data time
+        lastDataTime.current = Date.now();
         let trigger = triggers.find(t => t.i_trg === data.trigger_id);
         if (!trigger) {
           try {
             const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${data.trigger_id}`);
             if (!res.ok) throw new Error(`Failed to fetch trigger details: ${res.status}`);
             const triggerData = await res.json();
-            trigger = { i_trg: data.trigger_id, x_nm_trg: triggerData.name, i_dir: triggerData.direction_id, zone_id: data.zone_id || parseInt(selectedZone?.i_zn) };
+            trigger = { i_trg: data.trigger_id, x_nm_trg: triggerData.name, i_dir: triggerData.direction_id, i_zn: data.zone_id || parseInt(selectedZone?.i_zn) };
             setTriggers(prev => {
               const newTriggers = [...prev, trigger];
               console.log("Updated triggers:", newTriggers);
@@ -204,22 +256,22 @@ const NewTriggerDemo = () => {
             return;
           }
         }
-        const zoneName = zones.find(z => z.i_zn === trigger.zone_id)?.x_nm_zn || "Unknown";
-        const sequenceNumber = sequenceNumbers[data.tag_id] || (tagData?.sequence || "N/A");
-        const eventMsg = `Tag ${data.tag_id} ${data.direction} trigger ${data.trigger_id} (Zone ${trigger.zone_id} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+        const zoneName = zones.find(z => z.i_zn === trigger.i_zn)?.x_nm_zn || "Unknown";
+        const sequenceNumber = sequenceNumbers[data.tag_id] || (tagsData[data.tag_id]?.sequence || "N/A");
+        const eventMsg = `Tag ${data.tag_id} ${data.direction} trigger ${data.trigger_id} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
         if (showTriggerEventsRef.current) {
           setTriggerEvents(prev => {
-            const newEvents = [...prev, eventMsg].slice(-10); // Keep only the latest 10 events
+            const newEvents = [...prev, eventMsg].slice(-10);
             console.log("Updated triggerEvents:", newEvents);
             return newEvents;
           });
         }
-        const eventMessage = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.x_nm_trg} (Zone ${trigger.zone_id} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+        const eventMessage = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.x_nm_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
         setEventList(prev => [...prev, eventMessage]);
       } else if (data.type === "HeartBeat") {
         ws.send(JSON.stringify({ type: "HeartBeat", ts: data.ts }));
         console.log("Sent heartbeat response:", data.ts);
-        lastDataTime.current = Date.now(); // Update last data time
+        lastDataTime.current = Date.now();
       } else {
         console.log("Unhandled WebSocket message type:", data.type);
       }
@@ -229,8 +281,8 @@ const NewTriggerDemo = () => {
       console.log("WebSocket disconnected");
       setIsConnected(false);
       setTagRate(0);
-      setTagData(null); // Clear tag data to gray marker
-      setSequenceNumbers({}); // Reset sequence numbers
+      setTagsData({});
+      setSequenceNumbers({});
       setEventList(prev => [...prev, `WebSocket disconnected on ${getFormattedTimestamp()}`]);
       if (shouldReconnect.current && reconnectAttempts.current < maxReconnectAttempts) {
         reconnectAttempts.current += 1;
@@ -247,8 +299,9 @@ const NewTriggerDemo = () => {
       console.error("WebSocket error:", error);
       setIsConnected(false);
       setTagRate(0);
-      setTagData(null); // Clear tag data to gray marker
-      setSequenceNumbers({}); // Reset sequence numbers
+      setTagsData({});
+      setSequenceNumbers({});
+      setEventList(prev => [...prev, `WebSocket error on ${getFormattedTimestamp()}`]);
     };
   };
 
@@ -258,19 +311,17 @@ const NewTriggerDemo = () => {
       if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
         wsRef.current.close();
         console.log("WebSocket close initiated");
-        // Wait for the WebSocket to fully close
         await new Promise(resolve => setTimeout(resolve, 500));
       }
       setIsConnected(false);
       wsRef.current = null;
-      setTagData(null); // Clear tag data to gray marker
-      setSequenceNumbers({}); // Reset sequence numbers
+      setTagsData({});
+      setSequenceNumbers({});
       setEventList(prev => [...prev, `WebSocket disconnected manually on ${getFormattedTimestamp()}`]);
-      hasPromptedForZone.current = false; // Reset prompt tracking on disconnect
+      hasPromptedForZone.current = false;
     }
   };
 
-  // Add a timeout to detect if no data is received
   useEffect(() => {
     const checkDataTimeout = () => {
       if (isConnected && lastDataTime.current) {
@@ -278,10 +329,10 @@ const NewTriggerDemo = () => {
         if (timeSinceLastData > dataTimeout) {
           console.log("No data received for 10 seconds, assuming disconnected");
           setIsConnected(false);
-          setTagData(null); // Clear tag data to gray marker
-          setSequenceNumbers({}); // Reset sequence numbers
+          setTagsData({});
+          setSequenceNumbers({});
           setEventList(prev => [...prev, `No data received for 10 seconds, assumed disconnected on ${getFormattedTimestamp()}`]);
-          hasPromptedForZone.current = false; // Reset prompt tracking on timeout
+          hasPromptedForZone.current = false;
         }
       }
     };
@@ -387,13 +438,16 @@ const NewTriggerDemo = () => {
         shouldReconnect.current = false;
         setIsConnected(false);
       }
+      if (retryIntervalRef.current) {
+        clearInterval(retryIntervalRef.current);
+      }
     };
   }, []);
 
   useEffect(() => {
     if (!selectedZone) return;
     console.log("useEffect triggered with selectedZone:", selectedZone.i_zn, "isConnected:", isConnected);
-    const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn));
+    const zoneTriggers = triggers.filter(t => t.i_zn === parseInt(selectedZone.i_zn) || t.i_zn == null);
     console.log("Zone triggers for zone", selectedZone.i_zn, ":", zoneTriggers);
 
     const fetchPolygons = async () => {
@@ -406,17 +460,39 @@ const NewTriggerDemo = () => {
       try {
         const polygons = await Promise.all(
           zoneTriggers.map(async (t) => {
-            console.log(`Fetching details for trigger ID ${t.i_trg}`);
-            const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${t.i_trg}`);
-            if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-            const data = await res.json();
-            console.log(`Trigger ${t.i_trg} details:`, data);
-            if (Array.isArray(data.vertices)) {
-              const latLngs = data.vertices.map(v => [v.y, v.x]);
-              return { id: t.i_trg, name: t.x_nm_trg, latLngs };
+            try {
+              console.log(`Fetching details for trigger ID ${t.i_trg}`);
+              if (t.is_portable) {
+                const tagId = t.assigned_tag_id;
+                const tagData = tagsData[tagId];
+                if (!tagData) {
+                  console.log(`No position data for tag ${tagId} assigned to portable trigger ${t.i_trg}`);
+                  return { id: t.i_trg, name: t.x_nm_trg, isPortable: true, pending: true };
+                }
+                const radius = t.radius_ft * 15;
+                return {
+                  id: t.i_trg,
+                  name: t.x_nm_trg,
+                  center: [tagData.y, tagData.x],
+                  radius: radius,
+                  isPortable: true
+                };
+              } else {
+                const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${t.i_trg}`);
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                const data = await res.json();
+                console.log(`Trigger ${t.i_trg} response from get_trigger_details:`, data);
+                if (Array.isArray(data.vertices)) {
+                  const latLngs = data.vertices.map(v => [v.y, v.x]);
+                  return { id: t.i_trg, name: t.x_nm_trg, latLngs, isPortable: false };
+                }
+                console.log(`No vertices for trigger ${t.i_trg}`);
+                return null;
+              }
+            } catch (e) {
+              console.error(`Failed to fetch details for trigger ${t.i_trg}:`, e);
+              return null; // Skip this trigger but continue with others
             }
-            console.log(`No vertices for trigger ${t.i_trg}`);
-            return null;
           })
         );
         const validPolygons = polygons.filter(p => p);
@@ -427,6 +503,8 @@ const NewTriggerDemo = () => {
         setFetchError("Failed to fetch trigger polygons.");
       }
     };
+
+    fetchPolygons();
 
     const fetchZoneVertices = async () => {
       try {
@@ -453,10 +531,100 @@ const NewTriggerDemo = () => {
       }
     };
 
-    fetchPolygons();
     fetchZoneVertices();
-    hasPromptedForZone.current = false; // Reset prompt tracking on zone change
-  }, [selectedZone]);
+    hasPromptedForZone.current = false;
+  }, [selectedZone, triggers]);
+
+  useEffect(() => {
+    if (!selectedZone || !triggers) return;
+
+    const updatePortablePolygons = async () => {
+      const zoneTriggers = triggers.filter(t => t.i_zn === parseInt(selectedZone.i_zn) || t.i_zn == null);
+      const portableTriggers = zoneTriggers.filter(t => t.is_portable);
+      if (portableTriggers.length === 0) return;
+
+      const update = () => {
+        const updatedPolygons = portableTriggers.map(t => {
+          const tagId = t.assigned_tag_id;
+          const tagData = tagsData[tagId];
+          if (!tagData) {
+            console.log(`Still waiting for position data for tag ${tagId} assigned to portable trigger ${t.i_trg}`);
+            return null;
+          }
+          const radius = t.radius_ft * 15;
+          console.log(`Updating portable trigger ${t.i_trg} with center ${[tagData.y, tagData.x]} and radius ${radius}`);
+          return {
+            id: t.i_trg,
+            name: t.x_nm_trg,
+            center: [tagData.y, tagData.x],
+            radius: radius,
+            isPortable: true
+          };
+        });
+
+        const validPortable = updatedPolygons.filter(p => p);
+        if (validPortable.length === portableTriggers.length) {
+          setExistingTriggerPolygons(prev => {
+            const nonPortable = prev.filter(p => !p.isPortable || p.pending);
+            console.log("Updated existingTriggerPolygons:", [...nonPortable, ...validPortable]);
+            return [...nonPortable, ...validPortable];
+          });
+          if (retryIntervalRef.current) {
+            clearInterval(retryIntervalRef.current);
+            retryIntervalRef.current = null;
+          }
+        }
+      };
+
+      update();
+      if (!retryIntervalRef.current) {
+        retryIntervalRef.current = setInterval(update, 1000);
+      }
+    };
+
+    updatePortablePolygons();
+
+    return () => {
+      if (retryIntervalRef.current) {
+        clearInterval(retryIntervalRef.current);
+        retryIntervalRef.current = null;
+      }
+    };
+  }, [tagsData, selectedZone, triggers]);
+
+  useEffect(() => {
+    if (!selectedZone || !triggers) return;
+
+    const refreshPortablePolygons = async () => {
+      const zoneTriggers = triggers.filter(t => t.i_zn === parseInt(selectedZone.i_zn) || t.i_zn == null);
+      const portableTriggers = zoneTriggers.filter(t => t.is_portable);
+      if (portableTriggers.length === 0) return;
+
+      const updatedPolygons = portableTriggers.map(t => {
+        const tagId = t.assigned_tag_id;
+        const tagData = tagsData[tagId];
+        if (!tagData) return null;
+        const radius = t.radius_ft * 15;
+        console.log(`Refreshing portable trigger ${t.i_trg} with center ${[tagData.y, tagData.x]} and radius ${radius}`);
+        return {
+          id: t.i_trg,
+          name: t.x_nm_trg,
+          center: [tagData.y, tagData.x],
+          radius: radius,
+          isPortable: true
+        };
+      });
+
+      setExistingTriggerPolygons(prev => {
+        const nonPortable = prev.filter(p => !p.isPortable || p.pending);
+        const validPortable = updatedPolygons.filter(p => p);
+        console.log("Refreshed existingTriggerPolygons:", [...nonPortable, ...validPortable]);
+        return [...nonPortable, ...validPortable];
+      });
+    };
+
+    refreshPortablePolygons();
+  }, [triggers, selectedZone, tagsData]);
 
   const handleDrawComplete = useCallback((coords) => {
     try {
@@ -493,7 +661,7 @@ const NewTriggerDemo = () => {
       setCustomZMax(null);
       console.log("Updated selectedZone:", zone);
       setEventList(prev => [...prev, `Zone changed to ${zone.i_zn} - ${zone.x_nm_zn} on ${getFormattedTimestamp()}`]);
-      hasPromptedForZone.current = false; // Reset prompt tracking on zone change
+      hasPromptedForZone.current = false;
       if (isConnected && shouldReconnect.current) {
         console.log("Zone changed, reconnecting WebSocket with new zone_id:", zone.i_zn);
         connectWebSocket();
@@ -508,8 +676,9 @@ const NewTriggerDemo = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" }
         });
-        if (!reloadRes.ok) throw new Error(`Failed to reload triggers: ${res.status}`);
+        if (!reloadRes.ok) throw new Error(`Failed to reload triggers: ${reloadRes.status}`);
         console.log("Successfully sent reload triggers request");
+        await fetchTriggers();
         return true;
       } catch (e) {
         console.error(`Attempt ${attempt} failed: ${e.message}`);
@@ -603,6 +772,17 @@ const NewTriggerDemo = () => {
     }
   };
 
+  const handleMoveTrigger = async (triggerId) => {
+    const x = prompt("Enter new X coordinate:");
+    const y = prompt("Enter new Y coordinate:");
+    const z = prompt("Enter new Z coordinate:");
+    if (x && y && z && !isNaN(x) && !isNaN(y) && !isNaN(z)) {
+      await movePortableTrigger(triggerId, Number(x), Number(y), Number(z));
+    } else {
+      alert("Invalid coordinates entered.");
+    }
+  };
+
   const getDirectionName = (id) => triggerDirections.find(d => d.i_dir === id)?.x_dir || `ID ${id}`;
 
   const renderZoneOptions = (zoneList, indentLevel = 0) => {
@@ -616,8 +796,10 @@ const NewTriggerDemo = () => {
     ));
   };
 
-  const infoLine = tagData
-    ? `Tag ${tagData.id} (Zone ${tagData.zone_id || selectedZone?.i_zn || "N/A"} - ${zones.find(z => z.i_zn === (tagData.zone_id || selectedZone?.i_zn))?.x_nm_zn || "Unknown"}): X=${tagData.x}, Y=${tagData.y}, Z=${tagData.z}, Sequence=${tagData.sequence}, Count=${tagCount}, Tags/sec=${tagRate.toFixed(2)}`
+  const infoLines = Object.values(tagsData).length > 0
+    ? Object.values(tagsData).map(tagData =>
+        `Tag ${tagData.id} (Zone ${tagData.zone_id || selectedZone?.i_zn || "N/A"} - ${zones.find(z => z.i_zn === (tagData.zone_id || selectedZone?.i_zn))?.x_nm_zn || "Unknown"}): X=${tagData.x}, Y=${tagData.y}, Z=${tagData.z}, Sequence=${tagData.sequence}, Counts=${tagCount}, Tags/sec=${tagRate.toFixed(2)}`
+      ).join('\n')
     : "No tag data";
 
   return (
@@ -634,13 +816,13 @@ const NewTriggerDemo = () => {
       >
         <Tab eventKey="mapAndTrigger" title="Map & Trigger">
           <Form.Group>
-            <Form.Label>Tag ID to Subscribe</Form.Label>
+            <Form.Label>Tag IDs to Subscribe (comma-separated, e.g., SIM1,SIM2)</Form.Label>
             <InputGroup>
               <FormControl
                 type="text"
-                value={tagIdInput}
-                onChange={(e) => setTagIdInput(e.target.value)}
-                placeholder="Enter Tag ID (e.g., SIM1)"
+                value={tagIdsInput}
+                onChange={(e) => setTagIdsInput(e.target.value)}
+                placeholder="Enter Tag IDs (e.g., SIM1,SIM2)"
                 disabled={isConnected}
               />
               <Button
@@ -653,16 +835,16 @@ const NewTriggerDemo = () => {
                     connectWebSocket();
                   }
                 }}
-                disabled={!tagIdInput}
+                disabled={!tagIdsInput}
               >
                 {isConnected ? "Disconnect" : "Connect"}
               </Button>
             </InputGroup>
           </Form.Group>
 
-          {tagData && (
-            <div style={{ marginTop: "10px" }}>
-              <p>{infoLine}</p>
+          {Object.values(tagsData).length > 0 && (
+            <div style={{ marginTop: "10px", whiteSpace: "pre-wrap" }}>
+              <p>{infoLines}</p>
             </div>
           )}
 
@@ -753,8 +935,11 @@ const NewTriggerDemo = () => {
                   enableDrawing={showMapForDrawing}
                   onDrawComplete={handleDrawComplete}
                   showExistingTriggers={showExistingTriggers}
-                  existingTriggerPolygons={existingTriggerPolygons}
-                  tagData={tagData}
+                  existingTriggerPolygons={existingTriggerPolygons.map(p => ({
+                    ...p,
+                    isContained: p.isPortable ? Object.keys(portableTriggerContainment[p.id] || {}).some(tagId => portableTriggerContainment[p.id][tagId]) : false
+                  }))}
+                  tagsData={tagsData}
                   isConnected={isConnected}
                 />
               ) : (
@@ -776,8 +961,19 @@ const NewTriggerDemo = () => {
                     <td>{t.i_trg}</td>
                     <td>{t.x_nm_trg}</td>
                     <td>{getDirectionName(t.i_dir)}</td>
-                    <td>{t.zone_name || "Unknown"}</td>
-                    <td><Button variant="danger" onClick={() => handleDeleteTrigger(t.i_trg)}>Delete</Button></td>
+                    <td>{t.i_zn || "Unknown"}</td>
+                    <td>
+                      <Button variant="danger" onClick={() => handleDeleteTrigger(t.i_trg)}>Delete</Button>
+                      {t.is_portable && (
+                        <Button
+                          variant="primary"
+                          onClick={() => handleMoveTrigger(t.i_trg)}
+                          style={{ marginLeft: "10px" }}
+                        >
+                          Move
+                        </Button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

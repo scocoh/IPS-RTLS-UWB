@@ -31,6 +31,9 @@ const ZoneBuilder = () => {
     const [fetchError, setFetchError] = useState(null);
     const [useLeaflet, setUseLeaflet] = useState(false);
     const drawnItems = useRef(new L.FeatureGroup());
+    // NEW: State for sibling zones
+    const [siblingZones, setSiblingZones] = useState([]);
+    const [siblingZoneVertices, setSiblingZoneVertices] = useState([]);
 
     // Fetch maps, zone types, and parent zones
     useEffect(() => {
@@ -95,6 +98,8 @@ const ZoneBuilder = () => {
 
         fetchParentZoneVertices();
     }, [selectedParentZone]);
+
+ 
 
     // Save Zone with Correct X, Y, Z Coordinates (Feet-Based), adding closing vertex
     const saveZone = async () => {

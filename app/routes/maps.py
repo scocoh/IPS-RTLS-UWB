@@ -1,7 +1,9 @@
 """
 Maps management endpoints for ParcoRTLS FastAPI application.
-# VERSION 250316 /home/parcoadmin/parco_fastapi/app/routes/maps.py 0P.3B.006
-#  
+# VERSION 250418 /home/parcoadmin/parco_fastapi/app/routes/maps.py 0P.3B.007
+# CHANGED: Bumped version from 0P.3B.006 to 0P.3B.007
+# ADDED: Endpoint /update_map_name to update map name in database
+#
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 # Invented by Scott Cohen & Bertrand Dugal.
@@ -9,7 +11,6 @@ Maps management endpoints for ParcoRTLS FastAPI application.
 # Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
 #
 # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
-
 """
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
@@ -19,6 +20,32 @@ import logging
 
 router = APIRouter(tags=["maps"])
 logger = logging.getLogger(__name__)
+
+# NEW: Model for map name update request
+class MapNameUpdateRequest(BaseModel):
+    map_id: int
+    name: str
+
+# NEW: Endpoint to update map name
+@router.post("/update_map_name")
+async def update_map_name(request: MapNameUpdateRequest):
+    try:
+        if not request.name.strip():
+            logger.warning("Map name cannot be empty")
+            raise HTTPException(status_code=400, detail="Map name cannot be empty")
+        if len(request.name) > 100:
+            logger.warning("Map name exceeds 100 characters")
+            raise HTTPException(status_code=400, detail="Map name cannot exceed 100 characters")
+        query = "UPDATE maps SET x_nm_map = $1 WHERE i_map = $2 RETURNING i_map;"
+        result = await execute_raw_query("maint", query, request.name.strip(), request.map_id)
+        if not result:
+            logger.warning(f"Map not found for map_id={request.map_id}")
+            raise HTTPException(status_code=404, detail="Map not found")
+        logger.info(f"Map name updated for map_id={request.map_id} to '{request.name}'")
+        return {"message": "Map name updated successfully"}
+    except Exception as e:
+        logger.error(f"Error updating map name for map_id={request.map_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating map name: {str(e)}")
 
 # Endpoint for listing all maps
 @router.get("/get_maps")
@@ -34,7 +61,7 @@ async def get_maps():
         logger.error(f"Error retrieving maps: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving maps: {str(e)}")
 
-# Endpoint for getting a specific map 250312 update
+# Endpoint for getting a specific map
 @router.get("/get_map/{map_id}")
 async def get_map(map_id: int):
     """ Serve the stored map image for a given map_id. """
@@ -47,9 +74,7 @@ async def get_map(map_id: int):
             raise HTTPException(status_code=404, detail="Map image not found")
 
         img_data = result[0]["img_data"]
-        img_format = result[0]["x_format"] or "png"  # Default to PNG if no format is stored
-
-        # ✅ Serve the image as a binary response
+        img_format = result[0]["x_format"] or "png"
         return Response(content=img_data, media_type=f"image/{img_format.lower()}")
     except Exception as e:
         logger.error(f"Error retrieving map image: {str(e)}")
@@ -59,7 +84,6 @@ async def get_map(map_id: int):
 @router.get("/get_map_data/{zone_id}")
 async def get_map_data(zone_id: int):
     try:
-        # Get map ID from zone
         zone_query = "SELECT i_map FROM zones WHERE i_zn = $1;"
         i_map = await execute_raw_query("maint", zone_query, zone_id)
         if not i_map or not i_map[0]["i_map"]:
@@ -67,7 +91,6 @@ async def get_map_data(zone_id: int):
             raise HTTPException(status_code=404, detail=f"No zone found for zone_id={zone_id}")
         i_map = i_map[0]["i_map"]
 
-        # Get map bounds (min_x, min_y, max_x, max_y)
         map_query = "SELECT min_x, min_y, max_x, max_y FROM maps WHERE i_map = $1;"
         map_data = await execute_raw_query("maint", map_query, i_map)
         if not map_data:
@@ -76,7 +99,7 @@ async def get_map_data(zone_id: int):
 
         logger.info(f"Retrieved map data for zone_id={zone_id}, map_id={i_map}")
         return {
-            "imageUrl": f"http://192.168.210.226:8000/api/get_map/{zone_id}",  # Construct URL to binary image endpoint
+            "imageUrl": f"http://192.168.210.226:8000/api/get_map/{zone_id}",
             "bounds": [
                 [map_data[0]["min_y"] or 0, map_data[0]["min_x"] or 0],
                 [map_data[0]["max_y"] or 100, map_data[0]["max_x"] or 100]
@@ -89,7 +112,7 @@ async def get_map_data(zone_id: int):
 # Endpoint for adding a map
 class MapAddRequest(BaseModel):
     name: str
-    image: str  # Assuming the image is either base64 encoded or a file path
+    image: str
 
 @router.post("/add_map")
 async def add_map(request: MapAddRequest):

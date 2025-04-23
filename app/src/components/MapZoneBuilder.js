@@ -1,6 +1,7 @@
-// 
-// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/MapZoneBuilder.js 0P.10B.01
-// #  
+// # VERSION 250417 /home/parcoadmin/parco_fastapi/app/src/components/MapZoneBuilder.js 0P.10B.02
+// # --- CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02
+// # --- FIXED: Sorted parentZoneVertices by n_ord in Leaflet and Canvas rendering to ensure correct polygon drawing order
+// # 
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 // # Invented by Scott Cohen & Bertrand Dugal.
@@ -142,10 +143,12 @@ const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet,
                 // Draw parent zone vertices as a light blue shape (non-editable)
                 if (parentZoneVertices && parentZoneVertices.length > 0) {
                     console.log("📌 Rendering parent zone vertices in Canvas:", parentZoneVertices);
+                    // CHANGE: Sort parentZoneVertices by n_ord to ensure correct drawing order
+                    const sortedVertices = [...parentZoneVertices].sort((a, b) => (a.n_ord || 0) - (b.n_ord || 0));
                     ctx.beginPath();
                     let firstPoint = true;
                     let hasValidPoints = false;
-                    parentZoneVertices.forEach((vertex, index) => {
+                    sortedVertices.forEach((vertex, index) => {
                         const x = vertex.n_x !== undefined ? vertex.n_x : (vertex.x || 0);
                         const y = vertex.n_y !== undefined ? vertex.n_y : (vertex.y || 0);
                         if (isNaN(x) || isNaN(y)) {
@@ -249,7 +252,9 @@ const MapZoneBuilder = memo(({ zoneId, onDrawComplete, triggerColor, useLeaflet,
 
             if (parentZoneVertices && parentZoneVertices.length > 0) {
                 console.log("📌 Rendering parent zone vertices in Leaflet:", parentZoneVertices);
-                const latLngs = parentZoneVertices
+                // CHANGE: Sort parentZoneVertices by n_ord to ensure correct drawing order
+                const sortedVertices = [...parentZoneVertices].sort((a, b) => (a.n_ord || 0) - (b.n_ord || 0));
+                const latLngs = sortedVertices
                     .map(vertex => {
                         const x = vertex.n_x !== undefined ? vertex.n_x : (vertex.x || 0);
                         const y = vertex.n_y !== undefined ? vertex.n_y : (vertex.y || 0);

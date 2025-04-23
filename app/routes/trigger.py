@@ -1,6 +1,8 @@
-# VERSION 250325 /home/parcoadmin/parco_fastapi/app/routes/trigger.py 0P.10B.14
-# --- CHANGED: Bumped version from 0P.10B.13 to 0P.10B.15
-# --- ADDED: New endpoint /get_triggers_by_zone_with_id to return direction_id instead of direction_name
+# VERSION 250423 /home/parcoadmin/parco_fastapi/app/routes/trigger.py 0P.10B.18-250423
+# --- CHANGED: Bumped version from 0P.10B.16-250421 to 0P.10B.18-250423
+# --- FIXED: Restored get_triggers_by_zone endpoint, changed t.zone_id to t.i_zn in get_triggers_by_zone_with_id, trigger_contains_point, triggers_by_point
+# --- PREVIOUS: Added endpoints for trigger_contains_point, zones_by_point, triggers_by_point
+# --- PREVIOUS: Noted get_triggers_by_zone_with_id requires i_zn column in triggers table
 #
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -14,6 +16,9 @@ from fastapi import APIRouter, HTTPException, Form
 from database.db import call_stored_procedure, DatabaseError, execute_raw_query
 from config import MQTT_BROKER
 from models import TriggerAddRequest, TriggerMoveRequest
+from manager.region import Region3D, Region3DCollection
+from manager.portable_trigger import PortableTrigger
+from manager.enums import TriggerDirections
 import paho.mqtt.publish as publish
 import logging
 
@@ -252,7 +257,6 @@ async def delete_trigger(trigger_id: int):
         logger.error(f"Unexpected error deleting trigger: {str(e)}")
         raise HTTPException(status_code=500, detail="Unexpected error deleting trigger")
 
-
 # Endpoint to list all triggers
 @router.get("/list_triggers")
 async def list_triggers():
@@ -299,8 +303,6 @@ async def list_newtriggers():
         logger.error(f"Error retrieving new triggers: {e}")
         raise HTTPException(status_code=500, detail=f"Error retrieving new triggers: {str(e)}")
 
-
-
 # Endpoint to list all trigger directions
 @router.get("/list_trigger_directions")
 async def list_trigger_directions():
@@ -319,13 +321,6 @@ async def list_trigger_directions():
         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint to fetch trigger details by ID
-# @router.get("/get_trigger_details/{trigger_id}")
-# async def get_trigger_details(trigger_id: int):
-#    """Fetch detailed trigger information including regions and zones."""
-#    result = await call_stored_procedure("maint", "usp_trigger_select", trigger_id)
-#    if result:
-#        return result
-#    raise HTTPException(status_code=404, detail="Trigger not found")
 @router.get("/get_trigger_details/{trigger_id}")
 async def get_trigger_details(trigger_id: int):
     """Fetch details of a specific trigger, including its vertices."""
@@ -352,15 +347,21 @@ async def get_trigger_details(trigger_id: int):
         logger.error(f"Error fetching trigger details for ID {trigger_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching trigger details: {str(e)}")
 
-
 # Endpoint to move a trigger to a new position
 @router.put("/move_trigger/{trigger_id}")
 async def move_trigger(trigger_id: int, new_x: float, new_y: float, new_z: float):
     """Move a trigger to a new position."""
-    result = await call_stored_procedure("maint", "usp_trigger_move", trigger_id, new_x, new_y, new_z)
-    if result is None:
-        return {"message": f"Trigger {trigger_id} moved by ({new_x}, {new_y}, {new_z})"}
-    raise HTTPException(status_code=500, detail="Failed to move trigger")
+    try:
+        result = await call_stored_procedure("maint", "usp_trigger_move", trigger_id, new_x, new_y, new_z)
+        if result is None:
+            return {"message": f"Trigger {trigger_id} moved by ({new_x}, {new_y}, {new_z})"}
+        raise HTTPException(status_code=500, detail="Failed to move trigger")
+    except DatabaseError as e:
+        logger.error(f"Database error moving trigger: {e.message}")
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        logger.error(f"Error moving trigger: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint to fetch the last known state of a device for a given trigger
 @router.get("/get_trigger_state/{trigger_id}/{device_id}")
@@ -434,20 +435,25 @@ async def get_triggers_by_zone(zone_id: int):
         logger.error(f"Error fetching triggers for zone {zone_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# New endpoint to fetch triggers by zone ID with direction_id
+# Endpoint to fetch triggers by zone ID with direction_id
 @router.get("/get_triggers_by_zone_with_id/{zone_id}")
 async def get_triggers_by_zone_with_id(zone_id: int):
-    """Fetch all triggers for a given zone, including direction_id (i_dir)."""
+    """Fetch all triggers for a given zone, including direction_id and portable triggers."""
     try:
         query = """
             SELECT 
                 t.i_trg AS trigger_id, 
                 t.x_nm_trg AS name, 
                 t.i_dir AS direction_id, 
-                r.i_zn AS zone_id
+                COALESCE(r.i_zn, t.i_zn) AS zone_id,
+                t.is_portable,
+                t.assigned_tag_id,
+                t.radius_ft,
+                t.z_min,
+                t.z_max
             FROM public.triggers t
-            JOIN public.regions r ON t.i_trg = r.i_trg
-            WHERE r.i_zn = $1
+            LEFT JOIN public.regions r ON t.i_trg = r.i_trg
+            WHERE COALESCE(r.i_zn, t.i_zn) = $1 OR t.is_portable = true
         """
         result = await execute_raw_query("maint", query, zone_id)
         if not result:
@@ -459,6 +465,223 @@ async def get_triggers_by_zone_with_id(zone_id: int):
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
         logger.error(f"Error fetching triggers for zone {zone_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Endpoint to check if a point is within a trigger's region
+@router.get("/trigger_contains_point/{trigger_id}")
+async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float = None):
+    """Check if a point is within a trigger's region (3D or 2D)."""
+    try:
+        query = """
+            SELECT 
+                t.i_trg, t.x_nm_trg, t.i_dir, t.is_portable, t.assigned_tag_id,
+                t.radius_ft, t.z_min, t.z_max, t.i_zn AS zone_id
+            FROM public.triggers t
+            WHERE t.i_trg = $1
+        """
+        trigger_data = await execute_raw_query("maint", query, trigger_id)
+        if not trigger_data:
+            raise HTTPException(status_code=404, detail=f"Trigger {trigger_id} not found")
+        
+        trigger = trigger_data[0]
+        
+        if trigger["is_portable"]:
+            # Portable trigger: Use radius and z bounds
+            if not all([trigger["radius_ft"], trigger["z_min"] is not None, trigger["z_max"] is not None]):
+                raise HTTPException(status_code=400, detail="Portable trigger missing radius or z bounds")
+            
+            # Fetch assigned tag's position
+            tag_query = """
+                SELECT n_x, n_y, n_z
+                FROM positionhistory
+                WHERE x_id_dev = $1
+                ORDER BY d_pos_bgn DESC
+                LIMIT 1
+            """
+            tag_data = await execute_raw_query("hist_r", tag_query, trigger["assigned_tag_id"])
+            if not tag_data:
+                raise HTTPException(status_code=404, detail=f"No position data for tag {trigger['assigned_tag_id']}")
+            
+            tag_pos = tag_data[0]
+            center_x, center_y, center_z = tag_pos["n_x"], tag_pos["n_y"], tag_pos["n_z"]
+            radius = trigger["radius_ft"]
+            
+            # Check containment (simplified circular region)
+            distance = ((x - center_x) ** 2 + (y - center_y) ** 2) ** 0.5
+            if z is not None:
+                if not (trigger["z_min"] <= z <= trigger["z_max"]):
+                    return {"contains": False}
+            return {"contains": distance <= radius}
+        else:
+            # Non-portable trigger: Fetch region vertices
+            region_query = """
+                SELECT i_rgn FROM regions WHERE i_trg = $1
+            """
+            region = await execute_raw_query("maint", region_query, trigger_id)
+            if not region:
+                raise HTTPException(status_code=404, detail=f"No region found for trigger {trigger_id}")
+            region_id = region[0]["i_rgn"]
+            
+            vertices_query = """
+                SELECT n_x AS x, n_y AS y, COALESCE(n_z, 0.0) AS z, n_ord
+                FROM vertices
+                WHERE i_rgn = $1
+                ORDER BY n_ord
+            """
+            vertices = await execute_raw_query("maint", vertices_query, region_id)
+            if len(vertices) < 3:
+                raise HTTPException(status_code=400, detail="Region has insufficient vertices")
+            
+            regions = Region3DCollection()
+            x_coords = [v["x"] for v in vertices]
+            y_coords = [v["y"] for v in vertices]
+            z_coords = [v["z"] for v in vertices]
+            regions.add(Region3D(
+                min_x=min(x_coords),
+                max_x=max(x_coords),
+                min_y=min(y_coords),
+                max_y=max(y_coords),
+                min_z=min(z_coords),
+                max_z=max(z_coords)
+            ))
+            
+            # Check containment
+            if z is None:
+                contains = any(region.contains_point_in_2d(x, y) for region in regions.regions)
+            else:
+                contains = any(region.contains_point(x, y, z) for region in regions.regions)
+            return {"contains": contains}
+    except DatabaseError as e:
+        logger.error(f"Database error checking trigger containment: {e.message}")
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        logger.error(f"Error checking trigger containment: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Endpoint to fetch zones that may contain a point
+@router.get("/zones_by_point")
+async def zones_by_point(x: float, y: float, z: float, zone_type: int = 0):
+    """Fetch zones that may contain a point."""
+    try:
+        query = """
+            SELECT z.i_zn, z.x_nm_zn, r.n_min_x, r.n_max_x, r.n_min_y, r.n_max_y, r.n_min_z, r.n_max_z
+            FROM zones z
+            JOIN regions r ON z.i_zn = r.i_zn
+            WHERE r.i_trg IS NULL
+              AND $1 BETWEEN r.n_min_x AND r.n_max_x
+              AND $2 BETWEEN r.n_min_y AND r.n_max_y
+              AND $3 BETWEEN r.n_min_z AND r.n_max_z
+        """
+        if zone_type > 0:
+            query += " AND z.i_typ_zn = $4"
+            args = (x, y, z, zone_type)
+        else:
+            args = (x, y, z)
+        
+        zones = await execute_raw_query("maint", query, *args)
+        result = [
+            {
+                "zone_id": zone["i_zn"],
+                "zone_name": zone["x_nm_zn"],
+                "contains": (
+                    x >= zone["n_min_x"] and x <= zone["n_max_x"] and
+                    y >= zone["n_min_y"] and y <= zone["n_max_y"] and
+                    z >= zone["n_min_z"] and z <= zone["n_max_z"]
+                )
+            }
+            for zone in zones
+        ]
+        return result
+    except DatabaseError as e:
+        logger.error(f"Database error fetching zones by point: {e.message}")
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        logger.error(f"Error fetching zones by point: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Endpoint to fetch triggers that may contain a point
+@router.get("/triggers_by_point")
+async def triggers_by_point(x: float, y: float, z: float):
+    """Fetch triggers that may contain a point."""
+    try:
+        query = """
+            SELECT 
+                t.i_trg, t.x_nm_trg, t.i_dir, t.is_portable, t.assigned_tag_id,
+                t.radius_ft, t.z_min, t.z_max, t.i_zn AS zone_id
+            FROM triggers t
+            LEFT JOIN regions r ON t.i_trg = r.i_trg
+            WHERE (r.i_trg IS NOT NULL
+                   AND $1 BETWEEN r.n_min_x AND r.n_max_x
+                   AND $2 BETWEEN r.n_min_y AND r.n_max_y
+                   AND $3 BETWEEN r.n_min_z AND r.n_max_z)
+               OR t.is_portable = true
+        """
+        triggers = await execute_raw_query("maint", query, x, y, z)
+        result = []
+        
+        for trigger in triggers:
+            if trigger["is_portable"]:
+                tag_query = """
+                    SELECT n_x, n_y, n_z
+                    FROM positionhistory
+                    WHERE x_id_dev = $1
+                    ORDER BY d_pos_bgn DESC
+                    LIMIT 1
+                """
+                tag_data = await execute_raw_query("hist_r", tag_query, trigger["assigned_tag_id"])
+                if tag_data:
+                    tag_pos = tag_data[0]
+                    center_x, center_y, center_z = tag_pos["n_x"], tag_pos["n_y"], tag_pos["n_z"]
+                    radius = trigger["radius_ft"]
+                    distance = ((x - center_x) ** 2 + (y - center_y) ** 2) ** 0.5
+                    contains = distance <= radius and (trigger["z_min"] <= z <= trigger["z_max"])
+                else:
+                    contains = False
+            else:
+                region_query = """
+                    SELECT i_rgn FROM regions WHERE i_trg = $1
+                """
+                region = await execute_raw_query("maint", region_query, trigger["i_trg"])
+                if region:
+                    region_id = region[0]["i_rgn"]
+                    vertices_query = """
+                        SELECT n_x AS x, n_y AS y, COALESCE(n_z, 0.0) AS z, n_ord
+                        FROM vertices
+                        WHERE i_rgn = $1
+                        ORDER BY n_ord
+                    """
+                    vertices = await execute_raw_query("maint", vertices_query, region_id)
+                    if len(vertices) >= 3:
+                        regions = Region3DCollection()
+                        x_coords = [v["x"] for v in vertices]
+                        y_coords = [v["y"] for v in vertices]
+                        z_coords = [v["z"] for v in vertices]
+                        regions.add(Region3D(
+                            min_x=min(x_coords),
+                            max_x=max(x_coords),
+                            min_y=min(y_coords),
+                            max_y=max(y_coords),
+                            min_z=min(z_coords),
+                            max_z=max(z_coords)
+                        ))
+                        contains = any(region.contains_point(x, y, z) for region in regions.regions)
+                    else:
+                        contains = False
+                else:
+                    contains = False
+            
+            result.append({
+                "trigger_id": trigger["i_trg"],
+                "name": trigger["x_nm_trg"],
+                "contains": contains
+            })
+        
+        return result
+    except DatabaseError as e:
+        logger.error(f"Database error fetching triggers by point: {e.message}")
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        logger.error(f"Error fetching triggers by point: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint to fetch vertices for a zone (excluding trigger-related regions)

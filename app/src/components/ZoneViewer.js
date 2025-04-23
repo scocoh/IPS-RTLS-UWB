@@ -1,5 +1,6 @@
-// # VERSION 250316 /home/parcoadmin/parco_fastapi/app/src/components/ZoneViewer.js 0P.10B.02
-// # --- CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02 to add coordinate rounding and "Check All" feature for zones
+// # VERSION 250414 /home/parcoadmin/parco_fastapi/app/src/components/ZoneViewer.js 0P.10B.05
+// # --- CHANGED: Bumped version from 0P.10B.04 to 0P.10B.05
+// # --- FIXED: Changed input type to text and added onBlur to format coordinates, fixing cursor jump issue
 // # 
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -22,6 +23,8 @@ const ZoneViewer = () => {
     const [editedVertices, setEditedVertices] = useState({});
     const [deletedVertices, setDeletedVertices] = useState([]);
     const [fetchError, setFetchError] = useState(null);
+    const [selectedVertices, setSelectedVertices] = useState(new Set());
+    const [targetVertex, setTargetVertex] = useState(null);
     const API_BASE_URL = "http://192.168.210.226:8000";
 
     useEffect(() => {
@@ -56,6 +59,8 @@ const ZoneViewer = () => {
                     setVertices(verticesData.vertices || []);
                     setEditedVertices({});
                     setDeletedVertices([]);
+                    setSelectedVertices(new Set());
+                    setTargetVertex(null);
                 } catch (error) {
                     console.error("❌ Error fetching zones/vertices:", error);
                     setFetchError(error.message);
@@ -71,7 +76,6 @@ const ZoneViewer = () => {
         );
     };
 
-    // --- CHANGED: Added function to toggle all zones under a parent (including nested children)
     const toggleAllZones = (zone, check) => {
         const toggleZoneAndChildren = (z) => {
             if (check) {
@@ -86,7 +90,6 @@ const ZoneViewer = () => {
         toggleZoneAndChildren(zone);
     };
 
-    // --- CHANGED: Added "Check All" functionality to toggle all zones
     const handleCheckAll = (check) => {
         if (check) {
             setCheckedZones(zones.map(zone => zone.zone_id));
@@ -95,7 +98,6 @@ const ZoneViewer = () => {
         }
     };
 
-    // --- CHANGED: Updated renderZones to include "Check All" checkboxes for each parent zone
     const renderZones = (zones, depth = 0) => {
         return zones.map((zone) => (
             <div key={zone.zone_id} style={{ marginLeft: `${depth * 20}px`, marginBottom: "5px" }}>
@@ -133,10 +135,19 @@ const ZoneViewer = () => {
     };
 
     const handleVertexChange = (vertexId, field, value) => {
+        // --- FIXED: Store the raw input value as a string during typing
+        setEditedVertices((prev) => ({
+            ...prev,
+            [vertexId]: { ...prev[vertexId], [field]: value },
+        }));
+    };
+
+    // --- ADDED: Format the value to 6 decimal places on blur
+    const handleVertexBlur = (vertexId, field, value) => {
         const numValue = parseFloat(value) || 0;
         setEditedVertices((prev) => ({
             ...prev,
-            [vertexId]: { ...prev[vertexId], [field]: numValue },
+            [vertexId]: { ...prev[vertexId], [field]: numValue.toFixed(6) },
         }));
     };
 
@@ -150,7 +161,6 @@ const ZoneViewer = () => {
         });
     };
 
-    // --- CHANGED: Round default coordinates to 6 decimal places when adding a new vertex
     const addVertex = async (zoneId, position, refVertexId) => {
         try {
             const zoneVertices = vertices.filter(v => v.zone_id === zoneId).sort((a, b) => a.order - b.order);
@@ -189,7 +199,6 @@ const ZoneViewer = () => {
         }
     };
 
-    // --- CHANGED: Round coordinates to 6 decimal places before saving to backend
     const saveVertices = async () => {
         try {
             for (const vertexId of deletedVertices) {
@@ -238,6 +247,8 @@ const ZoneViewer = () => {
             setVertices(verticesData.vertices || []);
             setEditedVertices({});
             setDeletedVertices([]);
+            setSelectedVertices(new Set());
+            setTargetVertex(null);
             alert("Changes saved successfully!");
         } catch (error) {
             console.error("❌ Error saving changes:", error);
@@ -300,6 +311,8 @@ const ZoneViewer = () => {
             });
 
             setVertices([...updatedVertices, ...newVertices].sort((a, b) => a.order - b.order));
+            setSelectedVertices(new Set());
+            setTargetVertex(null);
             alert(`Imported ${newVertices.length} new vertices and updated ${validVertices.length - newVertices.length} existing vertices.`);
         } catch (error) {
             console.error("❌ Error importing vertices:", error);
@@ -401,10 +414,76 @@ const ZoneViewer = () => {
             const verticesData = await verticesResponse.json();
             setVertices(verticesData.vertices || []);
 
+            setSelectedVertices(new Set());
+            setTargetVertex(null);
             alert(result.message);
         } catch (error) {
             console.error("❌ Error deleting zone:", error);
             alert("Failed to delete zone: " + error.message);
+        }
+    };
+
+    const handleVertexSelect = (vertexId) => {
+        const newSelectedVertices = new Set(selectedVertices);
+        if (newSelectedVertices.has(vertexId)) {
+            newSelectedVertices.delete(vertexId);
+        } else {
+            newSelectedVertices.add(vertexId);
+        }
+        setSelectedVertices(newSelectedVertices);
+    };
+
+    const handleTargetVertexSelect = (vertex) => {
+        setTargetVertex(vertex);
+    };
+
+    const applyCoordinates = async () => {
+        if (!targetVertex || selectedVertices.size === 0) {
+            alert("Please select a target vertex and at least one vertex to update.");
+            return;
+        }
+
+        try {
+            const updates = Array.from(selectedVertices).map(vertexId => {
+                const vertex = vertices.find(v => v.vertex_id === vertexId);
+                return {
+                    vertex_id: vertexId,
+                    x: Number(targetVertex.x).toFixed(6),
+                    y: Number(targetVertex.y).toFixed(6),
+                    z: Number(targetVertex.z).toFixed(6),
+                    order: vertex.order
+                };
+            });
+
+            const response = await fetch(`${API_BASE_URL}/zoneviewer/update_vertices`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updates),
+            });
+
+            if (!response.ok) throw new Error(`Failed to apply coordinates: ${response.status}`);
+            const result = await response.json();
+            console.log("✅ Coordinates applied:", result);
+
+            const affectedZones = [...new Set(Array.from(selectedVertices).map(vertexId => {
+                const vertex = vertices.find(v => v.vertex_id === vertexId);
+                return vertex.zone_id;
+            }))];
+            const verticesPromises = affectedZones.map(async (zoneId) => {
+                const response = await fetch(`${API_BASE_URL}/zoneviewer/get_vertices_for_campus/${zoneId}`);
+                if (!response.ok) throw new Error(`Vertices fetch failed for zone ${zoneId}: ${response.status}`);
+                const data = await response.json();
+                return data.vertices;
+            });
+            const allVertices = (await Promise.all(verticesPromises)).flat();
+            setVertices(allVertices);
+
+            setSelectedVertices(new Set());
+            setTargetVertex(null);
+            alert("Coordinates applied successfully!");
+        } catch (error) {
+            console.error("❌ Error applying coordinates:", error);
+            alert("Failed to apply coordinates: " + error.message);
         }
     };
 
@@ -429,7 +508,6 @@ const ZoneViewer = () => {
             {selectedCampus && (
                 <>
                     <h3>Zones:</h3>
-                    {/* --- CHANGED: Added "Check All" checkbox for all zones */}
                     <div style={{ marginBottom: "10px" }}>
                         <input
                             type="checkbox"
@@ -461,10 +539,12 @@ const ZoneViewer = () => {
                     <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid black" }}>
                         <thead>
                             <tr>
+                                <th style={{ border: "1px solid black", padding: "8px" }}>Select</th>
                                 <th style={{ border: "1px solid black", padding: "8px" }}>Vertex #</th>
                                 <th style={{ border: "1px solid black", padding: "8px" }}>X</th>
                                 <th style={{ border: "1px solid black", padding: "8px" }}>Y</th>
                                 <th style={{ border: "1px solid black", padding: "8px" }}>Z</th>
+                                <th style={{ border: "1px solid black", padding: "8px" }}>Use Coordinates</th>
                                 <th style={{ border: "1px solid black", padding: "8px" }}>Actions</th>
                             </tr>
                         </thead>
@@ -473,35 +553,47 @@ const ZoneViewer = () => {
                                 .filter((v) => checkedZones.includes(v.zone_id))
                                 .map((v) => (
                                     <tr key={v.vertex_id}>
+                                        <td style={{ border: "1px solid black", padding: "8px" }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedVertices.has(v.vertex_id)}
+                                                onChange={() => handleVertexSelect(v.vertex_id)}
+                                            />
+                                        </td>
                                         <td style={{ border: "1px solid black", padding: "8px" }}>{v.vertex_id}</td>
-                                        {/* --- CHANGED: Round displayed x coordinate to 6 decimal places */}
+                                        {/* --- FIXED: Changed to type="text" and added onBlur */}
                                         <td style={{ border: "1px solid black", padding: "8px" }}>
                                             <input
-                                                type="number"
-                                                value={Number(editedVertices[v.vertex_id]?.x ?? v.x).toFixed(6)}
+                                                type="text"
+                                                value={editedVertices[v.vertex_id]?.x ?? Number(v.x).toFixed(6)}
                                                 onChange={(e) => handleVertexChange(v.vertex_id, "x", e.target.value)}
-                                                step="0.000001"
+                                                onBlur={(e) => handleVertexBlur(v.vertex_id, "x", e.target.value)}
                                                 style={{ width: "100px" }}
                                             />
                                         </td>
-                                        {/* --- CHANGED: Round displayed y coordinate to 6 decimal places */}
                                         <td style={{ border: "1px solid black", padding: "8px" }}>
                                             <input
-                                                type="number"
-                                                value={Number(editedVertices[v.vertex_id]?.y ?? v.y).toFixed(6)}
+                                                type="text"
+                                                value={editedVertices[v.vertex_id]?.y ?? Number(v.y).toFixed(6)}
                                                 onChange={(e) => handleVertexChange(v.vertex_id, "y", e.target.value)}
-                                                step="0.000001"
+                                                onBlur={(e) => handleVertexBlur(v.vertex_id, "y", e.target.value)}
                                                 style={{ width: "100px" }}
                                             />
                                         </td>
-                                        {/* --- CHANGED: Round displayed z coordinate to 6 decimal places */}
                                         <td style={{ border: "1px solid black", padding: "8px" }}>
                                             <input
-                                                type="number"
-                                                value={Number(editedVertices[v.vertex_id]?.z ?? v.z).toFixed(6)}
+                                                type="text"
+                                                value={editedVertices[v.vertex_id]?.z ?? Number(v.z).toFixed(6)}
                                                 onChange={(e) => handleVertexChange(v.vertex_id, "z", e.target.value)}
-                                                step="0.000001"
+                                                onBlur={(e) => handleVertexBlur(v.vertex_id, "z", e.target.value)}
                                                 style={{ width: "100px" }}
+                                            />
+                                        </td>
+                                        <td style={{ border: "1px solid black", padding: "8px" }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={targetVertex && targetVertex.vertex_id === v.vertex_id}
+                                                onChange={() => handleTargetVertexSelect(v)}
                                             />
                                         </td>
                                         <td style={{ border: "1px solid black", padding: "8px" }}>
@@ -514,6 +606,7 @@ const ZoneViewer = () => {
                         </tbody>
                     </table>
                     <button onClick={saveVertices} style={{ marginTop: "10px" }}>Save All Changes</button>
+                    <button onClick={applyCoordinates} style={{ marginTop: "10px", marginLeft: "10px" }}>Apply Coordinates</button>
                 </>
             )}
         </div>

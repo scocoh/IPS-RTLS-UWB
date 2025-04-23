@@ -1,7 +1,7 @@
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerViewer.js
-// Version: v0.0.19 - Fixed tag marker not appearing after zone switch, updated zone label on zone switch, bumped from v0.0.18
-// Previous: Added zone check for tag marker and ensured marker color updates (v0.0.18)
-// Previous: Added zone ID label to Leaflet map (v0.0.17)
+// Version: v0.0.31-250424 - Added portable trigger rendering in canvas mode, enhanced logging, bumped from v0.0.30
+// Previous: Added non-portable trigger rendering in canvas mode, added debug logging (v0.0.30)
+// Previous: Fixed marker scaling with divIcon, added debug logging (v0.0.29)
 import React, { useEffect, useRef, useState, memo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -20,7 +20,7 @@ const NewTriggerViewer = memo(({
   onDrawComplete,
   showExistingTriggers,
   existingTriggerPolygons,
-  tagData,
+  tagsData,
   isConnected
 }) => {
   const mapRef = useRef(null);
@@ -35,7 +35,7 @@ const NewTriggerViewer = memo(({
   const imageRef = useRef(null);
   const drawnItems = useRef(new L.FeatureGroup());
   const canvasBounds = useRef({ x: 0, y: 0, width: 800, height: 600 });
-  const tagMarkerRef = useRef(null);
+  const tagMarkersRef = useRef({}); // Changed to an object to store markers for multiple tags
   const zoneLabelRef = useRef(null); // Ref for zone label
   const userInteracted = useRef(false);
   const updateTimeout = useRef(null);
@@ -130,6 +130,7 @@ const NewTriggerViewer = memo(({
         canvasBounds.current = { x: offsetX, y: offsetY, width: drawWidth, height: drawHeight };
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
         drawZones(ctx, offsetX, offsetY, drawWidth, drawHeight, boundsWidth, boundsHeight);
+        drawTriggers(ctx, offsetX, offsetY, drawWidth, drawHeight, boundsWidth, boundsHeight);
       };
 
       img.onerror = () => setError("Failed to load map image.");
@@ -144,7 +145,7 @@ const NewTriggerViewer = memo(({
         isInitialized.current = false;
       }
     };
-  }, [mapData, useLeaflet, zoneVertices]);
+  }, [mapData, useLeaflet, zoneVertices, showExistingTriggers, existingTriggerPolygons]);
 
   const drawZones = (ctx, offsetX, offsetY, drawWidth, drawHeight, boundsWidth, boundsHeight) => {
     const seniorZone = checkedZones.length > 1 ? Math.min(...checkedZones) : checkedZones[0];
@@ -174,13 +175,94 @@ const NewTriggerViewer = memo(({
     });
   };
 
+  const drawTriggers = (ctx, offsetX, offsetY, drawWidth, drawHeight, boundsWidth, boundsHeight) => {
+    if (!showExistingTriggers || !existingTriggerPolygons || existingTriggerPolygons.length === 0) {
+      console.log("No triggers to render in canvas mode", { showExistingTriggers, existingTriggerPolygons });
+      return;
+    }
+
+    const zoneBoundingBox = { xMin: Infinity, xMax: -Infinity, yMin: Infinity, yMax: -Infinity };
+    checkedZones.forEach(zoneId => {
+      const filteredVertices = zoneVertices.filter(v => v.zone_id === zoneId);
+      filteredVertices.forEach(v => {
+        const x = Number(v.n_x);
+        const y = Number(v.n_y);
+        zoneBoundingBox.xMin = Math.min(zoneBoundingBox.xMin, x);
+        zoneBoundingBox.xMax = Math.max(zoneBoundingBox.xMax, x);
+        zoneBoundingBox.yMin = Math.min(zoneBoundingBox.yMin, y);
+        zoneBoundingBox.yMax = Math.max(zoneBoundingBox.yMax, y);
+      });
+    });
+
+    existingTriggerPolygons.forEach(trigger => {
+      if (!trigger) return;
+
+      if (trigger.isPortable && trigger.center && trigger.radius) {
+        // Render portable triggers as circles
+        const [centerY, centerX] = trigger.center;
+        const x = offsetX + (centerX - mapData.bounds[0][1]) * (drawWidth / boundsWidth);
+        const y = offsetY + (mapData.bounds[1][0] - centerY) * (drawHeight / boundsHeight);
+        const scaledRadius = trigger.radius * (drawWidth / boundsWidth);
+
+        ctx.beginPath();
+        ctx.arc(x, y, scaledRadius, 0, 2 * Math.PI);
+        ctx.strokeStyle = trigger.isContained ? "red" : "purple";
+        ctx.fillStyle = trigger.isContained ? "rgba(255, 0, 0, 0.5)" : "rgba(128, 0, 128, 0.5)";
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = "12px Arial";
+        ctx.fillStyle = "black";
+        ctx.fillText(trigger.id, x + 5, y - 5);
+        console.log(`Rendered portable trigger ${trigger.id} on canvas at center [${x}, ${y}] with radius ${scaledRadius}`);
+      } else if (trigger.latLngs) {
+        // Render non-portable triggers as polygons
+        const isWithinBoundingBox = trigger.latLngs.some(([lat, lng]) => {
+          return (
+            lng >= zoneBoundingBox.xMin &&
+            lng <= zoneBoundingBox.xMax &&
+            lat >= zoneBoundingBox.yMin &&
+            lat <= zoneBoundingBox.yMax
+          );
+        });
+
+        if (isWithinBoundingBox) {
+          ctx.beginPath();
+          trigger.latLngs.forEach(([lat, lng], i) => {
+            const x = offsetX + (lng - mapData.bounds[0][1]) * (drawWidth / boundsWidth);
+            const y = offsetY + (mapData.bounds[1][0] - lat) * (drawHeight / boundsHeight);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.closePath();
+          ctx.strokeStyle = "blue";
+          ctx.stroke();
+
+          const centroid = trigger.latLngs.reduce((acc, [lat, lng]) => [acc[0] + lat, acc[1] + lng], [0, 0]);
+          centroid[0] /= trigger.latLngs.length;
+          centroid[1] /= trigger.latLngs.length;
+          const centroidX = offsetX + (centroid[1] - mapData.bounds[0][1]) * (drawWidth / boundsWidth);
+          const centroidY = offsetY + (mapData.bounds[1][0] - centroid[0]) * (drawHeight / boundsHeight);
+          ctx.font = "12px Arial";
+          ctx.fillStyle = "black";
+          ctx.fillText(trigger.id, centroidX + 5, centroidY - 5);
+          console.log(`Rendered non-portable trigger ${trigger.id} on canvas at centroid [${centroidX}, ${centroidY}]`);
+        } else {
+          console.log(`Non-portable trigger ${trigger.id} not within bounding box`, zoneBoundingBox);
+        }
+      } else {
+        console.log(`Trigger ${trigger.id} skipped: missing latLngs or center/radius`, trigger);
+      }
+    });
+  };
+
   useEffect(() => {
     if (useLeaflet && mapData && mapRef.current && !mapInstance.current) {
       mapInstance.current = L.map(mapRef.current, { 
         crs: L.CRS.Simple,
         zoomControl: true,
         minZoom: -5,
-        maxZoom: 5
+        maxZoom: 7
       }).fitBounds(mapData.bounds);
       L.imageOverlay(mapData.imageUrl, mapData.bounds).addTo(mapInstance.current);
       mapInstance.current.addLayer(drawnItems.current);
@@ -224,13 +306,14 @@ const NewTriggerViewer = memo(({
       if (mapInstance.current) {
         try {
           mapInstance.current.off();
+          mapInstance.current.off(L.Draw.Event.CREATED);
           mapInstance.current.remove();
           console.log("Leaflet map cleaned up");
         } catch (error) {
           console.error("Error cleaning up Leaflet map:", error);
         }
         mapInstance.current = null;
-        tagMarkerRef.current = null;
+        tagMarkersRef.current = {};
         zoneLabelRef.current = null;
         isInitialized.current = false;
         if (updateTimeout.current) {
@@ -240,11 +323,11 @@ const NewTriggerViewer = memo(({
         setMapInitialized(false);
       }
     };
-  }, [mapData?.imageUrl, mapData?.bounds, useLeaflet, enableDrawing]);
+  }, [mapData?.imageUrl, mapData?.bounds, useLeaflet, enableDrawing, onDrawComplete]);
 
   // Update zone label when zones change
   useEffect(() => {
-    if (!useLeaflet || !mapInstance.current || !mapData) return;
+    if (!useLeaflet || !mapInstance.current || !mapData || !mapInitialized) return;
 
     // Remove existing zone label if it exists
     if (zoneLabelRef.current) {
@@ -301,37 +384,62 @@ const NewTriggerViewer = memo(({
     });
 
     if (showExistingTriggers && existingTriggerPolygons && existingTriggerPolygons.length > 0) {
+      console.log("Trigger rendering useEffect running with existingTriggerPolygons:", existingTriggerPolygons);
       existingTriggerPolygons.forEach(trigger => {
-        if (trigger && trigger.latLngs) {
-          const isWithinBoundingBox = trigger.latLngs.some(([lat, lng]) => {
-            return (
-              lng >= zoneBoundingBox.xMin &&
-              lng <= zoneBoundingBox.xMax &&
-              lat >= zoneBoundingBox.yMin &&
-              lat <= zoneBoundingBox.yMax
-            );
-          });
-
-          if (isWithinBoundingBox) {
-            L.polygon(trigger.latLngs, { color: "blue", fill: false }).addTo(drawnItems.current);
-            const centroid = trigger.latLngs.reduce((acc, [lat, lng]) => [acc[0] + lat, acc[1] + lng], [0, 0]);
-            centroid[0] /= trigger.latLngs.length;
-            centroid[1] /= trigger.latLngs.length;
-            L.marker(centroid, {
+        if (trigger) {
+          if (trigger.isPortable && trigger.center && trigger.radius) {
+            console.log(`Rendering portable trigger ${trigger.id} at center ${trigger.center} with radius ${trigger.radius}`);
+            const circle = L.circle(trigger.center, {
+              radius: trigger.radius,
+              color: trigger.isContained ? "red" : "purple",
+              fillOpacity: 0.5,
+              zIndexOffset: 800
+            }).addTo(drawnItems.current);
+            L.marker(trigger.center, {
               icon: L.divIcon({
                 className: "trigger-label",
                 html: `<span>${trigger.id}</span>`,
                 iconSize: [20, 20],
               })
             }).addTo(drawnItems.current);
+          } else if (trigger.latLngs) {
+            const isWithinBoundingBox = trigger.latLngs.some(([lat, lng]) => {
+              return (
+                lng >= zoneBoundingBox.xMin &&
+                lng <= zoneBoundingBox.xMax &&
+                lat >= zoneBoundingBox.yMin &&
+                lat <= zoneBoundingBox.yMax
+              );
+            });
+
+            if (isWithinBoundingBox) {
+              L.polygon(trigger.latLngs, { color: "blue", fill: false }).addTo(drawnItems.current);
+              const centroid = trigger.latLngs.reduce((acc, [lat, lng]) => [acc[0] + lat, acc[1] + lng], [0, 0]);
+              centroid[0] /= trigger.latLngs.length;
+              centroid[1] /= trigger.latLngs.length;
+              L.marker(centroid, {
+                icon: L.divIcon({
+                  className: "trigger-label",
+                  html: `<span>${trigger.id}</span>`,
+                  iconSize: [20, 20],
+                })
+              }).addTo(drawnItems.current);
+            }
           }
         }
       });
+      // Force map refresh
+      if (mapInstance.current) {
+        mapInstance.current.invalidateSize();
+        console.log("Map size invalidated to force refresh");
+      }
+    } else {
+      console.log("No triggers to render or showExistingTriggers is false", { showExistingTriggers, existingTriggerPolygons });
     }
   }, [useLeaflet, mapData, zoneVertices, checkedZones, showExistingTriggers, existingTriggerPolygons, mapInitialized]);
 
   useEffect(() => {
-    console.log("Tag marker useEffect triggered", { tagData, isConnected, mapInstance: !!mapInstance.current, mapInitialized });
+    console.log("Tag marker useEffect triggered", { tagsData, isConnected, mapInstance: !!mapInstance.current, mapInitialized });
     if (!useLeaflet || !mapInstance.current || !mapData || !mapInitialized) return;
 
     if (updateTimeout.current) {
@@ -339,60 +447,68 @@ const NewTriggerViewer = memo(({
     }
 
     updateTimeout.current = setTimeout(() => {
-      // Only plot the tag marker if the tag's zone matches the selected zone
-      const selectedZoneId = zones[0]?.i_zn; // Assuming zones[0] is the currently selected zone
-      const tagZoneId = tagData?.zone_id || selectedZoneId;
+      const selectedZoneId = zones[0]?.i_zn || "N/A";
 
-      if (!tagData || tagZoneId !== selectedZoneId) {
-        if (tagMarkerRef.current) {
-          mapInstance.current.removeLayer(tagMarkerRef.current);
-          tagMarkerRef.current = null;
-          console.log("Tag marker removed due to zone mismatch or no tag data", { tagZoneId, selectedZoneId });
-          firstTagAppearance.current = true;
+      Object.keys(tagMarkersRef.current).forEach(tagId => {
+        const tagData = tagsData[tagId];
+        const tagZoneId = tagData?.zone_id || selectedZoneId;
+        if (!tagData || tagZoneId !== selectedZoneId) {
+          const marker = tagMarkersRef.current[tagId];
+          if (marker && mapInstance.current.hasLayer(marker)) {
+            mapInstance.current.removeLayer(marker);
+            console.log(`Tag marker for ${tagId} removed due to zone mismatch or no tag data`, { tagZoneId, selectedZoneId });
+          }
+          delete tagMarkersRef.current[tagId];
         }
+      });
+
+      if (!isConnected) {
+        Object.values(tagMarkersRef.current).forEach(marker => {
+          marker.setStyle({ color: "gray", fillColor: "gray" });
+          console.log("Tag marker turned gray due to disconnect");
+        });
         return;
       }
 
-      if (tagData && isConnected) {
+      Object.entries(tagsData).forEach(([tagId, tagData]) => {
+        const tagZoneId = tagData.zone_id || selectedZoneId;
+        if (tagZoneId !== selectedZoneId) return;
+
         const { x, y } = tagData;
         const latLng = [y, x];
 
         const bounds = L.latLngBounds(mapData.bounds);
         if (!bounds.contains(latLng)) {
-          console.warn(`Tag position ${latLng} is outside map bounds:`, mapData.bounds);
+          console.warn(`Tag ${tagId} position ${latLng} is outside map bounds:`, mapData.bounds);
           return;
         }
 
-        if (!tagMarkerRef.current) {
-          tagMarkerRef.current = L.circle(latLng, {
-            color: "red",
-            fillColor: "red",
-            fillOpacity: 0.8,
-            radius: 0.4572,
+        let marker = tagMarkersRef.current[tagId];
+        if (!marker) {
+          marker = L.marker(latLng, {
+            icon: L.divIcon({
+              className: "tag-marker",
+              html: `<div style="background-color: red; width: 10px; height: 10px; border-radius: 50%;"></div>`,
+              iconSize: [10, 10],
+              iconAnchor: [5, 5]
+            }),
             zIndexOffset: 1000
           }).addTo(mapInstance.current);
-          console.log("Tag marker created at:", latLng);
+          marker.bindTooltip(`Tag ${tagId}`, { permanent: false, direction: "top" });
+          tagMarkersRef.current[tagId] = marker;
+          console.log(`Tag marker created for ${tagId} at:`, latLng);
         } else {
-          tagMarkerRef.current.setLatLng(latLng);
-          tagMarkerRef.current.setStyle({ color: "red", fillColor: "red" });
-          console.log("Tag marker updated to:", latLng);
+          marker.setLatLng(latLng);
+          console.log(`Tag marker updated for ${tagId} to:`, latLng);
         }
 
         if (firstTagAppearance.current && !userInteracted.current) {
           const tagBounds = L.latLngBounds(latLng, latLng);
-          mapInstance.current.fitBounds(tagBounds.pad(0.5), { animate: false });
-          console.log("Map centered on tag:", latLng);
+          mapInstance.current.setView(latLng, 7, { animate: false });
+          console.log(`Map zoomed to tag ${tagId} at:`, latLng);
           firstTagAppearance.current = false;
         }
-      } else if (tagData && !isConnected && tagMarkerRef.current) {
-        tagMarkerRef.current.setStyle({ color: "gray", fillColor: "gray" });
-        console.log("Tag marker turned gray due to disconnect");
-      } else if (!tagData && tagMarkerRef.current) {
-        mapInstance.current.removeLayer(tagMarkerRef.current);
-        tagMarkerRef.current = null;
-        console.log("Tag marker removed due to no tag data");
-        firstTagAppearance.current = true;
-      }
+      });
     }, 100);
 
     return () => {
@@ -400,7 +516,7 @@ const NewTriggerViewer = memo(({
         clearTimeout(updateTimeout.current);
       }
     };
-  }, [useLeaflet, tagData, isConnected, mapData, zones, mapInitialized]); // Added mapInitialized to dependencies
+  }, [useLeaflet, tagsData, isConnected, mapData, zones, mapInitialized]);
 
   return (
     <div>
