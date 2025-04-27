@@ -1,0 +1,14 @@
+/* /home/parcoadmin/parco_fastapi/app/src/components/EntityMap.css */
+.leaflet-container {
+    height: 100%;
+    width: 100%;
+  }
+  
+  .device-marker, .entity-marker, .static-marker {
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .leaflet-marker-icon {
+    z-index: 1000 !important;
+  }

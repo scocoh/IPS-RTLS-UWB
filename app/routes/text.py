@@ -11,7 +11,7 @@ import asyncio
 import logging
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(tags=["text"])
 
 @router.post("/log_text_event")
 async def log_text_event(device_id: str = Form(...), event_data: str = Form(...)):

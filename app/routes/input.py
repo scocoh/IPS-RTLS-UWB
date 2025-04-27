@@ -21,7 +21,7 @@ from database.db import call_stored_procedure
 import logging
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(tags=["input"])
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/input", response_class=HTMLResponse)

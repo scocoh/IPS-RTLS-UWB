@@ -1,7 +1,7 @@
 """
 /home/parcoadmin/parco_fastapi/app/routes/vertex.py
 routes/vertex.py
-Version: 0.1.15 (Added POST /update_vertices for bulk updates)
+Version: 0.1.16 (Added tags=["vertices"] to APIRouter for Swagger UI grouping)
 Vertex management endpoints for ParcoRTLS FastAPI application.
 
 Vertices are part of regions, stored in the 'vertices' table with a foreign key (i_rgn)
@@ -10,7 +10,9 @@ to 'regions(i_rgn)'. Each region typically requires at least 3 vertices to form 
 and select, and raw queries for add/edit (edit updated to match Zone Viewer approach).
 
 # VERSION 250316 /home/parcoadmin/parco_fastapi/app/routes/vertex.py 0.1.15
-#  
+# CHANGED: Added tags=["vertices"] to APIRouter for Swagger UI grouping, bumped to 0.1.16
+# PREVIOUS: Added POST /update_vertices for bulk updates, version 0.1.15
+# 
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 # Invented by Scott Cohen & Bertrand Dugal.
@@ -27,7 +29,7 @@ from typing import List
 import logging
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(tags=["vertices"])
 
 @router.delete("/delete_vertex/{vertex_id}")
 async def delete_vertex(vertex_id: int):
@@ -68,7 +70,7 @@ async def delete_vertex(vertex_id: int):
 
 @router.put("/edit_vertex")
 async def edit_vertex(vertex_id: int = Form(...), region_id: int = Form(...), x: float = Form(...), y: float = Form(...), z: float | None = Form(None), order: int = Form(...)):
-    """Edit an existing vertex by ID (i_vtx) using a raw query (inspired by Zone Viewer).
+    """Edit an kobsexisting vertex by ID (i_vtx) using a raw query (inspired by Zone Viewer).
 
     Args:
         vertex_id: The vertex ID (i_vtx) to edit.

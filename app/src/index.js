@@ -1,6 +1,6 @@
 //
-// # VERSION 250325 /home/parcoadmin/parco_fastapi/app/src/index_new.js 0.0.1
-// #
+// # VERSION 250325 /home/parcoadmin/parco_fastapi/app/src/index_new.js 0.0.2
+// # CHANGED: Added EntityMergeDemo button and view, bumped to 0.0.2
 // # Index for the New Trigger Demo
 // #
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -21,7 +21,8 @@ import TriggerUX2025 from "./components/TriggerUX2025";
 import ZoneBuilder from "./components/ZoneBuilder";
 import ZoneViewer from "./components/ZoneViewer";
 import BuildOutTool from "./components/BuildOutTool";
-import NewTriggerDemo from "./components/NewTriggerDemo"; // Import the new component
+import NewTriggerDemo from "./components/NewTriggerDemo";
+import EntityMergeDemo from "./components/EntityMergeDemo"; // Import the new component
 
 const App = () => {
   const [view, setView] = useState("triggers");
@@ -37,7 +38,8 @@ const App = () => {
         <button onClick={() => setView("mapList")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>View Maps</button>
         <button onClick={() => setView("zoneviewer")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Zone Viewer & Editor</button>
         <button onClick={() => setView("buildout")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Build Out Tool</button>
-        <button onClick={() => setView("newTriggerDemo")} style={{ padding: "10px", fontSize: "16px" }}>Alpha New Trigger Demo</button>
+        <button onClick={() => setView("newTriggerDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Alpha New Trigger Demo</button>
+        <button onClick={() => setView("entityMergeDemo")} style={{ padding: "10px", fontSize: "16px" }}>Entity Merge Demo</button>
       </div>
 
       <hr />
@@ -50,6 +52,7 @@ const App = () => {
       {view === "zoneviewer" && <ZoneViewer />}
       {view === "buildout" && <BuildOutTool />}
       {view === "newTriggerDemo" && <NewTriggerDemo />}
+      {view === "entityMergeDemo" && <EntityMergeDemo />}
     </div>
   );
 };

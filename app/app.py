@@ -1,4 +1,5 @@
 # /home/parcoadmin/parco_fastapi/app/app.py
+# Version: 0P.10B.07 - Added debug logging for route registration
 # Version: 0P.10B.06 - Restored original, ensured CORS
 import asyncpg
 from fastapi import FastAPI, Request, HTTPException, status
@@ -42,6 +43,12 @@ async def lifespan(app: FastAPI):
             logger.error(f"Failed to initialize pool for {db_type}: {str(e)}")
     logger.info("Database connections established.")
     
+    # Debug: Log all registered routes
+    logger.info("Registered routes:")
+    for route in app.routes:
+        if hasattr(route, "path") and hasattr(route, "methods"):
+            logger.info(f"Path: {route.path}, Methods: {route.methods}")
+
     yield  # Application runs here
     
     # Shutdown logic
@@ -58,7 +65,7 @@ async def lifespan(app: FastAPI):
 # Create the FastAPI app with the lifespan handler
 app = FastAPI(
     title="Parco RTLS API",
-    version="0P.10B.06",  # Updated to match file version
+    version="0P.10B.07",
     docs_url="/docs",
     lifespan=lifespan
 )
@@ -146,7 +153,7 @@ async def get_async_db_pool(db_type: str = "maint"):
         logger.error(f"❌ Error creating async database pool for {db_type}: {e}")
         return None
 
-@app.get("/")
+@app.get("/", tags=["root"])
 def root():
     return {"message": "FastAPI is running!"}
 

@@ -1,13 +1,12 @@
 """
 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py
-Version: 0.1.17 (Added /get_maps_with_zone_types endpoint)
+Version: 0.1.18 (Enhanced endpoint documentation)
 Zone Viewer & Editor endpoints for ParcoRTLS FastAPI application.
-# VERSION 250417 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py 0P.10B.02
-# --- CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02
-# --- ADDED: /get_maps_with_zone_types endpoint to fetch unique maps with zone types
-# --- FIXED: SQL query for /get_maps_with_zone_types to include CASE in SELECT for DISTINCT
-# --- FIXED: Exclude trigger regions in /get_vertices_for_campus/{campus_id} by adding r.i_trg IS NULL
-# 
+# VERSION 250426 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py 0P.10B.03
+# --- CHANGED: Bumped version from 0P.10B.02 to 0P.10B.03
+# --- ADDED: Enhanced docstrings for all endpoints with detailed descriptions, parameters, return values, examples, use cases, and error handling
+# --- PREVIOUS: 0P.10B.02 (Added /get_maps_with_zone_types endpoint)
+#
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 # Invented by Scott Cohen & Bertrand Dugal.
@@ -59,6 +58,70 @@ async def get_db_connection():
 
 @router.get("/get_campus_zones")
 async def get_campus_zones():
+    """
+    Retrieve all campus zones with their hierarchical structure.
+
+    **Description**:
+    This endpoint fetches all zones from the ParcoRTLS system, organized hierarchically with campuses (zone_type=1)
+    at the root and their child zones nested accordingly. It is used in the Zone Viewer to display the campus
+    hierarchy for navigation and management. The response includes zone details like ID, name, type, parent zone,
+    and map ID, with child zones nested under their parents.
+
+    **Parameters**:
+    - None
+
+    **Returns**:
+    - JSON object with a single key `campuses`, containing a list of campus objects. Each campus object has:
+      - `zone_id` (int): Unique identifier of the zone.
+      - `zone_name` (str): Name of the zone.
+      - `zone_type` (int): Type of zone (1 for campus, 2 for building, etc.).
+      - `parent_zone_id` (int or null): ID of the parent zone, null for campuses.
+      - `map_id` (int or null): ID of the associated map.
+      - `children` (list): List of child zone objects with the same structure.
+
+    **Example Usage**:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/zoneviewer/get_campus_zones" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+      "campuses": [
+        {
+          "zone_id": 1,
+          "zone_name": "Main Campus",
+          "zone_type": 1,
+          "parent_zone_id": null,
+          "map_id": 101,
+          "children": [
+            {
+              "zone_id": 2,
+              "zone_name": "Building A",
+              "zone_type": 2,
+              "parent_zone_id": 1,
+              "map_id": 102,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+    ```
+
+    **Use Case**:
+    - **Scenario**: A facility manager needs to view all campuses and their buildings in the ParcoRTLS Zone Viewer.
+    - **Action**: The frontend React app calls this endpoint to populate the zone navigation tree, allowing the manager
+      to select a campus and drill down to specific buildings or floors.
+    - **Outcome**: The hierarchical structure enables intuitive navigation and management of zones.
+
+    **Errors**:
+    - **404 Not Found**: Raised if no zones are found in the database (`HTTPException`, detail="No zones found").
+    - **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+    **Hint**:
+    - This endpoint is ideal for initializing the Zone Viewer UI. To check if a tag is within a campus (e.g., for Zone L1),
+      combine this with vertex data from `/get_vertices_for_campus/{campus_id}` to perform spatial queries.
+    """
     try:
         zones_data = await execute_raw_query(
             "maint",
@@ -97,6 +160,41 @@ async def get_campus_zones():
 
 @router.get("/get_map/{map_id}")
 async def get_map(map_id: int):
+    """
+    Retrieve the image data for a specific map.
+
+    **Description**:
+    This endpoint fetches the binary image data (e.g., PNG, JPEG) for a map identified by `map_id`. It is used in
+    the Zone Viewer to display map images as backgrounds for zones, enabling visualization of spatial layouts in
+    the ParcoRTLS system.
+
+    **Parameters**:
+    - `map_id` (int, path parameter, required): The unique identifier of the map to retrieve.
+
+    **Returns**:
+    - Binary response containing the map image data, with the appropriate `Content-Type` header
+      (e.g., `image/png`, `image/jpeg`) based on the map's format stored in the database.
+
+    **Example Usage**:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/zoneviewer/get_map/101" -o map101.png
+    ```
+    Response: Binary image data (saved as `map101.png` in the example).
+
+    **Use Case**:
+    - **Scenario**: A user selects a building in the Zone Viewer to view its floor plan.
+    - **Action**: The React frontend requests the map image using this endpoint and renders it as a background
+      for zone polygons.
+    - **Outcome**: The map image provides spatial context for zones and tracked entities.
+
+    **Errors**:
+    - **404 Not Found**: Raised if no map is found for the given `map_id` (`HTTPException`, detail="No map found for map_id={map_id}").
+    - **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+    **Hint**:
+    - Ensure the frontend handles different image formats (PNG, JPEG) based on the `Content-Type` header.
+    - Combine with `/get_map_metadata/{map_id}` to get bounds for proper scaling in the UI.
+    """
     try:
         map_data = await execute_raw_query(
             "maint",
@@ -113,6 +211,51 @@ async def get_map(map_id: int):
 
 @router.get("/get_map_metadata/{map_id}")
 async def get_map_metadata(map_id: int):
+    """
+    Retrieve metadata (bounds) for a specific map.
+
+    **Description**:
+    This endpoint fetches the spatial bounds (min_x, min_y, max_x, max_y) of a map, which define its coordinate
+    system in the ParcoRTLS system. The metadata is used to scale and align map images and zone vertices in the
+    Zone Viewer UI.
+
+    **Parameters**:
+    - `map_id` (int, path parameter, required): The unique identifier of the map.
+
+    **Returns**:
+    - JSON object with the following keys:
+      - `min_x` (float): Minimum X coordinate of the map.
+      - `min_y` (float): Minimum Y coordinate of the map.
+      - `max_x` (float): Maximum X coordinate of the map.
+      - `max_y` (float): Maximum Y coordinate of the map.
+
+    **Example Usage**:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/zoneviewer/get_map_metadata/101" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+      "min_x": 0.0,
+      "min_y": 0.0,
+      "max_x": 100.0,
+      "max_y": 50.0
+    }
+    ```
+
+    **Use Case**:
+    - **Scenario**: A developer is rendering a map in the Zone Viewer and needs to align zone polygons with the map image.
+    - **Action**: The frontend calls this endpoint to get the map’s bounds and uses them to scale the canvas or SVG.
+    - **Outcome**: Accurate alignment of zones and entities on the map.
+
+    **Errors**:
+    - **404 Not Found**: Raised if no metadata is found for the given `map_id` (`HTTPException`, detail="No metadata found for map_id={map_id}").
+    - **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+    **Hint**:
+    - Use this endpoint alongside `/get_map/{map_id}` to ensure proper rendering of maps in the UI.
+    - The bounds are critical for spatial calculations, such as determining if a tag’s coordinates are within a zone.
+    """
     try:
         map_data = await execute_raw_query(
             "maint",
@@ -135,6 +278,51 @@ async def get_map_metadata(map_id: int):
 
 @router.get("/get_map_data/{map_id}")
 async def get_map_data(map_id: int):
+    """
+    Retrieve map data including image URL and bounds for rendering.
+
+    **Description**:
+    This endpoint provides a convenient combination of a map’s image URL and its spatial bounds, formatted for
+    direct use in the ParcoRTLS Zone Viewer frontend. It is used to render maps with proper scaling and alignment
+    in the React app.
+
+    **Parameters**:
+    - `map_id` (int, path parameter, required): The unique identifier of the map.
+
+    **Returns**:
+    - JSON object with the following keys:
+      - `imageUrl` (str): URL to fetch the map image (points to `/get_map/{map_id}`).
+      - `bounds` (list): 2D array of coordinates [[min_y, min_x], [max_y, max_x]] defining the map’s extent.
+
+    **Example Usage**:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/zoneviewer/get_map_data/101" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+      "imageUrl": "http://192.168.210.226:8000/zoneviewer/get_map/101",
+      "bounds": [
+        [0.0, 0.0],
+        [50.0, 100.0]
+      ]
+    }
+    ```
+
+    **Use Case**:
+    - **Scenario**: The Zone Viewer needs to display a map with zones overlaid.
+    - **Action**: The React frontend calls this endpoint to get the image URL and bounds, then renders the map
+      using a library like Leaflet or Canvas.
+    - **Outcome**: The map is displayed with correct scaling, and zones are accurately positioned.
+
+    **Errors**:
+    - **404 Not Found**: Raised if no map data is found for the given `map_id` (`HTTPException`, detail="No map data found for map_id={map_id}").
+    - **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+    **Hint**:
+    - This endpoint is optimized for frontend integration. Use the `imageUrl` to fetch the map image and `bounds`
+      to configure the map’s coordinate system in the UI.
+    """
     try:
         map_data = await execute_raw_query(
             "maint",
@@ -161,7 +349,59 @@ async def get_map_data(map_id: int):
 
 @router.get("/get_maps_with_zone_types")
 async def get_maps_with_zone_types():
-    """Fetch unique maps with their associated zone types, sorted by hierarchy."""
+    """
+    Fetch unique maps with their associated zone types, sorted by hierarchy.
+
+    **Description**:
+    This endpoint retrieves a list of unique maps, each associated with the highest-priority zone type (based on a
+    predefined hierarchy). It is used in the ParcoRTLS system to provide a summary of maps and their primary zone
+    types for selection in the Zone Viewer or for reporting purposes.
+
+    **Parameters**:
+    - None
+
+    **Returns**:
+    - JSON object with a single key `maps`, containing a list of map objects. Each map object has:
+      - `i_map` (int): Unique identifier of the map.
+      - `x_nm_map` (str): Name of the map.
+      - `i_typ_zn` (int): The highest-priority zone type associated with the map (e.g., 1 for campus, 2 for building).
+
+    **Example Usage**:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/zoneviewer/get_maps_with_zone_types" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+      "maps": [
+        {
+          "i_map": 101,
+          "x_nm_map": "Main Campus Map",
+          "i_typ_zn": 1
+        },
+        {
+          "i_map": 102,
+          "x_nm_map": "Building A Floor 1",
+          "i_typ_zn": 2
+        }
+      ]
+    }
+    ```
+
+    **Use Case**:
+    - **Scenario**: A user needs to select a map in the Zone Viewer but wants to filter by zone type (e.g., campus or building).
+    - **Action**: The frontend calls this endpoint to populate a dropdown or list of maps, showing their names and zone types.
+    - **Outcome**: The user can quickly identify and select the relevant map.
+
+    **Errors**:
+    - **404 Not Found**: Raised if no maps are found (`HTTPException`, detail="No maps found").
+    - **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+    **Hint**:
+    - The zone type hierarchy (1=campus, 10=area, 2=building, etc.) is defined in the SQL query. Refer to the
+      ParcoRTLS documentation for zone type definitions.
+    - Use this endpoint for map selection UI components or reporting tools.
+    """
     try:
         maps_data = await execute_raw_query(
             "maint",
@@ -198,6 +438,68 @@ async def get_maps_with_zone_types():
 
 @router.get("/get_all_zones_for_campus/{campus_id}")
 async def get_all_zones_for_campus(campus_id: int):
+    """
+    Retrieve all zones under a specific campus, including hierarchy.
+
+    **Description**:
+    This endpoint fetches all zones under a given campus (identified by `campus_id`), including their hierarchical
+    structure (parent-child relationships). It is used in the ParcoRTLS Zone Viewer to display all zones within a
+    campus, such as buildings, floors, or rooms.
+
+    **Parameters**:
+    - `campus_id` (int, path parameter, required): The unique identifier of the campus.
+
+    **Returns**:
+    - JSON object with a single key `zones`, containing a list of zone objects. Each zone object has:
+      - `zone_id` (int): Unique identifier of the zone.
+      - `zone_name` (str): Name of the zone.
+      - `zone_type` (int): Type of zone (e.g., 2 for building, 3 for floor).
+      - `parent_zone_id` (int or null): ID of the parent zone.
+      - `map_id` (int or null): ID of the associated map.
+      - `children` (list): List of child zone objects with the same structure.
+
+    **Example Usage**:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/zoneviewer/get_all_zones_for_campus/1" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+      "zones": [
+        {
+          "zone_id": 1,
+          "zone_name": "Main Campus",
+          "zone_type": 1,
+          "parent_zone_id": null,
+          "map_id": 101,
+          "children": [
+            {
+              "zone_id": 2,
+              "zone_name": "Building A",
+              "zone_type": 2,
+              "parent_zone_id": 1,
+              "map_id": 102,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+    ```
+
+    **Use Case**:
+    - **Scenario**: A security team needs to manage zones within a campus to track assets.
+    - **Action**: The frontend calls this endpoint to display all zones under the campus in a tree view.
+    - **Outcome**: The team can navigate and manage zones efficiently.
+
+    **Errors**:
+    - **404 Not Found**: Not explicitly raised, but an empty `zones` list is returned if no zones are found.
+    - **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+    **Hint**:
+    - Use this endpoint to populate a zone management interface for a specific campus.
+    - Combine with `/get_vertices_for_campus/{campus_id}` to get spatial data for zones.
+    """
     try:
         zones_data = await execute_raw_query(
             "maint",
@@ -246,7 +548,60 @@ async def get_all_zones_for_campus(campus_id: int):
 
 @router.get("/get_vertices_for_campus/{campus_id}")
 async def get_vertices_for_campus(campus_id: int):
-    """Fetch all vertices for zones under a campus, excluding trigger regions."""
+    """
+    Fetch all vertices for zones under a campus, excluding trigger regions.
+
+    **Description**:
+    This endpoint retrieves all vertex data (coordinates and order) for zones under a specified campus, excluding
+    trigger regions (i_trg IS NULL). It is used in the ParcoRTLS Zone Viewer to render zone polygons on maps.
+
+    **Parameters**:
+    - `campus_id` (int, path parameter, required): The unique identifier of the campus.
+
+    **Returns**:
+    - JSON object with a single key `vertices`, containing a list of vertex objects. Each vertex object has:
+      - `vertex_id` (int): Unique identifier of the vertex.
+      - `i_rgn` (int): Region ID associated with the vertex.
+      - `x` (float): X coordinate of the vertex.
+      - `y` (float): Y coordinate of the vertex.
+      - `z` (float): Z coordinate of the vertex (often 0.0).
+      - `order` (float): Order of the vertex in the polygon.
+      - `zone_id` (int): ID of the zone the vertex belongs to.
+
+    **Example Usage**:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/zoneviewer/get_vertices_for_campus/1" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+      "vertices": [
+        {
+          "vertex_id": 1001,
+          "i_rgn": 201,
+          "x": 10.0,
+          "y": 20.0,
+          "z": 0.0,
+          "order": 1.0,
+          "zone_id": 2
+        }
+      ]
+    }
+    ```
+
+    **Use Case**:
+    - **Scenario**: A user wants to edit zone boundaries in the Zone Viewer.
+    - **Action**: The frontend calls this endpoint to fetch vertex data and render zone polygons on the map.
+    - **Outcome**: The user can visualize and modify zone shapes.
+
+    **Errors**:
+    - **404 Not Found**: Not explicitly raised, but an empty `vertices` list is returned if no vertices are found.
+    - **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+    **Hint**:
+    - Use this endpoint to render zone polygons in the UI. Combine with `/get_map_data/{map_id}` for the map context.
+    - The `order` field determines the sequence of vertices in a polygon, critical for correct rendering.
+    """
     try:
         vertices_data = await execute_raw_query(
             "maint",
@@ -278,7 +633,53 @@ async def get_vertices_for_campus(campus_id: int):
 
 @router.post("/update_vertices")
 async def update_vertices(vertices: list[dict]):
-    """Bulk update vertices."""
+    """
+    Bulk update vertices for zones.
+
+    **Description**:
+    This endpoint updates multiple vertices (coordinates and order) in the ParcoRTLS system. It is used in the
+    Zone Editor to save changes to zone polygon shapes after user modifications.
+
+    **Parameters**:
+    - `vertices` (list[dict], body, required): List of vertex objects to update. Each object must contain:
+      - `vertex_id` (int, required): Unique identifier of the vertex.
+      - `x` (float, required): New X coordinate.
+      - `y` (float, required): New Y coordinate.
+      - `z` (float, optional, default=0.0): New Z coordinate.
+      - `order` (int, optional, default=1): New order of the vertex in the polygon.
+
+    **Returns**:
+    - JSON object with a single key `message` (str): Confirmation message ("Vertices updated successfully").
+
+    **Example Usage**:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/zoneviewer/update_vertices" \
+      -H "Content-Type: application/json" \
+      -d '[
+        {"vertex_id": 1001, "x": 15.0, "y": 25.0, "z": 0.0, "order": 1},
+        {"vertex_id": 1002, "x": 20.0, "y": 30.0, "z": 0.0, "order": 2}
+      ]'
+    ```
+    Response:
+    ```json
+    {
+      "message": "Vertices updated successfully"
+    }
+    ```
+
+    **Use Case**:
+    - **Scenario**: A user drags vertices in the Zone Editor to adjust a zone’s shape.
+    - **Action**: The frontend sends the updated vertex data to this endpoint to persist changes.
+    - **Outcome**: The zone’s polygon is updated in the database.
+
+    **Errors**:
+    - **400 Bad Request**: Raised if the `vertices` list is empty (`HTTPException`, detail="No vertices provided").
+    - **500 Internal Server Error**: Raised if not all vertices are updated or for database errors (`HTTPException`, detail=str(e) or "Partial update: {updated_count}/{len(vertices)}").
+
+    **Hint**:
+    - Ensure all `vertex_id` values exist in the database to avoid partial updates.
+    - The coordinates are rounded to 6 decimal places for precision.
+    """
     try:
         if not vertices:
             raise HTTPException(status_code=400, detail="No vertices provided")
@@ -313,7 +714,46 @@ async def update_vertices(vertices: list[dict]):
 
 @router.delete("/delete_vertex/{vertex_id}")
 async def delete_vertex(vertex_id: int):
-    """Delete a vertex by ID."""
+    """
+    Delete a specific vertex by ID.
+
+    **Description**:
+    This endpoint removes a vertex from the ParcoRTLS system, used in the Zone Editor to delete a point from a
+    zone’s polygon shape.
+
+    **Parameters**:
+    - `vertex_id` (int, path parameter, required): The unique identifier of the vertex to delete.
+
+    **Returns**:
+    - JSON object with:
+      - `message` (str): Confirmation message ("Vertex deleted successfully").
+      - `vertex_id` (int): ID of the deleted vertex.
+
+    **Example Usage**:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/zoneviewer/delete_vertex/1001" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+      "message": "Vertex deleted successfully",
+      "vertex_id": 1001
+    }
+    ```
+
+    **Use Case**:
+    - **Scenario**: A user removes a vertex from a zone’s polygon to simplify its shape.
+    - **Action**: The frontend calls this endpoint to delete the vertex.
+    - **Outcome**: The zone’s polygon is updated in the database.
+
+    **Errors**:
+    - **404 Not Found**: Raised if the `vertex_id` does not exist (`HTTPException`, detail="Vertex {vertex_id} not found").
+    - **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+    **Hint**:
+    - Deleting a vertex may affect the polygon’s shape. Ensure the remaining vertices maintain a valid polygon.
+    - Use with `/get_vertices_for_campus/{campus_id}` to refresh the zone’s vertex data after deletion.
+    """
     try:
         result = await execute_raw_query(
             "maint",
@@ -332,7 +772,64 @@ async def delete_vertex(vertex_id: int):
 
 @router.post("/add_vertex")
 async def add_vertex(request: AddVertexRequest):
-    """Add a new vertex to a zone, aligned with DataV2.VertexAdd."""
+    """
+    Add a new vertex to a zone.
+
+    **Description**:
+    This endpoint adds a new vertex to a zone’s region, used in the Zone Editor to extend a zone’s polygon shape.
+    It aligns with the `DataV2.VertexAdd` functionality from the original ParcoRTLS system.
+
+    **Parameters**:
+    - `request` (AddVertexRequest, body, required): Pydantic model with:
+      - `zone_id` (int, required): ID of the zone to add the vertex to.
+      - `x` (float, required): X coordinate of the new vertex.
+      - `y` (float, required): Y coordinate of the new vertex.
+      - `z` (float, optional, default=0.0): Z coordinate of the new vertex.
+      - `order` (float, required): Order of the vertex in the polygon.
+
+    **Returns**:
+    - JSON object representing the new vertex, with:
+      - `vertex_id` (int): ID of the new vertex.
+      - `i_rgn` (int): Region ID the vertex belongs to.
+      - `x` (float): X coordinate.
+      - `y` (float): Y coordinate.
+      - `z` (float): Z coordinate.
+      - `order` (float): Order in the polygon.
+      - `zone_id` (int): ID of the zone.
+
+    **Example Usage**:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/zoneviewer/add_vertex" \
+      -H "Content-Type: application/json" \
+      -d '{"zone_id": 2, "x": 30.0, "y": 40.0, "z": 0.0, "order": 3}'
+    ```
+    Response:
+    ```json
+    {
+      "vertex_id": 1003,
+      "i_rgn": 201,
+      "x": 30.0,
+      "y": 40.0,
+      "z": 0.0,
+      "order": 3.0,
+      "zone_id": 2
+    }
+    ```
+
+    **Use Case**:
+    - **Scenario**: A user adds a new point to a zone’s polygon to refine its shape.
+    - **Action**: The frontend sends the vertex data to this endpoint to create the vertex.
+    - **Outcome**: The zone’s polygon is updated with the new vertex.
+
+    **Errors**:
+    - **404 Not Found**: Raised if no region is found for the `zone_id` (`HTTPException`, detail="No region found for zone_id={zone_id}").
+    - **400 Bad Request**: Raised if the region ID does not exist (`HTTPException`, detail="Region ID {region_id} does not exist").
+    - **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+    **Hint**:
+    - Ensure the `zone_id` has an associated region in the `regions` table.
+    - The `order` field determines the vertex’s position in the polygon sequence.
+    """
     try:
         logger.debug(f"Received add_vertex request: {request.dict()}")
         region_data = await execute_raw_query(
@@ -383,7 +880,41 @@ async def add_vertex(request: AddVertexRequest):
 
 @router.delete("/delete_zone_recursive/{zone_id}")
 async def delete_zone_recursive(zone_id: int):
-    """Delete a zone and all its progeny recursively."""
+    """Delete a zone and all its progeny recursively.
+
+    **Description**:
+    This endpoint deletes a zone and all its child zones (progeny), along with associated regions and vertices.
+    It is used in the Zone Editor to remove entire zone hierarchies, such as when decommissioning a campus or building.
+
+    **Parameters**:
+    - `zone_id` (int, path parameter, required): The unique identifier of the zone to delete.
+
+    **Returns**:
+    - JSON object with a single key `message` (str): Confirmation message indicating the zone and its progeny were deleted.
+
+    **Example Usage**:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/zoneviewer/delete_zone_recursive/1" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+      "message": "Deleted zone 1 and its progeny successfully"
+    }
+    ```
+
+    **Use Case**:
+    - **Scenario**: A facility manager needs to remove an obsolete campus from the ParcoRTLS system.
+    - **Action**: The frontend calls this endpoint to delete the campus and all its zones.
+    - **Outcome**: The database is updated, and the campus is removed from the system.
+
+    **Errors**:
+    - **404 Not Found**: Raised if the `zone_id` does not exist (`HTTPException`, detail="Zone {zone_id} not found").
+    - **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+    **Hint**:
+    - Use with caution, as this endpoint permanently deletes zones and their data.
+    - Ensure no active tags or entities are associated with the zones before deletion."""
     try:
         logger.info(f"Attempting to delete zone {zone_id} and its progeny")
 
