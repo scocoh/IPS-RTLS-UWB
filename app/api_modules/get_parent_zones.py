@@ -1,3 +1,15 @@
+# Name: get_parent_zones.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/api_modules
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 """
 /home/parcoadmin/parco_fastapi/app/api_modules/get_parent_zones.py
 Version: 250212 get_parent_zone.py Version 0P.6B.1A

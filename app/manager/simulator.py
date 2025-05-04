@@ -1,3 +1,15 @@
+# Name: simulator.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/manager
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/manager/simulator.py
 # Version: 1.0.27 - Re-ensured zone_id in GISData with added logging, bumped from 1.0.26
 # Previous: Re-ensured zone_id is included in GISData messages (1.0.26)
@@ -198,24 +210,24 @@ async def simulator():
             tag_configs.append(TagConfig(tag_id, [(x, y, z)], ping_rate))
 
     elif mode == 4:
-        tag_id1 = input("Enter Tag ID for stationary tag (default SIM1): ").strip() or "SIM1"
-        x1 = float(input("Enter X coordinate for stationary tag (default 5): ").strip() or 5)
-        y1 = float(input("Enter Y coordinate for stationary tag (default 5): ").strip() or 5)
+        tag_id1 = input("Enter Tag ID for stationary tag (default SIM2): ").strip() or "SIM2"
+        x1 = float(input("Enter X coordinate for stationary tag (default 40): ").strip() or 40)
+        y1 = float(input("Enter Y coordinate for stationary tag (default 40): ").strip() or 40)
         z1 = float(input("Enter Z coordinate for stationary tag (default 5): ").strip() or 5)
         ping_rate1 = float(input("Enter ping rate in Hertz for stationary tag (default 0.25): ").strip() or 0.25)
         tag_configs.append(TagConfig(tag_id1, [(x1, y1, z1)], ping_rate1))
 
-        tag_id2 = input("Enter Tag ID for moving tag (default SIM2): ").strip() or "SIM2"
+        tag_id2 = input("Enter Tag ID for moving tag (default SIM1): ").strip() or "SIM1"
         print("Enter first position for moving tag (inside region):")
-        x2a = float(input("Enter X coordinate (default 5): ").strip() or 5)
-        y2a = float(input("Enter Y coordinate (default 5): ").strip() or 5)
+        x2a = float(input("Enter X coordinate (default 40): ").strip() or 40)
+        y2a = float(input("Enter Y coordinate (default 40): ").strip() or 40)
         z2a = float(input("Enter Z coordinate (default 5): ").strip() or 5)
         print("Enter second position for moving tag (outside region):")
         x2b = float(input("Enter X coordinate (default -1): ").strip() or -1)
         y2b = float(input("Enter Y coordinate (default -1): ").strip() or -1)
         z2b = float(input("Enter Z coordinate (default 1): ").strip() or 1)
         ping_rate2 = float(input("Enter ping rate in Hertz for moving tag (default 0.25): ").strip() or 0.25)
-        move_interval = float(input("Enter move interval in seconds for moving tag (default 10): ").strip() or 10)
+        move_interval = float(input("Enter move interval in seconds for moving tag (default .25): ").strip() or .25)
         tag_configs.append(TagConfig(tag_id2, [(x2a, y2a, z2a), (x2b, y2b, z2b)], ping_rate2, move_interval))
 
     elif mode == 5:

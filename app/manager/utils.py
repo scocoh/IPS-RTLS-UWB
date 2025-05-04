@@ -1,3 +1,15 @@
+# Name: utils.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/manager
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/manager/utils.py
 # Version: 1.0.2 - Fixed track_metrics to calculate actual tags/sec rate over a 10-second window
 # 

@@ -1,3 +1,15 @@
+# Name: models.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/manager
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/manager/models.py
 # Version: 1.0.3 - Added zone_id field to GISData, bumped from 1.0.2
 # Previous: Added Sequence field to GISData (1.0.2)

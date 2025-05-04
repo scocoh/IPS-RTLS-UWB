@@ -1,3 +1,15 @@
+/* Name: zoneManager.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/static */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // zoneManager.js - Manages Campus (L1) and Building (L2) zone creation
 // zoneManager.js - Manages Campus (L1) and Building (L2) zone creation
 // # VERSION 250316 /home/parcoadmin/parco_fastapi/app/static/zoneManager.js 0P.10B.01

@@ -1,3 +1,15 @@
+# Name: sdk_client.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/manager
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/manager/sdk_client.py
 # Version: 1.0.8 - Added logging and validation for zone_id, bumped from 1.0.7
 # Previous: Added zone_id attribute to SDKClient to track client subscription zone (1.0.7)

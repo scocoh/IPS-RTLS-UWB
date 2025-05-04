@@ -1,5 +1,24 @@
+# Name: manager.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/manager
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/manager/manager.py
-# Version: 1.0.37-250423 - Added dynamic zone assignment for portable triggers, bumped from 1.0.36
+# Version: 1.0.45-250501 - Suppressed WhileIn events for a tag triggering its own portable trigger, enhanced event message, bumped from 1.0.44
+# Previous: Reverted to using FastAPIService for trigger loading after fix, bumped from 1.0.43 (1.0.44)
+# Previous: Fixed trigger loading using direct HTTP request, bumped from 1.0.42 (1.0.43)
+# Previous: Forced logging output for debugging, added WebSocket client management and Sim message processing, bumped from 1.0.41 (1.0.42)
+# Previous: Enhanced logging for Sim messages, trigger loading, and event generation, bumped from 1.0.40 (1.0.41)
+# Previous: Updated load_triggers to use FastAPIService.get_trigger_details, bumped from 1.0.39 (1.0.40)
+# Previous: Integrated FastAPIService for trigger loading, added TODOs for configuration (1.0.39)
+# Previous: Added dynamic zone assignment for portable triggers (1.0.37)
 # Previous: Added PortableTrigger support, updated trigger movement logic (1.0.36)
 # Previous: Send TriggerEvent to all subscribed clients regardless of zone_id (1.0.35)
 # Previous: Ensure triggers are loaded for GISData zone_id (1.0.34)
@@ -18,13 +37,22 @@ from .sdk_client import SDKClient
 from .region import Region3D, Region3DCollection
 from .utils import FASTAPI_BASE_URL, track_metrics
 from .data_processor import DataProcessor
+from .fastapi_service import FastAPIService
 import logging
 import json
+from fastapi import WebSocket
 
+# Force logging configuration for this module
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(levelname)s:%(name)s:%(message)s'))
+logger.handlers = []  # Clear any existing handlers
+logger.addHandler(handler)
+logger.propagate = False  # Prevent propagation to parent loggers
 
 class Manager:
-    def __init__(self, name: str, zone_id: int):  # zone_id required, no default
+    def __init__(self, name: str, zone_id: int):
         # Core attributes for Manager instance
         self.name = name              # Name of this manager instance
         self.zone_id = zone_id        # Zone ID this manager operates in, must be specified
@@ -44,8 +72,10 @@ class Manager:
         self.resrc_type_name = ""     # Resource type name
         self.ave_hash: Dict[str, Ave] = {} # Hash for averaged tag positions
         self.sdk_clients: Dict[str, SDKClient] = {} # Active SDK clients with zone_id
+        self.clients: Dict[str, List[WebSocket]] = {}  # WebSocket clients by reqid
         self.kill_list: List[SDKClient] = [] # Clients marked for termination
         self.last_heartbeat = 0       # Last heartbeat timestamp
+        # TODO: Move database connection strings to environment/config file for scalable deployments
         self.conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint" # Maintenance DB connection
         self.hist_conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSHistR" # History DB connection
         self.db_pool = None           # Database connection pool
@@ -66,6 +96,7 @@ class Manager:
         self.tag_timestamps: Dict[str, List[datetime]] = {} # Timestamps for tags
         self.tag_timestamps_2d: Dict[str, List[datetime]] = {} # 2D timestamps
         self.tag_timestamps_3d: Dict[str, List[datetime]] = {} # 3D timestamps
+        self.service = FastAPIService()  # Initialize FastAPIService instance
 
     async def load_config_from_db(self):
         logger.debug(f"Loading config for manager {self.name} from DB")
@@ -95,106 +126,88 @@ class Manager:
                     logger.debug("No config found, using defaults")
 
     async def load_triggers(self, zone_id: int):
+        """Load triggers from FastAPIService."""
         logger.debug(f"Loading triggers for zone {zone_id}")
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(f"{FASTAPI_BASE_URL}/api/get_triggers_by_zone_with_id/{zone_id}")
-                response.raise_for_status()
-                triggers_data = response.json()
-                logger.debug(f"Retrieved triggers data: {triggers_data}")
+            # Fetch triggers using FastAPIService
+            triggers_data = await self.service.get_triggers_by_zone(zone_id)
+            logger.debug(f"Retrieved triggers data: {triggers_data}")
 
-                # Clear existing triggers for this zone_id
-                self.triggers = [t for t in self.triggers if t.zone_id != zone_id]
-                logger.debug(f"Cleared existing triggers for zone {zone_id}, remaining triggers: {len(self.triggers)}")
+            # Clear existing triggers for this zone_id only
+            self.triggers = [t for t in self.triggers if t.zone_id != zone_id]
+            logger.debug(f"Cleared existing triggers for zone {zone_id}, remaining triggers: {len(self.triggers)}")
 
-                for trigger_data in triggers_data:
-                    trigger_id = trigger_data["trigger_id"]
-                    trigger_name = trigger_data["name"]
-                    direction_id = trigger_data.get("direction_id")
-                    is_portable = trigger_data.get("is_portable", False)
-                    assigned_tag_id = trigger_data.get("assigned_tag_id")
-                    radius_ft = trigger_data.get("radius_ft")
-                    z_min = trigger_data.get("z_min")
-                    z_max = trigger_data.get("z_max")
+            for trigger_data in triggers_data:
+                trigger_id = trigger_data["trigger_id"]
+                trigger_name = trigger_data["name"]
+                direction_id = trigger_data.get("direction_id")
+                is_portable = trigger_data.get("is_portable", False)
+                assigned_tag_id = trigger_data.get("assigned_tag_id")
+                radius_ft = trigger_data.get("radius_ft")
+                z_min = trigger_data.get("z_min")
+                z_max = trigger_data.get("z_max")
 
-                    direction_map = {
-                        1: TriggerDirections.WhileIn,
-                        2: TriggerDirections.WhileOut,
-                        3: TriggerDirections.OnCross,
-                        4: TriggerDirections.OnEnter,
-                        5: TriggerDirections.OnExit
-                    }
-                    direction = direction_map.get(direction_id, TriggerDirections.NotSet)
-                    logger.debug(f"Mapping direction_id {direction_id} to {direction} for trigger {trigger_name}")
+                direction_map = {
+                    1: TriggerDirections.WhileIn,
+                    2: TriggerDirections.WhileOut,
+                    3: TriggerDirections.OnCross,
+                    4: TriggerDirections.OnEnter,
+                    5: TriggerDirections.OnExit
+                }
+                direction = direction_map.get(direction_id, TriggerDirections.NotSet)
+                logger.debug(f"Mapping direction_id {direction_id} to {direction} for trigger {trigger_name}")
 
-                    if is_portable:
-                        trigger = PortableTrigger(
-                            tag_id=assigned_tag_id,
-                            radius_ft=radius_ft,
-                            z_min=z_min,
-                            z_max=z_max,
-                            i_trg=trigger_id,
-                            name=trigger_name,
-                            direction=direction,
-                            zone_id=zone_id
-                        )
-                        logger.debug(f"Created PortableTrigger {trigger_name} for tag {assigned_tag_id}")
+                if is_portable:
+                    trigger = PortableTrigger(
+                        tag_id=assigned_tag_id,
+                        radius_ft=radius_ft,
+                        z_min=z_min,
+                        z_max=z_max,
+                        i_trg=trigger_id,
+                        name=trigger_name,
+                        direction=direction,
+                        zone_id=zone_id
+                    )
+                    logger.debug(f"Created PortableTrigger {trigger_name} for tag {assigned_tag_id}")
+                else:
+                    # Fetch trigger details for regions
+                    trigger_details = await self.service.get_trigger_details(trigger_id)
+                    logger.debug(f"Trigger details for {trigger_id}: {trigger_details}")
+
+                    regions = Region3DCollection()
+                    if isinstance(trigger_details, dict) and "vertices" in trigger_details:
+                        vertices = trigger_details["vertices"]
+                        if vertices and len(vertices) >= 3:
+                            regions = Region3DCollection.from_vertices(vertices)
                     else:
-                        detail_response = await client.get(f"{FASTAPI_BASE_URL}/api/get_trigger_details/{trigger_id}")
-                        detail_response.raise_for_status()
-                        trigger_details = detail_response.json()
-                        logger.debug(f"Trigger details for {trigger_id}: {trigger_details}")
-
-                        regions = Region3DCollection()
-                        if isinstance(trigger_details, dict) and "vertices" in trigger_details:
-                            vertices = trigger_details["vertices"]
-                            if vertices and len(vertices) >= 3:
-                                x_coords = [v["x"] for v in vertices]
-                                y_coords = [v["y"] for v in vertices]
-                                z_coords = [v["z"] for v in vertices]
-                                min_x, max_x = min(x_coords), max(x_coords)
-                                min_y, max_y = min(y_coords), max(y_coords)
-                                min_z, max_z = min(z_coords), max(z_coords)
+                        for detail in trigger_details:
+                            if "n_min_x" in detail and "n_max_x" in detail:
                                 regions.add(Region3D(
-                                    min_x=min_x,
-                                    max_x=max_x,
-                                    min_y=min_y,
-                                    max_y=max_y,
-                                    min_z=min_z,
-                                    max_z=max_z
+                                    min_x=detail["n_min_x"],
+                                    max_x=detail["n_max_x"],
+                                    min_y=detail["n_min_y"],
+                                    max_y=detail["n_max_y"],
+                                    min_z=detail["n_min_z"],
+                                    max_z=detail["n_max_z"]
                                 ))
-                                logger.debug(f"Added region for trigger {trigger_id}: min=({min_x}, {min_y}, {min_z}), max=({max_x}, {max_y}, {max_z})")
-                        else:
-                            for detail in trigger_details:
-                                if "n_min_x" in detail and "n_max_x" in detail:
-                                    regions.add(Region3D(
-                                        min_x=detail["n_min_x"],
-                                        max_x=detail["n_max_x"],
-                                        min_y=detail["n_min_y"],
-                                        max_y=detail["n_max_y"],
-                                        min_z=detail["n_min_z"],
-                                        max_z=detail["n_max_z"]
-                                    ))
-                                    logger.debug(f"Added region for trigger {trigger_id}: min=({detail['n_min_x']}, {detail['n_min_y']}, {detail['n_min_z']}), max=({detail['n_max_x']}, {detail['n_max_y']}, {detail['n_max_z']})")
+                                logger.debug(f"Added region for trigger {trigger_id}: min=({detail['n_min_x']}, {detail['n_min_y']}, {detail['n_min_z']}), max=({detail['n_max_x']}, {detail['n_max_y']}, {detail['n_max_z']})")
 
-                        if len(regions.regions) == 0:
-                            logger.warning(f"No regions loaded for trigger {trigger_name} (ID: {trigger_id})")
+                    if len(regions.regions) == 0:
+                        logger.warning(f"No regions loaded for trigger {trigger_name} (ID: {trigger_id})")
 
-                        trigger = Trigger(
-                            i_trg=trigger_id,
-                            name=trigger_name,
-                            direction=direction,
-                            regions=regions,
-                            ignore_unknowns=False,
-                            zone_id=zone_id
-                        )
-                    self.triggers.append(trigger)
-                    logger.info(f"Loaded trigger {trigger_name} (ID: {trigger_id}) for zone {zone_id} with direction {direction}")
+                    trigger = Trigger(
+                        i_trg=trigger_id,
+                        name=trigger_name,
+                        direction=direction,
+                        regions=regions,
+                        ignore_unknowns=False,
+                        zone_id=zone_id
+                    )
+                self.triggers.append(trigger)
+                logger.info(f"Loaded trigger {trigger_name} (ID: {trigger_id}) for zone {zone_id} with direction {direction}")
 
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to fetch triggers for zone {zone_id}: {str(e)}")
         except Exception as e:
-            logger.error(f"Error loading triggers for zone {zone_id}: {str(e)}")
+            logger.error(f"Failed to fetch triggers for zone {zone_id}: {str(e)}")
 
     def get_current_zone_id(self) -> int:
         return getattr(self, 'zone_id')
@@ -408,23 +421,46 @@ class Manager:
                 trigger_fired = await trigger.check_trigger(tag)
                 logger.debug(f"Trigger {trigger.name} (ID: {trigger.i_trg}) fired: {trigger_fired}")
                 if trigger_fired:
-                    logger.debug(f"Trigger {trigger.name} fired for tag {tag.id}")
+                    # Skip WhileIn events for a tag triggering its own portable trigger
+                    if (trigger.is_portable and 
+                        trigger.direction == TriggerDirections.WhileIn and 
+                        tag.id == trigger.assigned_tag_id):
+                        logger.debug(f"Suppressed WhileIn event for tag {tag.id} on its own trigger {trigger.name} (ID: {trigger.i_trg})")
+                        continue
+
+                    logger.info(f"Trigger {trigger.name} (ID: {trigger.i_trg}) fired for tag {tag.id} at position ({tag.x}, {tag.y}, {tag.z})")
+                    # Enhance event message to include the assigned tag ID for portable triggers
                     event_message = {
                         "type": "TriggerEvent",
                         "trigger_id": trigger.i_trg,
+                        "trigger_name": trigger.name,
+                        "tag_id": tag.id,
+                        "assigned_tag_id": trigger.assigned_tag_id if trigger.is_portable else None,  # Add assigned_tag_id for portable triggers
+                        "x": tag.x,
+                        "y": tag.y,
+                        "z": tag.z,
+                        "zone_id": msg.zone_id,
                         "direction": trigger.direction.name,
-                        "tag_id": msg.id,
                         "timestamp": msg.ts.isoformat()
                     }
                     logger.debug(f"Event message created: {event_message}")
+                    # Send to SDK clients
                     for client_id, client in self.sdk_clients.items():
                         client_contains_tag = client.contains_tag(msg.id)
                         logger.debug(f"Client {client_id}: is_closing={client.is_closing}, contains_tag={client_contains_tag}, zone_id={client.zone_id}")
                         if not client.is_closing and client_contains_tag:
-                            logger.debug(f"Sending TriggerEvent to client {client_id}: {event_message}")
+                            logger.info(f"Sending TriggerEvent to SDK client {client_id}: {event_message}")
                             await client.websocket.send_json(event_message)
                         else:
-                            logger.debug(f"Skipping client {client_id}: closing={client.is_closing}, contains_tag={client_contains_tag}")
+                            logger.debug(f"Skipping SDK client {client_id}: closing={client.is_closing}, contains_tag={client_contains_tag}")
+                    # Send to WebSocket clients
+                    for reqid, clients in self.clients.items():
+                        for client in clients:
+                            try:
+                                await client.send_json(event_message)
+                                logger.debug(f"Sent TriggerEvent to WebSocket client {reqid}: {event_message}")
+                            except Exception as e:
+                                logger.error(f"Failed to send TriggerEvent to WebSocket client {reqid}: {str(e)}")
 
             if self.mode == eMode.Subscription:
                 await self.queue_sub(msg)
@@ -530,3 +566,90 @@ class Manager:
                     logger.debug(f"Sent {command} to simulator client {client_id}")
                 except Exception as ex:
                     logger.error(f"Failed to signal simulator {client_id}: {str(ex)}")
+
+    async def add_client(self, reqid: str, websocket: WebSocket):
+        """Add a WebSocket client for a given reqid."""
+        logger.debug(f"Adding WebSocket client for reqid {reqid}")
+        if reqid not in self.clients:
+            self.clients[reqid] = []
+        self.clients[reqid].append(websocket)
+
+    async def remove_client(self, reqid: str, websocket: WebSocket):
+        """Remove a WebSocket client for a given reqid."""
+        logger.debug(f"Removing WebSocket client for reqid {reqid}")
+        if reqid in self.clients:
+            self.clients[reqid].remove(websocket)
+            if not self.clients[reqid]:
+                del self.clients[reqid]
+
+    async def process_sim_message(self, message: dict):
+        """Process a Sim message and evaluate triggers."""
+        logger.debug(f"Processing Sim message: {message}")
+        try:
+            # Extract tag data from Sim message
+            gis = message.get("gis", {})
+            tag_id = gis.get("id")
+            x = gis.get("x", 0.0)
+            y = gis.get("y", 0.0)
+            z = gis.get("z", 0.0)
+            zone_id = message.get("zone_id")
+            if not tag_id or zone_id is None:
+                logger.warning(f"Invalid Sim message: missing tag_id or zone_id: {message}")
+                return
+
+            tag = Tag(id=tag_id, x=x, y=y, z=z, zone_id=zone_id)
+            
+            # Load triggers for the tag's zone
+            triggers = await self.load_triggers(zone_id)
+            logger.debug(f"Loaded {len(triggers)} triggers for zone {zone_id} to evaluate")
+
+            # Evaluate each trigger
+            for trigger in self.triggers:
+                if trigger.zone_id != zone_id:
+                    logger.debug(f"Skipping trigger {trigger.name} (ID: {trigger.i_trg}) - zone mismatch (trigger zone: {trigger.zone_id}, message zone: {zone_id})")
+                    continue
+                if trigger.is_portable and tag.id == trigger.assigned_tag_id:
+                    if hasattr(trigger, 'update_position_from_tag'):
+                        trigger.update_position_from_tag(tag)
+                    else:
+                        trigger.move_to(tag.x, tag.y, tag.z)
+                        logger.debug(f"Moved portable trigger {trigger.name} to ({tag.x}, {tag.y}, {tag.z})")
+                
+                logger.debug(f"Evaluating trigger {trigger.name} (ID: {trigger.i_trg}) with direction {trigger.direction.name}")
+                trigger_fired = await trigger.check_trigger(tag)
+                logger.debug(f"Trigger {trigger.name} (ID: {trigger.i_trg}) fired: {trigger_fired}")
+                if trigger_fired:
+                    # Skip WhileIn events for a tag triggering its own portable trigger
+                    if (trigger.is_portable and 
+                        trigger.direction == TriggerDirections.WhileIn and 
+                        tag.id == trigger.assigned_tag_id):
+                        logger.debug(f"Suppressed WhileIn event for tag {tag.id} on its own trigger {trigger.name} (ID: {trigger.i_trg})")
+                        continue
+
+                    logger.info(f"Trigger {trigger.name} (ID: {trigger.i_trg}) fired for tag {tag.id} at position ({tag.x}, {tag.y}, {tag.z})")
+                    event_message = {
+                        "type": "TriggerEvent",
+                        "trigger_id": trigger.i_trg,
+                        "trigger_name": trigger.name,
+                        "tag_id": tag.id,
+                        "assigned_tag_id": trigger.assigned_tag_id if trigger.is_portable else None,  # Add assigned_tag_id for portable triggers
+                        "x": tag.x,
+                        "y": tag.y,
+                        "z": tag.z,
+                        "zone_id": zone_id,
+                        "direction": trigger.direction.name,
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    logger.debug(f"Event message created: {event_message}")
+                    for reqid, clients in self.clients.items():
+                        for client in clients:
+                            try:
+                                await client.send_json(event_message)
+                                logger.debug(f"Sent TriggerEvent to WebSocket client {reqid}: {event_message}")
+                            except Exception as e:
+                                logger.error(f"Failed to send TriggerEvent to WebSocket client {reqid}: {str(e)}")
+
+        except Exception as e:
+            logger.error(f"Failed to process Sim message: {str(e)}")
+
+    # TODO: Ensure WebSocket connections IP/Port are configurable for multi-server environments

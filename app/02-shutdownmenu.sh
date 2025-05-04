@@ -1,3 +1,15 @@
+# Name: 02-shutdownmenu.sh
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Shell script for ParcoRTLS utilities
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 #!/bin/bash
 # DESC: Interactive menu to stop dev stack, system services, or fully shut down and reboot
 

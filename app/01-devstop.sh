@@ -1,3 +1,15 @@
+# Name: 01-devstop.sh
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Shell script for ParcoRTLS utilities
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 #!/bin/bash
 # DESC: Stops the tmux session, kills processes on ports 3000/8000/8001, and clears dev environment
 

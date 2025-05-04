@@ -1,3 +1,15 @@
+/* Name: MapList.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // # VERSION 250418 /home/parcoadmin/parco_fastapi/app/src/components/MapList.js 0P.10B.02
 // # CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02
 // # ADDED: Edit button to change map name with input field and Save/Cancel buttons

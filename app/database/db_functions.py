@@ -1,3 +1,15 @@
+# Name: db_functions.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/database
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 """
 /home/parcoadmin/parco_fastapi/app/database/db_functions.py
 Version: 250226 db_functions.py Version 0P.7B.26 (Massive Stored Procedure Integration, Async Enhancements, Type Handling for ParcoRTLSMaint/HistR/Data, Fixed History/Location/Text Data, Connection Pool Tuning, Empty Database Handling, Asyncio Import Fix, Removed HTTPException Dependency, Enhanced Connection Pooling)

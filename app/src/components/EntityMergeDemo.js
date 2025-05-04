@@ -1,3 +1,15 @@
+/* Name: EntityMergeDemo.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // /home/parcoadmin/parco_fastapi/app/src/components/EntityMergeDemo.js
 // Version: v0.0.9 - Refactored to use EntityMap component for Leaflet map rendering
 // Version: v0.0.8 - Fixed marker creation timing, added static marker for testing, improved logging

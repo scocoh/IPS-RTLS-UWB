@@ -1,8 +1,23 @@
+/* Name: NewTriggerViewer.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerViewer.js
-// Version: v0.0.31-250424 - Added portable trigger rendering in canvas mode, enhanced logging, bumped from v0.0.30
+// Version: v0.0.34-250501 - Removed division scaling for portable trigger radii to match map scale, bumped from v0.0.33
+// Previous: Scaled tag markers based on associated trigger radius_ft, bumped from v0.0.32 (v0.0.33)
+// Previous: Fixed map size invalidation loop by memoizing trigger polygons, bumped from v0.0.31 (v0.0.32)
+// Previous: Added portable trigger rendering in canvas mode, enhanced logging (v0.0.31)
 // Previous: Added non-portable trigger rendering in canvas mode, added debug logging (v0.0.30)
 // Previous: Fixed marker scaling with divIcon, added debug logging (v0.0.29)
-import React, { useEffect, useRef, useState, memo } from "react";
+import React, { useEffect, useRef, useState, memo, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
@@ -21,7 +36,8 @@ const NewTriggerViewer = memo(({
   showExistingTriggers,
   existingTriggerPolygons,
   tagsData,
-  isConnected
+  isConnected,
+  triggers
 }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -348,6 +364,16 @@ const NewTriggerViewer = memo(({
     console.log("Zone label updated to:", `Zone ${zoneId}`);
   }, [useLeaflet, mapData, zones, mapInitialized]);
 
+  const memoizedTriggerPolygons = useMemo(() => {
+    if (!showExistingTriggers || !existingTriggerPolygons || existingTriggerPolygons.length === 0) {
+      return [];
+    }
+    return existingTriggerPolygons.map(trigger => ({
+      ...trigger,
+      key: `${trigger.id}-${trigger.isPortable ? (trigger.center?.join(",") || "pending") : trigger.latLngs?.map(coord => coord.join(",")).join("|")}-${trigger.isContained || false}`,
+    }));
+  }, [showExistingTriggers, existingTriggerPolygons]);
+
   useEffect(() => {
     if (!useLeaflet || !mapInstance.current || !mapData) return;
 
@@ -383,14 +409,14 @@ const NewTriggerViewer = memo(({
       }
     });
 
-    if (showExistingTriggers && existingTriggerPolygons && existingTriggerPolygons.length > 0) {
-      console.log("Trigger rendering useEffect running with existingTriggerPolygons:", existingTriggerPolygons);
-      existingTriggerPolygons.forEach(trigger => {
+    if (memoizedTriggerPolygons.length > 0) {
+      console.log("Trigger rendering useEffect running with memoizedTriggerPolygons:", memoizedTriggerPolygons);
+      memoizedTriggerPolygons.forEach(trigger => {
         if (trigger) {
           if (trigger.isPortable && trigger.center && trigger.radius) {
             console.log(`Rendering portable trigger ${trigger.id} at center ${trigger.center} with radius ${trigger.radius}`);
             const circle = L.circle(trigger.center, {
-              radius: trigger.radius,
+              radius: trigger.radius, // Use the raw radius value directly
               color: trigger.isContained ? "red" : "purple",
               fillOpacity: 0.5,
               zIndexOffset: 800
@@ -434,9 +460,9 @@ const NewTriggerViewer = memo(({
         console.log("Map size invalidated to force refresh");
       }
     } else {
-      console.log("No triggers to render or showExistingTriggers is false", { showExistingTriggers, existingTriggerPolygons });
+      console.log("No triggers to render or showExistingTriggers is false", { showExistingTriggers, memoizedTriggerPolygons });
     }
-  }, [useLeaflet, mapData, zoneVertices, checkedZones, showExistingTriggers, existingTriggerPolygons, mapInitialized]);
+  }, [useLeaflet, mapData, zoneVertices, checkedZones, memoizedTriggerPolygons, mapInitialized]);
 
   useEffect(() => {
     console.log("Tag marker useEffect triggered", { tagsData, isConnected, mapInstance: !!mapInstance.current, mapInitialized });
@@ -483,14 +509,23 @@ const NewTriggerViewer = memo(({
           return;
         }
 
+        // Find the associated portable trigger for this tag
+        const associatedTrigger = triggers.find(t => t.is_portable && t.assigned_tag_id === tagId);
+        let markerSize = 10; // Default size in pixels
+        if (associatedTrigger && associatedTrigger.radius_ft) {
+          // Scale the marker size based on radius_ft (base size 10px for radius_ft=3)
+          markerSize = Math.round(10 * (associatedTrigger.radius_ft / 3));
+          console.log(`Scaling marker for tag ${tagId}: radius_ft=${associatedTrigger.radius_ft}, markerSize=${markerSize}px`);
+        }
+
         let marker = tagMarkersRef.current[tagId];
         if (!marker) {
           marker = L.marker(latLng, {
             icon: L.divIcon({
               className: "tag-marker",
-              html: `<div style="background-color: red; width: 10px; height: 10px; border-radius: 50%;"></div>`,
-              iconSize: [10, 10],
-              iconAnchor: [5, 5]
+              html: `<div style="background-color: red; width: ${markerSize}px; height: ${markerSize}px; border-radius: 50%;"></div>`,
+              iconSize: [markerSize, markerSize],
+              iconAnchor: [markerSize / 2, markerSize / 2]
             }),
             zIndexOffset: 1000
           }).addTo(mapInstance.current);
@@ -499,6 +534,13 @@ const NewTriggerViewer = memo(({
           console.log(`Tag marker created for ${tagId} at:`, latLng);
         } else {
           marker.setLatLng(latLng);
+          // Update the icon size in case radius_ft changed
+          marker.setIcon(L.divIcon({
+            className: "tag-marker",
+            html: `<div style="background-color: red; width: ${markerSize}px; height: ${markerSize}px; border-radius: 50%;"></div>`,
+            iconSize: [markerSize, markerSize],
+            iconAnchor: [markerSize / 2, markerSize / 2]
+          }));
           console.log(`Tag marker updated for ${tagId} to:`, latLng);
         }
 
@@ -516,7 +558,7 @@ const NewTriggerViewer = memo(({
         clearTimeout(updateTimeout.current);
       }
     };
-  }, [useLeaflet, tagsData, isConnected, mapData, zones, mapInitialized]);
+  }, [useLeaflet, tagsData, isConnected, mapData, zones, mapInitialized, triggers]);
 
   return (
     <div>

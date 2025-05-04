@@ -1,4 +1,17 @@
+# Name: app.py
+# Version: 0.1.58
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/app.py
+# Version: 0.1.58 - Added components router for /api/components endpoint
 # Version: 0P.10B.07 - Added debug logging for route registration
 # Version: 0P.10B.06 - Restored original, ensured CORS
 import asyncpg
@@ -19,6 +32,7 @@ from routes.vertex import router as vertex_router
 from routes.zonebuilder_routes import router as zonebuilder_router
 from routes.zoneviewer_routes import router as zoneviewer_router
 from routes import maps, maps_upload
+from routes.components import router as components_router  # Add this import
 from manager.websocket import app as manager_app
 from contextlib import asynccontextmanager
 
@@ -65,7 +79,7 @@ async def lifespan(app: FastAPI):
 # Create the FastAPI app with the lifespan handler
 app = FastAPI(
     title="Parco RTLS API",
-    version="0P.10B.07",
+    version="0P.10B.08",
     docs_url="/docs",
     lifespan=lifespan
 )
@@ -118,19 +132,20 @@ app.include_router(zone_router, prefix="/api")
 app.include_router(entity_router, prefix="/api")
 app.include_router(history_router, prefix="/api")
 app.include_router(text_router, prefix="/api")
-app.include_router(input_router, prefix="/api")  # Added prefix for consistency
+app.include_router(input_router, prefix="/api")
 app.include_router(region_router, prefix="/api")
 app.include_router(vertex_router, prefix="/api", tags=["vertices"])
 app.include_router(zonebuilder_router, prefix="/zonebuilder", tags=["zonebuilder"])
 app.include_router(zoneviewer_router, prefix="/zoneviewer", tags=["zoneviewer"])
 app.include_router(maps.router, prefix="/maps", tags=["maps"])
 app.include_router(maps_upload.router, prefix="/maps", tags=["maps_upload"])
-app.mount("/manager", manager_app)  # Mount the manager app
+app.include_router(components_router, prefix="/api", tags=["components"])  # Add this line
+app.mount("/manager", manager_app)
 
 async def get_async_db_pool(db_type: str = "maint"):
     """Creates an asyncpg connection pool with explicit parameters."""
     from config import DB_CONFIGS_ASYNC
-    db_config = DB_CONFIGS_ASYNC[db_type]  # ✅ Ensure correct DB config
+    db_config = DB_CONFIGS_ASYNC[db_type]
 
     try:
         pool = await asyncpg.create_pool(
@@ -145,7 +160,7 @@ async def get_async_db_pool(db_type: str = "maint"):
             command_timeout=60
         )
         async with pool.acquire() as connection:
-            await connection.execute("SELECT 1")  # ✅ Test query inside pool
+            await connection.execute("SELECT 1")
         logger.info(f"✅ Database pool created for {db_type}")
         return pool
 

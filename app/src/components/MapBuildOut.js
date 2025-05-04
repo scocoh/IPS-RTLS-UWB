@@ -1,3 +1,15 @@
+/* Name: MapBuildOut.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // # VERSION 250320 /home/parcoadmin/parco_fastapi/app/src/components/MapBuildOut.js 0P.10B.21
 // # --- CHANGED: Bumped version from 0P.10B.20 to 0P.10B.21 to fix marker visibility in Estimating Mode for Canvas and Leaflet
 // # 

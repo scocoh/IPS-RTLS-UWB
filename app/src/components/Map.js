@@ -1,3 +1,15 @@
+/* Name: Map.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // src/components/Map.js
 import React, { useEffect, useRef, useState, memo } from "react";
 import L from "leaflet";

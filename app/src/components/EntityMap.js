@@ -1,3 +1,15 @@
+/* Name: EntityMap.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // /home/parcoadmin/parco_fastapi/app/src/components/EntityMap.js
 // Version: v0.1.1 - Fixed map initialization by ensuring ref is set, added logging
 // Version: v0.1.0 - Initial implementation for Entity Merge Demo map

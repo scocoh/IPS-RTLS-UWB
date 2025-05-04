@@ -1,3 +1,15 @@
+/* Name: ZoneBuilder.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // 
 // # VERSION 250325 /home/parcoadmin/parco_fastapi/app/src/components/ZoneBuilder.js 0P.10B.02
 // # --- CHANGED: Bumped version from 0P.10B.01 to 0P.10B.02

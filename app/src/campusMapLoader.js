@@ -1,3 +1,15 @@
+/* Name: campusMapLoader.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // Version: 250227 campusMapLoader.js Version 0P.6B.48t 🚀
 // # 
 // #  

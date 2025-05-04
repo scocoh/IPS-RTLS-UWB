@@ -1,6 +1,28 @@
+# Name: region.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/manager
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/manager/region.py
-# Version: 1.0.1 - Added box_centroid method and refactored move_to; added from_vertices method
+# Version: 1.0.2-250430 - Convert vertex coordinates to floats in from_vertices, added logging, bumped from 1.0.1
 from typing import List, Tuple
+import logging
+
+# Force logging configuration for this module
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(levelname)s:%(name)s:%(message)s'))
+logger.handlers = []
+logger.addHandler(handler)
+logger.propagate = False
 
 class Region3D:
     def __init__(self, min_x: float, max_x: float, min_y: float, max_y: float, min_z: float, max_z: float):
@@ -59,10 +81,15 @@ class Region3DCollection:
         """
         collection = cls()
         if not vertices or len(vertices) < 3:
-            return collection  # Empty collection if vertices are insufficient
-        xs = [v["x"] for v in vertices]
-        ys = [v["y"] for v in vertices]
-        zs = [v.get("z", 0.0) for v in vertices]
+            logger.warning("Insufficient vertices to create Region3D: returning empty collection")
+            return collection
+        # Convert vertex coordinates to floats to handle string inputs
+        xs = [float(v["x"]) for v in vertices]
+        ys = [float(v["y"]) for v in vertices]
+        zs = [float(v.get("z", 0.0)) for v in vertices]
+        # Log the data types for debugging
+        logger.debug(f"Vertex coordinates types: xs={type(xs[0])}, ys={type(ys[0])}, zs={type(zs[0])}")
+        logger.debug(f"Vertex coordinates: xs={xs}, ys={ys}, zs={zs}")
         region = Region3D(
             min_x=min(xs),
             max_x=max(xs),
@@ -71,6 +98,8 @@ class Region3DCollection:
             min_z=min(zs),
             max_z=max(zs)
         )
+        logger.debug(f"Created Region3D: min=({region.min_x}, {region.min_y}, {region.min_z}), "
+                     f"max=({region.max_x}, {region.max_y}, {region.max_z})")
         collection.add(region)
         return collection
 

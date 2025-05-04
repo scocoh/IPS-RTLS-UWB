@@ -1,7 +1,19 @@
+# Name: 08-showtree.sh
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Shell script for ParcoRTLS utilities
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 #!/bin/bash
 # DESC: Visual directory tree viewer with filtering, recent changes, and markdown export
 
-TARGET_DIR=~/parco_fastapi
+TARGET_DIR=~/parco_fastapi/app
 # Ask for depth
 read -p "📐 Enter directory tree depth (default: 3): " USER_DEPTH
 DEPTH=${USER_DEPTH:-3}

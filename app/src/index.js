@@ -1,3 +1,15 @@
+/* Name: index.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 //
 // # VERSION 250325 /home/parcoadmin/parco_fastapi/app/src/index_new.js 0.0.2
 // # CHANGED: Added EntityMergeDemo button and view, bumped to 0.0.2

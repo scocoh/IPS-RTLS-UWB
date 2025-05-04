@@ -1,3 +1,15 @@
+# Name: 03-checkports.sh
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Shell script for ParcoRTLS utilities
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 #!/bin/bash
 # DESC: Checks port usage for 3000, 8000, 8001 with PID, owner, and command info
 

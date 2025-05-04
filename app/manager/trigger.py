@@ -1,15 +1,34 @@
+# Name: trigger.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/manager
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/manager/trigger.py
-# Version: 1.0.18 - Added quality control to validate non-portable triggers are inside their zone
+# Version: 1.0.21-250430 - Forced logging output for debugging, bumped from 1.0.20
 from typing import Dict, List, Optional, Callable
 from .enums import TriggerDirections, TriggerState
 from .models import Tag
-from .region import Region3DCollection
+from .region import Region3DCollection  # Kept for compatibility; using vertex data instead
 from .events import StreamDataEventArgs
 from .utils import MQTT_BROKER
 import paho.mqtt.publish as publish
 import logging
 
+# Force logging configuration for this module
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(levelname)s:%(name)s:%(message)s'))
+logger.handlers = []  # Clear any existing handlers
+logger.addHandler(handler)
+logger.propagate = False  # Prevent propagation to parent loggers
 
 class TagState:
     def __init__(self, tag_id: str, state: TriggerState):
@@ -19,13 +38,14 @@ class TagState:
 
 class Trigger:
     def __init__(self, i_trg: int = 0, name: str = "", direction: TriggerDirections = TriggerDirections.NotSet, 
-                 regions: Optional[Region3DCollection] = None, ignore_unknowns: bool = False, tags: Optional[List[Tag]] = None,
+                 regions: Optional[Region3DCollection] = None, vertex_regions: Optional[List[dict]] = None, ignore_unknowns: bool = False, tags: Optional[List[Tag]] = None,
                  zone_id: Optional[int] = None, is_portable: bool = False):
         self.i_trg = i_trg                        # Trigger ID
         self.key = None                           # Optional user-defined key
         self.name = name                          # Trigger name
         self.direction = direction                # Trigger direction (e.g., WhileOut)
         self.regions = regions if regions else Region3DCollection() # 3D regions defining trigger area
+        self.vertex_regions = vertex_regions if vertex_regions else [] # Vertex data for regions
         self.tags = {tag.id: tag for tag in (tags if tags else [])} # Tags to monitor (if restricted)
         self.zone_id = zone_id                    # Zone ID for validation
         self.is_portable = is_portable            # Flag to indicate if trigger is portable
@@ -41,7 +61,8 @@ class Trigger:
 
     def validate(self) -> bool:
         # Check if trigger has at least one region
-        self.is_valid = self.regions.count() > 0
+        self.is_valid = len(self.vertex_regions) > 0 if self.vertex_regions else (self.regions.count() > 0)
+        logger.debug(f"Trigger {self.name} (ID: {self.i_trg}) validation: is_valid={self.is_valid}")
         return self.is_valid
 
     async def validate_trigger_within_zone(self):
@@ -81,9 +102,44 @@ class Trigger:
         # Check if a point is within any trigger region
         if not self.is_valid:
             raise Exception(f"Trigger {self.name} has no regions set.")
+        # Prefer vertex_regions if available
+        if self.vertex_regions:
+            for region in self.vertex_regions:
+                vertices = region.get("vertices", [])
+                if not vertices or len(vertices) < 3:
+                    logger.warning(f"Region for trigger {self.name} (ID: {self.i_trg}) has insufficient vertices")
+                    continue
+                inside = False
+                j = len(vertices) - 1
+                for i in range(len(vertices)):
+                    v_i = vertices[i]
+                    v_j = vertices[j]
+                    if ((v_i["y"] > y) != (v_j["y"] > y)) and \
+                       (x < (v_j["x"] - v_i["x"]) * (y - v_i["y"]) / (v_j["y"] - v_i["y"]) + v_i["x"]):
+                        inside = not inside
+                    j = i
+                if inside:
+                    logger.debug(f"Point ({x}, {y}, {z}) is inside vertex region for trigger {self.name}")
+                    return True
+            logger.debug(f"Point ({x}, {y}, {z}) is outside all vertex regions for trigger {self.name}")
+            return False
+        # Fallback to explicit bounding box check
         for region in self.regions:
-            if region.contains_point(x, y, z):
+            # Log data types to debug
+            logger.debug(f"Region bounds types for trigger {self.name} (ID: {self.i_trg}): "
+                         f"min_x={type(region.min_x)}, max_x={type(region.max_x)}, "
+                         f"min_y={type(region.min_y)}, max_y={type(region.max_y)}, "
+                         f"min_z={type(region.min_z)}, max_z={type(region.max_z)}")
+            inside = (float(region.min_x) <= x <= float(region.max_x) and
+                      float(region.min_y) <= y <= float(region.max_y) and
+                      float(region.min_z) <= z <= float(region.max_z))
+            logger.debug(f"Checking point ({x}, {y}, {z}) against region bounds for trigger {self.name} (ID: {self.i_trg}): "
+                         f"min=({region.min_x}, {region.min_y}, {region.min_z}), "
+                         f"max=({region.max_x}, {region.max_y}, {region.max_z}), "
+                         f"inside={inside}, Region3DCollection.contains_point={region.contains_point(x, y, z)}")
+            if inside:
                 return True
+        logger.debug(f"Point ({x}, {y}, {z}) is outside all regions for trigger {self.name} (ID: {self.i_trg})")
         return False
 
     def move_by(self, delta_x: float, delta_y: float, delta_z: float):
@@ -94,10 +150,10 @@ class Trigger:
             if not self.is_portable and self.zone_id:
                 self.validate_trigger_within_zone()
 
-    def move_to(self, absolute_x: float, absolute_y: float, absolute_z: float):
+    def move_to(self, absolute_x: float, absolute_y: float, delta_z: float):
         # Move trigger regions to absolute coordinates
         if self.regions.count() >= 1:
-            self.regions.move_to(absolute_x, absolute_y, absolute_z)
+            self.regions.move_to(absolute_x, absolute_y, delta_z)
             # Re-validate if non-portable
             if not self.is_portable and self.zone_id:
                 self.validate_trigger_within_zone()
@@ -133,6 +189,9 @@ class Trigger:
                 if new_state == TriggerState.OutSide:
                     s.cross_sequence = "Started"
                     logger.debug(f"OnCross: sequence started (OutSide)")
+                elif new_state == TriggerState.InSide:
+                    s.cross_sequence = "Inside"
+                    logger.debug(f"OnCross: sequence started (InSide)")
             elif s.cross_sequence == "Started":
                 if new_state == TriggerState.InSide:
                     s.cross_sequence = "Inside"
@@ -178,7 +237,7 @@ class Trigger:
 
         # Handle event firing if conditions met
         if event:
-            logger.debug(f"Event firing for trigger {self.name}")
+            logger.info(f"Event firing for trigger {self.name} (ID: {self.i_trg}) for tag {tag.id}")
             # Call callback if set (e.g., for Manager to send to WebSocket clients)
             if self.trigger_callback:
                 await self.trigger_callback(StreamDataEventArgs(tag=tag))
@@ -196,12 +255,14 @@ class Trigger:
 
     def point_state(self, x: float, y: float, z: float) -> TriggerState:
         # Determine if point is inside any region
-        logger.debug(f"Checking point ({x}, {y}, {z}) against trigger {self.name} regions: {self.regions}")
+        logger.debug(f"Checking point ({x}, {y}, {z}) against trigger {self.name} (ID: {self.i_trg}) regions: {self.regions}")
         for region in self.regions:
-            if region.contains_point(x, y, z):
-                logger.debug(f"Point ({x}, {y}, {z}) inside region: {region}")
+            if self.contains_point(x, y, z):
+                logger.debug(f"Point ({x}, {y}, {z}) inside region for trigger {self.name} (ID: {self.i_trg}): "
+                             f"min=({region.min_x}, {region.min_y}, {region.min_z}), "
+                             f"max=({region.max_x}, {region.max_y}, {region.max_z})")
                 return TriggerState.InSide
-        logger.debug(f"Point ({x}, {y}, {z}) outside all regions of trigger {self.name}")
+        logger.debug(f"Point ({x}, {y}, {z}) outside all regions of trigger {self.name} (ID: {self.i_trg})")
         return TriggerState.OutSide
 
     def get_state(self, tag_id: str) -> TagState:

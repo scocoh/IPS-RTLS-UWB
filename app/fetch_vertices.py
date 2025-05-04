@@ -1,3 +1,15 @@
+# Name: fetch_vertices.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 """
 Version: 250304 fetch_vertices.py Version 0P.1B.02 (Get the Vertices in JSON)
 

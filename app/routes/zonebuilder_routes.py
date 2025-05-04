@@ -1,3 +1,15 @@
+# Name: zonebuilder_routes.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/routes
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/routes/zonebuilder_routes.py
 # VERSION 250426 /home/parcoadmin/parco_fastapi/app/routes/zonebuilder_routes.py 0P.10B.23
 # --- CHANGED: Bumped version from 0P.10B.22 to 0P.10B.23

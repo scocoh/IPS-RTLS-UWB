@@ -1,3 +1,15 @@
+# Name: websocket.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/manager
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/manager/websocket.py
 # Version: 1.0.21 - Removed hardcoded zone_id, added logging for zone_id assignment, bumped from 1.0.20
 # Previous: Fixed sdk_client.zone_id setting and usage in subscription logic (1.0.20)

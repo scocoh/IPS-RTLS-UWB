@@ -1,3 +1,15 @@
+# Name: 15-rebuild_stuff.sh
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Shell script for ParcoRTLS utilities
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 #!/bin/bash
 # DESC: Rebuilds Node.js environment and dependencies for ParcoRTLS frontend
 # VERSION: 1.0.0

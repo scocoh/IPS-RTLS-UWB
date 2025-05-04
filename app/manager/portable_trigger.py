@@ -1,3 +1,15 @@
+# Name: portable_trigger.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/manager
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # /home/parcoadmin/parco_fastapi/app/manager/portable_trigger.py
 # Version: 1.0.0-250420
 # Purpose: Defines PortableTrigger class for ParcoRTLS portable trigger support

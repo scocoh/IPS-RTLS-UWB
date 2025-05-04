@@ -1,3 +1,15 @@
+# Name: detect_ports.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app/scripts
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 """# VERSION 250316 /home/parcoadmin/parco_fastapi/app/scripts/detect_ports.py 0P.10B.01
 #  
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code

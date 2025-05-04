@@ -1,2 +1,14 @@
+# Name: flask_log.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Text file for ParcoRTLS configuration
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
  * Serving Flask app 'zonebuilder_api'
  * Debug mode: on

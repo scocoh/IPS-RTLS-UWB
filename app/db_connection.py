@@ -1,3 +1,15 @@
+# Name: db_connection.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 """
 db_connection.py - Database connection module for ParcoRTLS
 Version: 250227 db_connection.py Version 0P.6B.1F

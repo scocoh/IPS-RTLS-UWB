@@ -1,3 +1,15 @@
+/* Name: ZoneViewer.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // # VERSION 250414 /home/parcoadmin/parco_fastapi/app/src/components/ZoneViewer.js 0P.10B.05
 // # --- CHANGED: Bumped version from 0P.10B.04 to 0P.10B.05
 // # --- FIXED: Changed input type to text and added onBlur to format coordinates, fixing cursor jump issue

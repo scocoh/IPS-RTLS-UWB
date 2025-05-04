@@ -1,3 +1,15 @@
+/* Name: MapZoneViewer.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // # VERSION 250414 /home/parcoadmin/parco_fastapi/app/src/components/MapZoneViewer.js 0P.10B.06
 // # --- CHANGED: Bumped version from 0P.10B.05 to 0P.10B.06
 // # --- FIXED: Removed independent fetching of zoneVertices, now using vertices prop directly

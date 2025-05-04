@@ -1,3 +1,15 @@
+/* Name: vertexFormatter.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/static */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // Version: 250216 vertexFormatter.js Version 0P.6B.3C - SC's edits
 //
 // ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code

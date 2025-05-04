@@ -1,7 +1,22 @@
+/* Name: NewTriggerDemo.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo.js
-// Version: v0.10.86-250424 - Handled fetchPolygons errors gracefully, added WebSocket debug logging, bumped from v0.10.85
+// Version: v0.10.90-250501 - Removed scaling factor for portable trigger radii to match map scale, bumped from v0.10.89
+// Previous: Enhanced TriggerEvent message to show assigned tag for portable triggers, bumped from v0.10.88 (v0.10.89)
+// Previous: Fixed zone syncing with WebSocket data, improved zone display in Delete Triggers tab, bumped from v0.10.87 (v0.10.88)
+// Previous: Fixed JSX syntax error, ensured polling only occurs after WebSocket connection (v0.10.87)
+// Previous: Handled fetchPolygons errors gracefully, added WebSocket debug logging (v0.10.86)
 // Previous: Enhanced fetchTriggers to handle response formats, added WebSocket logging (v0.10.85)
-// Previous: Added logging for get_trigger_details (v0.10.84)
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Form, Tabs, Tab, Table, Button, FormCheck, InputGroup, FormControl } from "react-bootstrap";
 import NewTriggerViewer from "./NewTriggerViewer";
@@ -91,7 +106,11 @@ const NewTriggerDemo = () => {
     try {
       const res = await fetch(`http://192.168.210.226:8000/api/trigger_contains_point/${triggerId}?x=${x}&y=${y}&z=${z}`);
       if (!res.ok) throw new Error(`Failed to check containment: ${res.status}`);
-      const { contains } = await res.json();
+      const data = await res.json();
+      if (!data || typeof data.contains !== 'boolean') {
+        throw new Error("Invalid response format from trigger_contains_point");
+      }
+      const { contains } = data;
       setPortableTriggerContainment(prev => ({
         ...prev,
         [triggerId]: { ...prev[triggerId], [tagId]: contains }
@@ -99,7 +118,7 @@ const NewTriggerDemo = () => {
       if (contains && showTriggerEventsRef.current) {
         const trigger = triggers.find(t => t.i_trg === triggerId);
         console.log(`Trigger ${triggerId} data for containment:`, trigger);
-        const zoneId = trigger?.i_zn || (trigger?.is_portable ? selectedZone?.i_zn : selectedZone?.i_zn);
+        const zoneId = trigger?.zone_id || selectedZone?.i_zn || 417;
         const zoneName = zones.find(z => z.i_zn === zoneId)?.x_nm_zn || "Unknown";
         setTriggerEvents(prev => [
           ...prev,
@@ -192,6 +211,8 @@ const NewTriggerDemo = () => {
             setSelectedZone(zoneMatch);
             setEventList(prev => [...prev, `Zone synced to ${zoneMatch.i_zn} - ${zoneMatch.x_nm_zn} on ${getFormattedTimestamp()}`]);
             hasPromptedForZone.current = true;
+            // Fetch zone vertices for the new zone
+            await fetchZoneVertices(zoneMatch.i_zn);
           } else {
             console.log("User chose not to switch zones");
             setEventList(prev => [...prev, `User declined to sync to Zone ${zoneMatch.i_zn} on ${getFormattedTimestamp()}`]);
@@ -258,7 +279,14 @@ const NewTriggerDemo = () => {
         }
         const zoneName = zones.find(z => z.i_zn === trigger.i_zn)?.x_nm_zn || "Unknown";
         const sequenceNumber = sequenceNumbers[data.tag_id] || (tagsData[data.tag_id]?.sequence || "N/A");
-        const eventMsg = `Tag ${data.tag_id} ${data.direction} trigger ${data.trigger_id} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+        let eventMsg;
+        // Check if the trigger is portable and the tag is not the assigned tag
+        if (data.assigned_tag_id && data.tag_id !== data.assigned_tag_id) {
+          eventMsg = `${data.tag_id} within ${data.assigned_tag_id} Trigger ${trigger.i_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+        } else {
+          // Fallback for non-portable triggers or self-triggers (though self-triggers are suppressed in backend)
+          eventMsg = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.i_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+        }
         if (showTriggerEventsRef.current) {
           setTriggerEvents(prev => {
             const newEvents = [...prev, eventMsg].slice(-10);
@@ -341,6 +369,31 @@ const NewTriggerDemo = () => {
     return () => clearInterval(interval);
   }, [isConnected]);
 
+  const fetchZoneVertices = async (zoneId) => {
+    try {
+      const response = await fetch(`http://192.168.210.226:8000/zoneviewer/get_vertices_for_campus/${zoneId}`);
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      const data = await response.json();
+      const vertices = data.vertices.map(vertex => ({
+        i_vtx: vertex.vertex_id,
+        zone_id: vertex.zone_id,
+        n_x: Number(vertex.x).toFixed(6),
+        n_y: Number(vertex.y).toFixed(6),
+        n_z: Number(vertex.z).toFixed(6),
+        n_ord: vertex.order,
+      }));
+      setZoneVertices(vertices);
+      const zValues = vertices.map(v => Number(v.n_z));
+      const minZ = Math.min(...zValues);
+      const maxZ = Math.max(...zValues);
+      setZMin(minZ);
+      setZMax(maxZ);
+      setCustomZMax(maxZ);
+    } catch (e) {
+      console.error("Error fetching zone vertices:", e);
+    }
+  };
+
   useEffect(() => {
     const fetchZones = async () => {
       try {
@@ -408,9 +461,11 @@ const NewTriggerDemo = () => {
         if (campusZone) {
           console.log("Selected campus zone:", campusZone);
           setSelectedZone(campusZone);
+          await fetchZoneVertices(campusZone.i_zn);
         } else if (hierarchy.length > 0) {
           console.log("No campus zone found, selecting first zone:", hierarchy[0]);
           setSelectedZone(hierarchy[0]);
+          await fetchZoneVertices(hierarchy[0].i_zn);
         }
       } catch (e) {
         setFetchError(`Error fetching zones: ${e.message}`);
@@ -447,7 +502,7 @@ const NewTriggerDemo = () => {
   useEffect(() => {
     if (!selectedZone) return;
     console.log("useEffect triggered with selectedZone:", selectedZone.i_zn, "isConnected:", isConnected);
-    const zoneTriggers = triggers.filter(t => t.i_zn === parseInt(selectedZone.i_zn) || t.i_zn == null);
+    const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
     console.log("Zone triggers for zone", selectedZone.i_zn, ":", zoneTriggers);
 
     const fetchPolygons = async () => {
@@ -463,20 +518,8 @@ const NewTriggerDemo = () => {
             try {
               console.log(`Fetching details for trigger ID ${t.i_trg}`);
               if (t.is_portable) {
-                const tagId = t.assigned_tag_id;
-                const tagData = tagsData[tagId];
-                if (!tagData) {
-                  console.log(`No position data for tag ${tagId} assigned to portable trigger ${t.i_trg}`);
-                  return { id: t.i_trg, name: t.x_nm_trg, isPortable: true, pending: true };
-                }
-                const radius = t.radius_ft * 15;
-                return {
-                  id: t.i_trg,
-                  name: t.x_nm_trg,
-                  center: [tagData.y, tagData.x],
-                  radius: radius,
-                  isPortable: true
-                };
+                // Portable triggers will be handled after WebSocket connection
+                return { id: t.i_trg, name: t.x_nm_trg, isPortable: true, pending: true };
               } else {
                 const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${t.i_trg}`);
                 if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
@@ -506,83 +549,56 @@ const NewTriggerDemo = () => {
 
     fetchPolygons();
 
-    const fetchZoneVertices = async () => {
-      try {
-        const response = await fetch(`http://192.168.210.226:8000/zoneviewer/get_vertices_for_campus/${selectedZone.i_zn}`);
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.json();
-        const vertices = data.vertices.map(vertex => ({
-          i_vtx: vertex.vertex_id,
-          zone_id: vertex.zone_id,
-          n_x: Number(vertex.x).toFixed(6),
-          n_y: Number(vertex.y).toFixed(6),
-          n_z: Number(vertex.z).toFixed(6),
-          n_ord: vertex.order,
-        }));
-        setZoneVertices(vertices);
-        const zValues = vertices.map(v => Number(v.n_z));
-        const minZ = Math.min(...zValues);
-        const maxZ = Math.max(...zValues);
-        setZMin(minZ);
-        setZMax(maxZ);
-        setCustomZMax(maxZ);
-      } catch (e) {
-        console.error("Error fetching zone vertices:", e);
-      }
-    };
-
-    fetchZoneVertices();
+    fetchZoneVertices(selectedZone.i_zn);
     hasPromptedForZone.current = false;
   }, [selectedZone, triggers]);
 
   useEffect(() => {
-    if (!selectedZone || !triggers) return;
+    if (!selectedZone || !triggers || !isConnected) return; // Only update portable polygons after connection
+
+    console.log("Updating portable polygons after WebSocket connection");
+    const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
+    const portableTriggers = zoneTriggers.filter(t => t.is_portable);
+    if (portableTriggers.length === 0) return;
 
     const updatePortablePolygons = async () => {
-      const zoneTriggers = triggers.filter(t => t.i_zn === parseInt(selectedZone.i_zn) || t.i_zn == null);
-      const portableTriggers = zoneTriggers.filter(t => t.is_portable);
-      if (portableTriggers.length === 0) return;
-
-      const update = () => {
-        const updatedPolygons = portableTriggers.map(t => {
-          const tagId = t.assigned_tag_id;
-          const tagData = tagsData[tagId];
-          if (!tagData) {
-            console.log(`Still waiting for position data for tag ${tagId} assigned to portable trigger ${t.i_trg}`);
-            return null;
-          }
-          const radius = t.radius_ft * 15;
-          console.log(`Updating portable trigger ${t.i_trg} with center ${[tagData.y, tagData.x]} and radius ${radius}`);
-          return {
-            id: t.i_trg,
-            name: t.x_nm_trg,
-            center: [tagData.y, tagData.x],
-            radius: radius,
-            isPortable: true
-          };
-        });
-
-        const validPortable = updatedPolygons.filter(p => p);
-        if (validPortable.length === portableTriggers.length) {
-          setExistingTriggerPolygons(prev => {
-            const nonPortable = prev.filter(p => !p.isPortable || p.pending);
-            console.log("Updated existingTriggerPolygons:", [...nonPortable, ...validPortable]);
-            return [...nonPortable, ...validPortable];
-          });
-          if (retryIntervalRef.current) {
-            clearInterval(retryIntervalRef.current);
-            retryIntervalRef.current = null;
-          }
+      const updatedPolygons = portableTriggers.map(t => {
+        const tagId = t.assigned_tag_id;
+        const tagData = tagsData[tagId];
+        if (!tagData) {
+          console.log(`No live position data for tag ${tagId} assigned to portable trigger ${t.i_trg}`);
+          return null;
         }
-      };
+        const radius = t.radius_ft; // Use raw radius_ft value
+        console.log(`Updating portable trigger ${t.i_trg} with center ${[tagData.y, tagData.x]} and radius ${radius}`);
+        return {
+          id: t.i_trg,
+          name: t.x_nm_trg,
+          center: [tagData.y, tagData.x],
+          radius: radius,
+          isPortable: true
+        };
+      });
 
-      update();
-      if (!retryIntervalRef.current) {
-        retryIntervalRef.current = setInterval(update, 1000);
+      const validPortable = updatedPolygons.filter(p => p);
+      if (validPortable.length === portableTriggers.length) {
+        setExistingTriggerPolygons(prev => {
+          const nonPortable = prev.filter(p => !p.isPortable || p.pending);
+          console.log("Updated existingTriggerPolygons:", [...nonPortable, ...validPortable]);
+          return [...nonPortable, ...validPortable];
+        });
+        if (retryIntervalRef.current) {
+          clearInterval(retryIntervalRef.current);
+          retryIntervalRef.current = null;
+        }
       }
     };
 
     updatePortablePolygons();
+
+    if (!retryIntervalRef.current) {
+      retryIntervalRef.current = setInterval(updatePortablePolygons, 1000);
+    }
 
     return () => {
       if (retryIntervalRef.current) {
@@ -590,13 +606,13 @@ const NewTriggerDemo = () => {
         retryIntervalRef.current = null;
       }
     };
-  }, [tagsData, selectedZone, triggers]);
+  }, [tagsData, selectedZone, triggers, isConnected]);
 
   useEffect(() => {
-    if (!selectedZone || !triggers) return;
+    if (!selectedZone || !triggers || !isConnected) return;
 
     const refreshPortablePolygons = async () => {
-      const zoneTriggers = triggers.filter(t => t.i_zn === parseInt(selectedZone.i_zn) || t.i_zn == null);
+      const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
       const portableTriggers = zoneTriggers.filter(t => t.is_portable);
       if (portableTriggers.length === 0) return;
 
@@ -604,7 +620,7 @@ const NewTriggerDemo = () => {
         const tagId = t.assigned_tag_id;
         const tagData = tagsData[tagId];
         if (!tagData) return null;
-        const radius = t.radius_ft * 15;
+        const radius = t.radius_ft; // Use raw radius_ft value
         console.log(`Refreshing portable trigger ${t.i_trg} with center ${[tagData.y, tagData.x]} and radius ${radius}`);
         return {
           id: t.i_trg,
@@ -624,7 +640,7 @@ const NewTriggerDemo = () => {
     };
 
     refreshPortablePolygons();
-  }, [triggers, selectedZone, tagsData]);
+  }, [triggers, selectedZone, tagsData, isConnected]);
 
   const handleDrawComplete = useCallback((coords) => {
     try {
@@ -941,6 +957,7 @@ const NewTriggerDemo = () => {
                   }))}
                   tagsData={tagsData}
                   isConnected={isConnected}
+                  triggers={triggers}
                 />
               ) : (
                 <div style={{ color: "red" }}>No map ID available for this zone.</div>
@@ -961,7 +978,7 @@ const NewTriggerDemo = () => {
                     <td>{t.i_trg}</td>
                     <td>{t.x_nm_trg}</td>
                     <td>{getDirectionName(t.i_dir)}</td>
-                    <td>{t.i_zn || "Unknown"}</td>
+                    <td>{t.zone_name || "Unknown"}</td>
                     <td>
                       <Button variant="danger" onClick={() => handleDeleteTrigger(t.i_trg)}>Delete</Button>
                       {t.is_portable && (

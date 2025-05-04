@@ -1,3 +1,15 @@
+# Name: old_app.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 """
 Version: 250226 app.py Version 0P.7B.33 (Expanded Stored Procedures, Optimized Performance, VB.NET Collection Integration, Comprehensive Device/Zone/History/Trigger/Text/Assignment/Entity/Region/Resource Management for ParcoRTLSMaint/HistR/Data, Fixed 500 Errors, Connection Pool Tuning, Enhanced Timeout Handling, Corrected Device/Assignments/Zones)
 

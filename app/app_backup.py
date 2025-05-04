@@ -1,3 +1,15 @@
+# Name: app_backup.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 """
 /home/parcoadmin/parco_fastapi/app/app.py
 Version: 0.1.5 (Added CORSMiddleware for React integration)

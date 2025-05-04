@@ -1,3 +1,15 @@
+/* Name: BuildOutTool.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // # VERSION 250320 /home/parcoadmin/parco_fastapi/app/src/components/BuildOutTool.js 0P.10B.33
 // # --- CHANGED: Bumped version from 0P.10B.32 to 0P.10B.33 to fix crash when all devices are deleted (ensure devices and filteredDevices are always arrays)
 // # 

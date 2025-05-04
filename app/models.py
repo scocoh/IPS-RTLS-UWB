@@ -1,11 +1,23 @@
-"""
-models.py
-Pydantic models for ParcoRTLS FastAPI application.
-"""
+# /home/parcoadmin/parco_fastapi/app/models.py
+# Name: models.py
+# Version: 0.1.1
+# Created: 971201
+# Modified: 250503
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+#
+# CHANGED: Made zone_id optional in TriggerAddRequest, added portable trigger fields, bumped to 0.1.1
 
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List, Dict
+
+# [Other models unchanged]
 
 class DeviceAddRequest(BaseModel):
     device_id: str
@@ -107,8 +119,13 @@ class TriggerAddRequest(BaseModel):
     direction: int
     name: str
     ignore: bool
-    zone_id: int  # Must be present
-    vertices: List[Dict[str, float]] = []  # Optional list of vertices with x, y, z
+    zone_id: Optional[int] = None
+    vertices: List[Dict[str, float]] = []
+    is_portable: bool = False
+    assigned_tag_id: Optional[str] = None
+    radius_ft: Optional[float] = None
+    z_min: Optional[float] = None
+    z_max: Optional[float] = None
 
 class TriggerMoveRequest(BaseModel):
     new_x: float
@@ -116,19 +133,19 @@ class TriggerMoveRequest(BaseModel):
     new_z: float
 
 class VertexRequest(BaseModel):
-    region_id: int  # Foreign key to regions(i_rgn)
-    x: float  # n_x
-    y: float  # n_y
-    z: Optional[float] = None  # n_z, optional for 3D
-    order: int  # n_ord
+    region_id: int
+    x: float
+    y: float
+    z: Optional[float] = None
+    order: int
 
 class VertexEditRequest(BaseModel):
-    vertex_id: int  # i_vtx
-    region_id: int  # i_rgn
-    x: float  # n_x
-    y: float  # n_y
-    z: Optional[float] = None  # n_z, optional for 3D
-    order: int  # n_ord
+    vertex_id: int
+    region_id: int
+    x: float
+    y: float
+    z: Optional[float] = None
+    order: int
 
 class ZoneRequest(BaseModel):
     zone_type: int
