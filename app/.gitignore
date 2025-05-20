@@ -45,3 +45,5 @@ __pycache__/
 venv/
 logs/
 scripts/*.log*
+*.pyc
+__pycache__/
