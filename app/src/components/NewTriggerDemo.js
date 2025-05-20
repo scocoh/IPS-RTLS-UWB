@@ -1,7 +1,7 @@
 /* Name: NewTriggerDemo.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.12 */
 /* Created: 971201 */
-/* Modified: 250502 */
+/* Modified: 250519 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -11,12 +11,21 @@
 /* Dependent: TRUE */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo.js
-// Version: v0.10.90-250501 - Removed scaling factor for portable trigger radii to match map scale, bumped from v0.10.89
-// Previous: Enhanced TriggerEvent message to show assigned tag for portable triggers, bumped from v0.10.88 (v0.10.89)
-// Previous: Fixed zone syncing with WebSocket data, improved zone display in Delete Triggers tab, bumped from v0.10.87 (v0.10.88)
-// Previous: Fixed JSX syntax error, ensured polling only occurs after WebSocket connection (v0.10.87)
-// Previous: Handled fetchPolygons errors gracefully, added WebSocket debug logging (v0.10.86)
-// Previous: Enhanced fetchTriggers to handle response formats, added WebSocket logging (v0.10.85)
+// Version: 0.1.12 - Batched containment checks in useEffect, increased dataTimeout to 60s, bumped from 0.1.11
+// Previous: Added GISData logging, extended dataTimeout, bumped from 0.1.10
+// Previous: Added client-side radius-based containment for portable triggers, fixed event generation, bumped from 0.1.9
+// Previous: Enhanced checkPortableTriggerContainment to handle all trigger directions, added static trigger containment, bumped from 0.1.8
+// Previous: Ensured shouldReconnect persists, added WebSocket state logging, bumped from 0.1.7
+// Previous: Fixed heartbeat handling, reset reconnectAttempts, added subscription timing logs, bumped from 0.1.6
+// Previous: Increased maxReconnectAttempts, added stream subscription delay, enhanced error logging, bumped from 0.1.5
+// Previous: Fixed TypeScript syntax errors, retained debug logging, bumped from 0.1.4
+// Previous: Added debug logging for WebSocket URIs, subscriptions, closures, bumped from 0.1.3
+// Previous: Updated to handle GISData messages, respond to heartbeats with heartbeat_id, enhanced reconnection, bumped from 0.1.2
+// Previous: Updated WebSocket URI to ControlManager, bumped from 0.1.1
+// Previous: Added PortRedirect handling (v0.1.1)
+// Previous: Removed scaling factor for portable trigger radii (v0.10.90)
+// Previous: Enhanced TriggerEvent message for portable triggers (v0.10.89)
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Form, Tabs, Tab, Table, Button, FormCheck, InputGroup, FormControl } from "react-bootstrap";
 import NewTriggerViewer from "./NewTriggerViewer";
@@ -57,13 +66,15 @@ const NewTriggerDemo = () => {
   const [tagTimestamps, setTagTimestamps] = useState([]);
   const [activeTab, setActiveTab] = useState("mapAndTrigger");
   const [portableTriggerContainment, setPortableTriggerContainment] = useState({});
+  const [triggerContainmentState, setTriggerContainmentState] = useState({});
   const wsRef = useRef(null);
+  const streamWsRef = useRef(null);
   const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
+  const maxReconnectAttempts = 10;
   const reconnectInterval = 5000;
   const shouldReconnect = useRef(true);
   const lastDataTime = useRef(null);
-  const dataTimeout = 10000;
+  const dataTimeout = 60000; // Increased to 60s
   const hasPromptedForZone = useRef(false);
   const retryIntervalRef = useRef(null);
 
@@ -102,33 +113,103 @@ const NewTriggerDemo = () => {
     }
   };
 
-  const checkPortableTriggerContainment = async (triggerId, tagId, x, y, z) => {
+  const checkTriggerContainment = async (triggerId, tagId, x, y, z, isPortable) => {
     try {
-      const res = await fetch(`http://192.168.210.226:8000/api/trigger_contains_point/${triggerId}?x=${x}&y=${y}&z=${z}`);
-      if (!res.ok) throw new Error(`Failed to check containment: ${res.status}`);
-      const data = await res.json();
-      if (!data || typeof data.contains !== 'boolean') {
-        throw new Error("Invalid response format from trigger_contains_point");
+      const trigger = triggers.find(t => t.i_trg === triggerId);
+      if (!trigger) return;
+
+      let contains = false;
+      if (isPortable && trigger.assigned_tag_id) {
+        const assignedTagData = tagsData[trigger.assigned_tag_id];
+        if (assignedTagData) {
+          const dx = x - assignedTagData.x;
+          const dy = y - assignedTagData.y;
+          const dz = z - assignedTagData.z;
+          const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+          contains = distance <= trigger.radius_ft;
+          console.log(`Portable trigger ${triggerId} containment: tag ${tagId} at (${x}, ${y}, ${z}), center (${assignedTagData.x}, ${assignedTagData.y}, ${assignedTagData.z}), distance=${distance}, radius=${trigger.radius_ft}, contains=${contains}`);
+        } else {
+          console.log(`No position data for assigned tag ${trigger.assigned_tag_id} for portable trigger ${triggerId}`);
+        }
+      } else {
+        const res = await fetch(`http://192.168.210.226:8000/api/trigger_contains_point/${triggerId}?x=${x}&y=${y}&z=${z}`);
+        if (!res.ok) throw new Error(`Failed to check containment: ${res.status}`);
+        const data = await res.json();
+        if (typeof data.contains !== 'boolean') {
+          throw new Error("Invalid response format from trigger_contains_point");
+        }
+        contains = data.contains;
+        console.log(`Static trigger ${triggerId} containment: tag ${tagId} at (${x}, ${y}, ${z}), contains=${contains}`);
       }
-      const { contains } = data;
-      setPortableTriggerContainment(prev => ({
-        ...prev,
-        [triggerId]: { ...prev[triggerId], [tagId]: contains }
-      }));
-      if (contains && showTriggerEventsRef.current) {
-        const trigger = triggers.find(t => t.i_trg === triggerId);
-        console.log(`Trigger ${triggerId} data for containment:`, trigger);
-        const zoneId = trigger?.zone_id || selectedZone?.i_zn || 417;
-        const zoneName = zones.find(z => z.i_zn === zoneId)?.x_nm_zn || "Unknown";
-        setTriggerEvents(prev => [
-          ...prev,
-          `Tag ${tagId} entered trigger ${trigger?.x_nm_trg} (ID: ${triggerId}, Zone: ${zoneName}) at ${getFormattedTimestamp()}`
-        ].slice(-10));
-      }
+
+      setTriggerContainmentState(prev => {
+        const prevState = prev[`${triggerId}_${tagId}`] || { contains: false, lastCross: null };
+        const newState = { ...prev, [`${triggerId}_${tagId}`]: { contains, lastCross: prevState.lastCross } };
+        
+        if (showTriggerEventsRef.current) {
+          const zoneId = trigger.zone_id || selectedZone?.i_zn || 417;
+          const zoneName = zones.find(z => z.i_zn === zoneId)?.x_nm_zn || "Unknown";
+          const directionName = triggerDirections.find(d => d.i_dir === trigger.i_dir)?.x_dir || "Unknown";
+          
+          if (trigger.i_dir === 1 && contains) { // While In
+            setTriggerEvents(prev => [
+              ...prev,
+              `Tag ${tagId} is inside trigger ${trigger.x_nm_trg} (ID: ${triggerId}, Zone: ${zoneName}) at ${getFormattedTimestamp()}`
+            ].slice(-10));
+          } else if (trigger.i_dir === 2 && !contains) { // While Out
+            setTriggerEvents(prev => [
+              ...prev,
+              `Tag ${tagId} is outside trigger ${trigger.x_nm_trg} (ID: ${triggerId}, Zone: ${zoneName}) at ${getFormattedTimestamp()}`
+            ].slice(-10));
+          } else if (trigger.i_dir === 3 && prevState.contains !== contains) { // On Cross
+            setTriggerEvents(prev => [
+              ...prev,
+              `Tag ${tagId} crossed trigger ${trigger.x_nm_trg} (ID: ${triggerId}, Zone: ${zoneName}, Direction: ${contains ? 'Enter' : 'Exit'}) at ${getFormattedTimestamp()}`
+            ].slice(-10));
+            newState[`${triggerId}_${tagId}`].lastCross = Date.now();
+          } else if (trigger.i_dir === 4 && !prevState.contains && contains) { // On Enter
+            setTriggerEvents(prev => [
+              ...prev,
+              `Tag ${tagId} entered trigger ${trigger.x_nm_trg} (ID: ${triggerId}, Zone: ${zoneName}) at ${getFormattedTimestamp()}`
+            ].slice(-10));
+          } else if (trigger.i_dir === 5 && prevState.contains && !contains) { // On Exit
+            setTriggerEvents(prev => [
+              ...prev,
+              `Tag ${tagId} exited trigger ${trigger.x_nm_trg} (ID: ${triggerId}, Zone: ${zoneName}) at ${getFormattedTimestamp()}`
+            ].slice(-10));
+          }
+        }
+
+        if (isPortable) {
+          setPortableTriggerContainment(prevContainment => ({
+            ...prevContainment,
+            [triggerId]: { ...prevContainment[triggerId], [tagId]: contains }
+          }));
+        }
+        return newState;
+      });
     } catch (e) {
       console.error(`Error checking containment for trigger ${triggerId}, tag ${tagId}:`, e);
     }
   };
+
+  useEffect(() => {
+    if (!selectedZone || !triggers || !isConnected || Object.keys(tagsData).length === 0) return;
+
+    console.log(`Batch containment check for tagsData:`, tagsData);
+    const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
+    console.log(`Checking containment for ${zoneTriggers.length} triggers in zone ${selectedZone.i_zn}`);
+
+    Object.entries(tagsData).forEach(([tagId, tagData]) => {
+      zoneTriggers.forEach(trigger => {
+        if (trigger.is_portable && trigger.assigned_tag_id !== tagId) {
+          checkTriggerContainment(trigger.i_trg, tagId, tagData.x, tagData.y, tagData.z, true);
+        } else if (!trigger.is_portable) {
+          checkTriggerContainment(trigger.i_trg, tagId, tagData.x, tagData.y, tagData.z, false);
+        }
+      });
+    });
+  }, [tagsData, selectedZone, triggers, isConnected]);
 
   const movePortableTrigger = async (triggerId, x, y, z) => {
     try {
@@ -150,15 +231,17 @@ const NewTriggerDemo = () => {
   const connectWebSocket = () => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.close();
-      console.log("WebSocket close initiated due to reconnect");
+      console.log("Control WebSocket close initiated due to reconnect");
     }
 
-    const ws = new WebSocket("ws://192.168.210.226:8001/ws/Manager1");
+    const controlUri = "ws://192.168.210.226:8001/ws/ControlManager";
+    console.log(`Connecting to control WebSocket: ${controlUri}`);
+    const ws = new WebSocket(controlUri);
     wsRef.current = ws;
     reconnectAttempts.current = 0;
 
     ws.onopen = () => {
-      console.log("WebSocket connected to Manager1");
+      console.log("Control WebSocket connected to ControlManager");
       const tagIds = tagIdsInput.split(',').map(id => id.trim()).filter(id => id);
       const subscription = {
         type: "request",
@@ -167,10 +250,12 @@ const NewTriggerDemo = () => {
         params: tagIds.map(id => ({ id, data: "true" })),
         zone_id: selectedZone ? parseInt(selectedZone.i_zn) : 417
       };
+      console.log("Control subscription:", subscription);
+      console.log(`Sending control subscription at ${getFormattedTimestamp()}`);
       ws.send(JSON.stringify(subscription));
-      console.log("Sent subscription:", subscription);
+      console.log("Sent control subscription:", subscription);
       setIsConnected(true);
-      setEventList(prev => [...prev, `WebSocket connected on ${getFormattedTimestamp()}`]);
+      setEventList(prev => [...prev, `Control WebSocket connected on ${getFormattedTimestamp()}`]);
       if (!tagCount) {
         setTagCount(0);
         setTagTimestamps([]);
@@ -181,156 +266,241 @@ const NewTriggerDemo = () => {
     };
 
     ws.onmessage = async (event) => {
-      console.log("Raw WebSocket message received:", event.data);
+      console.log("Raw control WebSocket message received:", event.data);
       let data;
       try {
         data = JSON.parse(event.data);
       } catch (e) {
-        console.error("Failed to parse WebSocket message:", e);
+        console.error("Failed to parse control WebSocket message:", e);
         return;
       }
-      console.log("Parsed WebSocket message:", data);
-      if (data.type === "Sim" && data.gis) {
-        console.log("Processing Sim message:", data);
-        console.log("Current tagsData before update:", tagsData);
-        lastDataTime.current = Date.now();
-        const tagZoneId = data.zone_id || (selectedZone ? selectedZone.i_zn : 417);
-        console.log("Tag zone ID determination:", {
-          zone_id_in_message: data.zone_id,
-          selectedZone_i_zn: selectedZone ? selectedZone.i_zn : "N/A",
-          fallback_zone: 417,
-          final_tagZoneId: tagZoneId
-        });
-        const zoneMatch = zones.find(z => z.i_zn === parseInt(tagZoneId));
-        if (zoneMatch && selectedZone && selectedZone.i_zn !== parseInt(tagZoneId) && !hasPromptedForZone.current) {
-          console.log("Found zone mismatch:", zoneMatch);
-          const shouldSwitch = window.confirm(
-            `Tag ${data.gis.id} is in Zone ${zoneMatch.i_zn} (${zoneMatch.x_nm_zn}). Do you want to switch to this zone?`
-          );
-          if (shouldSwitch) {
-            setSelectedZone(zoneMatch);
-            setEventList(prev => [...prev, `Zone synced to ${zoneMatch.i_zn} - ${zoneMatch.x_nm_zn} on ${getFormattedTimestamp()}`]);
-            hasPromptedForZone.current = true;
-            // Fetch zone vertices for the new zone
-            await fetchZoneVertices(zoneMatch.i_zn);
-          } else {
-            console.log("User chose not to switch zones");
-            setEventList(prev => [...prev, `User declined to sync to Zone ${zoneMatch.i_zn} on ${getFormattedTimestamp()}`]);
-            hasPromptedForZone.current = true;
-          }
+      console.log("Parsed control WebSocket message:", data);
+      if (data.type === "PortRedirect") {
+        console.log("Received PortRedirect:", data);
+        const { port, stream_type, manager_name } = data;
+        if (port && stream_type && manager_name) {
+          const streamUrl = `ws://192.168.210.226:${port}/ws/${manager_name}`;
+          console.log(`Connecting to stream WebSocket: ${streamUrl}`);
+          setTimeout(() => {
+            connectStreamWebSocket(streamUrl, tagIdsInput.split(',').map(id => id.trim()).filter(id => id));
+          }, 2000);
         }
-        const newTagData = {
-          id: data.gis.id,
-          x: data.gis.x,
-          y: data.gis.y,
-          z: data.gis.z,
-          sequence: data.Sequence,
-          timestamp: Date.now(),
-          zone_id: tagZoneId
-        };
-        setTagsData(prev => {
-          const updated = { ...prev, [data.gis.id]: newTagData };
-          console.log("Updated tagsData:", updated);
-          return updated;
-        });
-        setSequenceNumbers(prev => ({
-          ...prev,
-          [data.gis.id]: data.Sequence || "N/A"
-        }));
-        console.log(`Updated sequence for tag ${data.gis.id}: ${data.Sequence}`);
-        setTagCount(prev => prev + 1);
-        setTagTimestamps(prev => {
-          const now = Date.now();
-          const windowStart = now - 10000;
-          const newTimestamps = [...prev, now].filter(ts => ts >= windowStart);
-          if (newTimestamps.length > 1) {
-            const timeSpan = (newTimestamps[newTimestamps.length - 1] - newTimestamps[0]) / 1000;
-            const rate = timeSpan > 0 ? (newTimestamps.length - 1) / timeSpan : 0;
-            setTagRate(rate);
-          } else {
-            setTagRate(0);
-          }
-          return newTimestamps;
-        });
-        const portableTriggers = triggers.filter(t => t.is_portable);
-        for (const trigger of portableTriggers) {
-          await checkPortableTriggerContainment(trigger.i_trg, newTagData.id, newTagData.x, newTagData.y, newTagData.z);
-        }
-      } else if (data.type === "TriggerEvent") {
-        console.log("Processing TriggerEvent:", data);
-        lastDataTime.current = Date.now();
-        let trigger = triggers.find(t => t.i_trg === data.trigger_id);
-        if (!trigger) {
-          try {
-            const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${data.trigger_id}`);
-            if (!res.ok) throw new Error(`Failed to fetch trigger details: ${res.status}`);
-            const triggerData = await res.json();
-            trigger = { i_trg: data.trigger_id, x_nm_trg: triggerData.name, i_dir: triggerData.direction_id, i_zn: data.zone_id || parseInt(selectedZone?.i_zn) };
-            setTriggers(prev => {
-              const newTriggers = [...prev, trigger];
-              console.log("Updated triggers:", newTriggers);
-              return newTriggers;
-            });
-            console.log(`Fetched trigger details for ID ${data.trigger_id}:`, triggerData);
-          } catch (e) {
-            console.error(`Error fetching trigger details for ID ${data.trigger_id}:`, e);
-            return;
-          }
-        }
-        const zoneName = zones.find(z => z.i_zn === trigger.i_zn)?.x_nm_zn || "Unknown";
-        const sequenceNumber = sequenceNumbers[data.tag_id] || (tagsData[data.tag_id]?.sequence || "N/A");
-        let eventMsg;
-        // Check if the trigger is portable and the tag is not the assigned tag
-        if (data.assigned_tag_id && data.tag_id !== data.assigned_tag_id) {
-          eventMsg = `${data.tag_id} within ${data.assigned_tag_id} Trigger ${trigger.i_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
-        } else {
-          // Fallback for non-portable triggers or self-triggers (though self-triggers are suppressed in backend)
-          eventMsg = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.i_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
-        }
-        if (showTriggerEventsRef.current) {
-          setTriggerEvents(prev => {
-            const newEvents = [...prev, eventMsg].slice(-10);
-            console.log("Updated triggerEvents:", newEvents);
-            return newEvents;
-          });
-        }
-        const eventMessage = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.x_nm_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
-        setEventList(prev => [...prev, eventMessage]);
       } else if (data.type === "HeartBeat") {
         ws.send(JSON.stringify({ type: "HeartBeat", ts: data.ts }));
-        console.log("Sent heartbeat response:", data.ts);
+        console.log("Sent control heartbeat response:", { type: "HeartBeat", ts: data.ts });
         lastDataTime.current = Date.now();
+      } else if (data.type === "GISData") {
+        handleGISDataMessage(data);
+      } else if (data.type === "TriggerEvent") {
+        handleTriggerEvent(data);
       } else {
-        console.log("Unhandled WebSocket message type:", data.type);
+        console.log("Unhandled control WebSocket message type:", data.type);
       }
     };
 
-    ws.onclose = () => {
-      console.log("WebSocket disconnected");
+    ws.onclose = (event) => {
+      console.log(`Control WebSocket disconnected with code: ${event.code}, reason: ${event.reason}, shouldReconnect: ${shouldReconnect.current}, attempts: ${reconnectAttempts.current}/${maxReconnectAttempts}`);
       setIsConnected(false);
       setTagRate(0);
       setTagsData({});
       setSequenceNumbers({});
-      setEventList(prev => [...prev, `WebSocket disconnected on ${getFormattedTimestamp()}`]);
+      setEventList(prev => [...prev, `Control WebSocket disconnected on ${getFormattedTimestamp()} (code: ${event.code}, reason: ${event.reason})`]);
       if (shouldReconnect.current && reconnectAttempts.current < maxReconnectAttempts) {
         reconnectAttempts.current += 1;
-        console.log(`Attempting to reconnect (${reconnectAttempts.current}/${maxReconnectAttempts})...`);
+        console.log(`Attempting to reconnect control WebSocket (${reconnectAttempts.current}/${maxReconnectAttempts})...`);
         setTimeout(connectWebSocket, reconnectInterval);
-      } else if (!shouldReconnect.current) {
-        console.log("WebSocket closed manually, no reconnect attempted.");
       } else {
-        console.error("Max reconnect attempts reached. Please reconnect manually.");
+        console.log("Control WebSocket closed, no reconnect attempted.");
       }
     };
 
     ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
+      console.error("Control WebSocket error:", error);
       setIsConnected(false);
       setTagRate(0);
       setTagsData({});
       setSequenceNumbers({});
-      setEventList(prev => [...prev, `WebSocket error on ${getFormattedTimestamp()}`]);
+      setEventList(prev => [...prev, `Control WebSocket error on ${getFormattedTimestamp()}: ${error.message || 'Unknown error'}`]);
     };
+  };
+
+  const connectStreamWebSocket = (url, tagIds) => {
+    if (streamWsRef.current && streamWsRef.current.readyState === WebSocket.OPEN) {
+      streamWsRef.current.close();
+      console.log("Stream WebSocket close initiated due to reconnect");
+    }
+
+    console.log(`Connecting to stream WebSocket: ${url}`);
+    const ws = new WebSocket(url);
+    streamWsRef.current = ws;
+    reconnectAttempts.current = 0;
+
+    ws.onopen = () => {
+      console.log("Stream WebSocket connected:", url);
+      const subscription = {
+        type: "request",
+        request: "BeginStream",
+        reqid: "triggerDemoStream1",
+        params: tagIds.map(id => ({ id, data: "true" })),
+        zone_id: selectedZone ? parseInt(selectedZone.i_zn) : 417
+      };
+      console.log("Stream subscription:", subscription);
+      console.log(`Sending stream subscription at ${getFormattedTimestamp()}`);
+      ws.send(JSON.stringify(subscription));
+      console.log("Sent stream subscription:", subscription);
+    };
+
+    ws.onmessage = async (event) => {
+      console.log("Raw stream WebSocket message received:", event.data);
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch (e) {
+        console.error("Failed to parse stream WebSocket message:", e);
+        return;
+      }
+      console.log("Parsed stream WebSocket message:", data);
+      if (data.type === "GISData") {
+        handleGISDataMessage(data);
+      } else if (data.type === "TriggerEvent") {
+        handleTriggerEvent(data);
+      } else if (data.type === "HeartBeat") {
+        ws.send(JSON.stringify({ type: "HeartBeat", ts: data.ts }));
+        console.log("Sent stream heartbeat response:", { type: "HeartBeat", ts: data.ts });
+        lastDataTime.current = Date.now();
+      } else {
+        console.log("Unhandled stream WebSocket message type:", data.type);
+      }
+    };
+
+    ws.onclose = (event) => {
+      console.log(`Stream WebSocket disconnected with code: ${event.code}, reason: ${event.reason}, shouldReconnect: ${shouldReconnect.current}, attempts: ${reconnectAttempts.current}/${maxReconnectAttempts}`);
+      streamWsRef.current = null;
+      if (shouldReconnect.current && reconnectAttempts.current < maxReconnectAttempts) {
+        reconnectAttempts.current += 1;
+        console.log(`Attempting to reconnect stream WebSocket (${reconnectAttempts.current}/${maxReconnectAttempts})...`);
+        setTimeout(() => connectStreamWebSocket(url, tagIds), reconnectInterval);
+      } else {
+        console.log("Stream WebSocket closed, no reconnect attempted.");
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error("Stream WebSocket error:", error);
+      streamWsRef.current = null;
+      setEventList(prev => [...prev, `Stream WebSocket error on ${getFormattedTimestamp()}: ${error.message || 'Unknown error'}`]);
+    };
+  };
+
+  const handleGISDataMessage = (data) => {
+    console.log("Processing GISData message:", JSON.stringify(data));
+    console.log("Current tagsData before update:", tagsData);
+    lastDataTime.current = Date.now();
+    const tagZoneId = data.zone_id || (selectedZone ? selectedZone.i_zn : 417);
+    console.log("Tag zone ID determination:", {
+      zone_id_in_message: data.zone_id,
+      selectedZone_i_zn: selectedZone ? selectedZone.i_zn : "N/A",
+      fallback_zone: 417,
+      final_tagZoneId: tagZoneId
+    });
+    const zoneMatch = zones.find(z => z.i_zn === parseInt(tagZoneId));
+    if (zoneMatch && selectedZone && selectedZone.i_zn !== parseInt(tagZoneId) && !hasPromptedForZone.current) {
+      console.log("Found zone mismatch:", zoneMatch);
+      const shouldSwitch = window.confirm(
+        `Tag ${data.ID} is in Zone ${zoneMatch.i_zn} (${zoneMatch.x_nm_zn}). Do you want to switch to this zone?`
+      );
+      if (shouldSwitch) {
+        setSelectedZone(zoneMatch);
+        setEventList(prev => [...prev, `Zone synced to ${zoneMatch.i_zn} - ${zoneMatch.x_nm_zn} on ${getFormattedTimestamp()}`]);
+        hasPromptedForZone.current = true;
+        fetchZoneVertices(zoneMatch.i_zn);
+      } else {
+        console.log("User chose not to switch zones");
+        setEventList(prev => [...prev, `User declined to sync to Zone ${zoneMatch.i_zn} on ${getFormattedTimestamp()}`]);
+        hasPromptedForZone.current = true;
+      }
+    }
+    const newTagData = {
+      id: data.ID,
+      x: data.X,
+      y: data.Y,
+      z: data.Z,
+      sequence: data.Sequence,
+      timestamp: Date.now(),
+      zone_id: tagZoneId
+    };
+    setTagsData(prev => {
+      const updated = { ...prev, [data.ID]: newTagData };
+      console.log("Updated tagsData:", updated);
+      return updated;
+    });
+    setSequenceNumbers(prev => ({
+      ...prev,
+      [data.ID]: data.Sequence || "N/A"
+    }));
+    console.log(`Updated sequence for tag ${data.ID}: ${data.Sequence}`);
+    setTagCount(prev => prev + 1);
+    setTagTimestamps(prev => {
+      const now = Date.now();
+      const windowStart = now - 10000;
+      const newTimestamps = [...prev, now].filter(ts => ts >= windowStart);
+      if (newTimestamps.length > 1) {
+        const timeSpan = (newTimestamps[newTimestamps.length - 1] - newTimestamps[0]) / 1000;
+        const rate = timeSpan > 0 ? (newTimestamps.length - 1) / timeSpan : 0;
+        setTagRate(rate);
+      } else {
+        setTagRate(0);
+      }
+      return newTimestamps;
+    });
+  };
+
+  const handleTriggerEvent = (data) => {
+    console.log("Processing TriggerEvent:", data);
+    lastDataTime.current = Date.now();
+    let trigger = triggers.find(t => t.i_trg === data.trigger_id);
+    if (!trigger) {
+      fetch(`http://192.168.210.226:8000/api/get_trigger_details/${data.trigger_id}`)
+        .then(res => {
+          if (!res.ok) throw new Error(`Failed to fetch trigger details: ${res.status}`);
+          return res.json();
+        })
+        .then(triggerData => {
+          trigger = { i_trg: data.trigger_id, x_nm_trg: triggerData.name, i_dir: triggerData.direction_id, i_zn: data.zone_id || parseInt(selectedZone?.i_zn) };
+          setTriggers(prev => {
+            const newTriggers = [...prev, trigger];
+            console.log("Updated triggers:", newTriggers);
+            return newTriggers;
+          });
+          console.log(`Fetched trigger details for ID ${data.trigger_id}:`, triggerData);
+          processTriggerEvent(data, trigger);
+        })
+        .catch(e => {
+          console.error(`Error fetching trigger details for ID ${data.trigger_id}:`, e);
+        });
+    } else {
+      processTriggerEvent(data, trigger);
+    }
+  };
+
+  const processTriggerEvent = (data, trigger) => {
+    const zoneName = zones.find(z => z.i_zn === trigger.i_zn)?.x_nm_zn || "Unknown";
+    const sequenceNumber = sequenceNumbers[data.tag_id] || (tagsData[data.tag_id]?.sequence || "N/A");
+    let eventMsg;
+    if (data.assigned_tag_id && data.tag_id !== data.assigned_tag_id) {
+      eventMsg = `${data.tag_id} within ${data.assigned_tag_id} Trigger ${trigger.i_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+    } else {
+      eventMsg = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.i_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+    }
+    if (showTriggerEventsRef.current) {
+      setTriggerEvents(prev => {
+        const newEvents = [...prev, eventMsg].slice(-10);
+        console.log("Updated triggerEvents:", newEvents);
+        return newEvents;
+      });
+    }
+    const eventMessage = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.x_nm_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+    setEventList(prev => [...prev, eventMessage]);
   };
 
   const disconnectWebSocket = async () => {
@@ -338,15 +508,23 @@ const NewTriggerDemo = () => {
       shouldReconnect.current = false;
       if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
         wsRef.current.close();
-        console.log("WebSocket close initiated");
+        console.log("Control WebSocket close initiated");
         await new Promise(resolve => setTimeout(resolve, 500));
       }
       setIsConnected(false);
       wsRef.current = null;
       setTagsData({});
       setSequenceNumbers({});
-      setEventList(prev => [...prev, `WebSocket disconnected manually on ${getFormattedTimestamp()}`]);
+      setEventList(prev => [...prev, `Control WebSocket disconnected manually on ${getFormattedTimestamp()}`]);
       hasPromptedForZone.current = false;
+    }
+    if (streamWsRef.current) {
+      if (streamWsRef.current.readyState === WebSocket.OPEN || streamWsRef.current.readyState === WebSocket.CONNECTING) {
+        streamWsRef.current.close();
+        console.log("Stream WebSocket close initiated");
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      streamWsRef.current = null;
     }
   };
 
@@ -355,11 +533,11 @@ const NewTriggerDemo = () => {
       if (isConnected && lastDataTime.current) {
         const timeSinceLastData = Date.now() - lastDataTime.current;
         if (timeSinceLastData > dataTimeout) {
-          console.log("No data received for 10 seconds, assuming disconnected");
+          console.log("No data received for 60 seconds, assuming disconnected");
           setIsConnected(false);
           setTagsData({});
           setSequenceNumbers({});
-          setEventList(prev => [...prev, `No data received for 10 seconds, assumed disconnected on ${getFormattedTimestamp()}`]);
+          setEventList(prev => [...prev, `No data received for 60 seconds, assumed disconnected on ${getFormattedTimestamp()}`]);
           hasPromptedForZone.current = false;
         }
       }
@@ -454,7 +632,7 @@ const NewTriggerDemo = () => {
         };
 
         hierarchy.forEach(parent => sortChildren(parent.children));
-        console.log("✅ Zone hierarchy:", JSON.stringify(hierarchy, null, 2));
+        console.log("Zone hierarchy:", JSON.stringify(hierarchy, null, 2));
         setZoneHierarchy(hierarchy);
         setZones(mappedZones);
         const campusZone = hierarchy.find(z => z.i_typ_zn === 1);
@@ -493,6 +671,9 @@ const NewTriggerDemo = () => {
         shouldReconnect.current = false;
         setIsConnected(false);
       }
+      if (streamWsRef.current && streamWsRef.current.readyState !== WebSocket.CLOSED) {
+        streamWsRef.current.close();
+      }
       if (retryIntervalRef.current) {
         clearInterval(retryIntervalRef.current);
       }
@@ -518,8 +699,7 @@ const NewTriggerDemo = () => {
             try {
               console.log(`Fetching details for trigger ID ${t.i_trg}`);
               if (t.is_portable) {
-                // Portable triggers will be handled after WebSocket connection
-                return { id: t.i_trg, name: t.x_nm_trg, isPortable: true, pending: true };
+                return { id: t.i_trg, name: t.x_nm_trg, isPortable: true, pending: true, assigned_tag_id: t.assigned_tag_id, radius_ft: t.radius_ft };
               } else {
                 const res = await fetch(`http://192.168.210.226:8000/api/get_trigger_details/${t.i_trg}`);
                 if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
@@ -534,7 +714,7 @@ const NewTriggerDemo = () => {
               }
             } catch (e) {
               console.error(`Failed to fetch details for trigger ${t.i_trg}:`, e);
-              return null; // Skip this trigger but continue with others
+              return null;
             }
           })
         );
@@ -548,13 +728,12 @@ const NewTriggerDemo = () => {
     };
 
     fetchPolygons();
-
     fetchZoneVertices(selectedZone.i_zn);
     hasPromptedForZone.current = false;
   }, [selectedZone, triggers]);
 
   useEffect(() => {
-    if (!selectedZone || !triggers || !isConnected) return; // Only update portable polygons after connection
+    if (!selectedZone || !triggers || !isConnected) return;
 
     console.log("Updating portable polygons after WebSocket connection");
     const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
@@ -569,14 +748,16 @@ const NewTriggerDemo = () => {
           console.log(`No live position data for tag ${tagId} assigned to portable trigger ${t.i_trg}`);
           return null;
         }
-        const radius = t.radius_ft; // Use raw radius_ft value
+        const radius = t.radius_ft;
         console.log(`Updating portable trigger ${t.i_trg} with center ${[tagData.y, tagData.x]} and radius ${radius}`);
         return {
           id: t.i_trg,
           name: t.x_nm_trg,
           center: [tagData.y, tagData.x],
           radius: radius,
-          isPortable: true
+          isPortable: true,
+          assigned_tag_id: t.assigned_tag_id,
+          radius_ft: t.radius_ft
         };
       });
 
@@ -620,14 +801,16 @@ const NewTriggerDemo = () => {
         const tagId = t.assigned_tag_id;
         const tagData = tagsData[tagId];
         if (!tagData) return null;
-        const radius = t.radius_ft; // Use raw radius_ft value
+        const radius = t.radius_ft;
         console.log(`Refreshing portable trigger ${t.i_trg} with center ${[tagData.y, tagData.x]} and radius ${radius}`);
         return {
           id: t.i_trg,
           name: t.x_nm_trg,
           center: [tagData.y, tagData.x],
           radius: radius,
-          isPortable: true
+          isPortable: true,
+          assigned_tag_id: t.assigned_tag_id,
+          radius_ft: t.radius_ft
         };
       });
 

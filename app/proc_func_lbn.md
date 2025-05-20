@@ -85,7 +85,6 @@
 | public              | usp_resources_select_all              | PROCEDURE            |
 | public              | usp_resources_select_by_type              | PROCEDURE            |
 | public              | usp_trigger_add              | PROCEDURE            |
-| public              | usp_trigger_add              | PROCEDURE            |
 | public              | usp_trigger_delete              | PROCEDURE            |
 | public              | usp_trigger_direction_list              | PROCEDURE            |
 | public              | usp_trigger_edit              | PROCEDURE            |

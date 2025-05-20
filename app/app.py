@@ -1,7 +1,7 @@
 # Name: app.py
-# Version: 0.1.58
+# Version: 0.1.60
 # Created: 971201
-# Modified: 250502
+# Modified: 250518
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -11,12 +11,15 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/app.py
-# Version: 0.1.58 - Added components router for /api/components endpoint
-# Version: 0P.10B.07 - Added debug logging for route registration
-# Version: 0P.10B.06 - Restored original, ensured CORS
+# Version: 0.1.60 - Confirmed CORSMiddleware import, version bump for clarity
+# Previous: 0.1.59 - Split WebSocket servers into control (port 8001) and real-time (port 8002)
+# Previous: 0.1.58 - Added components router for /api/components endpoint
+# Previous: 0P.10B.07 - Added debug logging for route registration
+# Previous: 0P.10B.06 - Restored original, ensured CORS
+
 import asyncpg
 from fastapi import FastAPI, Request, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware  # Ensure this import is correct
 from fastapi.responses import JSONResponse
 import logging
 from database.db import get_async_db_pool
@@ -32,9 +35,12 @@ from routes.vertex import router as vertex_router
 from routes.zonebuilder_routes import router as zonebuilder_router
 from routes.zoneviewer_routes import router as zoneviewer_router
 from routes import maps, maps_upload
-from routes.components import router as components_router  # Add this import
-from manager.websocket import app as manager_app
+from routes.components import router as components_router
+from manager.websocket_control import app as control_app
+from manager.websocket_realtime import app as realtime_app
 from contextlib import asynccontextmanager
+import uvicorn
+import multiprocessing
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -76,10 +82,10 @@ async def lifespan(app: FastAPI):
                 logger.error(f"Error closing pool for {db_type}: {str(e)}")
     logger.info("All connections closed.")
 
-# Create the FastAPI app with the lifespan handler
+# Create the main FastAPI app for HTTP routes
 app = FastAPI(
     title="Parco RTLS API",
-    version="0P.10B.08",
+    version="0P.10B.10",
     docs_url="/docs",
     lifespan=lifespan
 )
@@ -125,7 +131,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include routers for HTTP routes
 app.include_router(device_router, prefix="/api")
 app.include_router(trigger_router, prefix="/api")
 app.include_router(zone_router, prefix="/api")
@@ -139,8 +145,7 @@ app.include_router(zonebuilder_router, prefix="/zonebuilder", tags=["zonebuilder
 app.include_router(zoneviewer_router, prefix="/zoneviewer", tags=["zoneviewer"])
 app.include_router(maps.router, prefix="/maps", tags=["maps"])
 app.include_router(maps_upload.router, prefix="/maps", tags=["maps_upload"])
-app.include_router(components_router, prefix="/api", tags=["components"])  # Add this line
-app.mount("/manager", manager_app)
+app.include_router(components_router, prefix="/api", tags=["components"])
 
 async def get_async_db_pool(db_type: str = "maint"):
     """Creates an asyncpg connection pool with explicit parameters."""
@@ -172,6 +177,41 @@ async def get_async_db_pool(db_type: str = "maint"):
 def root():
     return {"message": "FastAPI is running!"}
 
+def run_control_server():
+    """Run the control WebSocket server on port 8001."""
+    uvicorn.run(
+        "manager.websocket_control:app",
+        host="0.0.0.0",
+        port=8001,
+        log_level="debug"
+    )
+
+def run_realtime_server():
+    """Run the real-time WebSocket server on port 8002."""
+    uvicorn.run(
+        "manager.websocket_realtime:app",
+        host="0.0.0.0",
+        port=8002,
+        log_level="debug"
+    )
+
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, workers=4)
+    # Start the main app (HTTP routes) on port 8000
+    logger.info("Starting main FastAPI app on port 8000...")
+    main_process = multiprocessing.Process(target=uvicorn.run, args=(app,), kwargs={"host": "0.0.0.0", "port": 8000, "log_level": "debug"})
+    main_process.start()
+
+    # Start the control WebSocket server on port 8001
+    logger.info("Starting control WebSocket server on port 8001...")
+    control_process = multiprocessing.Process(target=run_control_server)
+    control_process.start()
+
+    # Start the real-time WebSocket server on port 8002
+    logger.info("Starting real-time WebSocket server on port 8002...")
+    realtime_process = multiprocessing.Process(target=run_realtime_server)
+    realtime_process.start()
+
+    # Wait for all processes to complete
+    main_process.join()
+    control_process.join()
+    realtime_process.join()
