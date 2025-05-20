@@ -1,22 +1,23 @@
 # Name: websocket.py
-# Version: 0.1.0
+# Version: 0.1.28
 # Created: 971201
-# Modified: 250502
+# Modified: 250513
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS backend
+# Description: Python script for ParcoRTLS backend with multi-port WebSocket support and PortRedirect
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket.py
-# Version: 1.0.21 - Removed hardcoded zone_id, added logging for zone_id assignment, bumped from 1.0.20
-# Previous: Fixed sdk_client.zone_id setting and usage in subscription logic (1.0.20)
-# Previous: Added debug logs for zone_id assignment (1.0.20)
+# Version: 1.0.49 - Removed unnecessary accept call in stream_handler, bumped from 1.0.48
+# Previous: Simplified stream_handler to skip header validation, reapplied request_headers fix (1.0.48)
+# Previous: Fixed headers access in stream_handler using request_headers (1.0.47)
 
 import asyncio
 import logging
+import traceback
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -26,10 +27,43 @@ from .sdk_client import SDKClient
 from .models import HeartBeat, Response, ResponseType, Request, Tag
 from .enums import RequestType, eMode
 import json
+import websockets
+from websockets.datastructures import Headers
+from websockets.exceptions import ConnectionClosed, InvalidState, InvalidHeader, InvalidMessage, InvalidHandshake
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+# Feature flag for multi-port support
+ENABLE_MULTI_PORT = True
+
+# Define stream ports for multi-port support
+STREAM_PORTS = {
+    "RealTime": 8002
+}
+
+async def process_raw_request(ws, request):
+    """Log raw request data and validate path, adjusted for (ws, request) arguments."""
+    stream_type = "RealTime"  # Hard-coded for now; could be passed via closure if needed
+    path = request.path  # Extract path from the Request object
+    logger.debug(f"process_raw_request called with ws={ws}, request={request}, extracted path={path}")
+    
+    header_dict = dict(request.headers)
+    client_addr = header_dict.get("host", "unknown")
+    logger.debug(f"Raw request received for {stream_type}: path={path}, headers={header_dict}")
+
+    # Validate path
+    expected_path = "/ws/Manager1"
+    if path != expected_path:
+        logger.info(f"Invalid WebSocket path from {client_addr} on {stream_type}: got {path}, expected {expected_path}")
+        return websockets.http11.Response(
+            status_code=400,
+            reason_phrase="Invalid path",
+            headers=Headers(),
+            body=f"Invalid path: {path}".encode()
+        )
+    return None  # Proceed with WebSocket handshake
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,10 +78,37 @@ async def lifespan(app: FastAPI):
                 for manager in managers:
                     name = manager['x_nm_res']
                     logger.info(f"Manager {name} ready to accept connections")
+
+        # Start WebSocket servers for stream ports
+        servers = []
+        for stream_type, port in STREAM_PORTS.items():
+            async def handler(ws, path=None):  # Ignore path argument since stream_handler doesn't need it
+                logger.debug(f"Handler called with ws={ws}, path={path}")
+                await stream_handler(ws, stream_type)
+            
+            server = await websockets.serve(
+                handler,
+                host="0.0.0.0",
+                port=port,
+                process_request=process_raw_request
+            )
+            logger.info(f"Started WebSocket server for {stream_type} on port {port}")
+            servers.append(server)
+        
+        yield
+        
+        # Close WebSocket servers on shutdown
+        for server in servers:
+            server.close()
+            await server.wait_closed()
+            if server.sockets:
+                logger.info(f"Closed WebSocket server for port {server.sockets[0].getsockname()[1]}")
+            else:
+                logger.info(f"Closed WebSocket server (no active sockets)")
+    
     except Exception as e:
-        logger.error(f"Lifespan error: {str(e)}")
+        logger.error(f"Lifespan error: {str(e)}\n{traceback.format_exc()}")
         raise
-    yield
     logger.info("Application shutdown")
 
 app = FastAPI(lifespan=lifespan)
@@ -71,8 +132,36 @@ REQUEST_TYPE_MAP = {
 _MANAGER_INSTANCES = {}
 _WEBSOCKET_CLIENTS = {}
 
+async def stream_handler(websocket: websockets.WebSocketServerProtocol, stream_type: str):
+    """Handler for stream-specific WebSocket connections."""
+    client_addr = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+    logger.debug(f"Stream handler started for {stream_type}, client: {client_addr}")
+    
+    try:
+        # Handshake is already handled by websockets.serve; no need to call accept
+        logger.info(f"Stream WebSocket connection established for {stream_type} from {client_addr}")
+        # Keep connection open to test message handling
+        try:
+            data = await asyncio.wait_for(websocket.recv(), timeout=10.0)
+            logger.debug(f"Received message from {client_addr}: {data}")
+        except asyncio.TimeoutError:
+            logger.debug(f"No message received from {client_addr} within 10 seconds")
+        except ConnectionClosed as e:
+            logger.info(f"Connection closed by {client_addr} during receive: {str(e)}")
+        except InvalidState as e:
+            logger.info(f"Invalid WebSocket state from {client_addr}: {str(e)}")
+        except InvalidHeader as e:
+            logger.info(f"Invalid WebSocket header from {client_addr}: {str(e)}")
+        await websocket.close(code=1000, reason="Temporary handler")
+    except (InvalidMessage, InvalidHandshake) as e:
+        logger.info(f"Invalid WebSocket handshake from {client_addr} on {stream_type}: {str(e)}")
+        await websocket.close(code=1008, reason=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error in stream_handler for {stream_type} from {client_addr}: {str(e)}\n{traceback.format_exc()}")
+        await websocket.close(code=1011, reason="Internal error")
+
 @app.websocket("/ws/{manager_name}")
-async def websocket_endpoint(websocket: WebSocket, manager_name: str):
+async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
     logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {websocket.client.host}:{websocket.client.port}")
     async with asyncpg.create_pool("postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint") as pool:
         async with pool.acquire() as conn:
@@ -89,7 +178,6 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
         await websocket.accept()
         logger.info(f"WebSocket connection accepted for /ws/{manager_name}")
         if manager_name not in _MANAGER_INSTANCES:
-            # Initialize Manager without a default zone_id; it will be set by the first BeginStream request
             manager = Manager(manager_name, zone_id=None)
             logger.debug(f"Created new Manager instance for {manager_name} with initial zone_id=None")
             _MANAGER_INSTANCES[manager_name] = manager
@@ -162,7 +250,22 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                                 logger.debug(f"Manager {manager_name} zone_id already set to {new_zone_id}, no update needed")
 
                         if req.req_type == RequestType.BeginStream:
-                            if not sdk_client.sent_begin_msg:
+                            if ENABLE_MULTI_PORT:
+                                # Register tags and send PortRedirect
+                                for t in req.tags:
+                                    sdk_client.add_tag(t.id, t)
+                                    logger.debug(f"Added tag {t.id} to client {client_id}")
+                                logger.debug(f"Client {client_id} subscribed to tags: {list(sdk_client.tags.keys())}")
+                                port_redirect = {
+                                    "type": "PortRedirect",
+                                    "port": STREAM_PORTS["RealTime"],
+                                    "stream_type": "RealTime",
+                                    "manager_name": manager_name
+                                }
+                                await websocket.send_text(json.dumps(port_redirect))
+                                logger.info(f"Sent PortRedirect to client {client_id}: {port_redirect}")
+                                continue
+                            else:
                                 if manager.mode == eMode.Stream:
                                     pass
                                 else:
@@ -180,10 +283,6 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                                 if resp.message:
                                     await manager.close_client(sdk_client)
                                     break
-                            else:
-                                resp.message = "Begin stream requests not allowed on existing streams"
-                                await websocket.send_text(resp.to_json())
-                                logger.debug(f"Sent BeginStream error response to client {client_id}: {resp.to_json()}")
                         elif req.req_type == RequestType.EndStream:
                             await websocket.send_text(resp.to_json())
                             logger.debug(f"Sent EndStream response to client {client_id}: {resp.to_json()}")
@@ -231,7 +330,7 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                         logger.warning(f"Unknown message type from client {client_id}: {msg_type}")
 
                 except json.JSONDecodeError:
-                    logger.error(f"Failed to parse JSON message from client {client_id}: {data}")
+                    logger.error(f"Failed to parse JSON message from client {client_id}: {data}\n{traceback.format_exc()}")
                     continue
 
             except WebSocketDisconnect as e:
@@ -249,7 +348,7 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                     await sdk_client.close()
                 break
             except Exception as e:
-                logger.error(f"Error in WebSocket handler for /ws/{manager_name}: {str(e)}")
+                logger.error(f"Error in WebSocket handler for /ws/{manager_name}: {str(e)}\n{traceback.format_exc()}")
                 if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
                     _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
                     logger.debug(f"Removed client {client_id} from _WEBSOCKET_CLIENTS for manager {manager_name}")
@@ -258,9 +357,9 @@ async def websocket_endpoint(websocket: WebSocket, manager_name: str):
                 break
 
     except Exception as e:
-        logger.error(f"Failed to accept WebSocket connection for /ws/{manager_name}: {str(e)}")
+        logger.error(f"Failed to accept WebSocket connection for /ws/{manager_name}: {str(e)}\n{traceback.format_exc()}")
     finally:
-        if sdk_client is not None and not is_disconnected:
+        if sdk_client is not None and not is_disconnected and not sdk_client.is_closing:
             await sdk_client.close()
             if client_id in manager.sdk_clients:
                 del manager.sdk_clients[client_id]
@@ -279,5 +378,5 @@ async def reload_triggers():
                     await client.websocket.send_json(reload_message)
                     logger.debug(f"Sent ReloadTriggers message to client {client.client_id} for manager {manager_name}")
                 except Exception as e:
-                    logger.error(f"Failed to send ReloadTriggers to client {client.client_id}: {str(e)}")
+                    logger.error(f"Failed to send ReloadTriggers to client {client.client_id}: {str(e)}\n{traceback.format_exc()}")
     return {"status": "success", "message": "Reload triggers message sent to all clients"}
