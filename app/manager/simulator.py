@@ -1,17 +1,18 @@
 # Name: simulator.py
-# Version: 0.1.18
+# Version: 0.1.19
 # Created: 971201
-# Modified: 250519
+# Modified: 250523
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS backend with PortRedirect support
-# Location: /home/parcoadmin/parco_fastapi/app/manager
-# Role: Backend
+# Description: Python script for ParcoRTLS simulator with PortRedirect and EndStream support
+# Location: /home/parcoadmin/parco_fastapi/app
+# Role: Simulator
 # Status: Active
 # Dependent: TRUE
 
-# /home/parcoadmin/parco_fastapi/app/manager/simulator.py
-# Version: 0.1.18 - Restored moving tag interpolation in send_tag_data from v0.1.0, bumped from 0.1.17
+# /home/parcoadmin/parco_fastapi/app/simulator.py
+# Version: 0.1.19 - Fixed logging AttributeError, preserved all v0.1.18 functionality, added EndStream on stop for control/stream WebSockets, enhanced logging, bumped from 0.1.18
+# Previous: Restored moving tag interpolation in send_tag_data from v0.1.0, bumped from 0.1.17
 # Previous: Modified to only respond to heartbeats with heartbeat_id, increased HEARTBEAT_RATE_LIMIT to 50, bumped from 0.1.16
 # Previous: Reduced HEARTBEAT_RATE_LIMIT from 100 to 10 to save log space, bumped from 0.1.15
 # Previous: Fixed AttributeError by replacing websocket.open with websocket.state == websockets.State.OPEN, bumped from 0.1.14
@@ -40,13 +41,31 @@ import websockets
 import json
 from datetime import datetime
 import logging
+import logging.handlers
 import sys
 import select
 import traceback
 from typing import List, Tuple, Dict, Deque
 from collections import deque
+import os
 
+# Configure logging
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+
+# Log directory
+LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+
+# Configure file handler
+file_handler = logging.handlers.RotatingFileHandler(
+    os.path.join(LOG_DIR, "simulator.log"),
+    maxBytes=10*1024*1024,
+    backupCount=5
+)
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%y%m%d %H%M%S'))
+logger.handlers = [logging.StreamHandler(), file_handler]
+logger.propagate = False
 
 class TagConfig:
     def __init__(self, tag_id: str, positions: List[Tuple[float, float, float]], ping_rate: float, move_interval: float = 0):
@@ -174,12 +193,33 @@ async def receive_stream_messages(websocket, running):
                     logger.debug(f"Rate-limiting heartbeat response: {data}")
             elif data.get("type") == "response":
                 logger.info(f"Received response on stream WebSocket: {data}")
+                if data.get("request") == "EndStrm":
+                    logger.info(f"Received EndStream response on stream WebSocket: {data}")
+                    should_stop = True
+                    break
             elif data.get("command") == "start_simulator":
                 logger.info("Received start_simulator command on stream WebSocket")
                 running[0] = True
             elif data.get("command") == "stop_simulator":
                 logger.info("Received stop_simulator command on stream WebSocket")
                 running[0] = False
+                end_stream = {
+                    "type": "request",
+                    "request": "EndStream",
+                    "reqid": ""
+                }
+                try:
+                    await websocket.send(json.dumps(end_stream))
+                    logger.info(f"Sent EndStream on stream WebSocket: {end_stream}")
+                    file_handler.flush()
+                    message = await asyncio.wait_for(websocket.recv(), timeout=10.0)
+                    data = json.loads(message)
+                    logger.info(f"Received response to EndStream on stream WebSocket: {data}")
+                    file_handler.flush()
+                except Exception as e:
+                    logger.error(f"Failed to send/receive EndStream on stream WebSocket: {str(e)}")
+                    file_handler.flush()
+                break
             else:
                 logger.warning(f"Unhandled message type on stream WebSocket: {data.get('type', 'Unknown')}")
     except websockets.exceptions.ConnectionClosedOK as e:
@@ -190,6 +230,31 @@ async def receive_stream_messages(websocket, running):
         logger.error(f"Error receiving stream WebSocket message: {str(ex)}\n{traceback.format_exc()}")
         should_stop = True
         raise
+    finally:
+        if websocket.state == websockets.State.OPEN:
+            end_stream = {
+                "type": "request",
+                "request": "EndStream",
+                "reqid": ""
+            }
+            try:
+                await websocket.send(json.dumps(end_stream))
+                logger.info(f"Sent EndStream on stream WebSocket: {end_stream}")
+                file_handler.flush()
+                message = await asyncio.wait_for(websocket.recv(), timeout=10.0)
+                data = json.loads(message)
+                logger.info(f"Received response to EndStream on stream WebSocket: {data}")
+                file_handler.flush()
+            except Exception as e:
+                logger.error(f"Failed to send/receive EndStream on stream WebSocket: {str(e)}")
+                file_handler.flush()
+            try:
+                await websocket.close()
+                logger.info(f"Stream WebSocket closed with code: {websocket.close_code}")
+                file_handler.flush()
+            except Exception as e:
+                logger.error(f"Error closing stream WebSocket: {str(e)}")
+                file_handler.flush()
 
 async def send_data(websocket, tag_configs: List[TagConfig], running: List[bool], duration: float, zone_id: int):
     start_time = asyncio.get_event_loop().time()
@@ -296,13 +361,17 @@ async def simulator():
     global stream_receive_task
     global should_stop
     uri = "ws://192.168.210.226:8001/ws/ControlManager"
-    print("Select simulation mode (v0.1.18):")
+    print("Select simulation mode (v0.1.19):")
     print("1. Single tag at a fixed point")
     print("2. Single tag moving between two points (with linear interpolation)")
     print("3. Multiple tags at fixed points")
     print("4. One tag stationary, one tag moving")
     print("5. Two tags with different ping rates")
-    mode = int(input("Enter mode (1-5): ").strip() or 1)
+    try:
+        mode = int(input("Enter mode (1-5): ").strip() or 1)
+    except ValueError as e:
+        logger.error(f"Invalid mode input: {str(e)}")
+        sys.exit(1)
     duration = float(input("Enter duration in seconds (default 30): ").strip() or 30)
     zone_id = int(input("Enter zone ID (default 417): ").strip() or 417)
     tag_configs = []
@@ -370,6 +439,8 @@ async def simulator():
     running = [True]
     stream_websocket = None
     should_stop = False
+    logger.info(f"Starting simulation in mode {mode} with tags: {[tag.tag_id for tag in tag_configs]}, zone_id: {zone_id}, duration: {duration}s")
+    file_handler.flush()
     try:
         async with websockets.connect(uri) as websocket:
             current_websocket = websocket
@@ -428,13 +499,35 @@ async def simulator():
                 logger.info("User input task successfully canceled")
     except RuntimeError as e:
         logger.error(f"Connection error: {str(e)}")
-        sys.exit(1)
     except Exception as ex:
         logger.error(f"Unexpected connection error: {str(ex)}\n{traceback.format_exc()}")
-        sys.exit(1)
+    finally:
+        if current_websocket and current_websocket.state == websockets.State.OPEN:
+            end_stream = {
+                "type": "request",
+                "request": "EndStream",
+                "reqid": ""
+            }
+            try:
+                await current_websocket.send(json.dumps(end_stream))
+                logger.info(f"Sent EndStream on control WebSocket: {end_stream}")
+                file_handler.flush()
+                message = await asyncio.wait_for(current_websocket.recv(), timeout=10.0)
+                data = json.loads(message)
+                logger.info(f"Received response to EndStream on control WebSocket: {data}")
+                file_handler.flush()
+            except Exception as e:
+                logger.error(f"Failed to send/receive EndStream on control WebSocket: {str(e)}")
+                file_handler.flush()
+            try:
+                await current_websocket.close()
+                logger.info(f"Control WebSocket closed with code: {current_websocket.close_code}")
+                file_handler.flush()
+            except Exception as e:
+                logger.error(f"Error closing control WebSocket: {str(e)}")
+                file_handler.flush()
     logger.info("Simulation complete, exiting.")
     sys.exit(0)
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
     asyncio.run(simulator())

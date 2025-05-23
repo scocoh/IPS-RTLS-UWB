@@ -1,7 +1,7 @@
 # Name: websocket_realtime.py
-# Version: 0.1.49
+# Version: 0.1.53
 # Created: 250512
-# Modified: 250519
+# Modified: 250523
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002
@@ -11,17 +11,10 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_realtime.py
-# Version: 0.1.49 - Throttled heartbeats to 1 per 30s in message loop, removed aggressive rate limiting, bumped from 0.1.48
-# Previous: Added heartbeat rate limiting to 1 per 30s, enhanced logging, bumped from 0.1.47
-# Previous: Increased heartbeat timeout to 30s, added heartbeat logging, bumped from 0.1.47
-# Previous: Fixed zone_id access using json_data, added subscription validation logging, bumped from 0.1.46
-# Previous: Normalized zone_id comparisons, added subscription mismatch logging, increased heartbeat timeout, bumped from 0.1.45
-# Previous: Added subscription and GISData forwarding debug logging, improved exception handling, bumped from 0.1.44
-# Previous: Fixed zone_id access in Request, added GISData forwarding, included heartbeat_id, bumped from 0.1.43
-# Previous: Added explicit flush() calls after key log messages, removed invalid buffering=1, bumped from 0.1.42
-# Previous: Added file logging with rotation, bumped from 0.1.41
-# Previous: Added detailed logging for DB query failures, bumped from 0.1.40
-# Previous: Added GISData handling to manager.process_sim_message, bumped from 0.1.39
+# Version: 0.1.53 - Increased initial heartbeat timeout to 60s for manual clients, enhanced wscat logging, bumped from 0.1.52
+# Previous: Aligned log path with /home/parcoadmin/parco_fastapi/app/logs, added console logging, extended initial heartbeat timeout to 10s, enhanced logging, bumped from 0.1.51
+# Previous: Relaxed heartbeat_id validation for legacy clients, retained 5-second timeout and no server responses, enhanced logging, bumped from 0.1.50
+# Previous: Removed server heartbeat responses, enforced 5-second response timeout, validated timestamp-based heartbeat_id, enhanced logging to align with VB.NET behavior, bumped from 0.1.49
 
 import asyncio
 import logging
@@ -40,15 +33,15 @@ import os
 from logging.handlers import RotatingFileHandler
 
 # Log directory
-LOG_DIR = "/home/parcoadmin/parco_fastapi/logs"
+LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
 # Configure logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%y%m%d %H%M%S'))
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%y%m%d %H%M%S'))
 
 file_handler = RotatingFileHandler(
     os.path.join(LOG_DIR, "websocket_realtime.log"),
@@ -57,14 +50,20 @@ file_handler = RotatingFileHandler(
 )
 file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%y%m%d %H%M%S'))
 
-logger.handlers = [stream_handler, file_handler]
+logger.handlers = [console_handler, file_handler]
 logger.propagate = False
+
+logger.info("Starting WebSocket RealTime server on port 8002")
+file_handler.flush()
 
 ENABLE_MULTI_PORT = True
 STREAM_TYPE = "RealTime"
 RESOURCE_TYPE = 1
 MAINT_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
 HEARTBEAT_INTERVAL = 30.0  # Heartbeat every 30 seconds
+
+# Track pending heartbeats by ts for legacy client compatibility
+_PENDING_HEARTBEATS = {}  # {client_id: {ts: {"sent_time": float, "heartbeat_id": str, "is_initial": bool}}}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -119,7 +118,10 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
     client_host = websocket.client.host
     client_port = websocket.client.port
     client_id = f"{client_host}:{client_port}"
-    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {client_id}")
+    # CHANGE: Detect wscat clients (simplified heuristic, adjust if needed)
+    is_wscat = "wscat" in websocket.headers.get("user-agent", "").lower() or client_port > 40000
+    client_type = "wscat" if is_wscat else "client"
+    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {client_id} ({client_type})")
     file_handler.flush()
     try:
         async with asyncpg.create_pool(MAINT_CONN_STRING) as pool:
@@ -145,7 +147,7 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
     is_disconnected = False
     try:
         await websocket.accept()
-        logger.info(f"WebSocket connection accepted for /ws/{manager_name} from {client_id}")
+        logger.info(f"WebSocket connection accepted for /ws/{manager_name} from {client_id} ({client_type})")
         file_handler.flush()
         manager = _MANAGER_INSTANCES.get(manager_name)
         if not manager:
@@ -161,46 +163,103 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
         if manager_name not in _WEBSOCKET_CLIENTS:
             _WEBSOCKET_CLIENTS[manager_name] = []
         _WEBSOCKET_CLIENTS[manager_name].append(sdk_client)
-        logger.debug(f"Added client {client_id} to _WEBSOCKET_CLIENTS for {manager_name}. Total clients: {len(_WEBSOCKET_CLIENTS[manager_name])}")
+        logger.debug(f"Added client {client_id} ({client_type}) to _WEBSOCKET_CLIENTS for {manager_name}. Total clients: {len(_WEBSOCKET_CLIENTS[manager_name])}")
         file_handler.flush()
 
         _LAST_HEARTBEAT[client_id] = 0  # Initialize last heartbeat time
 
         while True:
             try:
-                # Send heartbeat if interval has passed
+                # Send heartbeat with heartbeat_id, track by ts
                 current_time = asyncio.get_event_loop().time()
                 if current_time - _LAST_HEARTBEAT[client_id] >= HEARTBEAT_INTERVAL:
+                    heartbeat_id = str(int(datetime.now().timestamp() * 1000))
+                    heartbeat_ts = int(current_time * 1000)
                     heartbeat = {
                         "type": "HeartBeat",
-                        "ts": int(current_time * 1000),
-                        "heartbeat_id": str(int(datetime.now().timestamp() * 1000))
+                        "ts": heartbeat_ts,
+                        "heartbeat_id": heartbeat_id
                     }
                     await websocket.send_text(json.dumps(heartbeat))
-                    logger.debug(f"Sent heartbeat to client {client_id}: {heartbeat}")
+                    logger.debug(f"Sent HeartBeat ID: {heartbeat_id}, TS: {heartbeat_ts} to client {client_id} ({client_type})")
+                    # CHANGE: Log heartbeat expectation
+                    timeout = 60.0 if len(_PENDING_HEARTBEATS.get(client_id, {})) == 0 else 5.0
+                    logger.debug(f"Expecting HeartBeat response for TS: {heartbeat_ts} from client {client_id} ({client_type}) within {timeout}s")
                     file_handler.flush()
+                    if client_id not in _PENDING_HEARTBEATS:
+                        _PENDING_HEARTBEATS[client_id] = {}
+                    _PENDING_HEARTBEATS[client_id][heartbeat_ts] = {
+                        "sent_time": current_time,
+                        "heartbeat_id": heartbeat_id,
+                        "is_initial": len(_PENDING_HEARTBEATS[client_id]) == 0
+                    }
                     _LAST_HEARTBEAT[client_id] = current_time
 
+                # Check for heartbeat timeouts, 60s for initial, 5s for subsequent
+                if client_id in _PENDING_HEARTBEATS:
+                    for ts, data in list(_PENDING_HEARTBEATS[client_id].items()):
+                        timeout = 60.0 if data["is_initial"] else 5.0
+                        if current_time - data["sent_time"] > timeout:
+                            logger.warning(f"Client {client_id} ({client_type}) timed out on HeartBeat TS: {ts}, ID: {data['heartbeat_id']} (timeout: {timeout}s)")
+                            file_handler.flush()
+                            resp = Response(
+                                response_type=ResponseType.EndStream,
+                                req_id="",
+                                message=f"Failed to respond to heartbeat within {timeout} seconds"
+                            )
+                            await websocket.send_text(resp.to_json())
+                            logger.info(f"Sent EndStream to client {client_id} ({client_type}): {resp.to_json()}")
+                            file_handler.flush()
+                            sdk_client.is_closing = True
+                            del _PENDING_HEARTBEATS[client_id][ts]
+                            if not _PENDING_HEARTBEATS[client_id]:
+                                del _PENDING_HEARTBEATS[client_id]
+                            raise WebSocketDisconnect(f"Heartbeat timeout ({timeout}s)")
+
                 data = await asyncio.wait_for(websocket.receive_text(), timeout=HEARTBEAT_INTERVAL)
-                logger.debug(f"Received WebSocket message from client {client_id}: {data}")
+                logger.debug(f"Received WebSocket message from client {client_id} ({client_type}): {data}")
                 file_handler.flush()
                 json_data = json.loads(data)
                 msg_type = json_data.get("type", "")
 
                 if msg_type == "HeartBeat":
+                    # Allow legacy heartbeats without heartbeat_id, validate by ts
                     try:
                         hb = HeartBeat(ticks=json_data["ts"])
-                        sdk_client.heartbeat = hb.ticks
-                        response = {
-                            "type": "HeartBeat",
-                            "ts": hb.ticks,
-                            "heartbeat_id": str(int(datetime.now().timestamp() * 1000))
-                        }
-                        await websocket.send_text(json.dumps(response))
-                        logger.debug(f"Sent HeartBeat response to client {client_id}: {response}")
-                        file_handler.flush()
+                        received_ts = json_data["ts"]
+                        received_id = json_data.get("heartbeat_id", None)
+                        if client_id in _PENDING_HEARTBEATS and received_ts in _PENDING_HEARTBEATS[client_id]:
+                            sent_time = _PENDING_HEARTBEATS[client_id][received_ts]["sent_time"]
+                            response_time = current_time - sent_time
+                            timeout = 60.0 if _PENDING_HEARTBEATS[client_id][received_ts]["is_initial"] else 5.0
+                            if response_time <= timeout:
+                                sdk_client.heartbeat = hb.ticks
+                                log_msg = f"Received valid HeartBeat TS: {received_ts}, ID: {received_id or 'none'} from client {client_id} ({client_type}), response time: {response_time:.2f}s"
+                                if received_id is None:
+                                    log_msg = f"Received legacy HeartBeat TS: {received_ts}, no heartbeat_id from client {client_id} ({client_type}), response time: {response_time:.2f}s"
+                                logger.debug(log_msg)
+                                file_handler.flush()
+                                del _PENDING_HEARTBEATS[client_id][received_ts]
+                                if not _PENDING_HEARTBEATS[client_id]:
+                                    del _PENDING_HEARTBEATS[client_id]
+                            else:
+                                logger.warning(f"Client {client_id} ({client_type}) responded to HeartBeat TS: {received_ts}, ID: {received_id or 'none'} too late ({response_time:.2f}s)")
+                                file_handler.flush()
+                                resp = Response(
+                                    response_type=ResponseType.EndStream,
+                                    req_id="",
+                                    message=f"Failed to respond to heartbeat within {timeout} seconds"
+                                )
+                                await websocket.send_text(resp.to_json())
+                                logger.info(f"Sent EndStream to client {client_id} ({client_type}): {resp.to_json()}")
+                                file_handler.flush()
+                                sdk_client.is_closing = True
+                                break
+                        else:
+                            logger.warning(f"Ignored HeartBeat TS: {received_ts}, ID: {received_id or 'none'} from client {client_id} ({client_type}), no pending heartbeat")
+                            file_handler.flush()
                     except Exception as e:
-                        logger.error(f"Failed to send HeartBeat response to client {client_id}: {str(e)}")
+                        logger.error(f"Failed to process HeartBeat from client {client_id} ({client_type}): {str(e)}")
                         file_handler.flush()
                         sdk_client.is_closing = True
                         break
@@ -217,7 +276,7 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                         "zone_id": json_data.get("zone_id")
                     }
                     await manager.process_sim_message(sim_message)
-                    logger.debug(f"Processing GISData for tag {json_data.get('ID')} in zone {json_data.get('zone_id')}")
+                    logger.debug(f"Processing GISData for tag {json_data.get('ID')} in zone {json_data.get('zone_id')} from client {client_id} ({client_type})")
                     file_handler.flush()
                     for ws_client in _WEBSOCKET_CLIENTS.get(manager_name, []):
                         if ws_client != sdk_client and ws_client.request_msg:
@@ -245,7 +304,7 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                             message=f"Invalid request type: {request_type}"
                         )
                         await websocket.send_text(resp.to_json())
-                        logger.debug(f"Sent error response to client {client_id}: {resp.to_json()}")
+                        logger.debug(f"Sent error response to client {client_id} ({client_type}): {resp.to_json()}")
                         file_handler.flush()
                         continue
 
@@ -268,39 +327,43 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                         sdk_client.sent_begin_msg = True
                         sdk_client.sent_req = True
                         await websocket.send_text(resp.to_json())
-                        logger.info(f"Client {client_id} subscribed to tags: {[t.id for t in req.tags]}, zone_id: {json_data.get('zone_id')}")
+                        logger.info(f"Client {client_id} ({client_type}) subscribed to tags: {[t.id for t in req.tags]}, zone_id: {json_data.get('zone_id')}")
                         file_handler.flush()
                         if resp.message:
                             await manager.close_client(sdk_client)
                             break
                     elif req.req_type == RequestType.EndStream:
                         await websocket.send_text(resp.to_json())
+                        logger.info(f"Sent EndStream response to client {client_id} ({client_type}): {resp.to_json()}")
+                        file_handler.flush()
                         await manager.close_client(sdk_client)
                         break
                     else:
                         resp.message = "Request not supported in RealTime stream."
                         await websocket.send_text(resp.to_json())
+                        logger.debug(f"Sent error response to client {client_id} ({client_type}): {resp.to_json()}")
+                        file_handler.flush()
 
                 else:
-                    logger.warning(f"Unknown message type from client {client_id}: {msg_type}")
+                    logger.warning(f"Unknown message type from client {client_id} ({client_type}): {msg_type}")
                     file_handler.flush()
 
             except asyncio.TimeoutError:
                 # Timeout allows periodic heartbeat checks
                 continue
-            except WebSocketDisconnect:
-                logger.info(f"WebSocket disconnected for /ws/{manager_name} from {client_id}")
+            except WebSocketDisconnect as e:
+                logger.info(f"WebSocket disconnected for /ws/{manager_name} from {client_id} ({client_type}): {str(e)}")
                 file_handler.flush()
                 is_disconnected = True
                 await sdk_client.close()
                 break
             except Exception as e:
-                logger.error(f"Error in WebSocket handler for client {client_id}: {str(e)}")
+                logger.error(f"Error in WebSocket handler for client {client_id} ({client_type}): {str(e)}")
                 file_handler.flush()
                 sdk_client.is_closing = True
                 break
     except Exception as e:
-        logger.error(f"Unexpected error in WebSocket endpoint for client {client_id}: {str(e)}")
+        logger.error(f"Unexpected error in WebSocket endpoint for client {client_id} ({client_type}): {str(e)}")
         file_handler.flush()
     finally:
         if sdk_client and not is_disconnected:
@@ -311,5 +374,7 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
             _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
         if client_id in _LAST_HEARTBEAT:
             del _LAST_HEARTBEAT[client_id]
-        logger.info(f"Cleaned up client {client_id} for /ws/{manager_name}")
+        if client_id in _PENDING_HEARTBEATS:
+            del _PENDING_HEARTBEATS[client_id]
+        logger.info(f"Cleaned up client {client_id} ({client_type}) for /ws/{manager_name}")
         file_handler.flush()

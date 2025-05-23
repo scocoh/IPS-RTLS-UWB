@@ -1,7 +1,7 @@
 # Name: app.py
-# Version: 0.1.60
+# Version: 0.1.61
 # Created: 971201
-# Modified: 250518
+# Modified: 250522
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -11,17 +11,19 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/app.py
-# Version: 0.1.60 - Confirmed CORSMiddleware import, version bump for clarity
-# Previous: 0.1.59 - Split WebSocket servers into control (port 8001) and real-time (port 8002)
-# Previous: 0.1.58 - Added components router for /api/components endpoint
-# Previous: 0P.10B.07 - Added debug logging for route registration
-# Previous: 0P.10B.06 - Restored original, ensured CORS
+# Version: 0.1.61 - Added Uvicorn logging to /home/parcoadmin/parco_fastapi/app/logs/server.log, bumped from 0.1.60
+# Previous: Confirmed CORSMiddleware import, version bump for clarity
+# Previous: Split WebSocket servers into control (port 8001) and real-time (port 8002)
+# Previous: Added components router for /api/components endpoint
+# Previous: Added debug logging for route registration
+# Previous: Restored original, ensured CORS
 
 import asyncpg
 from fastapi import FastAPI, Request, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware  # Ensure this import is correct
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
+from logging.handlers import RotatingFileHandler
 from database.db import get_async_db_pool
 from routes.device import router as device_router
 from routes.trigger import router as trigger_router
@@ -41,9 +43,37 @@ from manager.websocket_realtime import app as realtime_app
 from contextlib import asynccontextmanager
 import uvicorn
 import multiprocessing
+import os
 
-logging.basicConfig(level=logging.INFO)
+# Log directory
+LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+
+# Configure logging
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%y%m%d %H%M%S'))
+
+file_handler = RotatingFileHandler(
+    os.path.join(LOG_DIR, "server.log"),
+    maxBytes=10*1024*1024,
+    backupCount=5
+)
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%y%m%d %H%M%S'))
+
+logger.handlers = [console_handler, file_handler]
+logger.propagate = False
+
+# Configure Uvicorn logger
+uvicorn_logger = logging.getLogger("uvicorn")
+uvicorn_logger.handlers = [console_handler, file_handler]
+uvicorn_logger.setLevel(logging.INFO)
+uvicorn_logger.propagate = False
+
+logger.info("Starting Parco RTLS backend")
+file_handler.flush()
 
 # Lifespan handler
 @asynccontextmanager
@@ -179,26 +209,30 @@ def root():
 
 def run_control_server():
     """Run the control WebSocket server on port 8001."""
+    logger.info("Starting Uvicorn for control WebSocket on port 8001")
     uvicorn.run(
         "manager.websocket_control:app",
         host="0.0.0.0",
         port=8001,
-        log_level="debug"
+        log_level="debug",
+        logger=uvicorn_logger
     )
 
 def run_realtime_server():
     """Run the real-time WebSocket server on port 8002."""
+    logger.info("Starting Uvicorn for real-time WebSocket on port 8002")
     uvicorn.run(
         "manager.websocket_realtime:app",
         host="0.0.0.0",
         port=8002,
-        log_level="debug"
+        log_level="debug",
+        logger=uvicorn_logger
     )
 
 if __name__ == "__main__":
     # Start the main app (HTTP routes) on port 8000
     logger.info("Starting main FastAPI app on port 8000...")
-    main_process = multiprocessing.Process(target=uvicorn.run, args=(app,), kwargs={"host": "0.0.0.0", "port": 8000, "log_level": "debug"})
+    main_process = multiprocessing.Process(target=uvicorn.run, args=(app,), kwargs={"host": "0.0.0.0", "port": 8000, "log_level": "debug", "logger": uvicorn_logger})
     main_process.start()
 
     # Start the control WebSocket server on port 8001

@@ -1,7 +1,7 @@
 # Name: 10-utilitymenu.sh
-# Version: 0.1.57
+# Version: 0.1.59
 # Created: 971201
-# Modified: 250503
+# Modified: 250523
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Shell script for ParcoRTLS utilities
@@ -12,8 +12,10 @@
 
 #!/bin/bash
 # DESC: Displays an interactive menu of available .sh scripts with options to run or edit them, plus a Components submenu
-# VERSION 0P.3B.08
+# VERSION 0P.3B.10
 # Changelog:
+# - 0P.3B.10 (250523): Enhanced [L] Log Pane with submenu for advanced logging features
+# - 0P.3B.09 (250523): Added [L] Log Pane Output option to start/stop logging for tmux panes
 # - 0P.3B.08 (250503): Added chmod +x for all *.sh scripts in print_menu to ensure they are executable
 # - 0P.3B.07 (250503): Added option to run 20-proc-func.sh from Components submenu
 # - 0P.3B.06 (250502): Added option to save component_versions table to list_components.md in Components submenu
@@ -55,6 +57,7 @@ print_menu() {
   done
 
   echo " [C] Components (View component_versions table)"
+  echo " [L] Log Manager (Advanced tmux pane logging)"
   echo " [M] Redisplay Menu"
   echo " [E] Exit"
   echo
@@ -168,10 +171,117 @@ components_menu() {
   done
 }
 
+# Function to display the Log Manager submenu
+log_manager_menu() {
+  while true; do
+    clear
+    echo -e "📝 Log Manager"
+    echo "==============="
+    
+    # Show current status briefly
+    "$SCRIPT_DIR/24-logpane_tmux.sh" status 2>/dev/null | head -10
+    echo
+    
+    echo "Log Management Options:"
+    echo " [1] Start Logging (Single Pane)"
+    echo " [2] Stop Logging (Single Pane)"
+    echo " [3] Start All Panes"
+    echo " [4] Stop All Panes"
+    echo " [5] List Active Logs"
+    echo " [6] Tail Log File"
+    echo " [7] Cleanup Old Logs"
+    echo " [8] Show Full Status"
+    echo " [R] Return to Main Menu"
+    echo
+    read -p "Select an option: " choice
+
+    case "$choice" in
+      1)
+        echo -e "\n🚀 Start Logging for Single Pane"
+        echo "================================="
+        read -p "Enter pane number (0-6): " pane_num
+        if [[ "$pane_num" =~ ^[0-6]$ ]]; then
+          "$SCRIPT_DIR/24-logpane_tmux.sh" start "$pane_num"
+        else
+          echo "❗ Invalid pane number. Must be 0-6."
+        fi
+        echo -e "\n📥 Press ENTER to continue..."
+        read
+        ;;
+      2)
+        echo -e "\n🛑 Stop Logging for Single Pane"
+        echo "================================"
+        read -p "Enter pane number (0-6): " pane_num
+        if [[ "$pane_num" =~ ^[0-6]$ ]]; then
+          "$SCRIPT_DIR/24-logpane_tmux.sh" stop "$pane_num"
+        else
+          echo "❗ Invalid pane number. Must be 0-6."
+        fi
+        echo -e "\n📥 Press ENTER to continue..."
+        read
+        ;;
+      3)
+        echo -e "\n🚀 Starting Logging for All Active Panes"
+        echo "========================================"
+        "$SCRIPT_DIR/24-logpane_tmux.sh" start-all
+        echo -e "\n📥 Press ENTER to continue..."
+        read
+        ;;
+      4)
+        echo -e "\n🛑 Stopping Logging for All Panes"
+        echo "=================================="
+        read -p "⚠️  Stop logging for ALL panes? (y/N): " confirm
+        if [[ "$confirm" =~ ^[Yy]$ ]]; then
+          "$SCRIPT_DIR/24-logpane_tmux.sh" stop-all
+        else
+          echo "❌ Cancelled"
+        fi
+        echo -e "\n📥 Press ENTER to continue..."
+        read
+        ;;
+      5)
+        echo -e "\n📋 Active Logging Sessions"
+        echo "=========================="
+        "$SCRIPT_DIR/24-logpane_tmux.sh" list
+        echo -e "\n📥 Press ENTER to continue..."
+        read
+        ;;
+      6)
+        echo -e "\n📖 Tail Log File"
+        echo "================"
+        "$SCRIPT_DIR/24-logpane_tmux.sh" tail
+        # Note: tail command handles its own user interaction
+        ;;
+      7)
+        echo -e "\n🧹 Cleanup Old Logs"
+        echo "==================="
+        "$SCRIPT_DIR/24-logpane_tmux.sh" cleanup
+        echo -e "\n📥 Press ENTER to continue..."
+        read
+        ;;
+      8)
+        echo -e "\n🔍 Full Logging Status"
+        echo "======================"
+        "$SCRIPT_DIR/24-logpane_tmux.sh" status
+        echo -e "\n📥 Press ENTER to continue..."
+        read
+        ;;
+      [Rr])
+        break
+        ;;
+      *)
+        echo "❗ Invalid selection. Enter 1-8 or R."
+        echo "Press ENTER to continue..."
+        read
+        ;;
+    esac
+  done
+}
+
 # Main loop
 while true; do
   print_menu
-  read -p "Select a script by number to edit/run, [C]omponents, [M]enu, or [E]xit: " choice
+  read -p "Select a script by number to edit/run, [C]omponents, [L]og Manager, [M]enu, or [E]xit: " choice
 
   if [[ "$choice" =~ ^[Ee]$ ]]; then
     echo "👋 Goodbye!"
@@ -180,6 +290,8 @@ while true; do
     continue
   elif [[ "$choice" =~ ^[Cc]$ ]]; then
     components_menu
+  elif [[ "$choice" =~ ^[Ll]$ ]]; then
+    log_manager_menu
   elif [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#scripts[@]} )); then
     script_name=$(basename "${scripts[choice-1]}")
     script_path="${scripts[choice-1]}"
@@ -200,6 +312,6 @@ while true; do
       esac
     done
   else
-    echo "❗ Invalid selection. Enter a valid number, C for Components, M to redisplay, or E to exit."
+    echo "❗ Invalid selection. Enter a valid number, C for Components, L for Log Manager, M to redisplay, or E to exit."
   fi
 done
