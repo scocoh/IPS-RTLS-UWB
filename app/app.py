@@ -1,7 +1,7 @@
 # Name: app.py
-# Version: 0.1.61
+# Version: 0.1.62
 # Created: 971201
-# Modified: 250522
+# Modified: 250525
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -11,12 +11,22 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/app.py
+# Version: 0.1.62 - Added route to Events for AI TETSE and RTLS
 # Version: 0.1.61 - Added Uvicorn logging to /home/parcoadmin/parco_fastapi/app/logs/server.log, bumped from 0.1.60
 # Previous: Confirmed CORSMiddleware import, version bump for clarity
 # Previous: Split WebSocket servers into control (port 8001) and real-time (port 8002)
 # Previous: Added components router for /api/components endpoint
 # Previous: Added debug logging for route registration
 # Previous: Restored original, ensured CORS
+
+#  
+# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
+# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
+# Invented by Scott Cohen & Bertrand Dugal.
+# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
+# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
+#
+# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
 
 import asyncpg
 from fastapi import FastAPI, Request, HTTPException, status
@@ -38,6 +48,7 @@ from routes.zonebuilder_routes import router as zonebuilder_router
 from routes.zoneviewer_routes import router as zoneviewer_router
 from routes import maps, maps_upload
 from routes.components import router as components_router
+from routes.event import router as event_router
 from manager.websocket_control import app as control_app
 from manager.websocket_realtime import app as realtime_app
 from contextlib import asynccontextmanager
@@ -176,6 +187,7 @@ app.include_router(zoneviewer_router, prefix="/zoneviewer", tags=["zoneviewer"])
 app.include_router(maps.router, prefix="/maps", tags=["maps"])
 app.include_router(maps_upload.router, prefix="/maps", tags=["maps_upload"])
 app.include_router(components_router, prefix="/api", tags=["components"])
+app.include_router(event_router, prefix="/api", tags=["event"])
 
 async def get_async_db_pool(db_type: str = "maint"):
     """Creates an asyncpg connection pool with explicit parameters."""
