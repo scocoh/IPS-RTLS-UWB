@@ -69,7 +69,7 @@ Optional support for payload or sensor data.
 
 # NO CLOUD REQUIRED
 
-Designed to run on Linux.  Could be ideal for HomeAssistant.
+Designed to run on Linux.  Could be ideal for HomeAssistant. (TETSE presently uses the OpenAI API which is cloud.  Roll your own to excise the cloud.)
 
 # ParcoRTLS Linux Deployment
 
