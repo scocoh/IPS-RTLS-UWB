@@ -1,7 +1,7 @@
 /* Name: index.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 971201 */
-/* Modified: 250502 */
+/* Modified: 250607 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -9,6 +9,10 @@
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
+
+// /home/parcoadmin/parco_fastapi/app/src/index.js
+// Version: 0.1.1 - Added Portable Trigger Add button and view, bumped from 0.1.0
+// Previous: Added EntityMergeDemo button and view, bumped from 0.0.2
 
 //
 // # VERSION 250325 /home/parcoadmin/parco_fastapi/app/src/index_new.js 0.0.2
@@ -22,6 +26,7 @@
 // # Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
 //
 // # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -34,7 +39,8 @@ import ZoneBuilder from "./components/ZoneBuilder";
 import ZoneViewer from "./components/ZoneViewer";
 import BuildOutTool from "./components/BuildOutTool";
 import NewTriggerDemo from "./components/NewTriggerDemo";
-import EntityMergeDemo from "./components/EntityMergeDemo"; // Import the new component
+import EntityMergeDemo from "./components/EntityMergeDemo";
+import PortableTriggerAdd from "./components/PortableTriggerAdd";
 
 const App = () => {
   const [view, setView] = useState("triggers");
@@ -42,7 +48,6 @@ const App = () => {
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
       <h1>ParcoRTLS Management</h1>
-
       <div style={{ marginBottom: "20px" }}>
         <button onClick={() => setView("triggers")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Trigger Management</button>
         <button onClick={() => setView("zones")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Zone Management</button>
@@ -51,11 +56,10 @@ const App = () => {
         <button onClick={() => setView("zoneviewer")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Zone Viewer & Editor</button>
         <button onClick={() => setView("buildout")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Build Out Tool</button>
         <button onClick={() => setView("newTriggerDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Alpha New Trigger Demo</button>
-        <button onClick={() => setView("entityMergeDemo")} style={{ padding: "10px", fontSize: "16px" }}>Entity Merge Demo</button>
+        <button onClick={() => setView("entityMergeDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Entity Merge Demo</button>
+        <button onClick={() => setView("portableTriggerAdd")} style={{ padding: "10px", fontSize: "16px" }}>Portable Trigger Add</button>
       </div>
-
       <hr />
-
       {view === "trigger2025" && <TriggerUX2025 />}
       {view === "triggers" && <TriggerDemo />}
       {view === "zones" && <ZoneBuilder />}
@@ -65,6 +69,7 @@ const App = () => {
       {view === "buildout" && <BuildOutTool />}
       {view === "newTriggerDemo" && <NewTriggerDemo />}
       {view === "entityMergeDemo" && <EntityMergeDemo />}
+      {view === "portableTriggerAdd" && <PortableTriggerAdd />}
     </div>
   );
 };

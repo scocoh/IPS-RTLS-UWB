@@ -1,7 +1,7 @@
 /* Name: NewTriggerViewer.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.2 */
 /* Created: 971201 */
-/* Modified: 250502 */
+/* Modified: 250526 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -11,12 +11,15 @@
 /* Dependent: TRUE */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerViewer.js
-// Version: v0.0.34-250501 - Removed division scaling for portable trigger radii to match map scale, bumped from v0.0.33
+// Version: v0.1.2-250526 - Fixed triggers undefined error with default prop and optional chaining, retained WebSocket heartbeat logic, bumped from v0.1.1
+// Previous: Added WebSocket connection for heartbeat handling, bumped from v0.1.0
+// Previous: Removed division scaling for portable trigger radii to match map scale, bumped from v0.0.33
 // Previous: Scaled tag markers based on associated trigger radius_ft, bumped from v0.0.32 (v0.0.33)
 // Previous: Fixed map size invalidation loop by memoizing trigger polygons, bumped from v0.0.31 (v0.0.32)
 // Previous: Added portable trigger rendering in canvas mode, enhanced logging (v0.0.31)
 // Previous: Added non-portable trigger rendering in canvas mode, added debug logging (v0.0.30)
 // Previous: Fixed marker scaling with divIcon, added debug logging (v0.0.29)
+
 import React, { useEffect, useRef, useState, memo, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -36,8 +39,8 @@ const NewTriggerViewer = memo(({
   showExistingTriggers,
   existingTriggerPolygons,
   tagsData,
-  isConnected,
-  triggers
+  propIsConnected,
+  triggers = [] // Default to empty array
 }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -45,17 +48,65 @@ const NewTriggerViewer = memo(({
   const [mapData, setMapData] = useState(null);
   const [zoneVertices, setZoneVertices] = useState([]);
   const [error, setError] = useState(null);
-  const [mapInitialized, setMapInitialized] = useState(false); // Track map initialization
+  const [mapInitialized, setMapInitialized] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const isInitialized = useRef(false);
   const ctxRef = useRef(null);
   const imageRef = useRef(null);
   const drawnItems = useRef(new L.FeatureGroup());
   const canvasBounds = useRef({ x: 0, y: 0, width: 800, height: 600 });
-  const tagMarkersRef = useRef({}); // Changed to an object to store markers for multiple tags
-  const zoneLabelRef = useRef(null); // Ref for zone label
+  const tagMarkersRef = useRef({});
+  const zoneLabelRef = useRef(null);
   const userInteracted = useRef(false);
   const updateTimeout = useRef(null);
   const firstTagAppearance = useRef(true);
+  const wsRef = useRef(null);
+
+  // WebSocket connection for heartbeats
+  useEffect(() => {
+    const ws = new WebSocket(`ws://192.168.210.226:8002/ws/realtime?client_id=trigger_viewer_${Date.now()}`);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log("✅ WebSocket connected to ws://192.168.210.226:8002/ws/realtime");
+      setIsConnected(true);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("📩 WebSocket message received:", data);
+        if (data.type === "HeartBeat" && data.data?.heartbeat_id) {
+          const response = {
+            type: "HeartBeat",
+            ts: data.ts,
+            data: { heartbeat_id: data.data.heartbeat_id }
+          };
+          ws.send(JSON.stringify(response));
+          console.log("📤 Sent heartbeat response:", response);
+        }
+      } catch (error) {
+        console.error("❌ Error parsing WebSocket message:", error);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("❌ WebSocket disconnected");
+      setIsConnected(false);
+    };
+
+    ws.onerror = (error) => {
+      console.error("❌ WebSocket error:", error);
+      setIsConnected(false);
+    };
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        console.log("🧹 WebSocket cleaned up");
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (mapId) {
@@ -416,7 +467,7 @@ const NewTriggerViewer = memo(({
           if (trigger.isPortable && trigger.center && trigger.radius) {
             console.log(`Rendering portable trigger ${trigger.id} at center ${trigger.center} with radius ${trigger.radius}`);
             const circle = L.circle(trigger.center, {
-              radius: trigger.radius, // Use the raw radius value directly
+              radius: trigger.radius,
               color: trigger.isContained ? "red" : "purple",
               fillOpacity: 0.5,
               zIndexOffset: 800
@@ -454,7 +505,6 @@ const NewTriggerViewer = memo(({
           }
         }
       });
-      // Force map refresh
       if (mapInstance.current) {
         mapInstance.current.invalidateSize();
         console.log("Map size invalidated to force refresh");
@@ -465,7 +515,7 @@ const NewTriggerViewer = memo(({
   }, [useLeaflet, mapData, zoneVertices, checkedZones, memoizedTriggerPolygons, mapInitialized]);
 
   useEffect(() => {
-    console.log("Tag marker useEffect triggered", { tagsData, isConnected, mapInstance: !!mapInstance.current, mapInitialized });
+    console.log("Tag marker useEffect triggered", { tagsData, isConnected, mapInstance: !!mapInstance.current, mapInitialized, triggers });
     if (!useLeaflet || !mapInstance.current || !mapData || !mapInitialized) return;
 
     if (updateTimeout.current) {
@@ -509,11 +559,9 @@ const NewTriggerViewer = memo(({
           return;
         }
 
-        // Find the associated portable trigger for this tag
-        const associatedTrigger = triggers.find(t => t.is_portable && t.assigned_tag_id === tagId);
-        let markerSize = 10; // Default size in pixels
+        const associatedTrigger = triggers?.find(t => t.is_portable && t.assigned_tag_id === tagId);
+        let markerSize = 10;
         if (associatedTrigger && associatedTrigger.radius_ft) {
-          // Scale the marker size based on radius_ft (base size 10px for radius_ft=3)
           markerSize = Math.round(10 * (associatedTrigger.radius_ft / 3));
           console.log(`Scaling marker for tag ${tagId}: radius_ft=${associatedTrigger.radius_ft}, markerSize=${markerSize}px`);
         }
@@ -534,7 +582,6 @@ const NewTriggerViewer = memo(({
           console.log(`Tag marker created for ${tagId} at:`, latLng);
         } else {
           marker.setLatLng(latLng);
-          // Update the icon size in case radius_ft changed
           marker.setIcon(L.divIcon({
             className: "tag-marker",
             html: `<div style="background-color: red; width: ${markerSize}px; height: ${markerSize}px; border-radius: 50%;"></div>`,
@@ -571,5 +618,9 @@ const NewTriggerViewer = memo(({
     </div>
   );
 });
+
+NewTriggerViewer.defaultProps = {
+  triggers: []
+};
 
 export default NewTriggerViewer;

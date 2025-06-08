@@ -1,16 +1,22 @@
 # Name: app.py
-# Version: 0.1.62
+# Version: 0.1.68
 # Created: 971201
-# Modified: 250525
+# Modified: 250607
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
-# Location: /home/parcoadmin/parco_fastapi/app
+# Location: /home/parcoadmin/parco_fastapi/app/app.py
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/app.py
+# Version: 0.1.68 - Added prefix=/api to portable_triggers_router, bumped from 0.1.67
+# Version: 0.1.67 - add Portable Triggers Endpoint
+# Version: 0.1.66 - Integrated openai_trigger_api router into main FastAPI app, bumped from 0.1.65
+# Version: 0.1.65 - Removed tetse_main import and run_tetse_server, TETSE server now runs independently, bumped from 0.1.64
+# Version: 0.1.64 - Commented out TETSE WebSocket server process to avoid conflict with 06-devsession.sh, bumped from 0.1.63
+# Version: 0.1.63 - Added TETSE WebSocket server on port 9000, bumped from 0.1.62
 # Version: 0.1.62 - Added route to Events for AI TETSE and RTLS
 # Version: 0.1.61 - Added Uvicorn logging to /home/parcoadmin/parco_fastapi/app/logs/server.log, bumped from 0.1.60
 # Previous: Confirmed CORSMiddleware import, version bump for clarity
@@ -19,7 +25,7 @@
 # Previous: Added debug logging for route registration
 # Previous: Restored original, ensured CORS
 
-#  
+# 
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 # Invented by Scott Cohen & Bertrand Dugal.
@@ -37,6 +43,7 @@ from logging.handlers import RotatingFileHandler
 from database.db import get_async_db_pool
 from routes.device import router as device_router
 from routes.trigger import router as trigger_router
+from routes.portable_triggers import router as portable_triggers_router
 from routes.zone import router as zone_router
 from routes.entity import router as entity_router
 from routes.history import router as history_router
@@ -51,6 +58,8 @@ from routes.components import router as components_router
 from routes.event import router as event_router
 from manager.websocket_control import app as control_app
 from manager.websocket_realtime import app as realtime_app
+from routes.websocket_event import router as websocket_event_router
+from routes import openai_trigger_api
 from contextlib import asynccontextmanager
 import uvicorn
 import multiprocessing
@@ -126,7 +135,7 @@ async def lifespan(app: FastAPI):
 # Create the main FastAPI app for HTTP routes
 app = FastAPI(
     title="Parco RTLS API",
-    version="0P.10B.10",
+    version="0P.10B.11",
     docs_url="/docs",
     lifespan=lifespan
 )
@@ -188,6 +197,9 @@ app.include_router(maps.router, prefix="/maps", tags=["maps"])
 app.include_router(maps_upload.router, prefix="/maps", tags=["maps_upload"])
 app.include_router(components_router, prefix="/api", tags=["components"])
 app.include_router(event_router, prefix="/api", tags=["event"])
+app.include_router(portable_triggers_router, prefix="/api")
+app.include_router(websocket_event_router)
+app.include_router(openai_trigger_api.router, prefix="/api/openai")
 
 async def get_async_db_pool(db_type: str = "maint"):
     """Creates an asyncpg connection pool with explicit parameters."""

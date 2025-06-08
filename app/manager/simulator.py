@@ -1,7 +1,7 @@
 # Name: simulator.py
-# Version: 0.1.19
+# Version: 0.1.20
 # Created: 971201
-# Modified: 250523
+# Modified: 250526
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS simulator with PortRedirect and EndStream support
@@ -11,7 +11,8 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/simulator.py
-# Version: 0.1.19 - Fixed logging AttributeError, preserved all v0.1.18 functionality, added EndStream on stop for control/stream WebSockets, enhanced logging, bumped from 0.1.18
+# Version: 0.1.20 - Updated heartbeat response for HeartbeatManager, added configurable WebSocket URI, improved connection error handling, fixed syntax errors in finally block, bumped from 0.1.19
+# Previous: Fixed logging AttributeError, preserved all v0.1.18 functionality, added EndStream on stop for control/stream WebSockets, enhanced logging, bumped from 0.1.18
 # Previous: Restored moving tag interpolation in send_tag_data from v0.1.0, bumped from 0.1.17
 # Previous: Modified to only respond to heartbeats with heartbeat_id, increased HEARTBEAT_RATE_LIMIT to 50, bumped from 0.1.16
 # Previous: Reduced HEARTBEAT_RATE_LIMIT from 100 to 10 to save log space, bumped from 0.1.15
@@ -67,6 +68,10 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelnam
 logger.handlers = [logging.StreamHandler(), file_handler]
 logger.propagate = False
 
+# WebSocket configuration
+WEBSOCKET_HOST = "192.168.210.226"
+CONTROL_PORT = 8001
+
 class TagConfig:
     def __init__(self, tag_id: str, positions: List[Tuple[float, float, float]], ping_rate: float, move_interval: float = 0):
         self.tag_id = tag_id
@@ -110,19 +115,24 @@ async def receive_messages(websocket, running, zone_id):
                     if time_window < 1.0:
                         should_stop = True
                         raise RuntimeError(f"Heartbeat rate exceeded {HEARTBEAT_RATE_LIMIT} messages per second on control WebSocket")
-                if "heartbeat_id" in data:
-                    response = json.dumps({"type": "HeartBeat", "ts": data["ts"]})
+                heartbeat_id = data.get("heartbeat_id")
+                if heartbeat_id:
+                    response = json.dumps({
+                        "type": "HeartBeat",
+                        "ts": data["ts"],
+                        "data": {"heartbeat_id": heartbeat_id}
+                    })
                     await websocket.send(response)
                     logger.debug(f"Sent heartbeat response: {response}")
                 else:
-                    logger.debug(f"Ignoring heartbeat without heartbeat_id: {data}")
+                    logger.warning(f"Ignoring invalid heartbeat missing heartbeat_id: {data}")
             elif data.get("type") == "PortRedirect":
                 logger.info(f"Received PortRedirect: {data}")
                 port = data.get("port")
                 stream_type = data.get("stream_type")
                 manager_name = data.get("manager_name")
                 if port and stream_type and manager_name:
-                    new_uri = f"ws://192.168.210.226:{port}/ws/{manager_name}"
+                    new_uri = f"ws://{WEBSOCKET_HOST}:{port}/ws/{manager_name}"
                     logger.info(f"Attempting to connect to stream WebSocket: {new_uri}")
                     try:
                         stream_websocket = await websockets.connect(new_uri)
@@ -182,13 +192,18 @@ async def receive_stream_messages(websocket, running):
                         should_stop = True
                         raise RuntimeError(f"Heartbeat rate exceeded {HEARTBEAT_RATE_LIMIT} messages per second on stream WebSocket")
                 if current_time - last_heartbeat_time >= HEARTBEAT_RATE_WINDOW:
-                    if "heartbeat_id" in data:
-                        response = json.dumps({"type": "HeartBeat", "ts": data["ts"]})
+                    heartbeat_id = data.get("heartbeat_id")
+                    if heartbeat_id:
+                        response = json.dumps({
+                            "type": "HeartBeat",
+                            "ts": data["ts"],
+                            "data": {"heartbeat_id": heartbeat_id}
+                        })
                         await websocket.send(response)
                         logger.debug(f"Sent heartbeat response on stream WebSocket: {response}")
                         last_heartbeat_time = current_time
                     else:
-                        logger.debug(f"Ignoring heartbeat without heartbeat_id: {data}")
+                        logger.warning(f"Ignoring invalid heartbeat missing heartbeat_id: {data}")
                 else:
                     logger.debug(f"Rate-limiting heartbeat response: {data}")
             elif data.get("type") == "response":
@@ -360,8 +375,8 @@ async def simulator():
     global tag_configs
     global stream_receive_task
     global should_stop
-    uri = "ws://192.168.210.226:8001/ws/ControlManager"
-    print("Select simulation mode (v0.1.19):")
+    uri = f"ws://{WEBSOCKET_HOST}:{CONTROL_PORT}/ws/ControlManager"
+    print("Select simulation mode (v0.1.20):")
     print("1. Single tag at a fixed point")
     print("2. Single tag moving between two points (with linear interpolation)")
     print("3. Multiple tags at fixed points")
@@ -441,26 +456,49 @@ async def simulator():
     should_stop = False
     logger.info(f"Starting simulation in mode {mode} with tags: {[tag.tag_id for tag in tag_configs]}, zone_id: {zone_id}, duration: {duration}s")
     file_handler.flush()
-    try:
-        async with websockets.connect(uri) as websocket:
-            current_websocket = websocket
-            handshake = json.dumps({
-                "type": "request",
-                "request": "BeginStream",
-                "reqid": "sim_init",
-                "params": [{"id": tag_config.tag_id, "data": "true"} for tag_config in tag_configs],
-                "zone_id": zone_id
-            })
-            logger.info(f"Simulator targeting zone {zone_id} with handshake: {handshake}")
-            await websocket.send(handshake)
-            receive_task = asyncio.create_task(receive_messages(websocket, running, zone_id))
-            send_task = asyncio.create_task(send_data(websocket, tag_configs, running, duration, zone_id))
-            user_input_task = asyncio.create_task(handle_user_input(running, receive_task, send_task, websocket))
-            try:
-                await send_task
-            except RuntimeError as e:
-                logger.error(f"Simulation failed: {str(e)}")
-                should_stop = True
+    retries = 3
+    retry_delay = 5
+    for attempt in range(retries):
+        try:
+            async with websockets.connect(uri, max_size=2**20) as websocket:
+                current_websocket = websocket
+                handshake = json.dumps({
+                    "type": "request",
+                    "request": "BeginStream",
+                    "reqid": "sim_init",
+                    "params": [{"id": tag_config.tag_id, "data": "true"} for tag_config in tag_configs],
+                    "zone_id": zone_id
+                })
+                logger.info(f"Simulator targeting zone {zone_id} with handshake: {handshake}")
+                await websocket.send(handshake)
+                receive_task = asyncio.create_task(receive_messages(websocket, running, zone_id))
+                send_task = asyncio.create_task(send_data(websocket, tag_configs, running, duration, zone_id))
+                user_input_task = asyncio.create_task(handle_user_input(running, receive_task, send_task, websocket))
+                try:
+                    await send_task
+                except RuntimeError as e:
+                    logger.error(f"Simulation failed: {str(e)}")
+                    should_stop = True
+                    receive_task.cancel()
+                    user_input_task.cancel()
+                    if stream_receive_task:
+                        stream_receive_task.cancel()
+                        try:
+                            await stream_receive_task
+                        except asyncio.CancelledError:
+                            logger.info("Stream receive task successfully canceled")
+                    try:
+                        await receive_task
+                    except asyncio.CancelledError:
+                        logger.info("Receive task successfully canceled")
+                    try:
+                        await user_input_task
+                    except asyncio.CancelledError:
+                        logger.info("User input task successfully canceled")
+                    if current_websocket and current_websocket.state == websockets.State.OPEN:
+                        await current_websocket.close()
+                    raise
+                logger.info("Send task completed, canceling all tasks")
                 receive_task.cancel()
                 user_input_task.cancel()
                 if stream_receive_task:
@@ -477,55 +515,40 @@ async def simulator():
                     await user_input_task
                 except asyncio.CancelledError:
                     logger.info("User input task successfully canceled")
-                if current_websocket and current_websocket.state == websockets.State.OPEN:
-                    await current_websocket.close()
-                raise
-            logger.info("Send task completed, canceling all tasks")
-            receive_task.cancel()
-            user_input_task.cancel()
-            if stream_receive_task:
-                stream_receive_task.cancel()
+                return
+        except Exception as ex:
+            logger.error(f"Connection attempt {attempt + 1} failed: {str(ex)}\n{traceback.format_exc()}")
+            if attempt < retries - 1:
+                logger.info(f"Retrying in {retry_delay} seconds...")
+                await asyncio.sleep(retry_delay)
+            else:
+                logger.error("Max retries reached, exiting.")
+                sys.exit(1)
+        finally:
+            if current_websocket and current_websocket.state == websockets.State.OPEN:
+                end_stream = {
+                    "type": "request",
+                    "request": "EndStream",
+                    "reqid": ""
+                }
                 try:
-                    await stream_receive_task
-                except asyncio.CancelledError:
-                    logger.info("Stream receive task successfully canceled")
-            try:
-                await receive_task
-            except asyncio.CancelledError:
-                logger.info("Receive task successfully canceled")
-            try:
-                await user_input_task
-            except asyncio.CancelledError:
-                logger.info("User input task successfully canceled")
-    except RuntimeError as e:
-        logger.error(f"Connection error: {str(e)}")
-    except Exception as ex:
-        logger.error(f"Unexpected connection error: {str(ex)}\n{traceback.format_exc()}")
-    finally:
-        if current_websocket and current_websocket.state == websockets.State.OPEN:
-            end_stream = {
-                "type": "request",
-                "request": "EndStream",
-                "reqid": ""
-            }
-            try:
-                await current_websocket.send(json.dumps(end_stream))
-                logger.info(f"Sent EndStream on control WebSocket: {end_stream}")
-                file_handler.flush()
-                message = await asyncio.wait_for(current_websocket.recv(), timeout=10.0)
-                data = json.loads(message)
-                logger.info(f"Received response to EndStream on control WebSocket: {data}")
-                file_handler.flush()
-            except Exception as e:
-                logger.error(f"Failed to send/receive EndStream on control WebSocket: {str(e)}")
-                file_handler.flush()
-            try:
-                await current_websocket.close()
-                logger.info(f"Control WebSocket closed with code: {current_websocket.close_code}")
-                file_handler.flush()
-            except Exception as e:
-                logger.error(f"Error closing control WebSocket: {str(e)}")
-                file_handler.flush()
+                    await current_websocket.send(json.dumps(end_stream))
+                    logger.info(f"Sent EndStream on control WebSocket: {end_stream}")
+                    file_handler.flush()
+                    message = await asyncio.wait_for(current_websocket.recv(), timeout=10.0)
+                    data = json.loads(message)
+                    logger.info(f"Received response to EndStream on control WebSocket: {data}")
+                    file_handler.flush()
+                except Exception as e:
+                    logger.error(f"Failed to send/receive EndStream on control WebSocket: {str(e)}")
+                    file_handler.flush()
+                try:
+                    await current_websocket.close()
+                    logger.info(f"Control WebSocket closed with code: {current_websocket.close_code}")
+                    file_handler.flush()
+                except Exception as e:
+                    logger.error(f"Error closing control WebSocket: {str(e)}")
+                    file_handler.flush()
     logger.info("Simulation complete, exiting.")
     sys.exit(0)
 

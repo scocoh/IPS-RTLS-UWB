@@ -7,7 +7,7 @@
 # Description: Python script for ParcoRTLS backend with multi-port WebSocket support and PortRedirect
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
-# Status: Active
+# Status: Not Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket.py

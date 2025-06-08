@@ -1,6 +1,6 @@
 # /home/parcoadmin/parco_fastapi/app/routes/trigger.py
 # Name: trigger.py
-# Version: 0.1.59
+# Version: 0.1.60
 # Created: 971201
 # Modified: 250503
 # Creator: ParcoAdmin
@@ -11,6 +11,7 @@
 # Status: Active
 # Dependent: TRUE
 #
+# Version 0.1.60 Changed version added endpoint add_portable_trigger
 # CHANGED: Fixed column name in list_newtriggers from f_portable to is_portable, bumped to 0P.10B.21
 # PREVIOUS: Updated list_newtriggers to set zone_id from triggers.i_zn or regions.i_zn, bumped to 0P.10B.20-250427
 # --- PREVIOUS: Enhanced docstrings for all endpoints, bumped to 0P.10B.19-250426
@@ -1459,3 +1460,4 @@ async def get_zone_vertices(zone_id: int):
     except Exception as e:
         logger.error(f"Error fetching zone vertices: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    

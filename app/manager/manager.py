@@ -1,17 +1,22 @@
 # Name: manager.py
-# Version: 0.1.13
+# Version: 0.1.19
 # Created: 971201
-# Modified: 250519
+# Modified: 250526
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS backend
+# Modified By: AI Assistant
+# Description: Python script for ParcoRTLS backend + Event Engine (TETSE) WebSocket support
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/manager.py
-# Version: 0.1.13 - Replaced RotatingFileHandler with LineLimitedFileHandler for 999-line limit, fixed f-string and trigge typo in process_sim_message, fixed selftoupper typo and syntax error in __init__, bumped from 0.1.12
+# Version: 0.1.19 - Added debug logging for broadcast_event_instance, bumped from 0.1.18
+# Version: 0.1.18 - Fixed timezone undefined error by adding import, bumped from 0.1.17
+# Version: 0.1.17 - Added broadcast_event_instance for TETSE WebSocket, bumped from 0.1.16
+# Version: 0.1.16 - Changed relative imports to absolute imports to fix ImportError, bumped from 0.1.15
+# Version: 0.1.15 - Moved clients to class variable for broadcast_event static method, removed from __init__, bumped from 0.1.14
+# Previous: Replaced RotatingFileHandler with LineLimitedFileHandler for 999-line limit, fixed f-string and trigge typo in process_sim_message, fixed selftoupper typo and syntax error in __init__, bumped from 0.1.12
 # Previous: Enhanced heartbeat logging to trace sources, bumped from 0.1.11
 # Previous: Disabled client heartbeat responses, tightened server-side throttling, added heartbeat source logging, bumped from 0.1.10
 # Previous: Fixed heartbeat timestamp, tightened rate-limiting to 1 per 30s, prevented feedback loops, bumped from 0.1.9
@@ -41,24 +46,24 @@
 from typing import Dict, List
 import asyncpg
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 import httpx
 import traceback
-from .models import GISData, HeartBeat, Response, ResponseType, Ave, Tag
-from .enums import eMode, eRunState, TriggerDirections
-from .trigger import Trigger
-from .portable_trigger import PortableTrigger
-from .sdk_client import SDKClient
-from .region import Region3D, Region3DCollection
-from .utils import FASTAPI_BASE_URL, track_metrics
-from .data_processor import DataProcessor
-from .fastapi_service import FastAPIService
+from manager.models import GISData, HeartBeat, Response, ResponseType, Ave, Tag
+from manager.enums import eMode, eRunState, TriggerDirections
+from manager.trigger import Trigger
+from manager.portable_trigger import PortableTrigger
+from manager.sdk_client import SDKClient
+from manager.region import Region3D, Region3DCollection
+from manager.utils import FASTAPI_BASE_URL, track_metrics
+from manager.data_processor import DataProcessor
+from manager.fastapi_service import FastAPIService
 import logging
 import json
 from fastapi import WebSocket
 import os
 from collections import deque
-from .line_limited_logging import LineLimitedFileHandler
+from manager.line_limited_logging import LineLimitedFileHandler
 
 # Ensure log directory exists
 LOG_DIR = "/home/parcoadmin/parco_fastapi/logs"
@@ -87,6 +92,8 @@ logger.addHandler(file_handler)
 logger.propagate = False
 
 class Manager:
+    clients: Dict[str, List[WebSocket]] = {}  # Shared across all instances for static methods
+
     def __init__(self, name: str, zone_id: int):
         # Core attributes for Manager instance
         self.name = name
@@ -107,7 +114,6 @@ class Manager:
         self.resrc_type_name = ""
         self.ave_hash: Dict[str, Ave] = {}
         self.sdk_clients: Dict[str, SDKClient] = {}
-        self.clients: Dict[str, List[WebSocket]] = {}
         self.kill_list: List[SDKClient] = []
         self.last_heartbeat = 0
         self.conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
@@ -136,6 +142,7 @@ class Manager:
         self.HEARTBEAT_RATE_LIMIT = 1   # Max 1 heartbeat per 30s
         self.ws_heartbeat_timestamps: Dict[str, deque] = {}  # For WebSocket clients
         self.sdk_heartbeat_timestamps: Dict[str, deque] = {}  # For SDK clients
+        self.clients = {}  # Instance-level clients for TETSE WebSocket
 
     async def load_config_from_db(self):
         logger.debug(f"Loading config for manager {self.name} from DB")
@@ -161,7 +168,7 @@ class Manager:
                     logger.debug(f"Config loaded: mode={self.mode}, ip={self.sdk_ip}, port={self.sdk_port}")
                     file_handler.flush()
                 else:
-                    self.sdk_ip = "127.0.0.1"
+                    self.sdk_ip = "127.0.0.0"
                     self.sdk_port = 5000
                     self.mode = eMode.Subscription
                     logger.debug("No config found, using defaults")
@@ -626,144 +633,143 @@ class Manager:
                                 logger.error(f"Failed to send TriggerEvent to WebSocket client {reqid}: {str(e)}")
                                 file_handler.flush()
 
-            if self.mode == eMode.Subscription:
-                await self.queue_sub(msg)
-            else:
-                await self.queue_full(msg)
-
-            self.tag_count += 1
-            self.tag_rate_counter += 1
-            self.tag_rate_timestamps.append(asyncio.get_event_loop().time())
-            self.last_rate_time = track_metrics(self.tag_rate_counter, self.last_rate_time, self.tag_rate_timestamps)
-            self.last_tag_time = asyncio.get_event_loop().time()
-        except Exception as ex:
-            logger.warning(f"ParserDataArrived Error: {str(ex)}")
-            file_handler.flush()
-
-    def tag_ave(self, msg: GISData):
-        logger.debug(f"Computing tag average for ID:{msg.id}")
-        file_handler.flush()
-        if msg.id in self.ave_hash:
-            a = self.ave_hash[msg.id]
-            x = round((1.0 - self.ave_factor) * a.x + (msg.x * self.ave_factor), 1)
-            y = round((1.0 - self.ave_factor) * a.y + (msg.y * self.ave_factor), 1)
-            a.x = x
-            a.y = y
-            msg.x = x
-            msg.y = y
-        else:
-            a = Ave(x=msg.x, y=msg.y, z=msg.z)
-            self.ave_hash[msg.id] = a
-
-    async def queue_full(self, msg: GISData):
-        message = msg.to_xml()
-        json_message = msg.to_json()
-        logger.debug(f"Queueing full GISData message: {json_message}")
-        file_handler.flush()
-        try:
-            msg_dict = json.loads(json_message)
-            if msg_dict.get("type") == "HeartBeat":
-                logger.info(f"Ignoring heartbeat message in queue_full: {json_message}")
-                file_handler.flush()
-                return  # Prevent heartbeat processing
-            msg_dict["zone_id"] = getattr(msg, 'zone_id', self.zone_id)
-            logger.debug(f"Set zone_id in queue_full: {msg_dict['zone_id']}")
-            file_handler.flush()
-            json_message = json.dumps(msg_dict)
-            logger.debug(f"Queueing full message with zone_id: {json_message}")
-            file_handler.flush()
-        except json.JSONDecodeError:
-            logger.warning("Failed to decode JSON message in queue_full")
-            file_handler.flush()
-            return
-        for client_id, client in self.sdk_clients.items():
-            if not client.is_closing and client.has_request and client.zone_id == msg.zone_id:
-                client.q.put_nowait(json_message)
-        for reqid, clients in self.clients.items():
-            for client in clients:
-                try:
-                    await client.send_json(json.loads(json_message))
-                    logger.debug(f"Sent GISData to WebSocket client {reqid}: {json_message}")
+            if self.is_ave:
+                ave_msg = self.ave_hash.get(msg.id)
+                if ave_msg:
+                    ave_msg.zone_id = zone_id
+                    ave_msg.sequence = msg.sequence
+                    logger.debug(f"Sending averaged data for tag ID:{ave_msg.id} on topic ws_ave_{ave_msg.id}")
                     file_handler.flush()
-                except Exception as e:
-                    logger.error(f"Failed to send GISData to WebSocket client {reqid}: {str(e)}")
-                    file_handler.flush()
+                    for reqid, clients in list(self.clients.items()):
+                        if reqid.startswith(f"ws_ave_{ave_msg.id}"):
+                            for client in clients:
+                                try:
+                                    ave_data = {
+                                        "type": "AveragedData",
+                                        "id": ave_msg.id,
+                                        "x": ave_msg.x,
+                                        "y": ave_msg.y,
+                                        "z": ave_msg.z,
+                                        "ts": ave_msg.ts.isoformat(),
+                                        "zone_id": ave_msg.zone_id,
+                                        "sequence": ave_msg.sequence
+                                    }
+                                    await client.send_json(ave_data)
+                                    logger.debug(f"Sent AveragedData to WebSocket client {reqid}: {ave_data}")
+                                    file_handler.flush()
+                                except Exception as e:
+                                    logger.error(f"Failed to send AveragedData to WebSocket client {reqid}: {str(e)}")
+                                    file_handler.flush()
+                                    clients.remove(client)
+                                    if not clients:
+                                        del self.clients[reqid]
 
-    async def queue_sub(self, msg: GISData):
-        message = msg.to_xml()
-        json_message = msg.to_json()
-        logger.debug(f"Queueing subscription GISData message: {json_message}")
+        except Exception as e:
+            logger.error(f"ParserDataArrived Error: {str(e)}\n{traceback.format_exc()}")
+            file_handler.flush()
+
+    async def process_sim_message(self, sm: dict):
+        logger.debug(f"Processing sim message: {sm}")
         file_handler.flush()
         try:
-            msg_dict = json.loads(json_message)
-            if msg_dict.get("type") == "HeartBeat":
-                logger.info(f"Ignoring heartbeat message in queue_sub: {json_message}")
+            if "gis" not in sm:
+                logger.error("Sim message missing 'gis' key")
                 file_handler.flush()
-                return  # Prevent heartbeat processing
-            msg_dict["zone_id"] = getattr(msg, 'zone_id', self.zone_id)
-            logger.debug(f"Set zone_id in queue_sub: {msg_dict['zone_id']}")
+                return
+            gis = sm["gis"]
+            if not all(k in gis for k in ["id", "x", "y", "z"]):
+                logger.error("Sim message 'gis' missing required fields: id, x, y, z")
+                file_handler.flush()
+                return
+
+            sm["ID"] = gis["id"]
+            sm["Type"] = "Sim POTTER"
+            sm["TS"] = datetime.now(timezone.utc)
+            sm["X"] = gis["x"]
+            sm["Y"] = gis["y"]
+            sm["Z"] = gis["z"]
+            sm["Bat"] = 0
+            sm["CNF"] = 100
+            sm["GWID"] = "SIM"
+            sm["Sequence"] = sm.get("sequence", 0)
+
+            logger.debug(f"Processed sim message: {sm}")
             file_handler.flush()
-            json_message = json.dumps(msg_dict)
-            logger.debug(f"Queueing subscription message for tag {msg.id} with zone_id: {json_message}")
+
+            await self.parser_data_arrived(sm)
+        except Exception as e:
+            logger.error(f"ProcessSimMessage Error: {str(e)}\n{traceback.format_exc()}")
             file_handler.flush()
-        except json.JSONDecodeError:
-            logger.warning("Failed to decode JSON message in queue_sub")
-            file_handler.flush()
+
+    async def tag_ave(self, msg: GISData):
+        if not self.is_ave:
             return
-        for client_id, client in self.sdk_clients.items():
-            tag_match = client.contains_tag(msg.id)
-            zone_match = client.zone_id == msg.zone_id
-            if not client.is_closing and tag_match and zone_match:
-                logger.debug(f"Client {client_id} subscribed to tag {msg.id} in zone {msg.zone_id}, queuing message")
-                file_handler.flush()
-                client.q.put_nowait(json_message)
-            else:
-                logger.debug(f"Skipping client {client_id}: closing={client.is_closing}, tag_match={tag_match}, zone_match={zone_match} (client zone: {client.zone_id})")
-                file_handler.flush()
-        for reqid, clients in self.clients.items():
-            for client in clients:
-                try:
-                    await client.send_json(json.loads(json_message))
-                    logger.debug(f"Sent GISData to WebSocket client {reqid}: {json_message}")
-                    file_handler.flush()
-                except Exception as e:
-                    logger.error(f"Failed to send GISData to WebSocket client {reqid}: {str(e)}")
-                    file_handler.flush()
+
+        if msg.id not in self.tag_averages:
+            self.tag_averages[msg.id] = []
+            self.tag_timestamps[msg.id] = []
+        if msg.id not in self.tag_averages_2d:
+            self.tag_averages_2d[msg.id] = []
+            self.tag_timestamps_2d[msg.id] = []
+        if msg.id not in self.tag_averages_3d:
+            self.tag_averages_3d[msg.id] = []
+            self.tag_timestamps_3d[msg.id] = []
+
+        current_time = datetime.now(timezone.utc)
+
+        # 3D Averaging (default 5 samples)
+        self.tag_averages_3d[msg.id].append(msg)
+        self.tag_timestamps_3d[msg.id].append(current_time)
+        while self.tag_timestamps_3d[msg.id] and (current_time - self.tag_timestamps_3d[msg.id][0]).total_seconds() > 30:
+            self.tag_averages_3d[msg.id].pop(0)
+            self.tag_timestamps_3d[msg.id].pop(0)
+        if len(self.tag_averages_3d[msg.id]) >= 5:
+            ave = Ave.average(self.tag_averages_3d[msg.id][-5:])
+            self.ave_hash[msg.id] = ave
+            logger.debug(f"Computed 3D average for tag ID:{msg.id}: x={ave.x}, y={ave.y}, z={ave.z}")
+            file_handler.flush()
+
+        # 2D Averaging (default 5 samples)
+        self.tag_averages_2d[msg.id].append(msg)
+        self.tag_timestamps_2d[msg.id].append(current_time)
+        while self.tag_timestamps_2d[msg.id] and (current_time - self.tag_timestamps_2d[msg.id][0]).total_seconds() > 30:
+            self.tag_averages_2d[msg.id].pop(0)
+            self.tag_timestamps_2d[msg.id].pop(0)
+        if len(self.tag_averages_2d[msg.id]) >= 5:
+            ave_2d = Ave.average_2d(self.tag_averages_2d[msg.id][-5:])
+            self.ave_hash[msg.id] = ave_2d
+            logger.debug(f"Computed 2D average for tag ID:{msg.id}: x={ave_2d.x}, y={ave_2d.y}")
+            file_handler.flush()
 
     async def monitor_tag_data(self):
-        logger.debug("Starting tag data monitor")
+        logger.debug("Starting monitor_tag_data")
         file_handler.flush()
-        while self.run_state == eRunState.Started:
+        while self.run_state in [eRunState.Started, eRunState.Starting]:
             try:
                 current_time = asyncio.get_event_loop().time()
-                if current_time - self.last_tag_time > 5.0:
-                    if not self.simulator_active:
-                        logger.info("No real tag data for 5s, signaling simulator to start")
+                if current_time - self.last_rate_time >= 60:
+                    self.tag_rate = {}
+                    for tag_id, timestamps in self.tag_timestamps.items():
+                        while timestamps and (current_time - timestamps[0].timestamp()) > 60:
+                            timestamps.pop(0)
+                        rate = len(timestamps)
+                        self.tag_rate[tag_id] = rate
+                        logger.debug(f"Tag {tag_id} rate: {rate} updates per minute")
                         file_handler.flush()
-                        await self.signal_simulator("start_simulator")
-                        self.simulator_active = True
-                elif self.simulator_active:
-                    logger.info("Real tag data resumed, signaling simulator to stop")
-                    file_handler.flush()
-                    await self.signal_simulator("stop_simulator")
-                    self.simulator_active = False
-                await asyncio.sleep(1.0)
-            except Exception as ex:
-                logger.error(f"Tag data monitor error: {str(ex)}")
+                    self.last_rate_time = current_time
+                await asyncio.sleep(10)
+            except Exception as e:
+                logger.error(f"MonitorTagData Error: {str(e)}\n{traceback.format_exc()}")
                 file_handler.flush()
-                await asyncio.sleep(1.0)
+                await asyncio.sleep(10)
 
-    async def signal_simulator(self, command: str):
-        message = json.dumps({"command": command})
-        for client_id, client in list(self.sdk_clients.items()):
-            if client_id.startswith("sim_"):
-                try:
-                    await client.websocket.send_text(message)
-                    logger.debug(f"Sent {command} to simulator client {client_id}")
-                    file_handler.flush()
-                except Exception as ex:
-                    logger.error(f"Failed to signal simulator {client_id}: {str(ex)}")
-                    file_handler.flush()
+    @staticmethod
+    async def add_client(reqid: str, websocket: WebSocket):
+        logger.debug(f"Adding WebSocket client for reqid {reqid}")
+        file_handler.flush()
+        if reqid not in Manager.clients:
+            Manager.clients[reqid] = []
+        Manager.clients[reqid].append(websocket)
 
     async def add_client(self, reqid: str, websocket: WebSocket):
         logger.debug(f"Adding WebSocket client for reqid {reqid}")
@@ -771,106 +777,54 @@ class Manager:
         if reqid not in self.clients:
             self.clients[reqid] = []
         self.clients[reqid].append(websocket)
+        logger.debug(f"After adding client, self.clients: {self.clients}")
+        file_handler.flush()
+
+    @staticmethod
+    async def remove_client(reqid: str, websocket: WebSocket):
+        logger.debug(f"Removing WebSocket client for reqid {reqid}")
+        file_handler.flush()
+        if reqid in Manager.clients:
+            if websocket in Manager.clients[reqid]:
+                Manager.clients[reqid].remove(websocket)
+            if not Manager.clients[reqid]:
+                del Manager.clients[reqid]
 
     async def remove_client(self, reqid: str, websocket: WebSocket):
         logger.debug(f"Removing WebSocket client for reqid {reqid}")
         file_handler.flush()
         if reqid in self.clients:
-            self.clients[reqid].remove(websocket)
+            if websocket in self.clients[reqid]:
+                self.clients[reqid].remove(websocket)
             if not self.clients[reqid]:
                 del self.clients[reqid]
-                if reqid in self.ws_heartbeat_timestamps:
-                    del self.ws_heartbeat_timestamps[reqid]
-
-    async def process_sim_message(self, message: dict):
-        logger.debug(f"Processing Sim message: {message}")
+        logger.debug(f"After removing client, self.clients: {self.clients}")
         file_handler.flush()
-        try:
-            gis = message.get("gis", {})
-            tag_id = gis.get("id")
-            x = gis.get("x", 0.0)
-            y = gis.get("y", 0.0)
-            z = gis.get("z", 0.0)
-            zone_id = message.get("zone_id")
-            if not tag_id or zone_id is None:
-                logger.warning(f"Invalid Sim message: missing tag_id or zone_id: {message}")
-                file_handler.flush()
-                return
 
-            if not isinstance(x, (int, float)) or not isinstance(y, (int, float)) or not isinstance(z, (int, float)):
-                logger.warning(f"Invalid coordinates in Sim message for tag {tag_id}: x={x}, y={y}, z={z}")
-                file_handler.flush()
-                return
+    @staticmethod
+    async def broadcast_event(entity_id: str, data: dict):
+        topic = f"ws_event_{entity_id}"
+        logger.debug(f"[Broadcast] Publishing event for {entity_id}: {data}")
+        if topic not in Manager.clients:
+            logger.debug(f"[Broadcast] No active subscribers for topic {topic}")
+            return
+        for client in Manager.clients[topic]:
+            try:
+                await client.send_json(data)
+                logger.debug(f"[Broadcast] Sent event to client on topic {topic}")
+            except Exception as e:
+                logger.error(f"[Broadcast] Failed to send event to client on topic {topic}: {str(e)}")
 
-            tag = Tag(id=tag_id, x=x, y=y, z=z, zone_id=zone_id)
-            
-            if not any(t.zone_id == zone_id for t in self.triggers):
-                logger.debug(f"No triggers loaded for zone {zone_id}, loading now")
-                file_handler.flush()
-                await self.load_triggers(zone_id)
-                logger.debug(f"Loaded triggers for zone {zone_id} to evaluate Sim message")
-                file_handler.flush()
-            else:
-                logger.debug(f"Triggers already loaded for zone {zone_id}, count: {len([t for t in self.triggers if t.zone_id == zone_id])}")
-                file_handler.flush()
-
-            self.last_tag_time = asyncio.get_event_loop().time()
-            logger.debug(f"Updated last_tag_time to {self.last_tag_time} for tag {tag_id}")
-            file_handler.flush()
-
-            for trigger in self.triggers:
-                if trigger.zone_id != zone_id:
-                    logger.debug(f"Skipping trigger {trigger.name} (ID: {trigger.i_trg}) - zone mismatch (trigger zone: {trigger.zone_id}, message zone: {zone_id})")
-                    file_handler.flush()
-                    continue
-                if trigger.is_portable and tag.id == trigger.assigned_tag_id:
-                    if hasattr(trigger, 'update_position_from_tag'):
-                        trigger.update_position_from_tag(tag)
-                    else:
-                        trigger.move_to(tag.x, tag.y, tag.z)
-                        logger.debug(f"Moved portable trigger {trigger.name} to ({tag.x}, {tag.y}, {tag.z})")
-                        file_handler.flush()
-                
-                logger.debug(f"Evaluating trigger {trigger.name} (ID: {trigger.i_trg}) with direction {trigger.direction.name}")
-                file_handler.flush()
-                trigger_fired = await trigger.check_trigger(tag)
-                logger.debug(f"Trigger {trigger.name} (ID: {trigger.i_trg}) fired: {trigger_fired}")
-                file_handler.flush()
-                if trigger_fired:
-                    if (trigger.is_portable and 
-                        trigger.direction == TriggerDirections.WhileIn and 
-                        tag.id == trigger.assigned_tag_id):
-                        logger.debug(f"Suppressed WhileIn event for tag {tag.id} on its own trigger {trigger.name} (ID: {trigger.i_trg})")
-                        file_handler.flush()
-                        continue
-
-                    logger.info(f"Trigger {trigger.name} (ID: {trigger.i_trg}) fired for tag {tag.id} at position ({tag.x}, {tag.y}, {tag.z})")
-                    file_handler.flush()
-                    event_message = {
-                        "type": "TriggerEvent",
-                        "trigger_id": trigger.i_trg,
-                        "trigger_name": trigger.name,
-                        "tag_id": tag.id,
-                        "assigned_tag_id": trigger.assigned_tag_id if trigger.is_portable else None,
-                        "x": tag.x,
-                        "y": tag.y,
-                        "z": tag.z,
-                        "zone_id": zone_id,
-                        "direction": trigger.direction.name,
-                        "timestamp": datetime.now().isoformat()
-                    }
-                    logger.debug(f"Event message created: {event_message}")
-                    file_handler.flush()
-                    for reqid, clients in self.clients.items():
-                        for client in clients:
-                            try:
-                                await client.send_json(event_message)
-                                logger.debug(f"Sent TriggerEvent to WebSocket client {reqid}: {event_message}")
-                                file_handler.flush()
-                            except Exception as e:
-                                logger.error(f"Failed to send TriggerEvent to WebSocket client {reqid}: {str(e)}")
-                                file_handler.flush()
-
-        except Exception as e:
-            logger.error(f"Failed to process Sim message: {str(e)}")
-            file_handler.flush()
+    async def broadcast_event_instance(self, entity_id: str, data: dict):
+        topic = f"ws_event_{entity_id}"
+        logger.debug(f"[Broadcast] Publishing event for {entity_id}: {data}")
+        logger.debug(f"[Broadcast] Current clients: {self.clients}")
+        if topic not in self.clients:
+            logger.debug(f"[Broadcast] No active subscribers for topic {topic}")
+            return
+        for client in self.clients[topic]:
+            try:
+                await client.send_json(data)
+                logger.debug(f"[Broadcast] Sent event to client on topic {topic}")
+            except Exception as e:
+                logger.error(f"[Broadcast] Failed to send event to client on topic {topic}: {str(e)}")

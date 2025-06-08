@@ -1,17 +1,20 @@
 /* Name: NewTriggerDemo.js */
-/* Version: 0.1.12 */
-/* Created: 971201 */
-/* Modified: 250519 */
+/* Version: 0.1.15 */
+/* Created: 250607 */
+/* Modified: 250607 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
-/* Description: JavaScript file for ParcoRTLS frontend */
+/* Description: JavaScript file for ParcoRTLS frontend to manage triggers */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo.js
-// Version: 0.1.12 - Batched containment checks in useEffect, increased dataTimeout to 60s, bumped from 0.1.11
+// Version: 0.1.15 - Updated retryReloadTriggers to use port 8000, bumped from 0.1.14
+// Version: 0.1.14 - Rate-limited GISData processing, validated tag subscriptions, skipped invalid zone checks, bumped from 0.1.13
+// Previous: Updated heartbeat responses to include heartbeat_id for HeartbeatManager compatibility, bumped from 0.1.12
+// Previous: Batched containment checks in useEffect, increased dataTimeout to 60s, bumped from 0.1.11
 // Previous: Added GISData logging, extended dataTimeout, bumped from 0.1.10
 // Previous: Added client-side radius-based containment for portable triggers, fixed event generation, bumped from 0.1.9
 // Previous: Enhanced checkPortableTriggerContainment to handle all trigger directions, added static trigger containment, bumped from 0.1.8
@@ -60,6 +63,7 @@ const NewTriggerDemo = () => {
   const [tagIdsInput, setTagIdsInput] = useState("SIM1,SIM2");
   const [isConnected, setIsConnected] = useState(false);
   const [tagsData, setTagsData] = useState({});
+  const [pendingTagsData, setPendingTagsData] = useState([]);
   const [sequenceNumbers, setSequenceNumbers] = useState({});
   const [tagCount, setTagCount] = useState(0);
   const [tagRate, setTagRate] = useState(0);
@@ -74,9 +78,10 @@ const NewTriggerDemo = () => {
   const reconnectInterval = 5000;
   const shouldReconnect = useRef(true);
   const lastDataTime = useRef(null);
-  const dataTimeout = 60000; // Increased to 60s
+  const dataTimeout = 60000; // 60s
   const hasPromptedForZone = useRef(false);
   const retryIntervalRef = useRef(null);
+  const lastUpdateTime = useRef(0);
 
   useEffect(() => {
     console.log("triggerEvents state updated:", triggerEvents);
@@ -117,6 +122,15 @@ const NewTriggerDemo = () => {
     try {
       const trigger = triggers.find(t => t.i_trg === triggerId);
       if (!trigger) return;
+
+      // Verify tag is in a valid zone
+      const zoneRes = await fetch(`http://192.168.210.226:8000/api/zones_by_point?x=${x}&y=${y}&z=${z}`);
+      if (!zoneRes.ok) throw new Error(`Failed to check zone: ${zoneRes.status}`);
+      const zoneData = await zoneRes.json();
+      if (!zoneData.length) {
+        console.log(`Tag ${tagId} at (${x}, ${y}, ${z}) not in any zone, skipping containment check`);
+        return;
+      }
 
       let contains = false;
       if (isPortable && trigger.assigned_tag_id) {
@@ -195,6 +209,10 @@ const NewTriggerDemo = () => {
 
   useEffect(() => {
     if (!selectedZone || !triggers || !isConnected || Object.keys(tagsData).length === 0) return;
+
+    const now = Date.now();
+    if (now - lastUpdateTime.current < 4000) return; // Throttle to 4s (0.25 Hz)
+    lastUpdateTime.current = now;
 
     console.log(`Batch containment check for tagsData:`, tagsData);
     const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
@@ -285,9 +303,14 @@ const NewTriggerDemo = () => {
             connectStreamWebSocket(streamUrl, tagIdsInput.split(',').map(id => id.trim()).filter(id => id));
           }, 2000);
         }
-      } else if (data.type === "HeartBeat") {
-        ws.send(JSON.stringify({ type: "HeartBeat", ts: data.ts }));
-        console.log("Sent control heartbeat response:", { type: "HeartBeat", ts: data.ts });
+      } else if (data.type === "HeartBeat" && data.data?.heartbeat_id) {
+        const response = {
+          type: "HeartBeat",
+          ts: data.ts,
+          data: { heartbeat_id: data.data.heartbeat_id }
+        };
+        ws.send(JSON.stringify(response));
+        console.log("Sent control heartbeat response:", response);
         lastDataTime.current = Date.now();
       } else if (data.type === "GISData") {
         handleGISDataMessage(data);
@@ -364,9 +387,14 @@ const NewTriggerDemo = () => {
         handleGISDataMessage(data);
       } else if (data.type === "TriggerEvent") {
         handleTriggerEvent(data);
-      } else if (data.type === "HeartBeat") {
-        ws.send(JSON.stringify({ type: "HeartBeat", ts: data.ts }));
-        console.log("Sent stream heartbeat response:", { type: "HeartBeat", ts: data.ts });
+      } else if (data.type === "HeartBeat" && data.data?.heartbeat_id) {
+        const response = {
+          type: "HeartBeat",
+          ts: data.ts,
+          data: { heartbeat_id: data.data.heartbeat_id }
+        };
+        ws.send(JSON.stringify(response));
+        console.log("Sent stream heartbeat response:", response);
         lastDataTime.current = Date.now();
       } else {
         console.log("Unhandled stream WebSocket message type:", data.type);
@@ -393,65 +421,93 @@ const NewTriggerDemo = () => {
   };
 
   const handleGISDataMessage = (data) => {
-    console.log("Processing GISData message:", JSON.stringify(data));
-    console.log("Current tagsData before update:", tagsData);
-    lastDataTime.current = Date.now();
-    const tagZoneId = data.zone_id || (selectedZone ? selectedZone.i_zn : 417);
-    console.log("Tag zone ID determination:", {
-      zone_id_in_message: data.zone_id,
-      selectedZone_i_zn: selectedZone ? selectedZone.i_zn : "N/A",
-      fallback_zone: 417,
-      final_tagZoneId: tagZoneId
-    });
-    const zoneMatch = zones.find(z => z.i_zn === parseInt(tagZoneId));
-    if (zoneMatch && selectedZone && selectedZone.i_zn !== parseInt(tagZoneId) && !hasPromptedForZone.current) {
-      console.log("Found zone mismatch:", zoneMatch);
-      const shouldSwitch = window.confirm(
-        `Tag ${data.ID} is in Zone ${zoneMatch.i_zn} (${zoneMatch.x_nm_zn}). Do you want to switch to this zone?`
-      );
-      if (shouldSwitch) {
-        setSelectedZone(zoneMatch);
-        setEventList(prev => [...prev, `Zone synced to ${zoneMatch.i_zn} - ${zoneMatch.x_nm_zn} on ${getFormattedTimestamp()}`]);
-        hasPromptedForZone.current = true;
-        fetchZoneVertices(zoneMatch.i_zn);
-      } else {
-        console.log("User chose not to switch zones");
-        setEventList(prev => [...prev, `User declined to sync to Zone ${zoneMatch.i_zn} on ${getFormattedTimestamp()}`]);
-        hasPromptedForZone.current = true;
-      }
+    const tagIds = tagIdsInput.split(',').map(id => id.trim()).filter(id => id);
+    if (!tagIds.includes(data.ID)) {
+      console.log(`Ignoring GISData for unsubscribed tag ${data.ID}`);
+      return;
     }
-    const newTagData = {
-      id: data.ID,
-      x: data.X,
-      y: data.Y,
-      z: data.Z,
-      sequence: data.Sequence,
-      timestamp: Date.now(),
-      zone_id: tagZoneId
-    };
-    setTagsData(prev => {
-      const updated = { ...prev, [data.ID]: newTagData };
-      console.log("Updated tagsData:", updated);
-      return updated;
-    });
-    setSequenceNumbers(prev => ({
-      ...prev,
-      [data.ID]: data.Sequence || "N/A"
-    }));
-    console.log(`Updated sequence for tag ${data.ID}: ${data.Sequence}`);
-    setTagCount(prev => prev + 1);
-    setTagTimestamps(prev => {
-      const now = Date.now();
-      const windowStart = now - 10000;
-      const newTimestamps = [...prev, now].filter(ts => ts >= windowStart);
-      if (newTimestamps.length > 1) {
-        const timeSpan = (newTimestamps[newTimestamps.length - 1] - newTimestamps[0]) / 1000;
-        const rate = timeSpan > 0 ? (newTimestamps.length - 1) / timeSpan : 0;
-        setTagRate(rate);
-      } else {
-        setTagRate(0);
-      }
-      return newTimestamps;
+
+    console.log("Processing GISData message:", JSON.stringify(data));
+    setPendingTagsData(prev => [...prev, data]);
+
+    const now = Date.now();
+    if (now - lastUpdateTime.current < 4000) return; // Throttle to 4s (0.25 Hz)
+    lastUpdateTime.current = now;
+
+    setPendingTagsData(prev => {
+      const updates = [...prev];
+      setPendingTagsData([]); // Clear buffer
+      updates.forEach(data => {
+        lastDataTime.current = now;
+        const tagZoneId = data.zone_id || (selectedZone ? selectedZone.i_zn : 417);
+        console.log("Tag zone ID determination:", {
+          zone_id_in_message: data.zone_id,
+          selectedZone_i_zn: selectedZone ? selectedZone.i_zn : "N/A",
+          fallback_zone: 417,
+          final_tagZoneId: tagZoneId
+        });
+
+        const zoneMatch = zones.find(z => z.i_zn === parseInt(tagZoneId));
+        if (zoneMatch && selectedZone && selectedZone.i_zn !== parseInt(tagZoneId) && !hasPromptedForZone.current) {
+          console.log("Found zone mismatch:", zoneMatch);
+          const shouldSwitch = window.confirm(
+            `Tag ${data.ID} is in Zone ${zoneMatch.i_zn} (${zoneMatch.x_nm_zn}). Do you want to switch to this zone?`
+          );
+          if (shouldSwitch) {
+            setSelectedZone(zoneMatch);
+            setEventList(prev => [...prev, `Zone synced to ${zoneMatch.i_zn} - ${zoneMatch.x_nm_zn} on ${getFormattedTimestamp()}`]);
+            hasPromptedForZone.current = true;
+            fetchZoneVertices(zoneMatch.i_zn);
+          } else {
+            console.log("User chose not to switch zones");
+            setEventList(prev => [...prev, `User declined to sync to Zone ${zoneMatch.i_zn} on ${getFormattedTimestamp()}`]);
+            hasPromptedForZone.current = true;
+          }
+        }
+
+        const newTagData = {
+          id: data.ID,
+          x: data.X,
+          y: data.Y,
+          z: data.Z,
+          sequence: data.Sequence,
+          timestamp: now,
+          zone_id: tagZoneId
+        };
+
+        setTagsData(prev => {
+          const updated = { ...prev, [data.ID]: newTagData };
+          console.log("Updated tagsData:", updated);
+          return updated;
+        });
+
+        setSequenceNumbers(prev => ({
+          ...prev,
+          [data.ID]: data.Sequence || "N/A"
+        }));
+        console.log(`Updated sequence for tag ${data.ID}: ${data.Sequence}`);
+
+        setTagCount(prev => {
+          const newCount = prev + 1;
+          console.log(`Incremented tagCount to ${newCount} for tag ${data.ID}`);
+          return newCount;
+        });
+
+        setTagTimestamps(prev => {
+          const windowStart = now - 10000;
+          const newTimestamps = [...prev, now].filter(ts => ts >= windowStart);
+          if (newTimestamps.length > 1) {
+            const timeSpan = (newTimestamps[newTimestamps.length - 1] - newTimestamps[0]) / 1000;
+            const rate = timeSpan > 0 ? (newTimestamps.length - 1) / timeSpan : 0;
+            setTagRate(rate);
+            console.log(`Updated tagRate to ${rate.toFixed(2)} tags/sec`);
+          } else {
+            setTagRate(0);
+          }
+          return newTimestamps;
+        });
+      });
+      return [];
     });
   };
 
@@ -792,11 +848,12 @@ const NewTriggerDemo = () => {
   useEffect(() => {
     if (!selectedZone || !triggers || !isConnected) return;
 
-    const refreshPortablePolygons = async () => {
-      const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
-      const portableTriggers = zoneTriggers.filter(t => t.is_portable);
-      if (portableTriggers.length === 0) return;
+    console.log("Refreshing portable polygons");
+    const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
+    const portableTriggers = zoneTriggers.filter(t => t.is_portable);
+    if (portableTriggers.length === 0) return;
 
+    const refreshPortablePolygons = async () => {
       const updatedPolygons = portableTriggers.map(t => {
         const tagId = t.assigned_tag_id;
         const tagData = tagsData[tagId];
@@ -871,13 +928,12 @@ const NewTriggerDemo = () => {
   const retryReloadTriggers = async (retries = 3, delay = 1000) => {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const reloadRes = await fetch("http://192.168.210.226:8001/api/reload_triggers", {
+        const reloadRes = await fetch("http://192.168.210.226:8000/api/reload_triggers", {
           method: "POST",
           headers: { "Content-Type": "application/json" }
         });
         if (!reloadRes.ok) throw new Error(`Failed to reload triggers: ${reloadRes.status}`);
         console.log("Successfully sent reload triggers request");
-        await fetchTriggers();
         return true;
       } catch (e) {
         console.error(`Attempt ${attempt} failed: ${e.message}`);

@@ -1,7 +1,7 @@
 # Name: 01-devstop.sh
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250604
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Shell script for ParcoRTLS utilities
@@ -14,7 +14,7 @@
 # DESC: Stops the tmux session, kills processes on ports 3000/8000/8001, and clears dev environment
 
 SESSION="parco-dev"
-PORTS=("3000" "8000" "8001")
+PORTS=("3000" "8000" "8001" "8002" "8003" "8004" "8005" "8006" "8007" "8998" "9000")
 
 echo "🛑 Stopping tmux session: $SESSION..."
 tmux kill-session -t $SESSION 2>/dev/null
