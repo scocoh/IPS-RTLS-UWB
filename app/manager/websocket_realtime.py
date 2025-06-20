@@ -1,17 +1,23 @@
 # Name: websocket_realtime.py
-# Version: 0.1.54
+# Version: 0.1.60
 # Created: 250512
-# Modified: 250526
+# Modified: 250616
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002
+# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 with TETSE live evaluation, output processing, and dispatcher bootstrap
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_realtime.py
-# Version: 0.1.54 - Integrated HeartbeatManager, removed _PENDING_HEARTBEATS and _LAST_HEARTBEAT, bumped from 0.1.53
+# Version: 0.1.60 - Phase 11.9.3 Circular Isolation Recovery
+# Previous: 0.1.59 - Phase 11.4 Phase 2 Add reload_rules callable
+# Previous: 0.1.58 - Phase 11.3.1
+# Previous: 0.1.57 - Phase 6D Dispatcher Bootstrap Inserted
+# Previous: 0.1.56 - Phase 6C.2 TETSE Output Processing Inserted
+# Previous: 0.1.55 - Phase 6B.2 TETSE Live Rule Evaluation Inserted
+# Previous: 0.1.54 - Integrated HeartbeatManager, removed _PENDING_HEARTBEATS and _LAST_HEARTBEAT
 # Previous: Increased initial heartbeat timeout to 60s for manual clients, enhanced wscat logging, bumped from 0.1.52
 # Previous: Aligned log path with /home/parcoadmin/parco_fastapi/app/logs, added console logging, extended initial heartbeat timeout to 10s, enhanced logging, bumped from 0.1.51
 # Previous: Relaxed heartbeat_id validation for legacy clients, retained 5-second timeout and no server responses, enhanced logging, bumped from 0.1.50
@@ -33,6 +39,11 @@ from .constants import REQUEST_TYPE_MAP
 from .heartbeat_manager import HeartbeatManager
 import os
 from logging.handlers import RotatingFileHandler
+from routes.subject_registry import update_subject_zone
+from routes.tetse_rule_engine import evaluate_house_exclusion_rule
+from routes.tetse_reload import reload_rules, ACTIVE_TETSE_RULES
+from routes.tetse_output_handler import process_tetse_result
+from routes.tetse_event_dispatcher import start_dispatcher
 
 # Log directory
 LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
@@ -58,11 +69,26 @@ logger.propagate = False
 logger.info("Starting WebSocket RealTime server on port 8002")
 file_handler.flush()
 
+# Hardcoded tag-to-subject map for Phase 6B (replaceable later)
+TAG_TO_SUBJECT = {
+    "23001": "Eddy"
+}
+
 ENABLE_MULTI_PORT = True
 STREAM_TYPE = "RealTime"
 RESOURCE_TYPE = 1
-MAINT_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
+MAINT_CONN_STRING = os.getenv("MAINT_CONN_STRING", "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint")
 HEARTBEAT_INTERVAL = 30.0  # Heartbeat every 30 seconds
+
+# Preload TETSE rules at startup
+async def initialize_tetse_rules():
+    try:
+        await reload_rules()
+        logger.info(f"TETSE: Loaded {len(ACTIVE_TETSE_RULES)} rules for live evaluation")
+    except Exception as e:
+        logger.error(f"Failed to initialize TETSE rules: {str(e)}")
+
+asyncio.create_task(initialize_tetse_rules())
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -73,6 +99,11 @@ async def lifespan(app: FastAPI):
             logger.debug("DB pool created successfully")
             file_handler.flush()
             async with pool.acquire() as conn:
+                # Load TETSE rules on startup
+                await reload_rules()
+                logger.info(f"TETSE: Loaded {len(ACTIVE_TETSE_RULES)} rules for live evaluation")
+                file_handler.flush()
+
                 managers = await conn.fetch("SELECT X_NM_RES, i_typ_res FROM tlkresources WHERE i_typ_res = $1", RESOURCE_TYPE)
                 logger.debug(f"Queried tlkresources, found {len(managers)} managers for i_typ_res={RESOURCE_TYPE}")
                 file_handler.flush()
@@ -88,6 +119,9 @@ async def lifespan(app: FastAPI):
                         await manager_instance.start()
                         logger.debug(f"Manager {manager_name} started successfully")
                         file_handler.flush()
+                        # Start TETSE Dispatcher Workers
+                        asyncio.create_task(start_dispatcher(num_workers=2))
+                        logger.info("TETSE Dispatcher workers started.")
         yield
     except Exception as e:
         logger.error(f"Lifespan error: {str(e)}")
@@ -206,29 +240,40 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                     continue
 
                 elif msg_type == "GISData":
+                    tag_id = json_data.get("ID")
+                    zone_id = json_data.get("zone_id")
                     sim_message = {
                         "gis": {
-                            "id": json_data.get("ID"),
+                            "id": tag_id,
                             "x": json_data.get("X", 0.0),
                             "y": json_data.get("Y", 0.0),
                             "z": json_data.get("Z", 0.0)
                         },
-                        "zone_id": json_data.get("zone_id")
+                        "zone_id": zone_id
                     }
                     await manager.process_sim_message(sim_message)
-                    logger.debug(f"Processing GISData for tag {json_data.get('ID')} in zone {json_data.get('zone_id')} from client {client_id} ({client_type})")
+                    # TETSE real-time hook
+                    subject_id = TAG_TO_SUBJECT.get(tag_id)
+                    if subject_id:
+                        await update_subject_zone(subject_id, zone_id)
+                        matching_rules = [r for r in ACTIVE_TETSE_RULES if r["subject_id"] == subject_id]
+                        for rule in matching_rules:
+                            result = await evaluate_house_exclusion_rule(rule)
+                            logger.info(f"TETSE Live Eval: Subject={subject_id} Rule={rule['name']} Result={result}")
+                            await process_tetse_result(subject_id, rule, result)
+                    logger.debug(f"Processing GISData for tag {tag_id} in zone {zone_id} from client {client_id} ({client_type})")
                     file_handler.flush()
                     for ws_client in _WEBSOCKET_CLIENTS.get(manager_name, []):
                         if ws_client != sdk_client and ws_client.request_msg:
                             for tag in ws_client.request_msg.tags:
-                                client_zone_id = str(json_data.get("zone_id")) if json_data.get("zone_id") is not None else None
-                                message_zone_id = str(json_data.get("zone_id")) if json_data.get("zone_id") is not None else None
-                                if tag.id == json_data.get("ID") and client_zone_id == message_zone_id:
+                                client_zone_id = str(zone_id) if zone_id is not None else None
+                                message_zone_id = str(zone_id) if zone_id is not None else None
+                                if tag.id == tag_id and client_zone_id == message_zone_id:
                                     await ws_client.websocket.send_text(data)
                                     logger.debug(f"Forwarded GISData to client {ws_client.client_id} for tag {tag.id}, zone {message_zone_id}")
                                     file_handler.flush()
                                 else:
-                                    logger.debug(f"Skipped forwarding GISData to client {ws_client.client_id}: tag {tag.id} vs {json_data.get('ID')}, zone {client_zone_id} vs {message_zone_id}")
+                                    logger.debug(f"Skipped forwarding GISData to client {ws_client.client_id}: tag {tag.id} vs {tag_id}, zone {client_zone_id} vs {message_zone_id}")
                                     file_handler.flush()
                     continue
 

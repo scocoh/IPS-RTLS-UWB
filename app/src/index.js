@@ -1,7 +1,7 @@
 /* Name: index.js */
-/* Version: 0.1.1 */
+/* Version: 0.1.2 */
 /* Created: 971201 */
-/* Modified: 250607 */
+/* Modified: 250615 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -11,7 +11,8 @@
 /* Dependent: TRUE */
 
 // /home/parcoadmin/parco_fastapi/app/src/index.js
-// Version: 0.1.1 - Added Portable Trigger Add button and view, bumped from 0.1.0
+// Version: 0.1.2 - Added RuleBuilder view for TETSE rule construction and code generation, bumped from 0.1.1
+// Previous: Added Portable Trigger Add button and view, bumped from 0.1.0
 // Previous: Added EntityMergeDemo button and view, bumped from 0.0.2
 
 //
@@ -41,6 +42,7 @@ import BuildOutTool from "./components/BuildOutTool";
 import NewTriggerDemo from "./components/NewTriggerDemo";
 import EntityMergeDemo from "./components/EntityMergeDemo";
 import PortableTriggerAdd from "./components/PortableTriggerAdd";
+import RuleBuilder from "./components/RuleBuilder";
 
 const App = () => {
   const [view, setView] = useState("triggers");
@@ -57,7 +59,8 @@ const App = () => {
         <button onClick={() => setView("buildout")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Build Out Tool</button>
         <button onClick={() => setView("newTriggerDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Alpha New Trigger Demo</button>
         <button onClick={() => setView("entityMergeDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Entity Merge Demo</button>
-        <button onClick={() => setView("portableTriggerAdd")} style={{ padding: "10px", fontSize: "16px" }}>Portable Trigger Add</button>
+        <button onClick={() => setView("portableTriggerAdd")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Portable Trigger Add</button>
+        <button onClick={() => setView("ruleBuilder")} style={{ padding: "10px", fontSize: "16px" }}>Rule Builder</button>
       </div>
       <hr />
       {view === "trigger2025" && <TriggerUX2025 />}
@@ -70,6 +73,7 @@ const App = () => {
       {view === "newTriggerDemo" && <NewTriggerDemo />}
       {view === "entityMergeDemo" && <EntityMergeDemo />}
       {view === "portableTriggerAdd" && <PortableTriggerAdd />}
+      {view === "ruleBuilder" && <RuleBuilder />}
     </div>
   );
 };

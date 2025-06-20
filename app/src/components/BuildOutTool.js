@@ -1,7 +1,7 @@
 /* Name: BuildOutTool.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 971201 */
-/* Modified: 250502 */
+/* Modified: 250613 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -10,8 +10,8 @@
 /* Status: Active */
 /* Dependent: TRUE */
 
-// # VERSION 250320 /home/parcoadmin/parco_fastapi/app/src/components/BuildOutTool.js 0P.10B.33
-// # --- CHANGED: Bumped version from 0P.10B.32 to 0P.10B.33 to fix crash when all devices are deleted (ensure devices and filteredDevices are always arrays)
+// # VERSION 250613 /home/parcoadmin/parco_fastapi/app/src/components/BuildOutTool.js 0P.10B.34
+// # --- CHANGED: Added Render Zone Boundary toggle option for displaying zone outlines, bumped from 0P.10B.33
 // # 
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -48,6 +48,7 @@ const BuildOutTool = () => {
     const [deploymentMode, setDeploymentMode] = useState(false);
     const [clickMarker, setClickMarker] = useState(null);
     const [activeTab, setActiveTab] = useState("addEditDevice");
+    const [showZoneBoundary, setShowZoneBoundary] = useState(false); // NEW: Added state for zone boundary toggle
 
     useEffect(() => {
         const fetchData = async () => {
@@ -498,6 +499,10 @@ const BuildOutTool = () => {
                                     <input className="form-check-input" type="checkbox" checked={deploymentMode} onChange={handleDeploymentModeToggle} id="deploymentCheck" />
                                     <label className="form-check-label" htmlFor="deploymentCheck">Deploy</label>
                                 </div>
+                                <div className="form-check form-check-inline">
+                                    <input className="form-check-input" type="checkbox" checked={showZoneBoundary} onChange={(e) => setShowZoneBoundary(e.target.checked)} id="zoneBoundaryCheck" />
+                                    <label className="form-check-label" htmlFor="zoneBoundaryCheck">Render Zone Boundary</label>
+                                </div>
                             </div>
                         </div>
 
@@ -616,6 +621,8 @@ const BuildOutTool = () => {
                             <div className="mt-4">
                                 <MapBuildOut 
                                     zoneId={mapId} 
+                                    selectedZoneId={selectedZone} // NEW: Added prop
+                                    showZoneBoundary={showZoneBoundary} // NEW: Added prop
                                     onDrawComplete={handleMapClick} 
                                     devices={filteredDevices} 
                                     useLeaflet={useLeaflet} 

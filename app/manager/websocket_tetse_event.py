@@ -47,7 +47,8 @@ from pydantic import BaseModel
 from .heartbeat_manager import HeartbeatManager
 from datetime import datetime, timezone
 from routes.llm_bridge import ask_openai
-from routes.openai_trigger_api import construct_prompt
+from routes.llm_bridge import construct_prompt
+
 
 # Log directory
 LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"

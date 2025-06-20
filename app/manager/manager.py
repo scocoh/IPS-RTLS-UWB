@@ -1,7 +1,7 @@
 # Name: manager.py
-# Version: 0.1.19
+# Version: 0.1.20
 # Created: 971201
-# Modified: 250526
+# Modified: 250615
 # Creator: ParcoAdmin
 # Modified By: AI Assistant
 # Description: Python script for ParcoRTLS backend + Event Engine (TETSE) WebSocket support
@@ -11,6 +11,7 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/manager.py
+# Version: 0.1.20 - Restored region bounds handling in load_triggers, fixed ex to e in process_sim_message, simplified logging to FileHandler, added debug logging for trigger 147 issue
 # Version: 0.1.19 - Added debug logging for broadcast_event_instance, bumped from 0.1.18
 # Version: 0.1.18 - Fixed timezone undefined error by adding import, bumped from 0.1.17
 # Version: 0.1.17 - Added broadcast_event_instance for TETSE WebSocket, bumped from 0.1.16
@@ -69,21 +70,21 @@ from manager.line_limited_logging import LineLimitedFileHandler
 LOG_DIR = "/home/parcoadmin/parco_fastapi/logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
-# Configure logging with both StreamHandler and LineLimitedFileHandler
+# Configure logging with StreamHandler and FileHandler
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 # StreamHandler for console output
 stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(logging.Formatter('%(levelname)s:%(name)s:%(message)s'))
+stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s'))
 
-# LineLimitedFileHandler for persistent logging with line limit
-file_handler = LineLimitedFileHandler(
-    os.path.join(LOG_DIR, "manager.log"),
-    max_lines=999,
-    backup_count=4
-)
-file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s:%(name)s:%(message)s'))
+# FileHandler for persistent logging
+try:
+    file_handler = logging.FileHandler(os.path.join(LOG_DIR, "manager.log"))
+except Exception as e:
+    logger.error(f"Failed to create manager.log: {e}, falling back to manager_fallback.log")
+    file_handler = logging.FileHandler(os.path.join(LOG_DIR, "manager_fallback.log"))
+file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s'))
 
 # Set handlers
 logger.handlers = []
@@ -143,6 +144,8 @@ class Manager:
         self.ws_heartbeat_timestamps: Dict[str, deque] = {}  # For WebSocket clients
         self.sdk_heartbeat_timestamps: Dict[str, deque] = {}  # For SDK clients
         self.clients = {}  # Instance-level clients for TETSE WebSocket
+        logger.debug(f"Initialized Manager with name={name}, zone_id={zone_id}")
+        file_handler.flush()
 
     async def load_config_from_db(self):
         logger.debug(f"Loading config for manager {self.name} from DB")
@@ -179,7 +182,7 @@ class Manager:
         file_handler.flush()
         try:
             triggers_data = await self.service.get_triggers_by_zone(zone_id)
-            logger.debug(f"Retrieved triggers data: {triggers_data}")
+            logger.debug(f"Retrieved triggers data for zone {zone_id}: {triggers_data}")
             file_handler.flush()
 
             self.triggers = [t for t in self.triggers if t.zone_id != zone_id]
@@ -188,6 +191,8 @@ class Manager:
 
             for trigger_data in triggers_data:
                 trigger_id = trigger_data["trigger_id"]
+                logger.debug(f"Processing trigger ID {trigger_id}")
+                file_handler.flush()
                 trigger_name = trigger_data["name"]
                 direction_id = trigger_data.get("direction_id")
                 is_portable = trigger_data.get("is_portable", False)
@@ -228,8 +233,14 @@ class Manager:
                     regions = Region3DCollection()
                     if isinstance(trigger_details, dict) and "vertices" in trigger_details:
                         vertices = trigger_details["vertices"]
+                        logger.debug(f"Vertices for trigger {trigger_id}: {vertices}")
+                        file_handler.flush()
                         if vertices and len(vertices) >= 3:
                             regions = Region3DCollection.from_vertices(vertices)
+                        else:
+                            logger.warning(f"Insufficient vertices for trigger {trigger_name} (ID: {trigger_id}): {len(vertices)}")
+                            file_handler.flush()
+                            continue
                     else:
                         for detail in trigger_details:
                             if "n_min_x" in detail and "n_max_x" in detail:
@@ -247,6 +258,7 @@ class Manager:
                     if len(regions.regions) == 0:
                         logger.warning(f"No regions loaded for trigger {trigger_name} (ID: {trigger_id})")
                         file_handler.flush()
+                        continue
 
                     trigger = Trigger(
                         i_trg=trigger_id,
@@ -256,19 +268,24 @@ class Manager:
                         ignore_unknowns=False,
                         zone_id=zone_id
                     )
+                    logger.debug(f"Created Trigger object for {trigger_name} (ID: {trigger_id})")
+                    file_handler.flush()
+
                 self.triggers.append(trigger)
                 logger.info(f"Loaded trigger {trigger_name} (ID: {trigger_id}) for zone {zone_id} with direction {direction}")
                 file_handler.flush()
 
         except Exception as e:
-            logger.error(f"Failed to fetch triggers for zone {zone_id}: {str(e)}")
+            logger.error(f"Failed to fetch triggers for zone {zone_id}: {str(e)}\n{traceback.format_exc()}")
             file_handler.flush()
 
     def get_current_zone_id(self) -> int:
+        logger.debug(f"Returning current zone_id: {self.zone_id}")
+        file_handler.flush()
         return getattr(self, 'zone_id')
 
     async def start(self):
-        logger.debug(f"Manager {self.name} starting: Setting run_state to Starting")
+        logger.debug(f"Manager {self.name} starting: Setting run_state to Starting, zone_id={self.zone_id}")
         file_handler.flush()
         try:
             self.start_date = datetime.now()
@@ -307,8 +324,8 @@ class Manager:
             asyncio.create_task(self.monitor_tag_data())
             logger.debug("monitor_tag_data task started")
             file_handler.flush()
-        except Exception as ex:
-            logger.error(f"Start Error: {str(ex)}\n{traceback.format_exc()}")
+        except Exception as e:
+            logger.error(f"Start Error: {str(e)}\n{traceback.format_exc()}")
             file_handler.flush()
             self.run_state = eRunState.Stopped
             raise
@@ -376,8 +393,8 @@ class Manager:
                         await client.websocket.send_text(json_message)
                         logger.debug(f"Sent heartbeat to SDK client {client_id}: {json_message}")
                         file_handler.flush()
-                    except Exception as ex:
-                        logger.error(f"Failed to send heartbeat to SDK client {client_id}: {str(ex)}")
+                    except Exception as e:
+                        logger.error(f"Failed to send heartbeat to SDK client {client_id}: {str(e)}")
                         file_handler.flush()
                         client.failed_heartbeat = True
                         client.is_closing = True
@@ -399,8 +416,8 @@ class Manager:
                             await client.send_json(json.loads(json_message))
                             logger.debug(f"Sent heartbeat to WebSocket client {reqid}: {json_message}")
                             file_handler.flush()
-                        except Exception as ex:
-                            logger.error(f"Failed to send heartbeat to WebSocket client {reqid}: {str(ex)}")
+                        except Exception as e:
+                            logger.error(f"Failed to send heartbeat to WebSocket client {reqid}: {str(e)}")
                             file_handler.flush()
                             clients.remove(client)
                             if not clients:
@@ -424,8 +441,8 @@ class Manager:
                             await client.websocket.send_text(json_resp_message)
                             logger.info(f"SDK Client Heartbeat Failure response sent for {client.client_id}")
                             file_handler.flush()
-                        except Exception as ex:
-                            logger.error(f"Failed to send EndStream to SDK client {client.client_id}: {str(ex)}")
+                        except Exception as e:
+                            logger.error(f"Failed to send EndStream to SDK client {client.client_id}: {str(e)}")
                             file_handler.flush()
 
                 # Clean up SDK clients marked for killing
@@ -450,8 +467,8 @@ class Manager:
                 await asyncio.sleep(sleep_time)
                 logger.debug("Finished sleeping")
                 file_handler.flush()
-            except Exception as ex:
-                logger.error(f"Heartbeat loop error: {str(ex)}\n{traceback.format_exc()}")
+            except Exception as e:
+                logger.error(f"Heartbeat loop error: {str(e)}\n{traceback.format_exc()}")
                 file_handler.flush()
                 await asyncio.sleep(self.HEARTBEAT_INTERVAL)
         logger.debug("Exiting heartbeat_loop")
@@ -467,8 +484,8 @@ class Manager:
                 del self.sdk_clients[client.client_id]
                 logger.debug(f"SDK client {client.client_id} removed from sdk_clients")
                 file_handler.flush()
-        except Exception as ex:
-            logger.error(f"CloseClient Error: {str(ex)}")
+        except Exception as e:
+            logger.error(f"CloseClient Error: {str(e)}")
             file_handler.flush()
 
     async def parser_data_arrived(self, sm: dict):
@@ -518,7 +535,7 @@ class Manager:
             file_handler.flush()
 
             if self.is_ave:
-                self.tag_ave(msg)
+                await self.tag_ave(msg)
 
             if msg.type != "Sim POTTER":
                 async with self.db_pool.acquire() as conn:

@@ -1,7 +1,7 @@
 # Name: app.py
-# Version: 0.1.68
+# Version: 0.1.71
 # Created: 971201
-# Modified: 250607
+# Modified: 250617
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -11,6 +11,7 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/app.py
+# Version: 0.1.70 - Added in tetse_zone for the Rule Buider
 # Version: 0.1.68 - Added prefix=/api to portable_triggers_router, bumped from 0.1.67
 # Version: 0.1.67 - add Portable Triggers Endpoint
 # Version: 0.1.66 - Integrated openai_trigger_api router into main FastAPI app, bumped from 0.1.65
@@ -45,6 +46,8 @@ from routes.device import router as device_router
 from routes.trigger import router as trigger_router
 from routes.portable_triggers import router as portable_triggers_router
 from routes.zone import router as zone_router
+from routes.tetse_zone import router as tetse_zone_router
+from routes.tetse_device import router as tetse_device_router  # ADD THIS with others
 from routes.entity import router as entity_router
 from routes.history import router as history_router
 from routes.text import router as text_router
@@ -185,6 +188,8 @@ app.add_middleware(
 app.include_router(device_router, prefix="/api")
 app.include_router(trigger_router, prefix="/api")
 app.include_router(zone_router, prefix="/api")
+app.include_router(tetse_zone_router, prefix="/api")
+app.include_router(tetse_device_router, prefix="/api", tags=["tetse_devices"]) # ✅ NEW LINE
 app.include_router(entity_router, prefix="/api")
 app.include_router(history_router, prefix="/api")
 app.include_router(text_router, prefix="/api")
@@ -238,8 +243,7 @@ def run_control_server():
         "manager.websocket_control:app",
         host="0.0.0.0",
         port=8001,
-        log_level="debug",
-        logger=uvicorn_logger
+        log_level="info"
     )
 
 def run_realtime_server():
@@ -249,8 +253,7 @@ def run_realtime_server():
         "manager.websocket_realtime:app",
         host="0.0.0.0",
         port=8002,
-        log_level="debug",
-        logger=uvicorn_logger
+        log_level="info"
     )
 
 if __name__ == "__main__":
