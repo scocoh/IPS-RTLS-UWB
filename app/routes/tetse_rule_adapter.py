@@ -1,5 +1,5 @@
 # Name: tetse_rule_adapter.py
-# Version: 0.2.15
+# Version: 0.2.16
 # Created: 971201
 # Modified: 250620
 # Creator: ParcoAdmin
@@ -12,7 +12,8 @@
 
 """
 /home/parcoadmin/parco_fastapi/app/tetse/tetse_rule_adapter.py
-# Version: 0.2.15 - Allow virtual zone creation without current location validation, updated terminology to building envelope
+# Version: 0.2.16 - Fixed zone matching to handle both exact names and case-insensitive lookup
+# Previous: 0.2.15 - Allow virtual zone creation without current location validation, updated terminology to building envelope
 # Previous: 0.2.14 - Fixed get_house_exclusion_context call parameters (entity_id, campus_zone_id, house_parent_zone_id)
 # Previous: 0.2.13 - Fixed get_house_exclusion_context call, removed campus_id
 # Previous: 0.2.12 - Fixed get_house_exclusion_context call, removed tag_id
@@ -66,14 +67,72 @@ async def get_zone_info(zone_id: str, pool: asyncpg.Pool, cache: dict = None) ->
             logger.error(f"Invalid zone_id format: {zone_id}")
             return None
 
+async def get_all_zones_for_ai(base_url: str = "http://localhost:8000") -> list:
+    """
+    Fetch all zones using the existing FastAPI endpoint.
+    Returns list of zone dicts with id, name, type, parent.
+    """
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"{base_url}/api/zones_for_ai")
+            if response.status_code == 200:
+                data = response.json()
+                # Extract the zones array from the response
+                return data.get("zones", [])
+            else:
+                logger.error(f"Failed to fetch zones from API: {response.status_code}")
+                return []
+    except Exception as e:
+        logger.error(f"Error fetching zones from API: {e}")
+        return []
+
+async def find_zone_by_name(zone_name: str, zones_cache: list = None) -> dict:
+    """
+    Find zone by name with exact match first, then case-insensitive fallback.
+    Uses cached zones list or fetches from API if not provided.
+    Returns dict with zone info or None if not found.
+    """
+    if zones_cache is None:
+        zones_cache = await get_all_zones_for_ai()
+    
+    if not zones_cache:
+        logger.error("No zones available for lookup")
+        return None
+    
+    # First try exact match
+    for zone in zones_cache:
+        if zone.get("name") == zone_name:
+            logger.debug(f"Found exact zone match: '{zone_name}' -> ID {zone.get('id')}")
+            return {
+                "i_zn": zone.get("id"),
+                "x_nm_zn": zone.get("name"), 
+                "i_typ_zn": zone.get("type")
+            }
+    
+    # Then try case-insensitive match
+    for zone in zones_cache:
+        if zone.get("name", "").lower() == zone_name.lower():
+            logger.debug(f"Found case-insensitive zone match: '{zone_name}' -> '{zone.get('name')}' (ID {zone.get('id')})")
+            return {
+                "i_zn": zone.get("id"),
+                "x_nm_zn": zone.get("name"),
+                "i_typ_zn": zone.get("type")
+            }
+    
+    return None
+
 async def adapt_rulebuilder_to_tetse(rule_data: dict, campus_id: str, pool: asyncpg.Pool, maint_pool: asyncpg.Pool) -> dict:
     """
     Adapts RuleBuilder rule data to TETSE format, resolving semantic zone terms.
-    Version: 0.2.15 - Allow virtual zone creation without current location validation, updated terminology to building envelope.
+    Version: 0.2.16 - Fixed zone matching to handle both exact names and case-insensitive lookup.
     Note: i_typ_zn = 20 represents 'Outdoor General' (Campus minus Building Envelope).
     """
     logger.debug(f"Received rule_data: {rule_data}, campus_id: {campus_id}")
-    zone_term = rule_data.get("zone", "").lower()
+    
+    # Get original zone term before any case conversion
+    original_zone_term = rule_data.get("zone", "")
+    zone_term_lower = original_zone_term.lower()
     campus_id = int(campus_id) if campus_id else None
     zone_cache = {}  # Local cache for get_zone_info
     rule_data["verbose"] = rule_data.get("verbose", True)  # Default verbose=True in dev
@@ -120,26 +179,54 @@ async def adapt_rulebuilder_to_tetse(rule_data: dict, campus_id: str, pool: asyn
     try:
         rule_data["spatial_context"] = None
         rule_data["adaptation_log"] = {
-            "zone_term": zone_term,
+            "zone_term": original_zone_term,
             "context_status": None,
             "used_default": False,
             "campus_id": campus_id,
             "building_envelope_id": building_envelope_id
         }
 
-        # Handle zone term mapping
-        if zone_term in ZONE_ALIAS_MAP:
-            zone_id = ZONE_ALIAS_MAP[zone_term]["zone_id"]
-            zone_info = await get_zone_info(zone_id, pool=maint_pool, cache=zone_cache)
+        # Handle zone term mapping with priority:
+        # 1. Check for exact database zone name match (case-sensitive and case-insensitive)
+        # 2. Check static alias map
+        # 3. Check virtual zone keywords
+        
+        # Fetch all zones once for efficient lookup
+        zones_list = await get_all_zones_for_ai()
+        
+        # First: Try to find exact zone name in database
+        zone_info = await find_zone_by_name(original_zone_term, zones_list)
+        if zone_info:
+            rule_data["zone_id"] = zone_info["i_zn"]
+            rule_data["zone_name"] = zone_info["x_nm_zn"]
+            rule_data["zone_type"] = str(zone_info["i_typ_zn"])
+            
+            # Determine spatial context based on zone hierarchy
+            if zone_info["i_typ_zn"] == 20:
+                rule_data["spatial_context"] = "VIRTUAL_OUTSIDE"
+            elif zone_info["i_typ_zn"] in [1, 10]:  # Campus or Building Envelope
+                rule_data["spatial_context"] = "BOUNDARY"
+            else:
+                rule_data["spatial_context"] = "INDOORS"
+            
+            logger.info(f"Found database zone: '{original_zone_term}' -> ID {zone_info['i_zn']}, type {zone_info['i_typ_zn']}")
+            
+        # Second: Check static alias map (using lowercase for aliases)
+        elif zone_term_lower in ZONE_ALIAS_MAP:
+            zone_id = ZONE_ALIAS_MAP[zone_term_lower]["zone_id"]
+            zone_info = await get_zone_info(str(zone_id), pool=maint_pool, cache=zone_cache)
             if zone_info:
-                logger.debug(f"Mapped '{zone_term}' to zone ID {zone_id}")
+                logger.debug(f"Mapped '{original_zone_term}' to zone ID {zone_id} via alias")
                 rule_data["zone_id"] = zone_id
                 rule_data["zone_name"] = zone_info["x_nm_zn"]
-                rule_data["zone_type"] = zone_info["i_typ_zn"]
+                rule_data["zone_type"] = str(zone_info["i_typ_zn"])
+                rule_data["spatial_context"] = "INDOORS"  # Most aliases are indoor zones
             else:
                 logger.warning(f"Invalid zone ID {zone_id} in ZONE_ALIAS_MAP")
-                raise HTTPException(status_code=400, detail=f"Invalid zone: '{zone_term}'")
-        elif zone_term in ("outside", "backyard"):
+                raise HTTPException(status_code=400, detail=f"Invalid zone: '{original_zone_term}'")
+                
+        # Third: Check for virtual zone keywords
+        elif zone_term_lower in ("outside", "backyard"):
             # Create virtual i_typ_zn = 20 zone (Campus minus Building Envelope) without current location validation
             virtual_zone_id = f"virtual_{campus_id}_outside"
             rule_data["zone_id"] = virtual_zone_id
@@ -147,29 +234,19 @@ async def adapt_rulebuilder_to_tetse(rule_data: dict, campus_id: str, pool: asyn
             rule_data["zone_type"] = "20"
             rule_data["spatial_context"] = "VIRTUAL_OUTSIDE"
             rule_data["message"] = (
-                f"Created virtual '{zone_term}' zone for campus {campus_id}. "
+                f"Created virtual '{original_zone_term}' zone for campus {campus_id}. "
                 f"This represents areas outside the building envelope (zone {building_envelope_id}) "
                 f"but within the campus boundary. The rule will trigger when subject_id {rule_data.get('subject_id', '')} "
                 f"is detected in these outdoor areas for the specified duration."
             )
             rule_data["adaptation_log"]["used_default"] = True
             rule_data["adaptation_log"]["context_status"] = "VIRTUAL_OUTSIDE"
-            logger.debug(f"Created virtual '{zone_term}' zone as i_typ_zn=20 for campus ID {campus_id}")
+            logger.debug(f"Created virtual '{original_zone_term}' zone as i_typ_zn=20 for campus ID {campus_id}")
+            
         else:
-            # Try to find exact zone name match
-            async with maint_pool.acquire() as conn:
-                zone_info = await conn.fetchrow(
-                    "SELECT i_zn, x_nm_zn, i_typ_zn FROM zones WHERE x_nm_zn = $1",
-                    zone_term
-                )
-                if zone_info:
-                    rule_data["zone_id"] = zone_info["i_zn"]
-                    rule_data["zone_name"] = zone_info["x_nm_zn"]
-                    rule_data["zone_type"] = zone_info["i_typ_zn"]
-                    logger.debug(f"Found exact zone match: '{zone_term}' -> ID {zone_info['i_zn']}")
-                else:
-                    logger.warning(f"Unmapped zone term: '{zone_term}'")
-                    raise HTTPException(status_code=400, detail=f"Invalid zone term: '{zone_term}'")
+            # No match found anywhere
+            logger.warning(f"Unmapped zone term: '{original_zone_term}'")
+            raise HTTPException(status_code=400, detail=f"Invalid zone term: '{original_zone_term}'")
 
         rule_data["duration_sec"] = rule_data.get("duration_sec", 0)
         rule_data["action"] = rule_data.get("action", "")
