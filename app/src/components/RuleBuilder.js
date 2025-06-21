@@ -172,47 +172,94 @@ const RuleForm = () => {
 const parseRuleText = (text) => {
   const result = { subject_id: '', zone: '', duration_sec: 0, action: '' };
   
-  // Parse subject_id
-  const subjectMatch = text.match(/(?:if\s+)(tag\s+)?([A-Za-z0-9]+)\s+stays/i);
-  if (subjectMatch) {
-    result.subject_id = subjectMatch[2];
-    console.log(`Parsed subject_id: ${result.subject_id}`);
-  }
+  // Enhanced subject_id parsing - handles more patterns
+  const subjectPatterns = [
+    /(?:if\s+)?(?:tag\s+)?([A-Za-z0-9]+)\s+(?:stays|goes|moves|transitions|leaves)/i,
+    /(?:when\s+)?(?:tag\s+)?([A-Za-z0-9]+)\s+(?:stays|goes|moves|transitions|leaves)/i,
+    /(?:alert\s+when\s+)?(?:tag\s+)?([A-Za-z0-9]+)\s+(?:stays|goes|moves|transitions|leaves)/i
+  ];
   
-  // Parse zone - much simpler approach
-  if (text.toLowerCase().includes('stays outside')) {
-    result.zone = 'outside';
-    console.log(`Parsed zone: ${result.zone}`);
-  } else if (text.toLowerCase().includes('stays in backyard')) {
-    result.zone = 'backyard';
-    console.log(`Parsed zone: ${result.zone}`);
-  } else {
-    // Try to match "stays in [zone_name]"
-    const zoneInMatch = text.match(/stays\s+in\s+([A-Za-z0-9\-_\s]+?)(?:\s+for|\s+then|\s*$)/i);
-    if (zoneInMatch) {
-      result.zone = zoneInMatch[1].trim();
-      console.log(`Parsed zone: ${result.zone}`);
+  for (const pattern of subjectPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      result.subject_id = match[1];
+      console.log(`Enhanced parsing - subject_id: ${result.subject_id}`);
+      break;
     }
   }
   
-  // Parse duration
-  const durationMatch = text.match(/(?:for\s+|more\s+than\s+)(\d+)\s+minute(s)?/i);
-  if (durationMatch) {
-    result.duration_sec = parseInt(durationMatch[1]) * 60;
-    console.log(`Parsed duration_sec: ${result.duration_sec}`);
+  // Enhanced zone parsing - handles proximity and transition patterns
+  if (text.toLowerCase().includes('goes outside') || text.toLowerCase().includes('moves outside')) {
+    result.zone = 'outside';
+    console.log(`Enhanced parsing - zone: ${result.zone} (from "goes/moves outside")`);
+  } else if (text.toLowerCase().includes('stays outside')) {
+    result.zone = 'outside';
+    console.log(`Enhanced parsing - zone: ${result.zone} (from "stays outside")`);
+  } else if (text.toLowerCase().includes('goes inside') || text.toLowerCase().includes('moves inside')) {
+    result.zone = 'inside';
+    console.log(`Enhanced parsing - zone: ${result.zone} (from "goes/moves inside")`);
+  } else if (text.toLowerCase().includes('stays in backyard')) {
+    result.zone = 'backyard';
+    console.log(`Enhanced parsing - zone: ${result.zone} (from "backyard")`);
+  } else {
+    // Try to match zone transitions "from X to Y" or "stays in X"
+    const transitionMatch = text.match(/(?:from\s+([A-Za-z0-9\-_\s]+?)\s+to\s+([A-Za-z0-9\-_\s]+?)(?:\s|$))/i);
+    if (transitionMatch) {
+      // For transitions, use the destination zone
+      result.zone = transitionMatch[2].trim();
+      console.log(`Enhanced parsing - zone: ${result.zone} (from transition to)`);
+    } else {
+      // Try "stays in [zone_name]"
+      const zoneInMatch = text.match(/stays\s+in\s+([A-Za-z0-9\-_\s]+?)(?:\s+for|\s+then|\s*$)/i);
+      if (zoneInMatch) {
+        result.zone = zoneInMatch[1].trim();
+        console.log(`Enhanced parsing - zone: ${result.zone} (from "stays in")`);
+      }
+    }
   }
   
-  // Parse action
-  const actionMatch = text.match(/(?:then\s+)?(alert|create an alert box|log|trigger mqtt|notify)\s*(?:me)?/i);
-  if (actionMatch) {
-    const action = actionMatch[1].toLowerCase();
-    result.action = action.includes('alert') || action.includes('notify') ? 'alert' : action.includes('log') ? 'log' : 'mqtt';
-    console.log(`Parsed action: ${result.action}`);
-  } else if (text.toLowerCase().includes('alert me')) {
+  // Enhanced duration parsing
+  const durationPatterns = [
+    /(?:for\s+|more\s+than\s+)(\d+)\s+minute(s)?/i,
+    /(\d+)\s+minute(s)?\s+/i,
+    /(\d+)\s*min(?:ute)?s?\s*/i
+  ];
+  
+  for (const pattern of durationPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      result.duration_sec = parseInt(match[1]) * 60;
+      console.log(`Enhanced parsing - duration_sec: ${result.duration_sec}`);
+      break;
+    }
+  }
+  
+  // Enhanced action parsing
+  const actionPatterns = [
+    /(?:then\s+)?(alert|create an alert box|log|trigger mqtt|notify|send alert|send notification)\s*(?:me)?/i,
+    /(?:send\s+an?\s+)?(alert|notification|log|mqtt)/i,
+    /(alert|log|mqtt|notify)(?:\s+me)?/i
+  ];
+  
+  for (const pattern of actionPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const action = match[1].toLowerCase();
+      result.action = action.includes('alert') || action.includes('notify') ? 'alert' : 
+                     action.includes('log') ? 'log' : 
+                     action.includes('mqtt') ? 'mqtt' : 'alert';
+      console.log(`Enhanced parsing - action: ${result.action}`);
+      break;
+    }
+  }
+  
+  // Default action if none found
+  if (!result.action && (text.toLowerCase().includes('alert') || text.toLowerCase().includes('send'))) {
     result.action = 'alert';
-    console.log(`Parsed action: ${result.action}`);
+    console.log(`Enhanced parsing - action: ${result.action} (default from alert/send)`);
   }
 
+  console.log('Enhanced parsing complete:', result);
   return result;
 };
 

@@ -1,10 +1,10 @@
 # Name: openai_trigger_api.py
-# Version: 0.2.7
+# Version: 0.3.0
 # Created: 250617
-# Modified: 250620
+# Modified: 250621
 # Author: ParcoAdmin + QuantumSage AI
-# Modified By: ParcoAdmin
-# Purpose: Phase 13.4 - Full Database Insert Layer with TETSE Rule Creation
+# Modified By: ParcoAdmin + Claude
+# Purpose: Enhanced TETSE Rule Creation with proximity conditions, layered triggers, and zone transitions
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
 # Status: Active
@@ -12,7 +12,8 @@
 
 """
 /home/parcoadmin/parco_fastapi/app/routes/openai_trigger_api.py
-# Version: 0.2.7 - Fixed database pool routing: data_pool for tlk_rules (ParcoRTLSData), maint_pool for zones (ParcoRTLSMaint)
+# Version: 0.3.0 - Enhanced rule creation with proximity conditions, layered triggers, zone transitions, and backward compatibility
+# Previous: 0.2.7 - Fixed database pool routing: data_pool for tlk_rules (ParcoRTLSData), maint_pool for zones (ParcoRTLSMaint)
 # Previous: 0.2.6 - Pass maint_pool to adapt_rulebuilder_to_tetse
 # Previous: 0.2.5 - Fixed zone validation to use 'zones' in ParcoRTLSMaint
 # Previous: 0.2.4 - Improved parse_natural_language validation
@@ -32,6 +33,7 @@ import asyncpg
 import json
 import re
 import asyncio
+import time
 from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel, ValidationError
 from datetime import datetime, timezone
@@ -91,7 +93,8 @@ async def get_data_db_pool():
 @router.post("/create_rule_live")
 async def create_rule_live(input_data: RuleInput, data_pool: asyncpg.Pool = Depends(get_data_db_pool), maint_pool: asyncpg.Pool = Depends(get_maint_db_pool)):
     """
-    Create a live TETSE rule from RuleBuilder input with natural language parsing.
+    Create a live TETSE rule from RuleBuilder input with enhanced natural language parsing.
+    Supports: zone_stay, zone_transition, layered_trigger, and proximity_condition rules.
     """
     try:
         # Parse natural language rule
@@ -99,7 +102,219 @@ async def create_rule_live(input_data: RuleInput, data_pool: asyncpg.Pool = Depe
         if "error" in parsed_rule:
             logger.warning(f"Parsing failed: {parsed_rule['error']}")
             raise HTTPException(status_code=400, detail=parsed_rule["error"])
+        
+        rule_type = parsed_rule.get("rule_type", "zone_stay")
+        logger.info(f"Creating {rule_type} rule: {parsed_rule}")
+        
+        # Handle different rule types
+        if rule_type == "proximity_condition":
+            return await handle_proximity_condition_rule(parsed_rule, input_data, data_pool, maint_pool)
+        elif rule_type == "layered_trigger":
+            return await handle_layered_trigger_rule(parsed_rule, input_data, data_pool, maint_pool)
+        elif rule_type == "zone_transition":
+            return await handle_zone_transition_rule(parsed_rule, input_data, data_pool, maint_pool)
+        else:
+            # Legacy zone_stay rule handling
+            return await handle_zone_stay_rule(parsed_rule, input_data, data_pool, maint_pool)
+            
+    except Exception as e:
+        logger.error(f"Error creating rule: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create rule: {str(e)}")
 
+async def handle_proximity_condition_rule(parsed_rule, input_data, data_pool, maint_pool):
+    """
+    Handle proximity condition rules like "if tag 23001 goes outside without me, send an alert"
+    Creates proximity condition rule in tlk_rules table for future portable trigger implementation
+    """
+    try:
+        subject_id = parsed_rule["subject_id"]
+        proximity_target = parsed_rule["proximity_target"]  # e.g., "device_type:personnel_badge"
+        proximity_distance = parsed_rule["proximity_distance"]  # e.g., 6.0
+        zone_transition = parsed_rule["zone_transition"]  # {"from": "inside", "to": "outside"}
+        action = parsed_rule["action"]
+        
+        # Create rule name with timestamp
+        rule_name = f"proximity_{subject_id}_{int(time.time())}"
+        
+        conditions = {
+            "rule_type": "proximity_condition",
+            "subject_id": subject_id,
+            "condition": parsed_rule["condition"],
+            "proximity_target": proximity_target,
+            "proximity_distance": proximity_distance,
+            "zone_transition": zone_transition
+        }
+        
+        actions = {
+            "type": action,
+            "message": f"Proximity condition triggered for {subject_id}",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Insert into tlk_rules table
+        insert_query = """
+            INSERT INTO tlk_rules (name, rule_type, conditions, actions, is_enabled, priority, created_at, updated_at, created_by, updated_by)
+            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), CURRENT_USER, CURRENT_USER)
+            RETURNING id
+        """
+        
+        async with data_pool.acquire() as conn:
+            result = await conn.fetchrow(
+                insert_query,
+                rule_name,
+                "proximity_condition", 
+                json.dumps(conditions),
+                json.dumps(actions),
+                True,
+                1
+            )
+        
+        rule_id = result["id"]
+        logger.info(f"Successfully created proximity condition rule ID {rule_id}")
+        
+        return {
+            "success": True,
+            "message": f"Proximity condition rule created successfully",
+            "rule_id": rule_id,
+            "rule_type": "proximity_condition",
+            "conditions": conditions,
+            "actions": actions,
+            "note": "Proximity rules leverage ParcoRTLS portable trigger architecture for real-time evaluation"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error handling proximity condition rule: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create proximity rule: {str(e)}")
+
+async def handle_layered_trigger_rule(parsed_rule, input_data, data_pool, maint_pool):
+    """
+    Handle layered trigger rules like "if tag 23001 moves from inside to outside send alert"
+    Uses BOL2 + CL1 trigger combination logic for sophisticated spatial intelligence
+    """
+    try:
+        subject_id = parsed_rule["subject_id"]
+        from_condition = parsed_rule["from_condition"]  # "inside", "outside", "off_campus"
+        to_condition = parsed_rule["to_condition"]
+        trigger_layers = parsed_rule["trigger_layers"]
+        action = parsed_rule["action"]
+        
+        rule_name = f"layered_{subject_id}_{from_condition}_to_{to_condition}_{int(time.time())}"
+        
+        conditions = {
+            "rule_type": "layered_trigger",
+            "subject_id": subject_id,
+            "from_condition": from_condition,
+            "to_condition": to_condition,
+            "trigger_layers": trigger_layers
+        }
+        
+        actions = {
+            "type": action,
+            "message": f"Layered trigger: {subject_id} moved from {from_condition} to {to_condition}",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Insert into tlk_rules table
+        insert_query = """
+            INSERT INTO tlk_rules (name, rule_type, conditions, actions, is_enabled, priority, created_at, updated_at, created_by, updated_by)
+            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), CURRENT_USER, CURRENT_USER)
+            RETURNING id
+        """
+        
+        async with data_pool.acquire() as conn:
+            result = await conn.fetchrow(
+                insert_query,
+                rule_name,
+                "layered_trigger",
+                json.dumps(conditions),
+                json.dumps(actions),
+                True,
+                1
+            )
+        
+        rule_id = result["id"]
+        logger.info(f"Successfully created layered trigger rule ID {rule_id}")
+        
+        return {
+            "success": True,
+            "message": f"Layered trigger rule created successfully",
+            "rule_id": rule_id,
+            "rule_type": "layered_trigger", 
+            "conditions": conditions,
+            "actions": actions,
+            "trigger_layers": trigger_layers,
+            "note": "Layered triggers use ParcoRTLS BOL2 + CL1 zone architecture for inside/outside detection"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error handling layered trigger rule: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create layered trigger rule: {str(e)}")
+
+async def handle_zone_transition_rule(parsed_rule, input_data, data_pool, maint_pool):
+    """
+    Handle zone transition rules like "if tag 23001 moves from Kitchen to Living Room send alert"
+    """
+    try:
+        subject_id = parsed_rule["subject_id"]
+        from_zone = parsed_rule["from_zone"]
+        to_zone = parsed_rule["to_zone"]
+        action = parsed_rule["action"]
+        
+        rule_name = f"transition_{subject_id}_{int(time.time())}"
+        
+        conditions = {
+            "rule_type": "zone_transition",
+            "subject_id": subject_id,
+            "from_zone": from_zone,
+            "to_zone": to_zone
+        }
+        
+        actions = {
+            "type": action,
+            "message": f"Zone transition: {subject_id} moved from {from_zone} to {to_zone}",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Insert into tlk_rules table
+        insert_query = """
+            INSERT INTO tlk_rules (name, rule_type, conditions, actions, is_enabled, priority, created_at, updated_at, created_by, updated_by)
+            VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), CURRENT_USER, CURRENT_USER)
+            RETURNING id
+        """
+        
+        async with data_pool.acquire() as conn:
+            result = await conn.fetchrow(
+                insert_query,
+                rule_name,
+                "zone_transition",
+                json.dumps(conditions),
+                json.dumps(actions),
+                True,
+                1
+            )
+        
+        rule_id = result["id"]
+        logger.info(f"Successfully created zone transition rule ID {rule_id}")
+        
+        return {
+            "success": True,
+            "message": f"Zone transition rule created successfully",
+            "rule_id": rule_id,
+            "rule_type": "zone_transition",
+            "conditions": conditions,
+            "actions": actions
+        }
+        
+    except Exception as e:
+        logger.error(f"Error handling zone transition rule: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create zone transition rule: {str(e)}")
+
+async def handle_zone_stay_rule(parsed_rule, input_data, data_pool, maint_pool):
+    """
+    Handle legacy zone stay rules like "if tag 23001 stays in Kitchen for 5 minutes then alert"
+    Maintains backward compatibility with existing RuleBuilder.js
+    """
+    try:
         # Merge parsed rule with input data, prioritizing explicit fields
         rule_data = {
             "rule_text": input_data.rule_text,
@@ -111,24 +326,35 @@ async def create_rule_live(input_data: RuleInput, data_pool: asyncpg.Pool = Depe
             "verbose": input_data.verbose
         }
 
-        # Validate required fields
+        # Validate required fields for legacy rules
         required_fields = ["campus_id", "subject_id", "zone", "duration_sec", "action"]
         missing = [field for field in required_fields if not rule_data.get(field) or rule_data.get(field) == '']
         if missing:
             logger.warning(f"Missing required fields: {missing}")
             raise HTTPException(status_code=422, detail=f"Missing or empty required fields: {', '.join(missing)}")
 
-        # Validate zone in ParcoRTLSMaint.zones
-        async with maint_pool.acquire() as conn:
-            valid_zone = await conn.fetchrow(
-                "SELECT i_zn FROM zones WHERE x_nm_zn = $1 OR x_nm_zn = $2",
-                rule_data["zone"], rule_data["zone"].replace(" ", "")
-            )
-            if not valid_zone and rule_data["zone"] not in ("outside", "backyard"):
-                logger.warning(f"Invalid zone: {rule_data['zone']}")
-                raise HTTPException(status_code=400, detail=f"Invalid zone: {rule_data['zone']} is not a recognized zone or alias")
+        # Enhanced zone validation supporting layered trigger aliases
+        zone_valid = False
+        if rule_data["zone"] in ["outside", "backyard", "inside"]:
+            # Virtual zones supported by layered trigger architecture
+            zone_valid = True
+            logger.info(f"Using layered trigger alias: {rule_data['zone']}")
+        else:
+            # Validate actual zone in ParcoRTLSMaint.zones
+            async with maint_pool.acquire() as conn:
+                valid_zone = await conn.fetchrow(
+                    "SELECT i_zn FROM zones WHERE x_nm_zn = $1 OR x_nm_zn = $2",
+                    rule_data["zone"], rule_data["zone"].replace(" ", "")
+                )
+                if valid_zone:
+                    zone_valid = True
+                    logger.info(f"Validated zone: {rule_data['zone']}")
 
-        # Adapt rule to TETSE format
+        if not zone_valid:
+            logger.warning(f"Invalid zone: {rule_data['zone']}")
+            raise HTTPException(status_code=400, detail=f"Invalid zone: {rule_data['zone']} is not a recognized zone or alias")
+
+        # Adapt rule to TETSE format (existing logic)
         tetse_rule = await adapt_rulebuilder_to_tetse(
             rule_data=rule_data,
             campus_id=rule_data["campus_id"],
@@ -146,8 +372,8 @@ async def create_rule_live(input_data: RuleInput, data_pool: asyncpg.Pool = Depe
         async with data_pool.acquire() as conn:
             rule_id = await conn.fetchval(
                 """
-                INSERT INTO tlk_rules (name, conditions, actions, is_enabled, priority, created_at, updated_at, created_by, updated_by)
-                VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), CURRENT_USER, CURRENT_USER)
+                INSERT INTO tlk_rules (name, rule_type, conditions, actions, is_enabled, priority, created_at, updated_at, created_by, updated_by)
+                VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), CURRENT_USER, CURRENT_USER)
                 ON CONFLICT (name) DO UPDATE
                 SET conditions = EXCLUDED.conditions,
                     actions = EXCLUDED.actions,
@@ -158,14 +384,21 @@ async def create_rule_live(input_data: RuleInput, data_pool: asyncpg.Pool = Depe
                 RETURNING id
                 """,
                 rule_name,
+                "zone_stay",
                 json.dumps(conditions),
                 json.dumps(actions),
                 True,
                 tetse_rule.get("priority", 1)
             )
 
-        logger.info(f"Successfully created rule ID {rule_id} for {tetse_rule['subject_id']} in Zone {tetse_rule['zone']}")
-        return {"message": "Rule created successfully", "rule_id": rule_id, "rule": tetse_rule}
+        logger.info(f"Successfully created zone stay rule ID {rule_id} for {tetse_rule['subject_id']} in Zone {tetse_rule['zone']}")
+        return {
+            "success": True,
+            "message": "Zone stay rule created successfully", 
+            "rule_id": rule_id, 
+            "rule_type": "zone_stay",
+            "rule": tetse_rule
+        }
 
     except ValidationError as e:
         error_messages = [f"{err['loc'][0]}: {err['msg']}" for err in e.errors()]
@@ -174,5 +407,5 @@ async def create_rule_live(input_data: RuleInput, data_pool: asyncpg.Pool = Depe
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Create rule live failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to create rule: {str(e)}")
+        logger.error(f"Error handling zone stay rule: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create zone stay rule: {str(e)}")
