@@ -1,17 +1,15 @@
 /* Name: RuleBuilder.js */
-/* Version: 0.2.6.6 */
+/* Version: 0.2.7.0 */
 /* Created: 250609 */
-/* Modified: 250620 */
+/* Modified: 250623 */
 /* Creator: ParcoAdmin */
 /* Modified By: ClaudeAI */
-/* Description: React component for TETSE rule construction and code generation, using API-based parsing with subject_id */
+/* Description: React component for TETSE rule construction and code generation, using backend API parsing only */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/RuleBuilder.js */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
-/* Update: Fixed version typo from 0.2.6.56 to 0.2.6.6 */
-/* Update: Fixed parseRuleText regex and handleSubmit to correctly merge parsed and form data, bumped from 0.2.6.4 */
-/* Update: Fixed parseRuleText with simpler zone parsing logic to correctly identify "outside"/"backyard" */
+/* Update: Removed frontend parsing, rely entirely on backend API for rule interpretation */
 
 import React, { useState, useEffect, useCallback } from 'react';
 
@@ -169,169 +167,70 @@ const RuleForm = () => {
     return descendants;
   };
 
-const parseRuleText = (text) => {
-  const result = { subject_id: '', zone: '', duration_sec: 0, action: '' };
-  
-  // Enhanced subject_id parsing - handles more patterns
-  const subjectPatterns = [
-    /(?:if\s+)?(?:tag\s+)?([A-Za-z0-9]+)\s+(?:stays|goes|moves|transitions|leaves)/i,
-    /(?:when\s+)?(?:tag\s+)?([A-Za-z0-9]+)\s+(?:stays|goes|moves|transitions|leaves)/i,
-    /(?:alert\s+when\s+)?(?:tag\s+)?([A-Za-z0-9]+)\s+(?:stays|goes|moves|transitions|leaves)/i
-  ];
-  
-  for (const pattern of subjectPatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      result.subject_id = match[1];
-      console.log(`Enhanced parsing - subject_id: ${result.subject_id}`);
-      break;
-    }
-  }
-  
-  // Enhanced zone parsing - handles proximity and transition patterns
-  if (text.toLowerCase().includes('goes outside') || text.toLowerCase().includes('moves outside')) {
-    result.zone = 'outside';
-    console.log(`Enhanced parsing - zone: ${result.zone} (from "goes/moves outside")`);
-  } else if (text.toLowerCase().includes('stays outside')) {
-    result.zone = 'outside';
-    console.log(`Enhanced parsing - zone: ${result.zone} (from "stays outside")`);
-  } else if (text.toLowerCase().includes('goes inside') || text.toLowerCase().includes('moves inside')) {
-    result.zone = 'inside';
-    console.log(`Enhanced parsing - zone: ${result.zone} (from "goes/moves inside")`);
-  } else if (text.toLowerCase().includes('stays in backyard')) {
-    result.zone = 'backyard';
-    console.log(`Enhanced parsing - zone: ${result.zone} (from "backyard")`);
-  } else {
-    // Try to match zone transitions "from X to Y" or "stays in X"
-    const transitionMatch = text.match(/(?:from\s+([A-Za-z0-9\-_\s]+?)\s+to\s+([A-Za-z0-9\-_\s]+?)(?:\s|$))/i);
-    if (transitionMatch) {
-      // For transitions, use the destination zone
-      result.zone = transitionMatch[2].trim();
-      console.log(`Enhanced parsing - zone: ${result.zone} (from transition to)`);
-    } else {
-      // Try "stays in [zone_name]"
-      const zoneInMatch = text.match(/stays\s+in\s+([A-Za-z0-9\-_\s]+?)(?:\s+for|\s+then|\s*$)/i);
-      if (zoneInMatch) {
-        result.zone = zoneInMatch[1].trim();
-        console.log(`Enhanced parsing - zone: ${result.zone} (from "stays in")`);
-      }
-    }
-  }
-  
-  // Enhanced duration parsing
-  const durationPatterns = [
-    /(?:for\s+|more\s+than\s+)(\d+)\s+minute(s)?/i,
-    /(\d+)\s+minute(s)?\s+/i,
-    /(\d+)\s*min(?:ute)?s?\s*/i
-  ];
-  
-  for (const pattern of durationPatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      result.duration_sec = parseInt(match[1]) * 60;
-      console.log(`Enhanced parsing - duration_sec: ${result.duration_sec}`);
-      break;
-    }
-  }
-  
-  // Enhanced action parsing
-  const actionPatterns = [
-    /(?:then\s+)?(alert|create an alert box|log|trigger mqtt|notify|send alert|send notification)\s*(?:me)?/i,
-    /(?:send\s+an?\s+)?(alert|notification|log|mqtt)/i,
-    /(alert|log|mqtt|notify)(?:\s+me)?/i
-  ];
-  
-  for (const pattern of actionPatterns) {
-    const match = text.match(pattern);
-    if (match) {
-      const action = match[1].toLowerCase();
-      result.action = action.includes('alert') || action.includes('notify') ? 'alert' : 
-                     action.includes('log') ? 'log' : 
-                     action.includes('mqtt') ? 'mqtt' : 'alert';
-      console.log(`Enhanced parsing - action: ${result.action}`);
-      break;
-    }
-  }
-  
-  // Default action if none found
-  if (!result.action && (text.toLowerCase().includes('alert') || text.toLowerCase().includes('send'))) {
-    result.action = 'alert';
-    console.log(`Enhanced parsing - action: ${result.action} (default from alert/send)`);
-  }
-
-  console.log('Enhanced parsing complete:', result);
-  return result;
-};
+// Frontend parsing removed - backend API handles all rule interpretation
 
   const promptForMissing = async (missingField, ruleData) => {
     return new Promise((resolve) => {
       let promptText = '';
       let defaultInput = '';
       switch (missingField) {
-        case 'subject_id':
-          promptText = 'What is the Subject ID (device) for this rule?';
-          defaultInput = ruleData.subject_id || '';
+        case 'campus_id':
+          promptText = 'Please select a campus zone from the dropdown above';
+          defaultInput = '';
           break;
-        case 'zone':
-          promptText = 'Which zone should this rule apply to?';
-          defaultInput = ruleData.zone || '';
-          break;
-        case 'duration_sec':
-          promptText = 'How long (in seconds) before the event fires?';
-          defaultInput = ruleData.duration_sec > 0 ? ruleData.duration_sec.toString() : '60';
-          break;
-        case 'action':
-          promptText = 'What action should this rule trigger? (alert, mqtt, log)';
-          defaultInput = ruleData.action || 'alert';
+        default:
+          promptText = `Missing ${missingField}. Please check your rule text or fill the form fields.`;
+          defaultInput = '';
           break;
       }
       setModalPrompt(promptText);
       setModalInput(defaultInput);
       setModalCallback(() => (input) => {
         const updatedData = { ...ruleData };
-        updatedData[missingField] = missingField === 'duration_sec' ? parseInt(input) || 60 : input;
-        setShowModal(false);
-        resolve(updatedData);
+        if (missingField === 'campus_id') {
+          // For campus_id, we need them to select from dropdown
+          setShowModal(false);
+          resolve(null); // Return null to indicate they need to use the form
+        } else {
+          updatedData[missingField] = input;
+          setShowModal(false);
+          resolve(updatedData);
+        }
       });
       setShowModal(true);
     });
   };
 
   const validateRule = async (ruleData) => {
-    let validatedData = { ...ruleData };
-    const requiredFields = ['subject_id', 'zone', 'duration_sec', 'action'];
-
-    console.log('Validating rule data:', validatedData);
-
-    for (const field of requiredFields) {
-      if (
-        !validatedData[field] ||
-        (field === 'subject_id' && validatedData[field].trim() === '') ||
-        (field === 'zone' && validatedData[field].trim() === '') ||
-        (field === 'duration_sec' && (isNaN(validatedData[field]) || validatedData[field] <= 0)) ||
-        (field === 'action' && !['alert', 'mqtt', 'log'].includes(validatedData[field]))
-      ) {
-        console.log(`Prompting for missing/invalid field: ${field}`);
-        validatedData = await promptForMissing(field, validatedData);
+    // Only validate required fields that frontend needs
+    if (!ruleData.rule_text || ruleData.rule_text.trim() === '') {
+      throw new Error('Please enter a rule in natural language');
+    }
+    
+    if (!ruleData.campus_id || ruleData.campus_id === '') {
+      const updatedData = await promptForMissing('campus_id', ruleData);
+      if (!updatedData) {
+        throw new Error('Campus zone is required. Please select one from the dropdown.');
       }
+      return updatedData;
     }
 
-    return validatedData;
+    return ruleData;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setResponse(null); // Clear previous response
+    setResponse(null);
+    
     try {
-      // Log current form state
       console.log('Current form state:', {
-        subjectId,
+        ruleText,
         campusZone,
+        subjectId,
         zone,
         duration,
-        action,
-        ruleText
+        action
       });
 
       // Map campusZone name to ID
@@ -340,45 +239,33 @@ const parseRuleText = (text) => {
         throw new Error('Please select a valid campus zone');
       }
 
-      // Initialize rule data
+      // Build rule data - only send what we have, let backend parse everything
       let ruleData = {
         rule_text: ruleText,
         campus_id: campusId.toString(),
-        subject_id: subjectId.trim(),
-        zone: zone.trim(),
-        duration_sec: parseInt(duration) || 0,
-        action: action,
         verbose: true
       };
 
-      console.log('Initial rule data:', ruleData);
-
-      // Parse rule text if provided
-      if (ruleText) {
-        const parsedData = parseRuleText(ruleText);
-        console.log('Parsed rule text:', parsedData);
-
-        // Merge parsed data, prioritizing form inputs
-        ruleData = {
-          ...ruleData,
-          subject_id: ruleData.subject_id || parsedData.subject_id || '',
-          zone: ruleData.zone || parsedData.zone || '',
-          duration_sec: ruleData.duration_sec || parsedData.duration_sec || 300,
-          action: ruleData.action || parsedData.action || 'alert'
-        };
-
-        // Update form state to reflect parsed or form values
-        setSubjectId(ruleData.subject_id);
-        setZone(ruleData.zone);
-        setDuration(ruleData.duration_sec.toString());
-        setAction(ruleData.action);
+      // Only include form fields if they have values (optional hints to backend)
+      if (subjectId.trim()) {
+        ruleData.subject_id = subjectId.trim();
+      }
+      if (zone.trim()) {
+        ruleData.zone = zone.trim();
+      }
+      if (duration) {
+        ruleData.duration_sec = parseInt(duration) || undefined;
+      }
+      if (action && action !== 'alert') {
+        ruleData.action = action;
       }
 
-      // Validate rule data
-      ruleData = await validateRule(ruleData);
-      console.log('Validated rule data:', ruleData);
+      console.log('Sending to API:', ruleData);
 
-      // Submit rule
+      // Validate minimal requirements
+      await validateRule(ruleData);
+
+      // Submit to backend API - let it do all the parsing
       const res = await fetch('http://192.168.210.226:8000/api/openai/create_rule_live', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -393,6 +280,11 @@ const parseRuleText = (text) => {
       const data = await res.json();
       console.log('API response:', data);
       setResponse(data);
+
+      // Update form fields with any parsed values from response if available
+      if (data.rule && data.rule.subject_id && !subjectId) {
+        setSubjectId(data.rule.subject_id);
+      }
 
     } catch (err) {
       console.error('Submit error:', err);
@@ -455,14 +347,14 @@ const parseRuleText = (text) => {
               console.log(`Rule text changed: ${e.target.value}`);
               setRuleText(e.target.value);
             }}
-            placeholder="E.g., If TAG001 stays in 6005BOL2-Child for 5 minutes then alert"
+            placeholder="E.g., if tag 23001 goes from inside to outside with tag 23003 send an alert"
             className="form-control"
             rows="4"
           />
         </div>
         <div className="row mb-3">
           <div className="col-md-6">
-            <label className="form-label">Subject ID (Device)</label>
+            <label className="form-label">Subject ID (Device) <small className="text-muted">(Optional - can be parsed from rule text)</small></label>
             <input
               type="text"
               value={subjectId}
@@ -504,7 +396,7 @@ const parseRuleText = (text) => {
         </div>
         <div className="row mb-3">
           <div className="col-md-6">
-            <label className="form-label">Zone</label>
+            <label className="form-label">Zone <small className="text-muted">(Optional - can be parsed from rule text)</small></label>
             {isFetchingZones ? (
               <div className="spinner-border text-primary" role="status">
                 <span className="visually-hidden">Loading zones...</span>
@@ -531,7 +423,7 @@ const parseRuleText = (text) => {
             )}
           </div>
           <div className="col-md-6">
-            <label className="form-label">Duration (seconds)</label>
+            <label className="form-label">Duration (seconds) <small className="text-muted">(Optional - can be parsed from rule text)</small></label>
             <input
               type="number"
               value={duration}
@@ -546,7 +438,7 @@ const parseRuleText = (text) => {
         </div>
         <div className="row mb-3">
           <div className="col-md-6">
-            <label className="form-label">Action</label>
+            <label className="form-label">Action <small className="text-muted">(Optional - can be parsed from rule text)</small></label>
             <select
               value={action}
               onChange={(e) => {

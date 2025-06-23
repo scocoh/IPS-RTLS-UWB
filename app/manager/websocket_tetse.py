@@ -1,15 +1,16 @@
 # Name: websocket_tetse.py
-# Version: 0.1.6
+# Version: 0.1.7
 # Created: 250526
-# Modified: 250528
+# Modified: 250623
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Description: WebSocket Server on port 8998 to forward events from main app to TETSE WebSocket server on port 9000
+# Modified By: ParcoAdmin + Claude
+# Description: WebSocket Server on port 8998 to forward events from main app to TETSE WebSocket server on port 9000 - Enhanced for position events
 # Location: /home/parcoadmin/parco_fastapi/app/manager/websocket_tetse.py
 # Role: WebSocket Interface for TETSE Event Forwarding
 # Status: Active
 # Dependent: TRUE
 #
+# Version: 0.1.7 - Enhanced with HTTP endpoint for position events and TETSE rule evaluation, bumped from 0.1.6
 # Version: 0.1.6 - Increased response timeout, added detailed logging, bumped from 0.1.5
 # Version: 0.1.5 - Handle non-JSON responses from TETSE server, bumped from 0.1.4
 # Version: 0.1.4 - Added heartbeat filtering in response forwarding, bumped from 0.1.3
@@ -27,6 +28,11 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from manager.line_limited_logging import LineLimitedFileHandler
 from .heartbeat_manager import HeartbeatManager
+from routes.device_registry import get_subject_for_tag
+from routes import tetse_reload
+from routes.tetse_rule_engine import evaluate_rule
+from routes.tetse_output_handler import process_tetse_result
+from pydantic import BaseModel
 
 # Log directory
 LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
@@ -49,7 +55,7 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelnam
 logger.handlers = [console_handler, file_handler]
 logger.propagate = False
 
-logger.info("Starting WebSocket TETSE Forwarding server on port 8998")
+logger.info("Starting WebSocket TETSE Forwarding server on port 8998 - Enhanced for position events")
 file_handler.flush()
 
 app = FastAPI()
@@ -63,6 +69,71 @@ app.add_middleware(
 )
 logger.debug("CORS middleware added with allow_origins: *")
 file_handler.flush()
+
+class EventBroadcast(BaseModel):
+    entity_id: str
+    event_data: dict
+
+@app.post("/broadcast_event")
+async def broadcast_event_http(event: EventBroadcast):
+    """
+    HTTP endpoint to receive events from RealTime WebSocket and process them for TETSE.
+    This is the clean event bridge that separates RTLS from TETSE logic.
+    """
+    try:
+        logger.info(f"Received event from RTLS bridge for entity {event.entity_id}")
+        
+        # Extract position data from event
+        event_data = event.event_data
+        if event_data.get("event_type") == "position_update":
+            tag_id = event_data.get("tag_id")
+            zone_id = event_data.get("zone_id")
+            
+            logger.debug(f"🔄 TETSE BRIDGE: Processing position update for tag_id={tag_id}, zone_id={zone_id}")
+            
+            # TETSE rule evaluation (moved from RealTime WebSocket)
+            try:
+                subject_id = get_subject_for_tag(tag_id)
+                logger.debug(f"🔄 TETSE BRIDGE: tag_id={tag_id}, subject_id={subject_id}")
+                
+                if subject_id:
+                    logger.debug(f"🔄 TETSE BRIDGE: Found subject {subject_id}, checking rules for zone {zone_id}")
+                    
+                    matching_rules = [r for r in tetse_reload.ACTIVE_TETSE_RULES if r["subject_id"] == subject_id]
+                    logger.debug(f"🔄 TETSE BRIDGE: Found {len(matching_rules)} matching rules for subject {subject_id}")
+                    
+                    for rule in matching_rules:
+                        logger.debug(f"🔄 TETSE BRIDGE: Evaluating rule {rule.get('name', 'unnamed')} for subject {subject_id}")
+                        # FIXED: Pass current_zone_id parameter
+                        result = await evaluate_rule(rule, current_zone_id=zone_id)
+                        logger.debug(f"🔄 TETSE BRIDGE: Rule evaluation result: {result}")
+                        logger.info(f"TETSE Bridge Eval: Subject={subject_id} Rule={rule['name']} Result={result}")
+                        await process_tetse_result(subject_id, rule, result)
+                else:
+                    logger.debug(f"🔄 TETSE BRIDGE: No subject mapping found for tag {tag_id}")
+                    
+            except Exception as e:
+                logger.error(f"🔄 TETSE BRIDGE: Exception in TETSE evaluation: {str(e)}")
+        
+        # Forward to TETSE WebSocket server (existing logic)
+        async with websockets.connect("ws://192.168.210.226:9000/broadcast_event_ws", timeout=5.0) as tetse_ws:
+            await tetse_ws.send(json.dumps({
+                "entity_id": event.entity_id,
+                "event_data": event.event_data
+            }))
+            
+            # Wait for response
+            try:
+                response = await asyncio.wait_for(tetse_ws.recv(), timeout=5.0)
+                logger.debug(f"TETSE server response: {response}")
+                return {"status": "success", "tetse_response": response}
+            except asyncio.TimeoutError:
+                logger.warning("TETSE server response timeout")
+                return {"status": "success", "note": "TETSE processing initiated"}
+                
+    except Exception as e:
+        logger.error(f"Failed to process event: {str(e)}")
+        return {"status": "error", "error": str(e)}
 
 @app.websocket("/ws/forward_event")
 async def forward_event_handler(websocket: WebSocket):

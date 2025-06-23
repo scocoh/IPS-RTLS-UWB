@@ -1,3 +1,15 @@
+# Name: debug_gpt_interaction.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS backend script
+# Location: /home/parcoadmin/parco_fastapi/app/tests
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # Debug script to see exactly what GPT is receiving and outputting
 import sys
 import os

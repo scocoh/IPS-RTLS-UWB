@@ -1,9 +1,9 @@
 # Name: simulator.py
-# Version: 0.1.20
+# Version: 0.1.21
 # Created: 971201
-# Modified: 250526
+# Modified: 250623
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
+# Modified By: ClaudeAI
 # Description: Python script for ParcoRTLS simulator with PortRedirect and EndStream support
 # Location: /home/parcoadmin/parco_fastapi/app
 # Role: Simulator
@@ -11,6 +11,7 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/simulator.py
+# Version: 0.1.21 - Claude Testing 23001 at 100.5,200.7,1.0 .75 zone 422 10 seconds
 # Version: 0.1.20 - Updated heartbeat response for HeartbeatManager, added configurable WebSocket URI, improved connection error handling, fixed syntax errors in finally block, bumped from 0.1.19
 # Previous: Fixed logging AttributeError, preserved all v0.1.18 functionality, added EndStream on stop for control/stream WebSockets, enhanced logging, bumped from 0.1.18
 # Previous: Restored moving tag interpolation in send_tag_data from v0.1.0, bumped from 0.1.17
@@ -382,6 +383,7 @@ async def simulator():
     print("3. Multiple tags at fixed points")
     print("4. One tag stationary, one tag moving")
     print("5. Two tags with different ping rates")
+    print("6. ClaudeAI Special")
     try:
         mode = int(input("Enter mode (1-5): ").strip() or 1)
     except ValueError as e:
@@ -451,6 +453,18 @@ async def simulator():
         z2 = float(input("Enter Z coordinate for second tag (default 5): ").strip() or 5)
         ping_rate2 = float(input("Enter ping rate in Hertz for second tag (default 0.5): ").strip() or 0.5)
         tag_configs.append(TagConfig(tag_id2, [(x2, y2, z2)], ping_rate2))
+    elif mode == 6:
+        # Option 6: Specific test for TETSE debug at your specified coordinates
+        tag_id = "23001"
+        x = 100.5
+        y = 200.7
+        z = 1.0
+        ping_rate = 0.75
+        # Use existing zone 422 (6005Campus) to test TETSE evaluation
+        zone_id = 422  # Existing zone: "6005Campus"
+        tag_configs.append(TagConfig(tag_id, [(x, y, z)], ping_rate))
+        print(f"Option 6: TETSE Debug - tag {tag_id} at ({x}, {y}, {z}) with ping rate {ping_rate}Hz in zone_id {zone_id} (6005Campus)")
+        duration = 10  # Override duration to 10 seconds    
     running = [True]
     stream_websocket = None
     should_stop = False

@@ -1,27 +1,20 @@
 # Name: websocket_realtime.py
-# Version: 0.1.60
+# Version: 0.1.67
 # Created: 250512
-# Modified: 250616
+# Modified: 250623
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 with TETSE live evaluation, output processing, and dispatcher bootstrap
+# Modified By: ParcoAdmin + Claude
+# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 - CLEAN RTLS ONLY with event bridge
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_realtime.py
-# Version: 0.1.60 - Phase 11.9.3 Circular Isolation Recovery
-# Previous: 0.1.59 - Phase 11.4 Phase 2 Add reload_rules callable
-# Previous: 0.1.58 - Phase 11.3.1
-# Previous: 0.1.57 - Phase 6D Dispatcher Bootstrap Inserted
-# Previous: 0.1.56 - Phase 6C.2 TETSE Output Processing Inserted
-# Previous: 0.1.55 - Phase 6B.2 TETSE Live Rule Evaluation Inserted
-# Previous: 0.1.54 - Integrated HeartbeatManager, removed _PENDING_HEARTBEATS and _LAST_HEARTBEAT
-# Previous: Increased initial heartbeat timeout to 60s for manual clients, enhanced wscat logging, bumped from 0.1.52
-# Previous: Aligned log path with /home/parcoadmin/parco_fastapi/app/logs, added console logging, extended initial heartbeat timeout to 10s, enhanced logging, bumped from 0.1.51
-# Previous: Relaxed heartbeat_id validation for legacy clients, retained 5-second timeout and no server responses, enhanced logging, bumped from 0.1.50
-# Previous: Removed server heartbeat responses, enforced 5-second response timeout, validated timestamp-based heartbeat_id, enhanced logging to align with VB.NET behavior, bumped from 0.1.49
+# Version: 0.1.67 - ROLLBACK: Removed TETSE contamination, added clean event bridge, bumped from 0.1.66
+# Version: 0.1.66 - FIXED: Added current_zone_id parameter to evaluate_rule() call, bumped from 0.1.65
+# Version: 0.1.65 - Added comprehensive TETSE debug logging to track rule evaluation flow
+# Previous: Added TETSE real-time hook with dynamic device registry (REMOVED - contamination)
 
 import asyncio
 import logging
@@ -39,11 +32,7 @@ from .constants import REQUEST_TYPE_MAP
 from .heartbeat_manager import HeartbeatManager
 import os
 from logging.handlers import RotatingFileHandler
-from routes.subject_registry import update_subject_zone
-from routes.tetse_rule_engine import evaluate_house_exclusion_rule
-from routes.tetse_reload import reload_rules, ACTIVE_TETSE_RULES
-from routes.tetse_output_handler import process_tetse_result
-from routes.tetse_event_dispatcher import start_dispatcher
+import httpx
 
 # Log directory
 LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
@@ -66,13 +55,8 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelnam
 logger.handlers = [console_handler, file_handler]
 logger.propagate = False
 
-logger.info("Starting WebSocket RealTime server on port 8002")
+logger.info("Starting WebSocket RealTime server on port 8002 - CLEAN RTLS ONLY")
 file_handler.flush()
-
-# Hardcoded tag-to-subject map for Phase 6B (replaceable later)
-TAG_TO_SUBJECT = {
-    "23001": "Eddy"
-}
 
 ENABLE_MULTI_PORT = True
 STREAM_TYPE = "RealTime"
@@ -80,15 +64,45 @@ RESOURCE_TYPE = 1
 MAINT_CONN_STRING = os.getenv("MAINT_CONN_STRING", "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint")
 HEARTBEAT_INTERVAL = 30.0  # Heartbeat every 30 seconds
 
-# Preload TETSE rules at startup
-async def initialize_tetse_rules():
-    try:
-        await reload_rules()
-        logger.info(f"TETSE: Loaded {len(ACTIVE_TETSE_RULES)} rules for live evaluation")
-    except Exception as e:
-        logger.error(f"Failed to initialize TETSE rules: {str(e)}")
+# Event Bridge Configuration
+TETSE_BRIDGE_URL = "http://192.168.210.226:8998"  # TETSE forwarding server
 
-asyncio.create_task(initialize_tetse_rules())
+async def publish_position_event(tag_id: str, zone_id: int, x: float, y: float, z: float):
+    """
+    Clean event bridge: Publish position events to TETSE without contaminating RTLS flow.
+    """
+    try:
+        event_data = {
+            "type": "PositionUpdate",
+            "entity_id": str(tag_id),
+            "event_data": {
+                "event_type": "position_update",
+                "tag_id": tag_id,
+                "zone_id": zone_id,
+                "x": x,
+                "y": y,
+                "z": z,
+                "timestamp": datetime.now().isoformat(),
+                "source": "rtls_realtime"
+            }
+        }
+        
+        # Send to TETSE bridge asynchronously (non-blocking)
+        async with httpx.AsyncClient(timeout=1.0) as client:
+            response = await client.post(
+                f"{TETSE_BRIDGE_URL}/broadcast_event",
+                json=event_data,
+                timeout=1.0
+            )
+            if response.status_code == 200:
+                logger.debug(f"Position event published for tag {tag_id} to TETSE bridge")
+            else:
+                logger.warning(f"TETSE bridge returned {response.status_code} for tag {tag_id}")
+                
+    except httpx.TimeoutException:
+        logger.warning(f"TETSE bridge timeout for tag {tag_id} - continuing RTLS processing")
+    except Exception as e:
+        logger.warning(f"TETSE bridge error for tag {tag_id}: {str(e)} - continuing RTLS processing")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -99,11 +113,6 @@ async def lifespan(app: FastAPI):
             logger.debug("DB pool created successfully")
             file_handler.flush()
             async with pool.acquire() as conn:
-                # Load TETSE rules on startup
-                await reload_rules()
-                logger.info(f"TETSE: Loaded {len(ACTIVE_TETSE_RULES)} rules for live evaluation")
-                file_handler.flush()
-
                 managers = await conn.fetch("SELECT X_NM_RES, i_typ_res FROM tlkresources WHERE i_typ_res = $1", RESOURCE_TYPE)
                 logger.debug(f"Queried tlkresources, found {len(managers)} managers for i_typ_res={RESOURCE_TYPE}")
                 file_handler.flush()
@@ -119,9 +128,6 @@ async def lifespan(app: FastAPI):
                         await manager_instance.start()
                         logger.debug(f"Manager {manager_name} started successfully")
                         file_handler.flush()
-                        # Start TETSE Dispatcher Workers
-                        asyncio.create_task(start_dispatcher(num_workers=2))
-                        logger.info("TETSE Dispatcher workers started.")
         yield
     except Exception as e:
         logger.error(f"Lifespan error: {str(e)}")
@@ -242,27 +248,30 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                 elif msg_type == "GISData":
                     tag_id = json_data.get("ID")
                     zone_id = json_data.get("zone_id")
+                    x = json_data.get("X", 0.0)
+                    y = json_data.get("Y", 0.0)
+                    z = json_data.get("Z", 0.0)
+                    
+                    logger.debug(f"Processing GISData for tag {tag_id} in zone {zone_id} from client {client_id} ({client_type})")
+                    file_handler.flush()
+                    
+                    # RTLS Processing (existing clean logic)
                     sim_message = {
                         "gis": {
                             "id": tag_id,
-                            "x": json_data.get("X", 0.0),
-                            "y": json_data.get("Y", 0.0),
-                            "z": json_data.get("Z", 0.0)
+                            "x": x,
+                            "y": y,
+                            "z": z
                         },
                         "zone_id": zone_id
                     }
                     await manager.process_sim_message(sim_message)
-                    # TETSE real-time hook
-                    subject_id = TAG_TO_SUBJECT.get(tag_id)
-                    if subject_id:
-                        await update_subject_zone(subject_id, zone_id)
-                        matching_rules = [r for r in ACTIVE_TETSE_RULES if r["subject_id"] == subject_id]
-                        for rule in matching_rules:
-                            result = await evaluate_house_exclusion_rule(rule)
-                            logger.info(f"TETSE Live Eval: Subject={subject_id} Rule={rule['name']} Result={result}")
-                            await process_tetse_result(subject_id, rule, result)
-                    logger.debug(f"Processing GISData for tag {tag_id} in zone {zone_id} from client {client_id} ({client_type})")
-                    file_handler.flush()
+                    
+                    # Event Bridge: Publish to TETSE (non-blocking, clean separation)
+                    if tag_id and zone_id is not None:
+                        asyncio.create_task(publish_position_event(tag_id, zone_id, x, y, z))
+                    
+                    # Forward to other RTLS clients (existing logic)
                     for ws_client in _WEBSOCKET_CLIENTS.get(manager_name, []):
                         if ws_client != sdk_client and ws_client.request_msg:
                             for tag in ws_client.request_msg.tags:

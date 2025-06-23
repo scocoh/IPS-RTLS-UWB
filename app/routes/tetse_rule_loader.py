@@ -64,18 +64,35 @@ async def preload_rules():
         async with asyncpg.create_pool(DATA_CONN_STRING) as pool:
             async with pool.acquire() as conn:
                 rows = await conn.fetch(query)
+                logger.info(f"Found {len(rows)} enabled rules in database")
                 for row in rows:
                     try:
                         condition_data = row["conditions"]
                         if isinstance(condition_data, str):
                             condition_data = json.loads(condition_data)
+                        
+                        # Enhanced debug logging
+                        logger.debug(f"Processing rule id={row['id']}, name={row['name']}")
+                        logger.debug(f"Raw condition_data: {condition_data}")
+                        logger.debug(f"Subject_id: {condition_data.get('subject_id')}")
+                        logger.debug(f"Rule_type: {condition_data.get('rule_type', 'zone_stay')}")
+                        
                         rule = parse_tetse_rule(row["id"], row["name"], condition_data)
+                        
+                        logger.debug(f"Parsed rule result: {rule is not None}")
                         if rule:
+                            logger.debug(f"Successfully parsed rule: {rule}")
                             rules.append(rule)
                         else:
-                            logger.warning(f"Skipped invalid rule id={row['id']}")
+                            logger.warning(f"FAILED to parse rule id={row['id']}, name={row['name']}, skipping")
+                            logger.warning(f"Failed rule condition_data was: {condition_data}")
+                            
                     except Exception as e:
-                        logger.error(f"Failed to parse rule id={row['id']}: {str(e)}")
+                        logger.error(f"Exception while parsing rule id={row['id']}: {str(e)}")
+                        logger.error(f"Exception rule condition_data was: {condition_data}")
+                        
+                logger.info(f"Successfully parsed {len(rules)} out of {len(rows)} rules")
+                        
     except Exception as e:
         logger.error(f"Database load failed: {str(e)}")
     return rules

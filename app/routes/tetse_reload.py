@@ -11,7 +11,7 @@
 # Dependent: TRUE
 
 # File: tetse_reload.py
-# Version: 0.2.0
+# Version: 0.2.1
 # Created: 250616
 # Modified: 250616
 # Author: ParcoAdmin
@@ -49,8 +49,11 @@ async def reload_rules():
     """
     global ACTIVE_TETSE_RULES
     try:
-        ACTIVE_TETSE_RULES = await tetse_rule_loader.preload_rules()
+        rules = await tetse_rule_loader.preload_rules()
+        ACTIVE_TETSE_RULES.clear()  # Clear existing rules
+        ACTIVE_TETSE_RULES.extend(rules)  # Add new rules
         logger.info(f"Reloaded {len(ACTIVE_TETSE_RULES)} TETSE rules")
+        logger.debug(f"Active rules: {[r.get('name', 'unnamed') for r in ACTIVE_TETSE_RULES]}")
     except Exception as e:
         logger.error(f"Failed to reload rules: {str(e)}")
 

@@ -1,3 +1,15 @@
+# Name: debug_data_loading.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS backend script
+# Location: /home/parcoadmin/parco_fastapi/app/tests
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 # Debug script to check what data is being loaded
 import sys
 import os

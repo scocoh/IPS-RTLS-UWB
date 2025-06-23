@@ -1,7 +1,7 @@
 # Name: app.py
-# Version: 0.1.71
+# Version: 0.1.73
 # Created: 971201
-# Modified: 250617
+# Modified: 250622
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -11,6 +11,7 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/app.py
+# Version: 0.1.73 - create zone types and device types in TETSE to store and retrieve virtual data
 # Version: 0.1.70 - Added in tetse_zone for the Rule Buider
 # Version: 0.1.68 - Added prefix=/api to portable_triggers_router, bumped from 0.1.67
 # Version: 0.1.67 - add Portable Triggers Endpoint
@@ -47,7 +48,8 @@ from routes.trigger import router as trigger_router
 from routes.portable_triggers import router as portable_triggers_router
 from routes.zone import router as zone_router
 from routes.tetse_zone import router as tetse_zone_router
-from routes.tetse_device import router as tetse_device_router  # ADD THIS with others
+from routes.tetse_device import router as tetse_device_router
+from routes.tetse_device_registry import router as tetse_device_registry_router  # ← Rename this
 from routes.entity import router as entity_router
 from routes.history import router as history_router
 from routes.text import router as text_router
@@ -189,7 +191,8 @@ app.include_router(device_router, prefix="/api")
 app.include_router(trigger_router, prefix="/api")
 app.include_router(zone_router, prefix="/api")
 app.include_router(tetse_zone_router, prefix="/api")
-app.include_router(tetse_device_router, prefix="/api", tags=["tetse_devices"]) # ✅ NEW LINE
+app.include_router(tetse_device_router, prefix="/api", tags=["tetse_devices"])
+app.include_router(tetse_device_registry_router)  # ← Use new name, already has prefix in router
 app.include_router(entity_router, prefix="/api")
 app.include_router(history_router, prefix="/api")
 app.include_router(text_router, prefix="/api")
