@@ -121,7 +121,7 @@ input.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for
 llm_bridge.py | 0.2.0 | 250617 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 maps.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 maps_upload.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-openai_trigger_api.py | 0.3.0 | 250617 | 250621 | ParcoAdmin | ParcoAdmin + Claude | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+openai_trigger_api.py | 0.3.1 | 250617 | 250621 | ParcoAdmin | ParcoAdmin + Claude | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 portable_triggers.py | 0.1.4 | 250607 | 250607 | ParcoAdmin | ParcoAdmin | FastAPI routes for managing portable triggers in ParcoRTLS | /home/parcoadmin/parco_fastapi/app/routes | FastAPI | Active | t
 region.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 subject_registry.py | 0.1.2 | 971201 | 250623 | ParcoAdmin | AI Assistant | ParcoRTLS backend script - Database-driven subject registry using TETSE device registry with direct device table support | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
@@ -179,14 +179,14 @@ MapUpload.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript fi
 MapZoneBuilder.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 MapZoneViewer.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 NewTriggerDemo.bak.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
-NewTriggerDemo.js | 0.1.15 | 971201 | 250607 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend to manage triggers | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
+NewTriggerDemo.js | 0.1.16 | 971201 | 250624 | ParcoAdmin | ParcoAdmin + Claude | JavaScript file for ParcoRTLS frontend to manage triggers | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 NewTriggerViewer.js | 0.1.2 | 971201 | 250526 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 PortableTriggerAdd.js | 0.1.3 | 250607 | 250607 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend to add portable triggers | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 TriggerUX2025.jsx | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 ZoneBuilder.css | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Stylesheet for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 ZoneBuilder.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 ZoneViewer.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
-RuleBuilder.js | 0.2.6.6 | 250609 | 250620 | ParcoAdmin | ClaudeAI | React component for TETSE rule construction and code generation, using API-based parsing with subject_id | /home/parcoadmin/parco_fastapi/app/src/components/RuleBuilder.js | Frontend | Active | t
+RuleBuilder.js | 0.2.7.0 | 250609 | 250623 | ParcoAdmin | ClaudeAI | React component for TETSE rule construction and code generation, using backend API parsing only | /home/parcoadmin/parco_fastapi/app/src/components/RuleBuilder.js | Frontend | Active | t
 useFetchData.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/hooks | Frontend | Active | t
 campusMapLoader.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/static | Frontend | Active | t
 campusMapLoader_pac.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/static | Frontend | Active | t

@@ -1,9 +1,9 @@
 /* Name: NewTriggerDemo.js */
-/* Version: 0.1.15 */
+/* Version: 0.1.16 */
 /* Created: 250607 */
-/* Modified: 250607 */
+/* Modified: 250624 */
 /* Creator: ParcoAdmin */
-/* Modified By: ParcoAdmin */
+/* Modified By: ParcoAdmin + Claude */
 /* Description: JavaScript file for ParcoRTLS frontend to manage triggers */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components */
 /* Role: Frontend */
@@ -11,6 +11,7 @@
 /* Dependent: TRUE */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo.js
+// Version: 0.1.16 - Added TETSE to Triggers tab for converting TETSE rules to portable triggers, bumped from 0.1.15
 // Version: 0.1.15 - Updated retryReloadTriggers to use port 8000, bumped from 0.1.14
 // Version: 0.1.14 - Rate-limited GISData processing, validated tag subscriptions, skipped invalid zone checks, bumped from 0.1.13
 // Previous: Updated heartbeat responses to include heartbeat_id for HeartbeatManager compatibility, bumped from 0.1.12
@@ -71,6 +72,13 @@ const NewTriggerDemo = () => {
   const [activeTab, setActiveTab] = useState("mapAndTrigger");
   const [portableTriggerContainment, setPortableTriggerContainment] = useState({});
   const [triggerContainmentState, setTriggerContainmentState] = useState({});
+
+  // New state for TETSE to Triggers tab
+  const [tetseRules, setTetseRules] = useState([]);
+  const [loadingTetseRules, setLoadingTetseRules] = useState(false);
+  const [tetseRulesError, setTetseRulesError] = useState(null);
+  const [conversionStatus, setConversionStatus] = useState({});
+
   const wsRef = useRef(null);
   const streamWsRef = useRef(null);
   const reconnectAttempts = useRef(0);
@@ -117,6 +125,209 @@ const NewTriggerDemo = () => {
       console.error("Fetch triggers error:", e);
     }
   };
+
+  // New functions for TETSE to Triggers tab
+  const fetchTetseRules = async () => {
+    setLoadingTetseRules(true);
+    setTetseRulesError(null);
+    try {
+      console.log("Fetching TETSE rules from tlk_rules table via API...");
+      
+      const response = await fetch("http://192.168.210.226:8000/api/openai/get_tetse_rules");
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const tetseRulesData = await response.json();
+      console.log(`Fetched ${tetseRulesData.length} TETSE rules:`, tetseRulesData);
+      
+      setTetseRules(tetseRulesData);
+      setEventList([...eventList, `Loaded ${tetseRulesData.length} TETSE rules from database`]);
+      
+    } catch (error) {
+      console.error("Error fetching TETSE rules:", error);
+      setTetseRulesError(`Failed to load TETSE rules: ${error.message}`);
+    } finally {
+      setLoadingTetseRules(false);
+    }
+  };
+
+  const handleConvertRule = async (ruleId) => {
+    setConversionStatus({
+      ...conversionStatus,
+      [ruleId]: { status: 'converting', message: 'Converting rule to portable trigger...' }
+    });
+    
+    try {
+      console.log(`Converting TETSE rule ${ruleId} to portable trigger...`);
+      
+      // Find the rule data
+      const rule = tetseRules.find(r => r.id === ruleId);
+      if (!rule) {
+        throw new Error('Rule not found');
+      }
+      
+      // Extract parameters based on rule type
+      let triggerParams;
+      
+      if (rule.rule_type === 'proximity_condition') {
+        triggerParams = {
+          name: `converted_proximity_${rule.subject_id}_${Date.now()}`,
+          direction: 1, // WhileIn
+          ignore: false,
+          zone_id: rule.conditions.zone_transition?.from === 'inside' ? null : parseInt(rule.conditions.zone || 425),
+          is_portable: true,
+          assigned_tag_id: rule.subject_id,
+          radius_ft: rule.conditions.proximity_distance || 6.0,
+          z_min: 0,
+          z_max: 10,
+          vertices: []
+        };
+      } else if (rule.rule_type === 'zone_transition') {
+        triggerParams = {
+          name: `converted_transition_${rule.subject_id}_${Date.now()}`,
+          direction: 4, // OnEnter 
+          ignore: false,
+          zone_id: parseInt(rule.conditions.zone || 425),
+          is_portable: true,
+          assigned_tag_id: rule.subject_id,
+          radius_ft: 3.0, // Default radius for transitions
+          z_min: 0,
+          z_max: 10,
+          vertices: []
+        };
+      } else {
+        throw new Error(`Rule type '${rule.rule_type}' not supported for conversion`);
+      }
+      
+      console.log('Converted trigger params:', triggerParams);
+      
+      // Call the portable trigger API
+      const response = await fetch("http://192.168.210.226:8000/api/add_portable_trigger", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(triggerParams)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('Portable trigger created:', result);
+      
+      // Update status with success
+      setConversionStatus({
+        ...conversionStatus,
+        [ruleId]: { 
+          status: 'success', 
+          message: `Converted to trigger ID ${result.trigger_id}` 
+        }
+      });
+      
+      // Add to event list
+      setEventList([...eventList, `TETSE rule ${ruleId} converted to portable trigger ID ${result.trigger_id}`]);
+      
+      // Refresh triggers list to show the new trigger
+      await fetchTriggers();
+
+      } catch (error) {
+      console.error(`Error converting rule ${ruleId}:`, error);
+      setConversionStatus({
+        ...conversionStatus,
+        [ruleId]: { status: 'error', message: `Failed to convert: ${error.message}` }
+      });
+    }
+  };
+
+  const renderTetseToTriggersTab = () => (
+    <div>
+      <h3>Convert TETSE Rules to Portable Triggers</h3>
+      <p>Convert proximity and transition rules from TETSE (tlk_rules table) into working portable triggers (triggers table).</p>
+      
+      <Button 
+        variant="primary" 
+        onClick={fetchTetseRules}
+        disabled={loadingTetseRules}
+        className="mb-3"
+      >
+        {loadingTetseRules ? 'Loading TETSE Rules...' : 'Load TETSE Rules'}
+      </Button>
+
+      {tetseRulesError && (
+        <div className="alert alert-danger" role="alert">
+          {tetseRulesError}
+        </div>
+      )}
+
+      {tetseRules.length === 0 && !loadingTetseRules ? (
+        <p>No TETSE rules loaded. Click "Load TETSE Rules" to fetch available rules from the tlk_rules table.</p>
+      ) : (
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Rule ID</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Subject ID</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tetseRules.map(rule => (
+              <tr key={rule.id}>
+                <td>
+                  <FormCheck 
+                    type="checkbox"
+                    id={`rule-${rule.id}`}
+                    defaultChecked={false}
+                  />
+                </td>
+                <td>{rule.id}</td>
+                <td>{rule.name}</td>
+                <td>
+                  <span className={`badge bg-${
+                    rule.rule_type === 'proximity_condition' ? 'info' :
+                    rule.rule_type === 'zone_transition' ? 'warning' :
+                    rule.rule_type === 'layered_trigger' ? 'primary' : 'secondary'
+                  }`}>
+                    {rule.rule_type || 'zone_stay'}
+                  </span>
+                </td>
+                <td>{rule.subject_id || 'N/A'}</td>
+                <td>
+                  {conversionStatus[rule.id] ? (
+                    <span className={`badge bg-${
+                      conversionStatus[rule.id].status === 'success' ? 'success' : 
+                      conversionStatus[rule.id].status === 'error' ? 'danger' : 'warning'
+                    }`}>
+                      {conversionStatus[rule.id].message}
+                    </span>
+                  ) : (
+                    <span className="badge bg-secondary">Ready</span>
+                  )}
+                </td>
+                <td>
+                  <Button
+                    variant="success"
+                    size="sm"
+                    onClick={() => handleConvertRule(rule.id)}
+                    disabled={conversionStatus[rule.id]?.status === 'converting'}
+                  >
+                    {conversionStatus[rule.id]?.status === 'converting' ? 'Converting...' : 'Convert to Trigger'}
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+    </div>
+  );
 
   const checkTriggerContainment = async (triggerId, tagId, x, y, z, isPortable) => {
     try {
@@ -1241,6 +1452,10 @@ const NewTriggerDemo = () => {
           {eventList.length === 0 ? <p>No system events recorded.</p> : (
             <ul>{eventList.map((e, i) => <li key={i}>{e}</li>)}</ul>
           )}
+        </Tab>
+
+        <Tab eventKey="tetseToTriggers" title="TETSE to Triggers">
+          {renderTetseToTriggersTab()}
         </Tab>
       </Tabs>
     </div>

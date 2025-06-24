@@ -1,5 +1,5 @@
 # Name: openai_trigger_api.py
-# Version: 0.3.0
+# Version: 0.3.1
 # Created: 250617
 # Modified: 250621
 # Author: ParcoAdmin + QuantumSage AI
@@ -9,6 +9,9 @@
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
+
+# Version: 0.3.1 - Added get_tetse_rules endpoint for TETSE to Triggers tab
+
 
 """
 /home/parcoadmin/parco_fastapi/app/routes/openai_trigger_api.py
@@ -89,6 +92,125 @@ async def get_data_db_pool():
     Create a connection pool for ParcoRTLSData database.
     """
     return await get_async_db_pool("data")
+
+@router.get("/get_tetse_rules")
+async def get_tetse_rules(data_pool: asyncpg.Pool = Depends(get_data_db_pool)):
+    """
+    Fetch all TETSE rules from tlk_rules table for conversion to portable triggers.
+    
+    Returns:
+        list: Array of TETSE rules with id, name, rule_type, conditions, and parsed fields
+    """
+    try:
+        logger.info("Fetching TETSE rules from tlk_rules table")
+        
+        # Query all enabled rules from tlk_rules table in ParcoRTLSData
+        query = """
+            SELECT id, name, rule_type, conditions, actions, is_enabled, created_at
+            FROM tlk_rules 
+            WHERE is_enabled = TRUE
+            ORDER BY created_at DESC
+        """
+        
+        async with data_pool.acquire() as conn:
+            rows = await conn.fetch(query)
+            
+        tetse_rules = []
+        for row in rows:
+            try:
+                # Parse conditions JSON
+                conditions = row["conditions"]
+                if isinstance(conditions, str):
+                    conditions = json.loads(conditions)
+                
+                # Extract key fields from conditions
+                rule_type = conditions.get("rule_type", "zone_stay")
+                subject_id = conditions.get("subject_id")
+                
+                # Build rule object
+                rule = {
+                    "id": row["id"],
+                    "name": row["name"],
+                    "rule_type": rule_type,
+                    "subject_id": subject_id,
+                    "is_enabled": row["is_enabled"],
+                    "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+                    "conditions": conditions,
+                    "raw_conditions": row["conditions"]  # Keep original for debugging
+                }
+                
+                # Add type-specific fields for display
+                if rule_type == "proximity_condition":
+                    rule["proximity_distance"] = conditions.get("proximity_distance", 6.0)
+                    rule["proximity_target"] = conditions.get("proximity_target")
+                    rule["condition"] = conditions.get("condition")
+                elif rule_type == "zone_transition":
+                    rule["from_zone"] = conditions.get("from_zone")
+                    rule["to_zone"] = conditions.get("to_zone")
+                elif rule_type == "layered_trigger":
+                    rule["from_condition"] = conditions.get("from_condition")
+                    rule["to_condition"] = conditions.get("to_condition")
+                elif rule_type == "zone_stay":
+                    rule["zone"] = conditions.get("zone")
+                    rule["duration_sec"] = conditions.get("duration_sec", 600)
+                
+                tetse_rules.append(rule)
+                logger.debug(f"Processed TETSE rule {row['id']}: {rule['name']} ({rule_type})")
+                
+            except Exception as parse_error:
+                logger.error(f"Failed to parse TETSE rule {row['id']}: {str(parse_error)}")
+                # Include failed rules with error info
+                tetse_rules.append({
+                    "id": row["id"],
+                    "name": row["name"],
+                    "rule_type": "parse_error",
+                    "subject_id": "ERROR",
+                    "error": str(parse_error),
+                    "raw_conditions": row["conditions"]
+                })
+        
+        logger.info(f"Successfully fetched {len(tetse_rules)} TETSE rules")
+        return tetse_rules
+        
+    except Exception as e:
+        logger.error(f"Error fetching TETSE rules: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch TETSE rules: {str(e)}")
+
+# Also add this helper endpoint to test database connection
+@router.get("/test_tetse_db")
+async def test_tetse_db(data_pool: asyncpg.Pool = Depends(get_data_db_pool)):
+    """
+    Test connection to ParcoRTLSData database and check tlk_rules table.
+    """
+    try:
+        async with data_pool.acquire() as conn:
+            # Test basic connection
+            result = await conn.fetchval("SELECT NOW()")
+            
+            # Check if tlk_rules table exists
+            table_exists = await conn.fetchval("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'tlk_rules'
+                )
+            """)
+            
+            # Count rules
+            rule_count = 0
+            if table_exists:
+                rule_count = await conn.fetchval("SELECT COUNT(*) FROM tlk_rules")
+            
+            return {
+                "database_connected": True,
+                "current_time": result.isoformat(),
+                "tlk_rules_table_exists": table_exists,
+                "total_rules": rule_count,
+                "message": "Database connection successful"
+            }
+            
+    except Exception as e:
+        logger.error(f"Database test failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database test failed: {str(e)}")
 
 @router.post("/create_rule_live")
 async def create_rule_live(input_data: RuleInput, data_pool: asyncpg.Pool = Depends(get_data_db_pool), maint_pool: asyncpg.Pool = Depends(get_maint_db_pool)):
