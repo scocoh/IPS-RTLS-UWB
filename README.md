@@ -112,6 +112,19 @@ Designed to run on Linux.  Could be ideal for HomeAssistant. (TETSE presently us
 
 See ParcoRTLS\_Manual.md at the repo root for detailed instructions.
 
+# Database Diagrams
+## ParcoRTLSMaint
+![ParcoRTLSMaint - public](https://github.com/user-attachments/assets/b0130c97-a920-42b6-8ac0-aad588526aa3)
+## ParcoRTLSData (TETSE)
+![ParcoRTLSData - public](https://github.com/user-attachments/assets/9ed76159-bf8e-4af7-88e0-4a9d6b6a1031)
+## ParcoRTLSHistR
+![ParcoRTLSHistR - public](https://github.com/user-attachments/assets/dfb2f3a8-922e-4f1a-8822-948adc470d14)
+## ParcoRTLSHistP
+![ParcoRTLSHistP - public](https://github.com/user-attachments/assets/498ac680-8865-475a-aa14-25b3c1e92427)
+## ParcoRTLSHistO
+![ParcoRTLSHistO - public](https://github.com/user-attachments/assets/704417da-c660-42b0-99fa-840a414969a8)
+
+
 ---
 
 © 1999–2025 Affiliated Commercial Services Inc.
