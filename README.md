@@ -1,8 +1,15 @@
-# IPS-RTLS-UWB ParcoRTLS Linux Fast API
+# IPS-RTLS-UWB ParcoRTLS | TETSE Linux Fast API
 
 Parco RTLS API for integrating various hardware positioning systems into a unified format. Features tag-agnostic, scalable data streams (Full, Subscription, and Polling) and comprehensive services for real-time and historical location tracking. Includes tools for database management, map creation, and hardware setup.
 
+![ParcoArchitecture](https://github.com/user-attachments/assets/021edcd0-0078-4fbe-bada-f92c50361ceb)
+
 This repository contains the Parco Real-Time Location System (RTLS) API and related services. Parco RTLS is designed to integrate with various hardware positioning systems, providing a common format for data regardless of the hardware used. This allows for seamless upgrades or changes to hardware without impacting the end-user applications built with the Parco SDK.
+
+![image](https://github.com/user-attachments/assets/470e2edc-66a3-4db7-962d-891de7a483b5)
+
+
+Also included is the re-invented events engine Temporal-Entity-Trigger-State Engine (TETSE) which is a Cognitive Substrate for AI-Enhanced Event Reasoning and Symbolic Timeline Management. This is a revised software engine that repurposes a real-time location system (RTLS) architecture into a cognitive substrate. The system records symbolic temporal events across multiple entities and triggers, enabling artificial intelligence (AI) systems to conduct event-based reasoning, state inference, and causal tracking. This cognitive timeline is queryable and extensible across 2D, 3D, and 4D representations, allowing portable and permanent triggers to operate in both physical and symbolic contexts. The system supports both real-time and batch processing and is compatible with MQTT, FastAPI, PostgreSQL, and external AI models. This invention relates generally to artificial intelligence and real-time monitoring systems, and more specifically to a method and system for creating symbolic, temporal, and causal memory frameworks for integration with machine learning platforms.
 
 For a full history on this code visit [https://asproj.com/github-rtls](https://asproj.com/github-rtls)
 
