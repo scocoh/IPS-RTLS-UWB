@@ -1,5 +1,5 @@
 # Name: tetse_rule_interpreter.py
-# Version: 0.5.5
+# Version: 0.5.6
 # Created: 971201
 # Modified: 250622
 # Creator: ParcoAdmin
@@ -12,6 +12,7 @@
 
 """
 /home/parcoadmin/parco_fastapi/app/routes/tetse_rule_interpreter.py
+# Version: 0.5.6 - Rule updates for inside and corrected error with # type: ignore'
 # Version: 0.5.5. - Fixed compound transition rules
 # Version: 0.5.4 - Fixed rule type detection for zone transitions vs layered triggers and enhanced compound condition support
 # Previous: 0.5.3 - Added back "any tag" example for outside→inside transitions
@@ -181,6 +182,8 @@ def detect_rule_type(input_text: str) -> str:
         'without a personnel', 'no personnel', 'there is no personnel',
         'with a personnel', 'there is a personnel', 'with personnel',
         'near personnel', 'close to personnel', 'personnel nearby'
+        'come within', 'comes within', 'get within', 'gets within',
+        'within 6 feet', 'within 3 feet', 'within feet', 'feet of'
     ]
     
     for keyword in proximity_keywords:
@@ -318,7 +321,7 @@ When users mention proximity requirements (without me, without personnel, with t
 
 SUBJECT_ID PATTERNS:
 - Specific device: "tag 23001" → "23001"
-- Device type: "any tag", "all tags" → "device_type:tag"
+- Device type: "any tag", "all tags", "any tags" → "device_type:tag"
 - Dog tags: "dog tag", "any dog tag" → "device_type:tag" (assuming tags are used for dogs)
 
 PROXIMITY TARGET PATTERNS (ENHANCED v0.5.5):
@@ -345,6 +348,8 @@ CONDITION PATTERNS (ENHANCED v0.5.5):
 - "leaves building without X" → condition: "outside_without_proximity"
 - "goes from inside to outside with X" → condition: "outside_with_proximity"
 - "goes from inside to outside without X" → condition: "outside_without_proximity"
+- "comes within X feet of" → condition: "stationary_proximity"
+- "gets within X feet of" → condition: "stationary_proximity"
 
 ZONE TRANSITION PATTERNS (ENHANCED):
 - "from Living Room to outside" → zone_transition: {{"from": "Living Room RL6-Child", "to": "outside"}}
@@ -441,6 +446,28 @@ Output: {{
   "proximity_distance": 6.0,
   "zone_transition": {{"from": "Kitchen L6-Child", "to": "Living Room RL6-Child"}},
   "action": "mqtt"
+}}
+
+Input: "if any tags come within 6 feet of tag 23002 send an alert"
+Output: {{
+  "rule_type": "proximity_condition",
+  "subject_id": "23002",
+  "condition": "stationary_proximity",
+  "proximity_target": "device_type:tag",
+  "proximity_distance": 6.0,
+  "zone_transition": {{"from": "any", "to": "any"}},
+  "action": "alert"
+}}
+
+Input: "alert when any tags get within 3 feet of tag 23003"
+Output: {{
+  "rule_type": "proximity_condition",
+  "subject_id": "23003",
+  "condition": "stationary_proximity",
+  "proximity_target": "device_type:tag",
+  "proximity_distance": 3.0,
+  "zone_transition": {{"from": "any", "to": "any"}},
+  "action": "alert"
 }}
 
 If the subject_id, proximity_target, or condition cannot be parsed, respond with:
@@ -784,7 +811,7 @@ async def parse_natural_language(input_text: str) -> dict:
             ],
             response_format={"type": "json_object"}
         )
-        content = response.choices[0].message.content.strip()
+        content = response.choices[0].message.content.strip() # type: ignore
         logger.debug(f"GPT raw output: {content}")
         parsed = json.loads(content)
 
