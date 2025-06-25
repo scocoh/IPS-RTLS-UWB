@@ -1,7 +1,7 @@
 /* Name: RuleBuilder.js */
-/* Version: 0.2.7.0 */
+/* Version: 0.2.7.1 */
 /* Created: 250609 */
-/* Modified: 250623 */
+/* Modified: 250625 */
 /* Creator: ParcoAdmin */
 /* Modified By: ClaudeAI */
 /* Description: React component for TETSE rule construction and code generation, using backend API parsing only */
@@ -9,7 +9,7 @@
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
-/* Update: Removed frontend parsing, rely entirely on backend API for rule interpretation */
+/* Update: Fixed campus ID mapping with enhanced debugging for zone resolution issues */
 
 import React, { useState, useEffect, useCallback } from 'react';
 
@@ -124,6 +124,7 @@ const RuleForm = () => {
           setAllZones(data.zones);
           const campuses = data.zones.filter(z => z.type === 1);
           setCampusZones(campuses);
+          console.log('Campus zones loaded:', campuses);
         } else {
           console.error('Zones data is not an array:', data);
           setAllZones([]);
@@ -233,11 +234,19 @@ const RuleForm = () => {
         action
       });
 
-      // Map campusZone name to ID
-      const campusId = campusZones.find(c => c.name === campusZone)?.id || '';
-      if (!campusId) {
-        throw new Error('Please select a valid campus zone');
+      // ENHANCED: Map campusZone name to ID with detailed debugging
+      console.log('Available campus zones:', campusZones);
+      const selectedCampus = campusZones.find(c => c.name === campusZone);
+      console.log('Selected campus zone object:', selectedCampus);
+      
+      if (!selectedCampus) {
+        console.error('Campus zone not found:', campusZone);
+        console.error('Available campus zone names:', campusZones.map(c => c.name));
+        throw new Error(`Please select a valid campus zone. Available zones: ${campusZones.map(c => c.name).join(', ')}`);
       }
+
+      const campusId = selectedCampus.id;
+      console.log(`Campus Zone mapping: "${campusZone}" -> ID: ${campusId}`);
 
       // Build rule data - only send what we have, let backend parse everything
       let ruleData = {
@@ -274,6 +283,7 @@ const RuleForm = () => {
 
       if (!res.ok) {
         const errorData = await res.json();
+        console.error('API error response:', errorData);
         throw new Error(errorData.detail || `HTTP error! Status: ${res.status}`);
       }
 
@@ -286,9 +296,22 @@ const RuleForm = () => {
         setSubjectId(data.rule.subject_id);
       }
 
+      // Clear form on success
+      if (data.success) {
+        setRuleText('');
+        setSubjectId('');
+        setZone('');
+        setDuration('');
+        setAction('alert');
+      }
+
     } catch (err) {
       console.error('Submit error:', err);
-      setResponse({ error: `Failed to create rule: ${err.message}` });
+      setResponse({ 
+        error: `Failed to create rule: ${err.message}`,
+        success: false,
+        message: err.message
+      });
     } finally {
       setLoading(false);
     }
@@ -462,10 +485,26 @@ const RuleForm = () => {
         </button>
       </form>
       {response && (
-        <div className="card mt-3">
+        <div className={`card mt-3 ${response.success ? 'border-success' : 'border-danger'}`}>
           <div className="card-body">
-            <h3 className="h5">Response</h3>
-            <pre>{JSON.stringify(response, null, 2)}</pre>
+            <h3 className={`h5 ${response.success ? 'text-success' : 'text-danger'}`}>
+              {response.success ? 'Success!' : 'Error'}
+            </h3>
+            {response.success && response.message && (
+              <div className="alert alert-success">
+                {response.message}
+                {response.rule_id && <p className="mb-0"><strong>Rule ID:</strong> {response.rule_id}</p>}
+              </div>
+            )}
+            {response.error && (
+              <div className="alert alert-danger">
+                {response.error}
+              </div>
+            )}
+            <details className="mt-2">
+              <summary>Full Response</summary>
+              <pre>{JSON.stringify(response, null, 2)}</pre>
+            </details>
           </div>
         </div>
       )}

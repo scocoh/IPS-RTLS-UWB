@@ -421,6 +421,28 @@ Output: {{
   "action": "alert"
 }}
 
+Input: "if tag 23001 goes from living room to kitchen with 23003 send an alert"
+Output: {{
+  "rule_type": "proximity_condition",
+  "subject_id": "23001",
+  "condition": "transition_with_proximity",
+  "proximity_target": "23003",
+  "proximity_distance": 6.0,
+  "zone_transition": {{"from": "Living Room RL6-Child", "to": "Kitchen L6-Child"}},
+  "action": "alert"
+}}
+
+Input: "if tag 23001 goes from kitchen to living room with 23004 send mqtt"
+Output: {{
+  "rule_type": "proximity_condition",
+  "subject_id": "23001",
+  "condition": "transition_with_proximity",
+  "proximity_target": "23004", 
+  "proximity_distance": 6.0,
+  "zone_transition": {{"from": "Kitchen L6-Child", "to": "Living Room RL6-Child"}},
+  "action": "mqtt"
+}}
+
 If the subject_id, proximity_target, or condition cannot be parsed, respond with:
 {{ "error": "Could not parse rule: invalid subject, proximity target, or condition" }}
 """
