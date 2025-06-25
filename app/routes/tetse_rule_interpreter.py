@@ -1,7 +1,7 @@
 # Name: tetse_rule_interpreter.py
-# Version: 0.5.6
+# Version: 0.5.7
 # Created: 971201
-# Modified: 250622
+# Modified: 250625
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin + Claude
 # Description: Parses natural language rules for TETSE in ParcoRTLS with layered trigger and proximity support
@@ -81,6 +81,14 @@ class ProximityConditionRule(BaseModel):
     proximity_target: str  # "device_type:personnel_badge" or specific device ID
     proximity_distance: float  # Distance in feet
     zone_transition: dict  # {"from": "inside", "to": "outside"}
+    action: str
+
+class ZoneEntryMonitoringRule(BaseModel):
+    rule_type: str = "zone_entry_monitoring"
+    subject_id: str  # "device_type:tag" or specific device types
+    zone: str        # Zone name, ID, or virtual zone
+    device_types: list  # [1,2,3,24,901] - monitored device types
+    trigger_direction: int = 4  # On Enter
     action: str
 
 # Default fallback SYSTEM_PROMPT for zone stay rules
@@ -186,6 +194,12 @@ def detect_rule_type(input_text: str) -> str:
         'within 6 feet', 'within 3 feet', 'within feet', 'feet of'
     ]
     
+    # 0. HIGHEST PRIORITY: Zone entry monitoring (before proximity checks)
+    entry_keywords = [
+        'enters', 'goes into', 'goes in', 'enters into', 
+        'walks into', 'moves into', 'arrives at', 'comes into'
+    ]
+
     for keyword in proximity_keywords:
         if keyword in text_lower:
             logger.debug(f"Detected proximity condition rule with keyword: '{keyword}'")
@@ -652,6 +666,101 @@ IMPORTANT: Be GENEROUS with zone matching for device type patterns. If zones can
 """
     return prompt
 
+def build_zone_entry_monitoring_prompt(zones, devices, device_types):
+    """Build GPT prompt for zone entry monitoring rules"""
+    zone_list = [f"- {z['name']} (id={z['id']})" for z in zones] if zones else ["- None"]
+    zone_block = "\n".join(zone_list)
+    device_list = [f"- {d['id']} (name={d['name']}, type={d['type']})" for d in devices] if devices else ["- None"]
+    device_block = "\n".join(device_list)
+    
+    # Build device type information
+    if device_types:
+        type_list = [f"- {dt['i_typ_dev']}: {dt['x_dsc_dev']}" for dt in device_types]
+        type_block = "\n".join(type_list)
+        
+        # Identify tag types
+        tag_types = [dt['i_typ_dev'] for dt in device_types if 'tag' in dt['x_dsc_dev'].lower()]
+        tag_info = f"Tag device types: {tag_types}" if tag_types else "Tag device types: [1, 2, 3, 24, 901]"
+    else:
+        type_block = "- 1: Tag\n- 24: Special Tag\n- 901: Virtual Tag"
+        tag_info = "Tag device types: [1, 2, 3, 24, 901]"
+
+    prompt = f"""
+You are a strict TETSE rule parser for ParcoRTLS. Your job is to extract ZONE ENTRY MONITORING rule information.
+
+ZONE ENTRY MONITORING:
+Monitor when devices enter specific zones and trigger actions immediately upon entry.
+
+Valid zones at this site:
+{zone_block}
+
+Valid device IDs and types:
+{device_block}
+
+DEVICE TYPE INFORMATION:
+{type_block}
+{tag_info}
+
+ZONE MATCHING RULES:
+1. EXACT MATCH: Use exact zone name if provided
+2. PARTIAL MATCH: Map common names to full zone names:
+   - "living room" → "Living Room RL6-Child"
+   - "kitchen" → "Kitchen L6-Child"
+   - "garage" → "Garage RL6-Child"
+3. ZONE ID: Accept numeric zone IDs directly
+4. VIRTUAL ZONES: "inside", "outside" for layered monitoring
+
+SUBJECT_ID PATTERNS:
+- "any tag", "all tags", "tags" → "device_type:tag"
+- "any device", "all devices" → "device_type:any"
+- Specific device: "tag 23001" → "23001"
+
+OUTPUT FORMAT:
+{{
+  "rule_type": "zone_entry_monitoring",
+  "subject_id": "device_type:tag",
+  "zone": "Living Room RL6-Child",
+  "device_types": [1,2,3,24,901],
+  "trigger_direction": 4,
+  "action": "alert"
+}}
+
+EXAMPLES:
+Input: "alert when any tag enters the living room"
+Output: {{
+  "rule_type": "zone_entry_monitoring",
+  "subject_id": "device_type:tag",
+  "zone": "Living Room RL6-Child",
+  "device_types": [1,2,3,24,901],
+  "trigger_direction": 4,
+  "action": "alert"
+}}
+
+Input: "notify when any device enters zone 432"
+Output: {{
+  "rule_type": "zone_entry_monitoring",
+  "subject_id": "device_type:any",
+  "zone": "432",
+  "device_types": [1,2,3,24,901],
+  "trigger_direction": 4,
+  "action": "alert"
+}}
+
+Input: "send alert if tag 23001 goes into the kitchen"
+Output: {{
+  "rule_type": "zone_entry_monitoring",
+  "subject_id": "23001",
+  "zone": "Kitchen L6-Child",
+  "device_types": [1],
+  "trigger_direction": 4,
+  "action": "alert"
+}}
+
+If parsing fails, respond with:
+{{ "error": "Could not parse zone entry rule" }}
+"""
+    return prompt
+
 def build_zone_transition_prompt_with_types(zones, devices, device_types, trigger_directions):
     """Build GPT prompt for zone transition rules with device type support and enhanced zone validation"""
     zone_list = [f"- {z['name']} (id={z['id']})" for z in zones] if zones else ["- None"]
@@ -797,6 +906,8 @@ async def parse_natural_language(input_text: str) -> dict:
             system_prompt = build_layered_trigger_prompt(zones, devices, device_types, trigger_directions)
         elif rule_type == 'zone_transition':
             system_prompt = build_zone_transition_prompt_with_types(zones, devices, device_types, trigger_directions)
+        elif rule_type == 'zone_entry_monitoring':
+            system_prompt = build_zone_entry_monitoring_prompt(zones, devices, device_types)
         else:
             system_prompt = build_zone_stay_prompt(zones, devices, device_types)
 
@@ -827,8 +938,11 @@ async def parse_natural_language(input_text: str) -> dict:
                 rule = LayeredTriggerRule(**parsed)
             elif parsed.get('rule_type') == 'zone_transition':
                 rule = ZoneTransitionRule(**parsed)
+            elif parsed.get('rule_type') == 'zone_entry_monitoring':
+                rule = ZoneEntryMonitoringRule(**parsed)
             else:
                 rule = ZoneStayRule(**parsed)
+                
         except Exception as validation_error:
             logger.error(f"Pydantic validation failed: {str(validation_error)}")
             return {"error": f"Rule validation failed: {str(validation_error)}"}
