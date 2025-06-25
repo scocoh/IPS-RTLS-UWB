@@ -1,9 +1,9 @@
 # Name: tetse_rule_interpreter.py
-# Version: 0.5.7
+# Version: 0.5.8
 # Created: 971201
 # Modified: 250625
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin + Claude
+# Modified By: ParcoAdmin + Temporal Claude
 # Description: Parses natural language rules for TETSE in ParcoRTLS with layered trigger and proximity support
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
@@ -199,6 +199,12 @@ def detect_rule_type(input_text: str) -> str:
         'enters', 'goes into', 'goes in', 'enters into', 
         'walks into', 'moves into', 'arrives at', 'comes into'
     ]
+
+    # ADD THIS MISSING LOOP:
+    for keyword in entry_keywords:
+        if keyword in text_lower:
+            logger.debug(f"Detected zone entry monitoring rule with keyword: '{keyword}'")
+            return 'zone_entry_monitoring'
 
     for keyword in proximity_keywords:
         if keyword in text_lower:
@@ -672,12 +678,12 @@ def build_zone_entry_monitoring_prompt(zones, devices, device_types):
     zone_block = "\n".join(zone_list)
     device_list = [f"- {d['id']} (name={d['name']}, type={d['type']})" for d in devices] if devices else ["- None"]
     device_block = "\n".join(device_list)
-    
+
     # Build device type information
     if device_types:
         type_list = [f"- {dt['i_typ_dev']}: {dt['x_dsc_dev']}" for dt in device_types]
         type_block = "\n".join(type_list)
-        
+
         # Identify tag types
         tag_types = [dt['i_typ_dev'] for dt in device_types if 'tag' in dt['x_dsc_dev'].lower()]
         tag_info = f"Tag device types: {tag_types}" if tag_types else "Tag device types: [1, 2, 3, 24, 901]"
@@ -686,7 +692,7 @@ def build_zone_entry_monitoring_prompt(zones, devices, device_types):
         tag_info = "Tag device types: [1, 2, 3, 24, 901]"
 
     prompt = f"""
-You are a strict TETSE rule parser for ParcoRTLS. Your job is to extract ZONE ENTRY MONITORING rule information.
+You are a strict TETSE rule parser for ParcoRTLS. Your job is to extract ZONE ENTRY MONITORING rule information from natural language requests and respond with valid JSON.
 
 ZONE ENTRY MONITORING:
 Monitor when devices enter specific zones and trigger actions immediately upon entry.
@@ -701,28 +707,33 @@ DEVICE TYPE INFORMATION:
 {type_block}
 {tag_info}
 
+SUBJECT_ID PARSING RULES:
+1. SPECIFIC DEVICE: Use exact device ID if mentioned (e.g., "23001")
+2. DEVICE TYPE PATTERNS:
+   - "any tag", "all tags", "tags" → use "device_type:tag"
+   - "any device", "all devices", "devices" → use "device_type:any"
+   - "any receiver", "receivers" → use "device_type:receiver"
+
 ZONE MATCHING RULES:
-1. EXACT MATCH: Use exact zone name if provided
-2. PARTIAL MATCH: Map common names to full zone names:
-   - "living room" → "Living Room RL6-Child"
-   - "kitchen" → "Kitchen L6-Child"
-   - "garage" → "Garage RL6-Child"
-3. ZONE ID: Accept numeric zone IDs directly
-4. VIRTUAL ZONES: "inside", "outside" for layered monitoring
+1. EXACT MATCH: If input zone exactly matches a zone name, use it directly
+2. PARTIAL MATCH: If input contains a room name, find the zone containing that name
+   - "Living Room" → Find zone containing "Living Room" (e.g., "Living Room RL6-Child")
+   - "Kitchen" → Find zone containing "Kitchen" (e.g., "Kitchen L6-Child")
+   - "Bedroom" → Find zone containing "Bedroom" or "BR"
 
-SUBJECT_ID PATTERNS:
-- "any tag", "all tags", "tags" → "device_type:tag"
-- "any device", "all devices" → "device_type:any"
-- Specific device: "tag 23001" → "23001"
+ZONE ENTRY PARSING RULES:
+- subject_id: Specific device ID OR device type pattern
+- zone: Use exact zone name or partial match
+- device_types: List of device type IDs to monitor (from tag_info above)
+- action: Extract from "alert", "log", "mqtt", "send alert", "notify"
 
-OUTPUT FORMAT:
+Output valid JSON in this exact format:
 {{
   "rule_type": "zone_entry_monitoring",
-  "subject_id": "device_type:tag",
-  "zone": "Living Room RL6-Child",
-  "device_types": [1,2,3,24,901],
-  "trigger_direction": 4,
-  "action": "alert"
+  "subject_id": "...",
+  "zone": "...",
+  "device_types": [...],
+  "action": "..."
 }}
 
 EXAMPLES:
@@ -731,33 +742,23 @@ Output: {{
   "rule_type": "zone_entry_monitoring",
   "subject_id": "device_type:tag",
   "zone": "Living Room RL6-Child",
-  "device_types": [1,2,3,24,901],
-  "trigger_direction": 4,
+  "device_types": [1, 2, 3, 24, 901],
   "action": "alert"
 }}
 
-Input: "notify when any device enters zone 432"
-Output: {{
-  "rule_type": "zone_entry_monitoring",
-  "subject_id": "device_type:any",
-  "zone": "432",
-  "device_types": [1,2,3,24,901],
-  "trigger_direction": 4,
-  "action": "alert"
-}}
-
-Input: "send alert if tag 23001 goes into the kitchen"
+Input: "notify when tag 23001 goes into the kitchen"
 Output: {{
   "rule_type": "zone_entry_monitoring",
   "subject_id": "23001",
   "zone": "Kitchen L6-Child",
-  "device_types": [1],
-  "trigger_direction": 4,
+  "device_types": [1, 2, 3, 24, 901],
   "action": "alert"
 }}
 
-If parsing fails, respond with:
-{{ "error": "Could not parse zone entry rule" }}
+If the subject_id or zone cannot be matched, respond with JSON:
+{{ "error": "Could not parse rule: invalid subject or zone" }}
+
+IMPORTANT: Always respond with valid JSON format. Be generous with zone matching.
 """
     return prompt
 
@@ -942,7 +943,7 @@ async def parse_natural_language(input_text: str) -> dict:
                 rule = ZoneEntryMonitoringRule(**parsed)
             else:
                 rule = ZoneStayRule(**parsed)
-                
+
         except Exception as validation_error:
             logger.error(f"Pydantic validation failed: {str(validation_error)}")
             return {"error": f"Rule validation failed: {str(validation_error)}"}
