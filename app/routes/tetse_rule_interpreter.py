@@ -1,9 +1,9 @@
 # Name: tetse_rule_interpreter.py
-# Version: 0.5.6
+# Version: 0.5.8
 # Created: 971201
-# Modified: 250622
+# Modified: 250625
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin + Claude
+# Modified By: ParcoAdmin + Temporal Claude
 # Description: Parses natural language rules for TETSE in ParcoRTLS with layered trigger and proximity support
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
@@ -81,6 +81,14 @@ class ProximityConditionRule(BaseModel):
     proximity_target: str  # "device_type:personnel_badge" or specific device ID
     proximity_distance: float  # Distance in feet
     zone_transition: dict  # {"from": "inside", "to": "outside"}
+    action: str
+
+class ZoneEntryMonitoringRule(BaseModel):
+    rule_type: str = "zone_entry_monitoring"
+    subject_id: str  # "device_type:tag" or specific device types
+    zone: str        # Zone name, ID, or virtual zone
+    device_types: list  # [1,2,3,24,901] - monitored device types
+    trigger_direction: int = 4  # On Enter
     action: str
 
 # Default fallback SYSTEM_PROMPT for zone stay rules
@@ -186,6 +194,31 @@ def detect_rule_type(input_text: str) -> str:
         'within 6 feet', 'within 3 feet', 'within feet', 'feet of'
     ]
     
+    # 0. HIGHEST PRIORITY: Zone entry monitoring (before proximity checks)
+    entry_keywords = [
+        'enters', 'goes into', 'goes in', 'enters into', 
+        'walks into', 'moves into', 'arrives at', 'comes into'
+    ]
+
+    # ADD THIS MISSING LOOP:
+    for keyword in entry_keywords:
+        if keyword in text_lower:
+            logger.debug(f"Detected zone entry monitoring rule with keyword: '{keyword}'")
+            return 'zone_entry_monitoring'
+
+    # NEW: Check for "while inside" patterns without duration
+    while_inside_patterns = ['while', 'when'] 
+    location_patterns = ['inside', 'in the', 'in']
+    duration_keywords = ['for', 'minute', 'second', 'hour', 'stay']
+
+    has_while = any(pattern in text_lower for pattern in while_inside_patterns)
+    has_location = any(pattern in text_lower for pattern in location_patterns)
+    has_duration = any(keyword in text_lower for keyword in duration_keywords)
+
+    if has_while and has_location and not has_duration:
+        logger.debug("Detected zone entry monitoring rule with 'while inside' pattern (no duration)")
+        return 'zone_entry_monitoring'
+
     for keyword in proximity_keywords:
         if keyword in text_lower:
             logger.debug(f"Detected proximity condition rule with keyword: '{keyword}'")
@@ -652,6 +685,96 @@ IMPORTANT: Be GENEROUS with zone matching for device type patterns. If zones can
 """
     return prompt
 
+def build_zone_entry_monitoring_prompt(zones, devices, device_types):
+    """Build GPT prompt for zone entry monitoring rules"""
+    zone_list = [f"- {z['name']} (id={z['id']})" for z in zones] if zones else ["- None"]
+    zone_block = "\n".join(zone_list)
+    device_list = [f"- {d['id']} (name={d['name']}, type={d['type']})" for d in devices] if devices else ["- None"]
+    device_block = "\n".join(device_list)
+
+    # Build device type information
+    if device_types:
+        type_list = [f"- {dt['i_typ_dev']}: {dt['x_dsc_dev']}" for dt in device_types]
+        type_block = "\n".join(type_list)
+
+        # Identify tag types
+        tag_types = [dt['i_typ_dev'] for dt in device_types if 'tag' in dt['x_dsc_dev'].lower()]
+        tag_info = f"Tag device types: {tag_types}" if tag_types else "Tag device types: [1, 2, 3, 24, 901]"
+    else:
+        type_block = "- 1: Tag\n- 24: Special Tag\n- 901: Virtual Tag"
+        tag_info = "Tag device types: [1, 2, 3, 24, 901]"
+
+    prompt = f"""
+You are a strict TETSE rule parser for ParcoRTLS. Your job is to extract ZONE ENTRY MONITORING rule information from natural language requests and respond with valid JSON.
+
+ZONE ENTRY MONITORING:
+Monitor when devices enter specific zones and trigger actions immediately upon entry.
+
+Valid zones at this site:
+{zone_block}
+
+Valid device IDs and types:
+{device_block}
+
+DEVICE TYPE INFORMATION:
+{type_block}
+{tag_info}
+
+SUBJECT_ID PARSING RULES:
+1. SPECIFIC DEVICE: Use exact device ID if mentioned (e.g., "23001")
+2. DEVICE TYPE PATTERNS:
+   - "any tag", "all tags", "tags" → use "device_type:tag"
+   - "any device", "all devices", "devices" → use "device_type:any"
+   - "any receiver", "receivers" → use "device_type:receiver"
+
+ZONE MATCHING RULES:
+1. EXACT MATCH: If input zone exactly matches a zone name, use it directly
+2. PARTIAL MATCH: If input contains a room name, find the zone containing that name
+   - "Living Room" → Find zone containing "Living Room" (e.g., "Living Room RL6-Child")
+   - "Kitchen" → Find zone containing "Kitchen" (e.g., "Kitchen L6-Child")
+   - "Bedroom" → Find zone containing "Bedroom" or "BR"
+
+ZONE ENTRY PARSING RULES:
+- subject_id: Specific device ID OR device type pattern
+- zone: Use exact zone name or partial match
+- device_types: List of device type IDs to monitor (from tag_info above)
+- action: Extract from "alert", "log", "mqtt", "send alert", "notify"
+
+Output valid JSON in this exact format:
+{{
+  "rule_type": "zone_entry_monitoring",
+  "subject_id": "...",
+  "zone": "...",
+  "device_types": [...],
+  "action": "..."
+}}
+
+EXAMPLES:
+Input: "alert when any tag enters the living room"
+Output: {{
+  "rule_type": "zone_entry_monitoring",
+  "subject_id": "device_type:tag",
+  "zone": "Living Room RL6-Child",
+  "device_types": [1, 2, 3, 24, 901],
+  "action": "alert"
+}}
+
+Input: "notify when tag 23001 goes into the kitchen"
+Output: {{
+  "rule_type": "zone_entry_monitoring",
+  "subject_id": "23001",
+  "zone": "Kitchen L6-Child",
+  "device_types": [1, 2, 3, 24, 901],
+  "action": "alert"
+}}
+
+If the subject_id or zone cannot be matched, respond with JSON:
+{{ "error": "Could not parse rule: invalid subject or zone" }}
+
+IMPORTANT: Always respond with valid JSON format. Be generous with zone matching.
+"""
+    return prompt
+
 def build_zone_transition_prompt_with_types(zones, devices, device_types, trigger_directions):
     """Build GPT prompt for zone transition rules with device type support and enhanced zone validation"""
     zone_list = [f"- {z['name']} (id={z['id']})" for z in zones] if zones else ["- None"]
@@ -797,6 +920,8 @@ async def parse_natural_language(input_text: str) -> dict:
             system_prompt = build_layered_trigger_prompt(zones, devices, device_types, trigger_directions)
         elif rule_type == 'zone_transition':
             system_prompt = build_zone_transition_prompt_with_types(zones, devices, device_types, trigger_directions)
+        elif rule_type == 'zone_entry_monitoring':
+            system_prompt = build_zone_entry_monitoring_prompt(zones, devices, device_types)
         else:
             system_prompt = build_zone_stay_prompt(zones, devices, device_types)
 
@@ -827,8 +952,11 @@ async def parse_natural_language(input_text: str) -> dict:
                 rule = LayeredTriggerRule(**parsed)
             elif parsed.get('rule_type') == 'zone_transition':
                 rule = ZoneTransitionRule(**parsed)
+            elif parsed.get('rule_type') == 'zone_entry_monitoring':
+                rule = ZoneEntryMonitoringRule(**parsed)
             else:
                 rule = ZoneStayRule(**parsed)
+
         except Exception as validation_error:
             logger.error(f"Pydantic validation failed: {str(validation_error)}")
             return {"error": f"Rule validation failed: {str(validation_error)}"}

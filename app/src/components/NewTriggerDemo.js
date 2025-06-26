@@ -1,9 +1,9 @@
 /* Name: NewTriggerDemo.js */
-/* Version: 0.1.16 */
+/* Version: 0.1.17 */
 /* Created: 250607 */
-/* Modified: 250624 */
+/* Modified: 250625 */
 /* Creator: ParcoAdmin */
-/* Modified By: ParcoAdmin + Claude */
+/* Modified By: ParcoAdmin + Temporal Claude */
 /* Description: JavaScript file for ParcoRTLS frontend to manage triggers */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components */
 /* Role: Frontend */
@@ -11,6 +11,7 @@
 /* Dependent: TRUE */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo.js
+// Version: 0.1.17 - Added zone_entry_monitoring support and fixed zone_transition to be static triggers, bumped from 0.1.16
 // Version: 0.1.16 - Added TETSE to Triggers tab for converting TETSE rules to portable triggers, bumped from 0.1.15
 // Version: 0.1.15 - Updated retryReloadTriggers to use port 8000, bumped from 0.1.14
 // Version: 0.1.14 - Rate-limited GISData processing, validated tag subscriptions, skipped invalid zone checks, bumped from 0.1.13
@@ -168,56 +169,96 @@ const NewTriggerDemo = () => {
         throw new Error('Rule not found');
       }
       
-      // Extract parameters based on rule type
-      let triggerParams;
-      
-      if (rule.rule_type === 'proximity_condition') {
-        triggerParams = {
-          name: `converted_proximity_${rule.subject_id}_${Date.now()}`,
-          direction: 1, // WhileIn
-          ignore: false,
-          zone_id: rule.conditions.zone_transition?.from === 'inside' ? null : parseInt(rule.conditions.zone || 425),
-          is_portable: true,
-          assigned_tag_id: rule.subject_id,
-          radius_ft: rule.conditions.proximity_distance || 6.0,
-          z_min: 0,
-          z_max: 10,
-          vertices: []
-        };
-      } else if (rule.rule_type === 'zone_transition') {
-        triggerParams = {
-          name: `converted_transition_${rule.subject_id}_${Date.now()}`,
-          direction: 4, // OnEnter 
-          ignore: false,
-          zone_id: parseInt(rule.conditions.zone || 425),
-          is_portable: true,
-          assigned_tag_id: rule.subject_id,
-          radius_ft: 3.0, // Default radius for transitions
-          z_min: 0,
-          z_max: 10,
-          vertices: []
-        };
-      } else {
-        throw new Error(`Rule type '${rule.rule_type}' not supported for conversion`);
-      }
-      
-      console.log('Converted trigger params:', triggerParams);
-      
-      // Call the portable trigger API
-      const response = await fetch("http://192.168.210.226:8000/api/add_portable_trigger", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(triggerParams)
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      console.log('Portable trigger created:', result);
-      
+  // Extract parameters based on rule type
+  let triggerParams;
+  let apiEndpoint;
+
+  if (rule.rule_type === 'proximity_condition') {
+    triggerParams = {
+      name: `converted_proximity_${rule.subject_id}_${Date.now()}`,
+      direction: 1, // WhileIn
+      ignore: false,
+      zone_id: rule.conditions.zone_transition?.from === 'inside' ? null : parseInt(rule.conditions.zone || 425),
+      is_portable: true,
+      assigned_tag_id: rule.subject_id,
+      radius_ft: rule.conditions.proximity_distance || 6.0,
+      z_min: 0,
+      z_max: 10,
+      vertices: []
+    };
+    apiEndpoint = "http://192.168.210.226:8000/api/add_portable_trigger";
+    
+  } else if (rule.rule_type === 'zone_transition') {
+    triggerParams = {
+      name: `converted_transition_${rule.subject_id}_${Date.now()}`,
+      direction: 4, // OnEnter 
+      ignore: false,
+      zone_id: parseInt(rule.conditions.to_zone || rule.conditions.zone || 425),
+      is_portable: null,
+      assigned_tag_id: null,
+      radius_ft: null,
+      z_min: 0,
+      z_max: 10,
+      vertices: []
+    };
+    apiEndpoint = "http://192.168.210.226:8000/api/add_trigger";
+    
+  } else if (rule.rule_type === 'zone_entry_monitoring') {
+    const zoneId = parseInt(rule.zone_id || rule.zone || 425);
+    
+    triggerParams = {
+      name: `converted_zone_entry_${rule.subject_id}_${Date.now()}`,
+      direction: 4, // OnEnter
+      zone_id: zoneId,
+      ignore: false
+    };
+    apiEndpoint = "http://192.168.210.226:8000/api/add_trigger_from_zone";
+    
+  } else {
+    throw new Error(`Rule type '${rule.rule_type}' not supported for conversion`);
+  }
+
+  console.log('Converted trigger params:', triggerParams);
+  console.log('About to make API call to:', apiEndpoint);
+  console.log('With params:', JSON.stringify(triggerParams, null, 2));
+
+  // Make API call with appropriate format
+  let response;
+  if (apiEndpoint.includes('add_trigger_from_zone')) {
+    // Use Form data for the zone-based endpoint
+    const formData = new FormData();
+    formData.append('name', triggerParams.name);
+    formData.append('direction', triggerParams.direction);
+    formData.append('zone_id', triggerParams.zone_id);
+    formData.append('ignore', triggerParams.ignore);
+    
+    response = await fetch(apiEndpoint, {
+      method: "POST",
+      body: formData
+    });
+  } else {
+    // Use JSON for other endpoints
+    response = await fetch(apiEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(triggerParams)
+    });
+  }
+
+  if (!response.ok) {
+    let errorMessage;
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.detail || JSON.stringify(errorData);
+    } catch (e) {
+      errorMessage = `HTTP error! status: ${response.status}`;
+    }
+    throw new Error(errorMessage);
+  }
+
+  const result = await response.json();
+  console.log('Trigger created:', result);
+
       // Update status with success
       setConversionStatus({
         ...conversionStatus,
@@ -234,10 +275,17 @@ const NewTriggerDemo = () => {
       await fetchTriggers();
 
       } catch (error) {
-      console.error(`Error converting rule ${ruleId}:`, error);
+        console.error(`Error converting rule ${ruleId}:`, error);
+        
+        // Get the actual error message
+        let errorMessage = 'Unknown error';
+        if (error.message) {
+          errorMessage = error.message;
+        }
+      
       setConversionStatus({
         ...conversionStatus,
-        [ruleId]: { status: 'error', message: `Failed to convert: ${error.message}` }
+        [ruleId]: { status: 'error', message: `Failed to convert: ${errorMessage}` }
       });
     }
   };

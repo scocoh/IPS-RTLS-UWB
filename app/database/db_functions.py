@@ -1,7 +1,7 @@
 # Name: db_functions.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250626
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -12,6 +12,7 @@
 
 """
 /home/parcoadmin/parco_fastapi/app/database/db_functions.py
+Version: 0.1.1 - Added explicit type casting for usp_region_add to fix zone 425 trigger creation bug
 Version: 250226 db_functions.py Version 0P.7B.26 (Massive Stored Procedure Integration, Async Enhancements, Type Handling for ParcoRTLSMaint/HistR/Data, Fixed History/Location/Text Data, Connection Pool Tuning, Empty Database Handling, Asyncio Import Fix, Removed HTTPException Dependency, Enhanced Connection Pooling)
 
 ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
@@ -152,6 +153,8 @@ async def call_stored_procedure(db_type: str, procedure_name: str, *args) -> Uni
                 query = "SELECT * FROM usp_trigger_select_by_id($1::integer);"
             elif procedure_name == "usp_trigger_edit":
                 query = "SELECT * FROM usp_trigger_edit($1::integer, $2::character varying, $3::integer, $4::boolean);"
+            elif procedure_name == "usp_region_add":
+                query = "SELECT * FROM usp_region_add($1::integer, $2::integer, $3::character varying, $4::real, $5::real, $6::real, $7::real, $8::real, $9::real, $10::integer);"
             elif procedure_name == "usp_location_by_id":
                 query = "SELECT * FROM usp_location_by_id($1::character varying);"
             elif procedure_name == "usp_position_insert":

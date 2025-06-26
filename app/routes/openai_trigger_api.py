@@ -1,9 +1,9 @@
 # Name: openai_trigger_api.py
-# Version: 0.3.1
+# Version: 0.3.2
 # Created: 250617
-# Modified: 250621
+# Modified: 250625
 # Author: ParcoAdmin + QuantumSage AI
-# Modified By: ParcoAdmin + Claude
+# Modified By: ParcoAdmin + Temporal Claude
 # Purpose: Enhanced TETSE Rule Creation with proximity conditions, layered triggers, and zone transitions
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
@@ -92,6 +92,73 @@ async def get_data_db_pool():
     Create a connection pool for ParcoRTLSData database.
     """
     return await get_async_db_pool("data")
+
+async def handle_zone_entry_monitoring_rule(parsed_rule, input_data, data_pool, maint_pool):
+    """
+    Handle zone entry monitoring rules - creates zone-based triggers for device entry detection
+    """
+    try:
+        subject_id = parsed_rule["subject_id"]
+        zone = parsed_rule["zone"]
+        device_types = parsed_rule["device_types"]
+        action = parsed_rule["action"]
+        
+        # Resolve zone using existing zone resolution system
+        from .tetse_rule_adapter import resolve_zone_for_rule
+        zone_info = await resolve_zone_for_rule(zone, input_data.campus_id, maint_pool)
+        
+        if not zone_info:
+            raise HTTPException(status_code=400, detail=f"Could not resolve zone: {zone}")
+        
+        # Create rule name with timestamp
+        rule_name = f"zone_entry_{subject_id}_{int(time.time())}"
+        
+        # Store in tlk_rules table
+        conditions = {
+            "rule_type": "zone_entry_monitoring",
+            "subject_id": subject_id,
+            "zone": zone_info["zone_name"],
+            "zone_id": zone_info["zone_id"],
+            "device_types": device_types,
+            "trigger_direction": 4  # On Enter
+        }
+        
+        actions = {
+            "type": action,
+            "message": f"Zone entry detected for {subject_id} in {zone_info['zone_name']}",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        async with data_pool.acquire() as conn:
+            rule_id = await conn.fetchval(
+                """
+                INSERT INTO tlk_rules (name, conditions, actions, rule_type, created_by, updated_by)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING id
+                """,
+                rule_name,
+                json.dumps(conditions),
+                json.dumps(actions),
+                "zone_entry_monitoring",
+                "parcoadmin",
+                "parcoadmin"
+            )
+        
+        logger.info(f"Successfully created zone entry monitoring rule ID {rule_id}")
+        
+        return {
+            "success": True,
+            "message": "Zone entry monitoring rule created successfully",
+            "rule_id": rule_id,
+            "rule_type": "zone_entry_monitoring",
+            "conditions": conditions,
+            "actions": actions,
+            "note": "Zone entry rules can be converted to zone-based triggers for real-time monitoring"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating zone entry monitoring rule: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create zone entry monitoring rule: {str(e)}")
 
 @router.get("/get_tetse_rules")
 async def get_tetse_rules(data_pool: asyncpg.Pool = Depends(get_data_db_pool)):
@@ -235,6 +302,8 @@ async def create_rule_live(input_data: RuleInput, data_pool: asyncpg.Pool = Depe
             return await handle_layered_trigger_rule(parsed_rule, input_data, data_pool, maint_pool)
         elif rule_type == "zone_transition":
             return await handle_zone_transition_rule(parsed_rule, input_data, data_pool, maint_pool)
+        elif rule_type == "zone_entry_monitoring":
+            return await handle_zone_entry_monitoring_rule(parsed_rule, input_data, data_pool, maint_pool)
         else:
             # Legacy zone_stay rule handling
             return await handle_zone_stay_rule(parsed_rule, input_data, data_pool, maint_pool)
