@@ -1,16 +1,17 @@
 # /home/parcoadmin/parco_fastapi/app/routes/trigger.py
 # Name: trigger.py
-# Version: 0.1.60
+# Version: 0.1.61
 # Created: 971201
-# Modified: 250503
+# Modified: 250625
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
+# Modified By: ParcoAdmin & Temporal Claude
 # Description: FastAPI routes for managing triggers in ParcoRTLS
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: FastAPI
 # Status: Active
 # Dependent: TRUE
 #
+# Version 0.1.61 Added in endpoint for add_trigger_from_zone data
 # Version 0.1.60 Changed version added endpoint add_portable_trigger
 # CHANGED: Fixed column name in list_newtriggers from f_portable to is_portable, bumped to 0P.10B.21
 # PREVIOUS: Updated list_newtriggers to set zone_id from triggers.i_zn or regions.i_zn, bumped to 0P.10B.20-250427
@@ -1050,7 +1051,7 @@ async def get_triggers_by_zone_with_id(zone_id: int):
 
 # Endpoint to check if a point is within a trigger's region
 @router.get("/trigger_contains_point/{trigger_id}")
-async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float = None):
+async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float = None): # type: ignore
     """
     Check if a point is within a trigger’s region (2D or 3D).
 
@@ -1461,3 +1462,122 @@ async def get_zone_vertices(zone_id: int):
         logger.error(f"Error fetching zone vertices: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
+# Endpoint to creat a trigger from a zone
+@router.post("/add_trigger_from_zone")
+async def add_trigger_from_zone(
+    name: str = Form(...),
+    direction: int = Form(...),
+    zone_id: int = Form(...),
+    ignore: bool = Form(False)
+):
+    """
+    Create a static trigger using all vertices from the specified zone.
+    
+    This endpoint automatically fetches the zone's vertices and creates a static trigger
+    that covers the entire zone area. It's designed for converting TETSE rules to triggers
+    where you want the trigger to match the zone boundaries exactly.
+    
+    Args:
+        name (str): Name of the trigger (required, must be unique).
+        direction (int): Trigger direction ID (required, references tlktrigdirections table).
+        zone_id (int): Zone ID to copy vertices from (required).
+        ignore (bool): Whether to ignore the trigger for certain operations (optional, defaults to False).
+    
+    Returns:
+        dict: A JSON response containing:
+            - message (str): Status message indicating success.
+            - trigger_id (int): The ID of the newly created trigger.
+            - region_id (int): The ID of the assigned region.
+            - vertices_count (int): Number of vertices copied from the zone.
+    
+    Raises:
+        HTTPException:
+            - 400: If zone_id doesn't exist, has insufficient vertices, or trigger name already exists.
+            - 404: If no vertices are found for the zone.
+            - 500: For database errors or unexpected issues.
+    
+    Example:
+        To create a trigger that covers the entire zone 425:
+        ```
+        curl -X POST http://192.168.210.226:8000/api/add_trigger_from_zone \
+             -H "Content-Type: application/x-www-form-urlencoded" \
+             -d "name=zone_425_entry&direction=4&zone_id=425&ignore=false"
+        ```
+        Response:
+        ```json
+        {
+            "message": "Trigger created successfully from zone vertices",
+            "trigger_id": 162,
+            "region_id": 489,
+            "vertices_count": 15
+        }
+        ```
+    
+    Use Case:
+        This endpoint is specifically designed for TETSE rule conversion where you need
+        to create static triggers that exactly match zone boundaries. It eliminates the
+        need for frontend coordinate calculations and ensures trigger regions are always
+        valid within their parent zone.
+    
+    Hint:
+        - The endpoint fetches vertices from the zone's region (where i_trg IS NULL).
+        - Vertices are automatically sorted by n_ord to maintain proper polygon order.
+        - The trigger region will have the same boundaries as the source zone.
+        - Use direction=4 (OnEnter) for zone entry monitoring conversions.
+    """
+    try:
+        # Step 1: Validate zone exists
+        zone_check_query = "SELECT i_zn FROM zones WHERE i_zn = $1"
+        zone_exists = await execute_raw_query("maint", zone_check_query, zone_id)
+        if not zone_exists:
+            raise HTTPException(status_code=400, detail=f"Zone {zone_id} does not exist")
+        
+        # Step 2: Fetch zone vertices
+        vertices_query = """
+            SELECT v.n_x AS x, v.n_y AS y, COALESCE(v.n_z, 0.0) AS z, v.n_ord
+            FROM vertices v
+            JOIN regions r ON v.i_rgn = r.i_rgn
+            WHERE r.i_zn = $1 AND r.i_trg IS NULL
+            ORDER BY v.n_ord
+        """
+        vertices = await execute_raw_query("maint", vertices_query, zone_id)
+        
+        if not vertices:
+            raise HTTPException(status_code=404, detail=f"No vertices found for zone {zone_id}")
+        
+        if len(vertices) < 3:
+            raise HTTPException(status_code=400, detail=f"Zone {zone_id} has insufficient vertices ({len(vertices)} found, minimum 3 required)")
+        
+        logger.info(f"Found {len(vertices)} vertices for zone {zone_id}")
+        
+        # Step 3: Create trigger request using existing TriggerAddRequest model
+        trigger_request = TriggerAddRequest(
+            name=str(name),
+            direction=int(direction),
+            zone_id=int(zone_id),
+            ignore=bool(ignore),
+            vertices=[{"x": float(v["x"]), "y": float(v["y"]), "z": float(v["z"])} for v in vertices]
+        )
+        
+        # Step 4: Use existing add_trigger logic
+        result = await add_trigger(trigger_request)
+        
+        # Step 5: Enhance response with vertex count
+        if isinstance(result, dict) and "trigger_id" in result:
+            result["vertices_count"] = len(vertices)
+            result["message"] = "Trigger created successfully from zone vertices"
+        
+        logger.info(f"Successfully created trigger from zone {zone_id} with {len(vertices)} vertices")
+        return result
+        
+    except HTTPException as e:
+        # Re-raise HTTP exceptions as-is
+        raise e
+    except DatabaseError as e:
+        logger.error(f"Database error creating trigger from zone {zone_id}: {e.message}")
+        if "already exists" in e.message.lower():
+            raise HTTPException(status_code=400, detail=f"Trigger name '{name}' already exists")
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        logger.error(f"Unexpected error creating trigger from zone {zone_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create trigger from zone: {str(e)}")

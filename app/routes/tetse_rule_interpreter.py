@@ -206,6 +206,19 @@ def detect_rule_type(input_text: str) -> str:
             logger.debug(f"Detected zone entry monitoring rule with keyword: '{keyword}'")
             return 'zone_entry_monitoring'
 
+    # NEW: Check for "while inside" patterns without duration
+    while_inside_patterns = ['while', 'when'] 
+    location_patterns = ['inside', 'in the', 'in']
+    duration_keywords = ['for', 'minute', 'second', 'hour', 'stay']
+
+    has_while = any(pattern in text_lower for pattern in while_inside_patterns)
+    has_location = any(pattern in text_lower for pattern in location_patterns)
+    has_duration = any(keyword in text_lower for keyword in duration_keywords)
+
+    if has_while and has_location and not has_duration:
+        logger.debug("Detected zone entry monitoring rule with 'while inside' pattern (no duration)")
+        return 'zone_entry_monitoring'
+
     for keyword in proximity_keywords:
         if keyword in text_lower:
             logger.debug(f"Detected proximity condition rule with keyword: '{keyword}'")
