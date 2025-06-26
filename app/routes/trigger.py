@@ -1,8 +1,8 @@
 # /home/parcoadmin/parco_fastapi/app/routes/trigger.py
 # Name: trigger.py
-# Version: 0.1.61
+# Version: 0.1.62
 # Created: 971201
-# Modified: 250625
+# Modified: 250626
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin & Temporal Claude
 # Description: FastAPI routes for managing triggers in ParcoRTLS
@@ -11,6 +11,8 @@
 # Status: Active
 # Dependent: TRUE
 #
+# Version 0.1.62 Fixed zone 425 trigger creation by auto-correcting Z-coordinates to fit within zone boundaries, bumped from 0.1.61
+# Version 0.1.61 - Added explicit type casting for usp_region_add to fix zone 425 trigger creation bug
 # Version 0.1.61 Added in endpoint for add_trigger_from_zone data
 # Version 0.1.60 Changed version added endpoint add_portable_trigger
 # CHANGED: Fixed column name in list_newtriggers from f_portable to is_portable, bumped to 0P.10B.21
@@ -289,17 +291,43 @@ async def add_trigger(request: TriggerAddRequest):
                 min_x, min_y, min_z = 0.0, 0.0, 0.0
                 max_x, max_y, max_z = 10.0, 10.0, 10.0
 
-            # Step 5: Validate that the trigger is inside the zone
-            if (min_x < zone_bbox["min_x"] or max_x > zone_bbox["max_x"] or
-                min_y < zone_bbox["min_y"] or max_y > zone_bbox["max_y"] or
-                min_z < zone_bbox["min_z"] or max_z > zone_bbox["max_z"]):
+            # Step 5: Validate and auto-correct trigger coordinates to fit within zone boundaries
+            corrections_made = []
+            
+            # Check X coordinates
+            if min_x < zone_bbox["min_x"] or max_x > zone_bbox["max_x"]:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Trigger region (min: ({min_x}, {min_y}, {min_z}), max: ({max_x}, {max_y}, {max_z})) "
-                           f"is not fully contained within zone {zone_id} boundaries "
-                           f"(min: ({zone_bbox['min_x']}, {zone_bbox['min_y']}, {zone_bbox['min_z']}), "
-                           f"max: ({zone_bbox['max_x']}, {zone_bbox['max_y']}, {zone_bbox['max_z']}))"
+                    detail=f"Trigger X coordinates (min: {min_x}, max: {max_x}) exceed zone boundaries "
+                           f"(min: {zone_bbox['min_x']}, max: {zone_bbox['max_x']}). Please adjust trigger placement."
                 )
+            
+            # Check Y coordinates  
+            if min_y < zone_bbox["min_y"] or max_y > zone_bbox["max_y"]:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Trigger Y coordinates (min: {min_y}, max: {max_y}) exceed zone boundaries "
+                           f"(min: {zone_bbox['min_y']}, max: {zone_bbox['max_y']}). Please adjust trigger placement."
+                )
+            
+            # Auto-correct Z coordinates to fit within zone boundaries
+            original_min_z, original_max_z = min_z, max_z
+            
+            if min_z < zone_bbox["min_z"]:
+                min_z = zone_bbox["min_z"]
+                corrections_made.append(f"min_z corrected from {original_min_z} to {min_z}")
+                # Update vertices with corrected Z
+                for vertex in vertices:
+                    if vertex.get("z", 0.0) < zone_bbox["min_z"]:
+                        vertex["z"] = zone_bbox["min_z"]
+                        
+            if max_z > zone_bbox["max_z"]:
+                max_z = zone_bbox["max_z"]
+                corrections_made.append(f"max_z corrected from {original_max_z} to {max_z}")
+                # Update vertices with corrected Z
+                for vertex in vertices:
+                    if vertex.get("z", 0.0) > zone_bbox["max_z"]:
+                        vertex["z"] = zone_bbox["max_z"]
 
             # Step 6: Assign a region to the trigger
             region_name = f"Region for Trigger {trigger_id}"
@@ -338,13 +366,19 @@ async def add_trigger(request: TriggerAddRequest):
                 }
 
         # Return response
-        message = "Trigger added successfully"
-        if zone_id and region_id:
-            message += " and assigned to a region"
-        response = {"message": message, "trigger_id": trigger_id}
-        if region_id:
-            response["region_id"] = region_id
-        return response
+        base_message = "Trigger added successfully and assigned to a region"
+        if corrections_made:
+            correction_details = "; ".join(corrections_made)
+            message = f"{base_message}. Auto-corrections applied: {correction_details}"
+        else:
+            message = base_message
+
+        return {
+            "message": message,
+            "trigger_id": trigger_id,
+            "region_id": region_id,
+            "corrections_applied": corrections_made
+        }
 
     except DatabaseError as e:
         logger.error(f"Database error adding trigger: {e.message}")
