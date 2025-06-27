@@ -1,5 +1,5 @@
 # Name: db_functions.py
-# Version: 0.1.1
+# Version: 0.1.2
 # Created: 971201
 # Modified: 250626
 # Creator: ParcoAdmin
@@ -153,6 +153,9 @@ async def call_stored_procedure(db_type: str, procedure_name: str, *args) -> Uni
                 query = "SELECT * FROM usp_trigger_select_by_id($1::integer);"
             elif procedure_name == "usp_trigger_edit":
                 query = "SELECT * FROM usp_trigger_edit($1::integer, $2::character varying, $3::integer, $4::boolean);"
+            elif procedure_name == "usp_trigger_select":
+                # This is actually a function, not a procedure - call it directly
+                query = "SELECT usp_trigger_select($1::integer);"
             elif procedure_name == "usp_region_add":
                 query = "SELECT * FROM usp_region_add($1::integer, $2::integer, $3::character varying, $4::real, $5::real, $6::real, $7::real, $8::real, $9::real, $10::integer);"
             elif procedure_name == "usp_location_by_id":

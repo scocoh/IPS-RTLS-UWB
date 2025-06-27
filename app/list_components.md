@@ -81,7 +81,7 @@ ui_campus_l1.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python scr
 upload_map_coordinates.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/api_modules | Backend | Active | t
 wing_l5.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/api_modules | Backend | Active | t
 app.py | 0.1.73 | 971201 | 250622 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/app.py | Backend | Active | t
-db_functions.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/database | Backend | Active | t
+db_functions.py | 0.1.2 | 971201 | 250626 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/database | Backend | Active | t
 db.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/database | Backend | Active | t
 constants.py | 0.1.0 | 250513 | 250513 | ParcoAdmin | ParcoAdmin | Shared constants for ParcoRTLS WebSocket servers | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 data_processor.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
@@ -143,7 +143,7 @@ tetse_zone_map.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTL
 tetse_zone.py | 0.1.9 | 250615 | 250618 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend to manage zones and zone types | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 tetse_zone_utils.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 text.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-trigger.py | 0.1.60 | 971201 | 250503 | ParcoAdmin | ParcoAdmin | FastAPI routes for managing triggers in ParcoRTLS | /home/parcoadmin/parco_fastapi/app/routes | FastAPI | Active | t
+trigger.py | 0.1.62 | 971201 | 250626 | ParcoAdmin | ParcoAdmin & Temporal Claude | FastAPI routes for managing triggers in ParcoRTLS | /home/parcoadmin/parco_fastapi/app/routes | FastAPI | Active | t
 vertex.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 zone_builder.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 zonebuilder_routes.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
@@ -179,7 +179,7 @@ MapUpload.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript fi
 MapZoneBuilder.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 MapZoneViewer.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 NewTriggerDemo.bak.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
-NewTriggerDemo.js | 0.1.16 | 971201 | 250624 | ParcoAdmin | ParcoAdmin + Claude | JavaScript file for ParcoRTLS frontend to manage triggers | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
+NewTriggerDemo.js | 0.1.17 | 971201 | 250625 | ParcoAdmin | ParcoAdmin + Temporal Claude | JavaScript file for ParcoRTLS frontend to manage triggers | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 NewTriggerViewer.js | 0.1.2 | 971201 | 250526 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 PortableTriggerAdd.js | 0.1.3 | 250607 | 250607 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend to add portable triggers | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 TriggerUX2025.jsx | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
