@@ -1,0 +1,40 @@
+Retrieve historical position data for a device within a specified time range in the ParcoRTLS system.
+
+This endpoint queries the `hist_r` schema's `usp_history_by_id` stored procedure to fetch position records
+for a device between the given start and end dates. It is used for analyzing a device's movement history,
+such as tracking an asset's path over time.
+
+Parameters:
+    device_id (str): The unique identifier of the device (e.g., tag ID or asset ID). Required.
+    start_date (datetime): The start of the time range for the history query (e.g., "2025-04-26T00:00:00"). Required.
+    end_date (datetime): The end of the time range for the history query (e.g., "2025-04-26T23:59:59"). Required.
+
+Returns:
+    list: A list of position records, each containing fields like `device_id`, `x`, `y`, `z`, and `timestamp`.
+          The exact structure depends on the `usp_history_by_id` stored procedure output.
+          Example: [{"device_id": "TAG123", "x": 10.5, "y": 20.3, "z": 1.2, "timestamp": "2025-04-26T10:00:00"}]
+
+Raises:
+    HTTPException (404): If no history records are found for the device in the specified time range.
+    HTTPException (500): If a database error occurs (e.g., connection failure or stored procedure error).
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_history_by_device/TAG123?start_date=2025-04-26T00:00:00&end_date=2025-04-26T23:59:59"
+    ```
+    Response:
+    ```json
+    [
+        {"device_id": "TAG123", "x": 10.5, "y": 20.3, "z": 1.2, "timestamp": "2025-04-26T10:00:00"},
+        {"device_id": "TAG123", "x": 10.6, "y": 20.4, "z": 1.2, "timestamp": "2025-04-26T10:01:00"}
+    ]
+    ```
+
+Use Case:
+    - **Scenario**: A security team needs to review the movement history of a tagged asset over the past day to investigate an incident.
+    - **Application**: The React frontend calls this endpoint to fetch and visualize the device's path on a map, aiding in incident analysis.
+
+Hint:
+    - Ensure `start_date` and `end_date` are in a valid ISO 8601 format to avoid parsing errors.
+    - For large time ranges, the query may return a large dataset; consider implementing pagination or limiting the time range.
+    - This endpoint is ideal for generating reports or visualizing movement patterns in Zone L1 zones.

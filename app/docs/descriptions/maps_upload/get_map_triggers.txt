@@ -1,0 +1,31 @@
+Retrieve the number of triggers associated with a specific map.
+
+This endpoint counts the number of triggers linked to a map by joining the 'triggers', 'regions', and 'zones' tables in the 'maint' schema. Triggers define actions (e.g., alerts) for specific events in regions, and this endpoint helps evaluate a map's automation setup.
+
+Parameters:
+- map_id (int, required): The unique ID of the map (path parameter).
+
+Returns:
+- JSON object with:
+  - trigger_count (int): The number of triggers associated with the map (0 if none).
+
+Raises:
+- HTTPException (500): If there is an error fetching trigger data (e.g., database issues).
+
+Example:
+```bash
+curl -X GET "http://192.168.210.226:8000/get_map_triggers/123"
+```
+Response:
+```json
+{
+  "trigger_count": 3
+}
+```
+
+Use Case:
+- A facility manager checks the number of triggers on a map to ensure all necessary alerts (e.g., for unauthorized entry into a restricted area) are configured.
+
+Hint:
+- Triggers depend on regions, which depend on zones. Verify the map has zones and regions (using `/get_map_zones/{map_id}` and `/get_map_regions/{map_id}`) before expecting triggers.
+- A `trigger_count` of 0 may indicate that automation rules have not yet been set up for the map.

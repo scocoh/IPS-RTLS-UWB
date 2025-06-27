@@ -1,0 +1,43 @@
+Bulk update vertices for zones.
+
+**Description**:
+This endpoint updates multiple vertices (coordinates and order) in the ParcoRTLS system. It is used in the
+Zone Editor to save changes to zone polygon shapes after user modifications.
+
+**Parameters**:
+- `vertices` (list[dict], body, required): List of vertex objects to update. Each object must contain:
+  - `vertex_id` (int, required): Unique identifier of the vertex.
+  - `x` (float, required): New X coordinate.
+  - `y` (float, required): New Y coordinate.
+  - `z` (float, optional, default=0.0): New Z coordinate.
+  - `order` (int, optional, default=1): New order of the vertex in the polygon.
+
+**Returns**:
+- JSON object with a single key `message` (str): Confirmation message ("Vertices updated successfully").
+
+**Example Usage**:
+```bash
+curl -X POST "http://192.168.210.226:8000/zoneviewer/update_vertices"       -H "Content-Type: application/json"       -d '[
+    {"vertex_id": 1001, "x": 15.0, "y": 25.0, "z": 0.0, "order": 1},
+    {"vertex_id": 1002, "x": 20.0, "y": 30.0, "z": 0.0, "order": 2}
+  ]'
+```
+Response:
+```json
+{
+  "message": "Vertices updated successfully"
+}
+```
+
+**Use Case**:
+- **Scenario**: A user drags vertices in the Zone Editor to adjust a zone’s shape.
+- **Action**: The frontend sends the updated vertex data to this endpoint to persist changes.
+- **Outcome**: The zone’s polygon is updated in the database.
+
+**Errors**:
+- **400 Bad Request**: Raised if the `vertices` list is empty (`HTTPException`, detail="No vertices provided").
+- **500 Internal Server Error**: Raised if not all vertices are updated or for database errors (`HTTPException`, detail=str(e) or "Partial update: {updated_count}/{len(vertices)}").
+
+**Hint**:
+- Ensure all `vertex_id` values exist in the database to avoid partial updates.
+- The coordinates are rounded to 6 decimal places for precision.

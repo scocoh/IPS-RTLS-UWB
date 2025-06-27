@@ -1,0 +1,39 @@
+Fetch the map image associated with a selected zone as a downloadable file.
+
+This endpoint retrieves the binary map image linked to a zone (via its `i_map` field) from the `maps` table in the ParcoRTLSMaint database. It supports both GET (to download the image) and HEAD (to check metadata without downloading) requests, facilitating efficient map rendering in the frontend Zone Viewer. The image is returned as a file attachment with a dynamically generated filename.
+
+Parameters:
+    zone_id (int, required): The ID of the zone (`i_zn`) whose associated map image is to be retrieved.
+
+Returns:
+    Response: A FastAPI Response object containing:
+        - content: The binary image data (`img_data` from the `maps` table).
+        - media_type: The image format (e.g., "image/png", "image/jpeg") based on `x_format` in the `maps` table.
+        - headers: A "Content-Disposition" header specifying the filename (e.g., "attachment; filename=map_zone_5.png").
+    For HEAD requests, returns only the headers without the content.
+
+Raises:
+    HTTPException:
+        - 404: If the zone is not found (`i_zn` does not exist) or no map is associated with the zone (`i_map` is null or invalid).
+        - 500: If an unexpected error occurs during database queries or image retrieval.
+
+Example Usage:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/api/get_map/5" -H "accept: image/png" --output map_zone_5.png
+    ```
+    ```bash
+    curl -X HEAD "http://192.168.210.226:8000/api/get_map/5" -H "accept: image/png"
+    ```
+    Response (GET):
+    - Binary PNG image data, downloadable as "map_zone_5.png".
+    Response (HEAD):
+    - Headers including "Content-Disposition: attachment; filename=map_zone_5.png".
+
+Use Case:
+    - **Map Visualization**: The React frontend calls this endpoint to display the map image associated with a zone in the Zone Viewer, overlaying zone boundaries or device positions.
+    - **Resource Verification**: The frontend uses a HEAD request to check if a map exists for a zone before attempting to load it, optimizing performance.
+
+Hint:
+    - Ensure CORS middleware in `app.py` is configured to allow requests from `http://192.168.210.226:3000` to avoid cross-origin issues.
+    - The `x_format` field in the `maps` table determines the media type; verify supported formats (e.g., PNG, JPEG) in the database to handle edge cases.
+    - For large maps, consider implementing caching or compression to improve performance.

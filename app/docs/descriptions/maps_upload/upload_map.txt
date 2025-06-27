@@ -1,0 +1,44 @@
+Upload a new map image and its metadata to the ParcoRTLS system.
+
+This endpoint allows users to upload a map image (e.g., a floor plan or campus layout) along with its metadata, such as name, geographic coordinates, and spatial boundaries. The map is stored in the PostgreSQL 'maint' schema in the 'maps' table, with the image stored as binary data. This endpoint is critical for defining the spatial context in which ParcoRTLS tracks entities (e.g., tags, devices) within zones, regions, or triggers.
+
+Parameters:
+- name (str, required): The name of the map (e.g., "Building A Floor 1").
+- lat_origin (float, optional): Latitude of the map's origin point (e.g., bottom-left corner). Defaults to None.
+- lon_origin (float, optional): Longitude of the map's origin point. Defaults to None.
+- min_x (float, optional): Minimum X-coordinate of the map's spatial boundary. Defaults to None.
+- min_y (float, optional): Minimum Y-coordinate of the map's spatial boundary. Defaults to None.
+- min_z (float, optional): Minimum Z-coordinate (e.g., for 3D maps). Defaults to None.
+- max_x (float, optional): Maximum X-coordinate of the map's spatial boundary. Defaults to None.
+- max_y (float, optional): Maximum Y-coordinate of the map's spatial boundary. Defaults to None.
+- max_z (float, optional): Maximum Z-coordinate of the map. Defaults to None.
+- file (UploadFile, required): The map image file to upload. Supported formats: PNG, JPG, JPEG, GIF.
+
+Returns:
+- JSON object with:
+  - message (str): Confirmation message ("Map uploaded successfully").
+  - map_id (int): The unique ID of the newly created map record.
+
+Raises:
+- HTTPException (400): If the file format is not supported (e.g., not PNG, JPG, JPEG, or GIF).
+- HTTPException (500): If the map upload fails due to database errors or other issues.
+
+Example:
+```bash
+curl -X POST "http://192.168.210.226:8000/upload_map"          -F "name=Building A Floor 1"          -F "lat_origin=40.7128"          -F "lon_origin=-74.0060"          -F "min_x=0.0"          -F "min_y=0.0"          -F "max_x=100.0"          -F "max_y=50.0"          -F "file=@/path/to/floor1.png"
+```
+Response:
+```json
+{
+  "message": "Map uploaded successfully",
+  "map_id": 123
+}
+```
+
+Use Case:
+- A facility manager uploads a new floor plan for a building to the ParcoRTLS system to enable real-time tracking of assets or personnel. For example, uploading a map for "Building A Floor 1" with its geographic coordinates allows the system to associate zones (e.g., rooms) and triggers (e.g., entry/exit alerts) with this map.
+
+Hint:
+- Ensure the map image is optimized (e.g., <4MB) to avoid performance issues. Large files trigger a warning in the logs but are still processed.
+- Provide `lat_origin` and `lon_origin` for outdoor maps to enable geolocation-based tracking.
+- Use `min_x`, `min_y`, `max_x`, and `max_y` to define the map's coordinate system for accurate zone and region placement.

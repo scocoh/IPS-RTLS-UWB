@@ -1,0 +1,36 @@
+Add a new device type to the ParcoRTLS database.
+
+This endpoint inserts a new device type into the `tlkdevicetypes` table in the `maint` schema.
+Device types categorize devices (e.g., tags, anchors) in the ParcoRTLS system, and this endpoint
+is used in the Zone Builder to define new categories for devices associated with zones.
+
+Parameters:
+    data (dict, required, body): A JSON object with the following key:
+        - description (str, required): The description of the device type (x_dsc_dev, max 50 characters).
+
+Returns:
+    dict: A JSON object with the following key:
+          - type_id (int): The ID of the newly created device type (i_typ_dev).
+
+Example:
+    ```bash
+    curl -X POST http://192.168.210.226:8000/zonebuilder/api/add_device_type         -H "Content-Type: application/json"         -d '{"description": "UWB Tag"}'
+    ```
+    Response:
+    ```json
+    {"type_id": 1}
+    ```
+
+Use Case:
+    - An administrator configuring the ParcoRTLS system adds a new device type (e.g., "UWB Tag")
+      to categorize tracking devices used in zones, ensuring accurate device management.
+
+Hint:
+    - Validate the description length (≤50 characters) on the frontend to avoid 400 errors.
+    - After adding a device type, use /api/get_all_devices to verify devices associated with the
+      new type.
+
+Errors:
+    - 400 (Bad Request): Raised if the description is missing or exceeds 50 characters.
+    - 500 (Internal Server Error): Raised if the insertion fails due to database issues or
+      unexpected errors.

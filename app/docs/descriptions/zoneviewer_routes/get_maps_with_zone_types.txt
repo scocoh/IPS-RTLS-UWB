@@ -1,0 +1,51 @@
+Fetch unique maps with their associated zone types, sorted by hierarchy.
+
+**Description**:
+This endpoint retrieves a list of unique maps, each associated with the highest-priority zone type (based on a
+predefined hierarchy). It is used in the ParcoRTLS system to provide a summary of maps and their primary zone
+types for selection in the Zone Viewer or for reporting purposes.
+
+**Parameters**:
+- None
+
+**Returns**:
+- JSON object with a single key `maps`, containing a list of map objects. Each map object has:
+  - `i_map` (int): Unique identifier of the map.
+  - `x_nm_map` (str): Name of the map.
+  - `i_typ_zn` (int): The highest-priority zone type associated with the map (e.g., 1 for campus, 2 for building).
+
+**Example Usage**:
+```bash
+curl -X GET "http://192.168.210.226:8000/zoneviewer/get_maps_with_zone_types" -H "accept: application/json"
+```
+Response:
+```json
+{
+  "maps": [
+    {
+      "i_map": 101,
+      "x_nm_map": "Main Campus Map",
+      "i_typ_zn": 1
+    },
+    {
+      "i_map": 102,
+      "x_nm_map": "Building A Floor 1",
+      "i_typ_zn": 2
+    }
+  ]
+}
+```
+
+**Use Case**:
+- **Scenario**: A user needs to select a map in the Zone Viewer but wants to filter by zone type (e.g., campus or building).
+- **Action**: The frontend calls this endpoint to populate a dropdown or list of maps, showing their names and zone types.
+- **Outcome**: The user can quickly identify and select the relevant map.
+
+**Errors**:
+- **404 Not Found**: Raised if no maps are found (`HTTPException`, detail="No maps found").
+- **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+**Hint**:
+- The zone type hierarchy (1=campus, 10=area, 2=building, etc.) is defined in the SQL query. Refer to the
+  ParcoRTLS documentation for zone type definitions.
+- Use this endpoint for map selection UI components or reporting tools.

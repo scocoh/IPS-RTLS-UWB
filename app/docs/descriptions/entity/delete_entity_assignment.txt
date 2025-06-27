@@ -1,0 +1,31 @@
+Delete a specific entity assignment.
+
+This endpoint removes an entity assignment (e.g., an employee from a department) using the `usp_assign_entity_delete` stored procedure. It is used to dissolve hierarchical relationships.
+
+Args:
+    assignment_id (int): The ID of the assignment to delete (e.g., 101). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Entity assignment deleted successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the assignment cannot be deleted.
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/delete_entity_assignment/101"
+    ```
+    Response:
+    ```json
+    {"message": "Entity assignment deleted successfully"}
+    ```
+
+Use Case:
+    - Remove an employee ("EMP123") from a department ("DEPT001") after a transfer.
+    - Dissolve an assignment when an asset is reassigned to another entity.
+
+Hint:
+    - Verify the `assignment_id` exists using `/list_entity_assignments_by_id/{assignment_id}` before deletion.
+    - A return value of 0 from the stored procedure indicates the assignment was already deleted, which is treated as success.

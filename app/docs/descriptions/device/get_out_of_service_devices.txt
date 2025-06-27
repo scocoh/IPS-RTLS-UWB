@@ -1,0 +1,66 @@
+# Name: get_out_of_service_devices.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Retrieve all out-of-service devices in the ParcoRTLS system.
+
+This endpoint fetches devices marked as out-of-service (e.g., with an active end date) using the `usp_device_select_outofservice` stored procedure. It is used to identify devices that are not currently operational for maintenance or replacement purposes.
+
+Args:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing details of out-of-service devices.
+        - x_id_dev (str): Device ID.
+        - i_typ_dev (int): Device type ID.
+        - x_nm_dev (str): Device name.
+        - n_moe_x (float or None): X-coordinate of the margin of error.
+        - n_moe_y (float or None): Y-coordinate of the margin of error.
+        - n_moe_z (float or None): Z-coordinate of the margin of error.
+        - zone_id (int or None): Associated zone ID.
+        - d_srv_bgn (datetime or None): Service start date.
+        - d_srv_end (datetime or None): Service end date.
+        - f_log (bool or None): Logging flag.
+
+Raises:
+    HTTPException:
+        - 404: If no out-of-service devices are found.
+        - 500: If a database error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_out_of_service_devices"
+    ```
+    Response:
+    ```json
+    [
+        {
+            "x_id_dev": "TAG002",
+            "i_typ_dev": 1,
+            "x_nm_dev": "Retired Tag",
+            "n_moe_x": null,
+            "n_moe_y": null,
+            "n_moe_z": null,
+            "zone_id": null,
+            "d_srv_bgn": "2025-01-01T00:00:00",
+            "d_srv_end": "2025-04-26T00:00:00",
+            "f_log": false
+        }
+    ]
+    ```
+
+Use Case:
+    - Generate a maintenance report of all out-of-service tags for replacement.
+    - Display out-of-service beacons in the React frontend to prioritize repairs.
+
+Hint:
+    - Cross-reference with `/get_device_by_id/{device_id}` to get detailed history for each out-of-service device.
+    - Use `/set_device_end_date` to mark devices as out-of-service or `/remove_device_end_date` to restore them.

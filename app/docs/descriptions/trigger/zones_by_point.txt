@@ -1,0 +1,56 @@
+# Name: zones_by_point.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/trigger
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Fetch zones that may contain a given point (x, y, z) based on their bounding box.
+
+This endpoint retrieves zones whose bounding boxes (defined by regions) contain the specified
+point coordinates. It supports filtering by zone type (e.g., zone_type=1 for Level 1 zones,
+typically campuses). The response includes whether the point is definitively within the zone's
+bounding box.
+
+Args:
+    x (float): The x-coordinate of the point.
+    y (float): The y-coordinate of the point.
+    z (float): The z-coordinate of the point.
+    zone_type (int, optional): Filter by zone type (e.g., 1 for Level 1 zones). Defaults to 0 (no filter).
+
+Returns:
+    list: A list of dictionaries containing:
+        - zone_id (int): The ID of the zone.
+        - zone_name (str): The name of the zone.
+        - contains (bool): True if the point is within the zone's bounding box, False otherwise.
+
+Raises:
+    HTTPException: 500 if the database query fails.
+
+Example:
+    To check if a point (x=0, y=0, z=0) is within any Level 1 zones (campuses):
+    ```
+    GET /api/zones_by_point?x=0&y=0&z=0&zone_type=1
+    ```
+    Response:
+    ```json
+    [
+        {"zone_id": 417, "zone_name": "2303251508CL1", "contains": true},
+        {"zone_id": 419, "zone_name": "ib2503251653cl1", "contains": true}
+    ]
+    ```
+
+Hint (Use Case):
+    This endpoint can be used to answer questions like "is a tag on campus?" where the tag is identified
+    by a tag number (e.g., 'TAG001') and the campus is a bounding box created with a Zone L1 associated
+    with a map. To use it for this purpose:
+    1. Fetch the tag's position (x, y, z) using `/api/get_recent_device_positions/{device_id}`.
+    2. Call this endpoint with the tag's coordinates and `zone_type=1` to filter for Level 1 zones (campuses).
+    3. Check the response to see if the specific campus (by zone_id) contains the tag.
+    Example: If checking if 'TAG001' is on campus with zone_id=417, fetch its position, then call this endpoint
+    and look for zone_id=417 in the response with `"contains": true`.

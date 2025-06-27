@@ -1,0 +1,43 @@
+Retrieve map data including image URL and bounds for rendering.
+
+**Description**:
+This endpoint provides a convenient combination of a map’s image URL and its spatial bounds, formatted for
+direct use in the ParcoRTLS Zone Viewer frontend. It is used to render maps with proper scaling and alignment
+in the React app.
+
+**Parameters**:
+- `map_id` (int, path parameter, required): The unique identifier of the map.
+
+**Returns**:
+- JSON object with the following keys:
+  - `imageUrl` (str): URL to fetch the map image (points to `/get_map/{map_id}`).
+  - `bounds` (list): 2D array of coordinates [[min_y, min_x], [max_y, max_x]] defining the map’s extent.
+
+**Example Usage**:
+```bash
+curl -X GET "http://192.168.210.226:8000/zoneviewer/get_map_data/101" -H "accept: application/json"
+```
+Response:
+```json
+{
+  "imageUrl": "http://192.168.210.226:8000/zoneviewer/get_map/101",
+  "bounds": [
+    [0.0, 0.0],
+    [50.0, 100.0]
+  ]
+}
+```
+
+**Use Case**:
+- **Scenario**: The Zone Viewer needs to display a map with zones overlaid.
+- **Action**: The React frontend calls this endpoint to get the image URL and bounds, then renders the map
+  using a library like Leaflet or Canvas.
+- **Outcome**: The map is displayed with correct scaling, and zones are accurately positioned.
+
+**Errors**:
+- **404 Not Found**: Raised if no map data is found for the given `map_id` (`HTTPException`, detail="No map data found for map_id={map_id}").
+- **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+**Hint**:
+- This endpoint is optimized for frontend integration. Use the `imageUrl` to fetch the map image and `bounds`
+  to configure the map’s coordinate system in the UI.

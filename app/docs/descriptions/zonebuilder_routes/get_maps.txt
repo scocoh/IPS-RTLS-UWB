@@ -1,0 +1,43 @@
+Retrieve a list of all available maps from the ParcoRTLS database.
+
+This endpoint fetches metadata for all maps stored in the `maps` table of the `maint` schema.
+It is used by the Zone Builder tool in the ParcoRTLS system to display available maps for
+creating or editing zones. Each map is identified by a unique ID and name, which are returned
+in a structured JSON response for use in the React frontend.
+
+Parameters:
+    None
+
+Returns:
+    dict: A JSON object with a single key "maps" containing a list of dictionaries. Each dictionary
+          represents a map with the following keys:
+          - map_id (int): The unique identifier of the map (i_map).
+          - name (str): The name of the map (x_nm_map).
+
+Example:
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/get_maps
+    ```
+    Response:
+    ```json
+    {
+        "maps": [
+            {"map_id": 1, "name": "Campus A Floorplan"},
+            {"map_id": 2, "name": "Building B Layout"}
+        ]
+    }
+    ```
+
+Use Case:
+    - A facility manager uses the Zone Builder tool to create a new zone (e.g., a room or floor).
+      This endpoint provides the list of available maps to select as the base map for the zone,
+      ensuring the zone is associated with the correct floorplan or layout.
+
+Hint:
+    - To verify if a map is associated with a specific campus (Zone L1), cross-reference the
+      returned map_id with the zones table (i_map column) where i_typ_zn = 1.
+    - Ensure the frontend handles cases where the map list is empty by displaying a fallback UI.
+
+Errors:
+    - 500 (Internal Server Error): Raised if there is a database connection issue or an unexpected
+      error occurs during query execution. The error message includes details for debugging.

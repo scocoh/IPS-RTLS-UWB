@@ -1,0 +1,43 @@
+# Name: delete_device_type.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Delete a device type from the ParcoRTLS system.
+
+This endpoint removes a device type by its ID using the `usp_device_type_delete` stored procedure. It is used to remove obsolete or unused device types.
+
+Args:
+    type_id (int): The ID of the device type to delete (e.g., 1). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Device type deleted successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/delete_device_type/1"
+    ```
+    Response:
+    ```json
+    {"message": "Device type deleted successfully"}
+    ```
+
+Use Case:
+    - Remove an obsolete device type ("Temporary Tag") that is no longer needed.
+    - Clean up unused device types during system maintenance.
+
+Hint:
+    - Ensure no devices are using the `type_id` (check `/get_device_by_type/{device_type}`) before deletion to avoid database constraints.
+    - A return value of 0 from the stored procedure indicates the type was already deleted, which is treated as success.

@@ -1,0 +1,25 @@
+Retrieve the stored map image for a given map ID.
+
+This endpoint fetches the binary image data and file format of a map stored in the 'maps' table in the 'maint' schema. It returns the image as a response with the appropriate media type (e.g., image/png). This is used to display maps in the ParcoRTLS React frontend or other client applications.
+
+Parameters:
+- map_id (int, required): The unique ID of the map to retrieve (path parameter).
+
+Returns:
+- Binary image data with the appropriate media type (e.g., image/png, image/jpeg).
+
+Raises:
+- HTTPException (404): If the map ID does not exist in the database.
+- HTTPException (500): If there is an error retrieving the map image (e.g., database connection issues).
+
+Example:
+```bash
+curl -X GET "http://192.168.210.226:8000/map_image/123" -o map_image.png
+```
+
+Use Case:
+- The ParcoRTLS React frontend calls this endpoint to display a floor plan in the user interface when a user selects a specific map (e.g., "Building A Floor 1") for viewing or configuring zones.
+
+Hint:
+- Ensure the `map_id` corresponds to a valid map in the database. Use the `/upload_map` endpoint to create maps first.
+- The response media type is set based on the stored `x_format` (e.g., PNG, JPEG), so ensure the client can handle the returned format.

@@ -1,0 +1,31 @@
+Retrieve the number of regions associated with a specific map.
+
+This endpoint counts the number of regions linked to a map by joining the 'regions' and 'zones' tables in the 'maint' schema. Regions are sub-areas within zones, and this endpoint helps assess the complexity of a map's configuration.
+
+Parameters:
+- map_id (int, required): The unique ID of the map (path parameter).
+
+Returns:
+- JSON object with:
+  - region_count (int): The number of regions associated with the map (0 if none).
+
+Raises:
+- HTTPException (500): If there is an error fetching region data (e.g., database connection issues).
+
+Example:
+```bash
+curl -X GET "http://192.168.210.226:8000/get_map_regions/123"
+```
+Response:
+```json
+{
+  "region_count": 10
+}
+```
+
+Use Case:
+- A developer checks the number of regions on a map to determine if additional configuration (e.g., triggers) is needed for fine-grained tracking within zones.
+
+Hint:
+- Regions are tied to zones, so ensure zones exist for the map (check with `/get_map_zones/{map_id}`) before expecting regions.
+- A high `region_count` may indicate a complex map with detailed sub-areas, requiring careful management.

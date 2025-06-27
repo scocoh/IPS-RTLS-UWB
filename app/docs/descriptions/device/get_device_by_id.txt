@@ -1,0 +1,63 @@
+# Name: get_device_by_id.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Retrieve details of a specific device by its ID.
+
+This endpoint fetches a single device's details using the `usp_device_select_by_id` stored procedure. It is used to display device information or verify existence before performing operations like assignments or updates.
+
+Args:
+    device_id (str): The ID of the device to retrieve (e.g., "TAG001"). Required.
+
+Returns:
+    dict: A dictionary containing device details.
+        - x_id_dev (str): Device ID.
+        - i_typ_dev (int): Device type ID.
+        - x_nm_dev (str): Device name.
+        - n_moe_x (float or None): X-coordinate of the margin of error.
+        - n_moe_y (float or None): Y-coordinate of the margin of error.
+        - n_moe_z (float or None): Z-coordinate of the margin of error.
+        - zone_id (int or None): Associated zone ID.
+        - d_srv_bgn (datetime or None): Service start date.
+        - d_srv_end (datetime or None): Service end date.
+        - f_log (bool or None): Logging flag.
+
+Raises:
+    HTTPException:
+        - 404: If the device is not found.
+        - 500: If a database error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_device_by_id/TAG001"
+    ```
+    Response:
+    ```json
+    {
+        "x_id_dev": "TAG001",
+        "i_typ_dev": 1,
+        "x_nm_dev": "Employee Tag",
+        "n_moe_x": 100.5,
+        "n_moe_y": 200.7,
+        "n_moe_z": 10.0,
+        "zone_id": 1,
+        "d_srv_bgn": "2025-04-26T00:00:00",
+        "d_srv_end": null,
+        "f_log": true
+    }
+    ```
+
+Use Case:
+    - Display detailed information about a tag ("TAG001") in the React frontend.
+    - Verify a device's current zone or location before reassigning it.
+
+Hint:
+    - Use this endpoint to prefetch device data before rendering forms or dashboards to reduce latency.

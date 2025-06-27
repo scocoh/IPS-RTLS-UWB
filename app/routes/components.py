@@ -46,7 +46,7 @@ async def get_components():
     as of version 0.1.80 of the update component we do not track JSON nor database files."""
     try:
         # Connect to the database
-        conn = psycopg2.connect(**DB_PARAMS)
+        conn = psycopg2.connect(**DB_PARAMS) # type: ignore
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
         # Query the component_versions table
@@ -67,7 +67,7 @@ async def generate_procedures_functions_list():
     """Generates a Markdown file (proc_func_lbn.md) listing all stored procedures and functions in the ParcoRTLSMaint database."""
     try:
         # Connect to the database
-        conn = psycopg2.connect(**DB_PARAMS)
+        conn = psycopg2.connect(**DB_PARAMS) # type: ignore
         cursor = conn.cursor()
         
         # Query for list of procedures and functions, including routine_type, and avoid duplicates
@@ -101,7 +101,7 @@ async def generate_procedures_functions_details():
     """Generates a Markdown file (proc_func_details.md) listing all stored procedures and functions in the ParcoRTLSMaint database with their source code."""
     try:
         # Connect to the database
-        conn = psycopg2.connect(**DB_PARAMS)
+        conn = psycopg2.connect(**DB_PARAMS) # type: ignore
         cursor = conn.cursor()
         
         # Query for list of procedures and functions with their OIDs, including routine_type

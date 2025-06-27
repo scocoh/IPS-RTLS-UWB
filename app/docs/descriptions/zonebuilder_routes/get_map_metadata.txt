@@ -1,0 +1,50 @@
+Retrieve metadata for a specific map, including its ID, name, and coordinate bounds.
+
+This endpoint fetches metadata for a map identified by its map_id from the `maps` table in the
+`maint` schema. It provides detailed information such as the map's name and coordinate bounds
+(min_x, min_y, max_x, max_y), which are used by the Zone Builder tool to configure map displays
+or validate zone placements in the ParcoRTLS system.
+
+Parameters:
+    map_id (int, required, path): The unique identifier of the map (i_map) to fetch metadata for.
+
+Returns:
+    dict: A JSON object with the following keys:
+          - map_id (int): The unique identifier of the map.
+          - name (str): The name of the map (x_nm_map).
+          - min_x (float): The minimum x-coordinate of the map.
+          - min_y (float): The minimum y-coordinate of the map.
+          - max_x (float): The maximum x-coordinate of the map.
+          - max_y (float): The maximum y-coordinate of the map.
+
+Example:
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/get_map_metadata/1
+    ```
+    Response:
+    ```json
+    {
+        "map_id": 1,
+        "name": "Campus A Floorplan",
+        "min_x": 0.0,
+        "min_y": 0.0,
+        "max_x": 200.0,
+        "max_y": 100.0
+    }
+    ```
+
+Use Case:
+    - A developer integrating the Zone Builder tool needs to display map metadata in the UI or
+      validate that a zone's vertices fall within the map's bounds. This endpoint provides the
+      necessary metadata for such tasks.
+
+Hint:
+    - Use this endpoint to pre-validate map coordinates before creating zones or vertices to
+      ensure they align with the map's bounds.
+    - For campus-level checks (Zone L1), verify the map_id is associated with a zone where
+      i_typ_zn = 1 in the zones table.
+
+Errors:
+    - 404 (Not Found): Raised if no metadata is found for the provided map_id.
+    - 500 (Internal Server Error): Raised if there is a database connection issue or an unexpected
+      error occurs during query execution.

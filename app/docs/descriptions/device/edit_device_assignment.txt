@@ -1,0 +1,47 @@
+# Name: edit_device_assignment.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Update an existing device assignment.
+
+This endpoint modifies a device assignment (e.g., changing the device, entity, or reason) using the `usp_assign_dev_edit` stored procedure. It is used to update assignment details when reassigning devices or correcting errors.
+
+Args:
+    request (AssignDeviceEditRequest): The request body containing updated assignment details.
+        - assignment_id (int): The ID of the assignment to update (e.g., 101). Required.
+        - device_id (str): The updated device ID (e.g., "TAG001"). Required.
+        - entity_id (str): The updated entity ID (e.g., "ZONE001"). Required.
+        - reason_id (int): The updated reason ID (e.g., 1 for "Location Tracking"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Device assignment edited successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X PUT "http://192.168.210.226:8000/edit_device_assignment"              -H "Content-Type: application/json"              -d '{"assignment_id": 101, "device_id": "TAG001", "entity_id": "ZONE002", "reason_id": 1}'
+    ```
+    Response:
+    ```json
+    {"message": "Device assignment edited successfully"}
+    ```
+
+Use Case:
+    - Reassign a tag from one zone ("ZONE001") to another ("ZONE002") in a Zone L1 campus.
+    - Update the reason for a beacon's assignment after a change in its purpose.
+
+Hint:
+    - Verify the `assignment_id` exists using `/list_device_assignments_by_device/{device_id}` before updating.
+    - Ensure `device_id`, `entity_id`, and `reason_id` are valid using appropriate endpoints (e.g., `/get_device_by_id/{device_id}`, `/get_entity_by_id/{entity_id}`, `/list_assignment_reasons`).

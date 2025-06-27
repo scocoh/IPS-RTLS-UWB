@@ -1,0 +1,48 @@
+Edit an existing device's details, including its zone association, in the ParcoRTLS database.
+
+This endpoint updates the information of a device in the `devices` table of the `maint` schema,
+allowing modifications to its name, position coordinates (margin of error), and associated zone ID.
+It uses a direct `psycopg2` connection for the update operation, which is part of the Zone Builder
+tool's functionality to manage device configurations in the ParcoRTLS system.
+
+Parameters:
+    device_id (str, required, path): The unique identifier of the device to edit (x_id_dev).
+    device_name (str, optional, form): The updated human-readable name of the device (x_nm_dev).
+    n_moe_x (float, optional, form): The updated x-coordinate margin of error (n_moe_x).
+    n_moe_y (float, optional, form): The updated y-coordinate margin of error (n_moe_y).
+    n_moe_z (float, optional, form): The updated z-coordinate margin of error (n_moe_z).
+    zone_id (int, required, form): The updated ID of the associated zone (zone_id), referencing
+                                   the `zones` table.
+
+Returns:
+    dict: A JSON object with the following keys:
+          - x_id_dev (str): The ID of the updated device.
+          - message (str): A success message ("Device updated successfully").
+
+Example:
+    ```bash
+    curl -X PUT http://192.168.210.226:8000/zonebuilder/api/edit_device/TAG001         -F "device_name=Updated Tag 1"         -F "n_moe_x=15.0"         -F "n_moe_y=25.0"         -F "n_moe_z=0.0"         -F "zone_id=2"
+    ```
+    Response:
+    ```json
+    {
+        "x_id_dev": "TAG001",
+        "message": "Device updated successfully"
+    }
+    ```
+
+Use Case:
+    - A technician relocates a UWB tag from one room to another within a building (different zone_id).
+      This endpoint updates the tag's zone association and position coordinates to reflect its new
+      location, ensuring accurate tracking in the ParcoRTLS system.
+
+Hint:
+    - Before updating, verify that the `zone_id` exists in the `zones` table to prevent database
+      errors. Use `/get_parent_zones` to retrieve valid zone IDs.
+    - For campus-level updates, ensure the new `zone_id` corresponds to a zone with `i_typ_zn=1`
+      if the device is being reassigned to a campus for broader tracking purposes.
+
+Errors:
+    - 404 (Not Found): Raised if the `device_id` does not exist in the `devices` table.
+    - 500 (Internal Server Error): Raised if the update fails due to database connectivity issues,
+      invalid `zone_id`, or other unexpected errors. The error message includes details for debugging.

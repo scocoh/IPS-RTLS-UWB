@@ -1,0 +1,33 @@
+Retrieve the image data for a specific map.
+
+**Description**:
+This endpoint fetches the binary image data (e.g., PNG, JPEG) for a map identified by `map_id`. It is used in
+the Zone Viewer to display map images as backgrounds for zones, enabling visualization of spatial layouts in
+the ParcoRTLS system.
+
+**Parameters**:
+- `map_id` (int, path parameter, required): The unique identifier of the map to retrieve.
+
+**Returns**:
+- Binary response containing the map image data, with the appropriate `Content-Type` header
+  (e.g., `image/png`, `image/jpeg`) based on the map's format stored in the database.
+
+**Example Usage**:
+```bash
+curl -X GET "http://192.168.210.226:8000/zoneviewer/get_map/101" -o map101.png
+```
+Response: Binary image data (saved as `map101.png` in the example).
+
+**Use Case**:
+- **Scenario**: A user selects a building in the Zone Viewer to view its floor plan.
+- **Action**: The React frontend requests the map image using this endpoint and renders it as a background
+  for zone polygons.
+- **Outcome**: The map image provides spatial context for zones and tracked entities.
+
+**Errors**:
+- **404 Not Found**: Raised if no map is found for the given `map_id` (`HTTPException`, detail="No map found for map_id={map_id}").
+- **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+**Hint**:
+- Ensure the frontend handles different image formats (PNG, JPEG) based on the `Content-Type` header.
+- Combine with `/get_map_metadata/{map_id}` to get bounds for proper scaling in the UI.

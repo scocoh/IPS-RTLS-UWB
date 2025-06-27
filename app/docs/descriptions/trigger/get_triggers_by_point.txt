@@ -1,0 +1,64 @@
+# Name: get_triggers_by_point.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/trigger
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Fetch triggers whose regions contain the specified point coordinates.
+
+This endpoint identifies triggers whose associated regions (defined by vertices) include the given (x, y, z) point. It is used to determine which triggers a device at a specific location might activate.
+
+Args:
+    x (float): The x-coordinate of the point (query parameter, required).
+    y (float): The y-coordinate of the point (query parameter, required).
+    z (float): The z-coordinate of the point (query parameter, required).
+
+Returns:
+    list: A list of dictionaries, each containing:
+        - i_trg (int): Trigger ID.
+        - x_nm_trg (str): Trigger name.
+        - i_dir (int): Direction ID.
+        - f_ign (bool): Ignore flag.
+        - i_rgn (int): Region ID.
+        - n_x (float): Vertex x-coordinate.
+        - n_y (float): Vertex y-coordinate.
+        - n_z (float): Vertex z-coordinate.
+
+Raises:
+    HTTPException:
+        - 404: If no triggers are found for the point.
+        - 500: For database errors or unexpected issues.
+
+Example:
+    To fetch triggers for point (0.0, 0.0, 0.0):
+    ```
+    curl -X GET "http://192.168.210.226:8000/get_triggers_by_point?x=0.0&y=0.0&z=0.0"
+    ```
+    Response:
+    ```json
+    [
+        {
+            "i_trg": 123,
+            "x_nm_trg": "EntryGate",
+            "i_dir": 1,
+            "f_ign": false,
+            "i_rgn": 567,
+            "n_x": 0.0,
+            "n_y": 0.0,
+            "n_z": 0.0
+        }
+    ]
+    ```
+
+Use Case:
+    This endpoint is used to check which triggers a device at a specific location might interact with, such as determining if a tag is within a trigger region for access control or alerts.
+
+Hint:
+    - The query checks exact vertex matches, which may not always return expected results for regions. Consider using /trigger_contains_point for more accurate containment checks.
+    - Ensure the point coordinates are within the system’s coordinate system (e.g., matching the units used in maint.vertices).

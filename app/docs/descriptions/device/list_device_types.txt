@@ -1,0 +1,49 @@
+# Name: list_device_types.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Retrieve a list of all device types in the ParcoRTLS system.
+
+This endpoint fetches all device types (e.g., Tag, Beacon) using the `usp_device_type_list` stored procedure. It is useful for populating UI elements or validating device type IDs.
+
+Args:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing device type details.
+        - i_typ_dev (int): Device type ID.
+        - x_dsc_dev_typ (str): Device type description (e.g., "Tag").
+        - d_crt (datetime): Creation date.
+        - d_udt (datetime): Last update date.
+
+Raises:
+    HTTPException:
+        - 404: If no device types are found.
+        - 500: If a database error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_device_types"
+    ```
+    Response:
+    ```json
+    [
+        {"i_typ_dev": 1, "x_dsc_dev_typ": "Tag", "d_crt": "2025-04-26T10:00:00", "d_udt": "2025-04-26T10:00:00"},
+        {"i_typ_dev": 2, "x_dsc_dev_typ": "Beacon", "d_crt": "2025-04-25T09:00:00", "d_udt": "2025-04-25T09:00:00"}
+    ]
+    ```
+
+Use Case:
+    - Populate a dropdown in the React frontend for selecting device types when adding a new device.
+    - Validate device type IDs before creating or updating devices.
+
+Hint:
+    - Use this endpoint to ensure valid `device_type` values are used in `/add_device` or `/edit_device`.

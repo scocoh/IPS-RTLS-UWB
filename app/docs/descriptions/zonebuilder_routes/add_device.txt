@@ -1,0 +1,52 @@
+Add a new device with an associated zone ID to the ParcoRTLS database.
+
+This endpoint inserts a new device into the `devices` table in the `maint` schema, linking it to a
+specific zone for real-time location tracking. It is a critical function in the Zone Builder tool,
+enabling the registration of new devices such as UWB tags or anchors within the ParcoRTLS system.
+The device is assigned a zone ID to associate it with a specific location (e.g., a room or campus).
+
+Parameters:
+    device_id (str, required, form): The unique identifier for the device (x_id_dev).
+    device_type (int, required, form): The device type ID (i_typ_dev), referencing a type in the
+                                      `tlkdevicetypes` table.
+    device_name (str, optional, form): The human-readable name of the device (x_nm_dev).
+    n_moe_x (float, optional, form): The x-coordinate margin of error (n_moe_x), representing the
+                                     device's initial position.
+    n_moe_y (float, optional, form): The y-coordinate margin of error (n_moe_y).
+    n_moe_z (float, optional, form): The z-coordinate margin of error (n_moe_z), defaults to 0 for
+                                     2D tracking.
+    zone_id (int, required, form): The ID of the zone (zone_id) to associate the device with,
+                                   referencing the `zones` table.
+
+Returns:
+    dict: A JSON object with the following keys:
+          - x_id_dev (str): The ID of the newly created device.
+          - message (str): A success message ("Device added successfully").
+
+Example:
+    ```bash
+    curl -X POST http://192.168.210.226:8000/zonebuilder/api/add_device         -F "device_id=TAG001"         -F "device_type=1"         -F "device_name=Tag 1"         -F "n_moe_x=10.0"         -F "n_moe_y=20.0"         -F "n_moe_z=0.0"         -F "zone_id=1"
+    ```
+    Response:
+    ```json
+    {
+        "x_id_dev": "TAG001",
+        "message": "Device added successfully"
+    }
+    ```
+
+Use Case:
+    - A technician deploys a new UWB tag in a hospital room (zone_id corresponding to a room zone).
+      This endpoint registers the tag in the ParcoRTLS system, associating it with the room for
+      tracking patients or equipment within that space.
+
+Hint:
+    - Before submitting, verify that the `zone_id` exists in the `zones` table and that the
+      `device_type` is valid in the `tlkdevicetypes` table to avoid database errors.
+    - For campus-level tracking, use a `zone_id` corresponding to a zone with `i_typ_zn=1` to
+      associate devices with a campus, enabling broad location checks.
+
+Errors:
+    - 500 (Internal Server Error): Raised if the insertion fails due to database connectivity issues,
+      duplicate `device_id`, invalid `zone_id`, or other unexpected errors. The error message
+      includes details for debugging.

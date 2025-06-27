@@ -1,0 +1,34 @@
+Updates metadata for a specific map in the ParcoRTLS system.
+
+This endpoint allows administrators to update map metadata, such as geographical bounds, to ensure accurate rendering in the frontend.
+
+Parameters:
+- request (MapUpdateRequest): The request body containing:
+    - map_id (int, required): The unique identifier of the map.
+    - min_x (float, required): The minimum X coordinate of the map.
+    - min_y (float, required): The minimum Y coordinate of the map.
+    - max_x (float, required): The maximum X coordinate of the map.
+    - max_y (float, required): The maximum Y coordinate of the map.
+
+Returns:
+- dict: A JSON response with a success message.
+    - message (str): Confirmation that the metadata was updated successfully.
+
+Raises:
+- HTTPException (404): If the metadata update fails (e.g., map_id not found).
+- HTTPException (500): If an unexpected error occurs during the database operation.
+
+Example:
+```bash
+curl -X PUT "http://192.168.210.226:8000/api/update_map_metadata"          -H "Content-Type: application/json"          -d '{"map_id": 1, "min_x": 0, "min_y": 0, "max_x": 200, "max_y": 150}'
+```
+Response:
+```json
+{"message": "Map metadata updated successfully"}
+```
+
+Use Case:
+- An administrator updates the bounds of a map to reflect a resized or reoriented physical layout, ensuring accurate tag positioning in the frontend.
+
+Hint:
+- Validate the coordinate values to ensure they are meaningful for the map’s physical layout.

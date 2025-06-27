@@ -1,0 +1,39 @@
+Fetch all zone types from the ParcoRTLSMaint database.
+
+This endpoint retrieves all zone types from the `tlkzonetypes` table, which define the hierarchical levels of zones in the ParcoRTLS system (e.g., Campus, Building, Floor, Room). Each zone type is mapped to an API endpoint for adding triggers, facilitating integration with trigger management.
+
+Parameters:
+    None
+
+Returns:
+    list: A list of dictionaries, each representing a zone type with the following fields:
+        - zone_level (int): The zone type ID (`i_typ_zn`, e.g., 1 for Campus, 2 for Building).
+        - zone_name (str): The description of the zone type (`x_dsc_zn`, e.g., "Campus").
+        - api_endpoint (str): The API endpoint for adding triggers related to this zone type (e.g., "/api/add_trigger").
+    Example: [{"zone_level": 1, "zone_name": "Campus", "api_endpoint": "/api/add_trigger"}, ...]
+    If no zone types are found, returns an empty list: [].
+
+Raises:
+    HTTPException:
+        - 500: If an unexpected error occurs during database query execution.
+
+Example Usage:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/api/get_zone_types" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    [
+        {"zone_level": 1, "zone_name": "Campus", "api_endpoint": "/api/add_trigger"},
+        {"zone_level": 2, "zone_name": "Building", "api_endpoint": "/api/add_trigger"},
+        {"zone_level": 3, "zone_name": "Floor", "api_endpoint": "/api/add_trigger"}
+    ]
+    ```
+
+Use Case:
+    - **Zone Configuration UI**: The frontend uses this endpoint to populate a dropdown or list of zone types when creating or editing zones, ensuring users select valid zone types.
+    - **Trigger Assignment**: The `api_endpoint` field guides the frontend to the correct endpoint for adding triggers to zones of specific types.
+
+Hint:
+    - The `api_mapping` dictionary hardcodes `/api/add_trigger` for all zone types; verify if custom endpoints are needed for specific zone types in future updates.
+    - Use this endpoint in conjunction with `/create_zone` to ensure the selected `zone_level` is valid before creating a new zone.

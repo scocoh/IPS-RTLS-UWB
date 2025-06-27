@@ -1,0 +1,14 @@
+Add a new vertex using a raw query (since usp_vertex_add is missing).
+
+Args:
+    region_id: The region ID (i_rgn) the vertex belongs to.
+    x: The x-coordinate (n_x).
+    y: The y-coordinate (n_y).
+    z: The z-coordinate (n_z), optional for 3D.
+    order: The order of the vertex (n_ord).
+
+Returns:
+    dict: Success message with new vertex_id (i_vtx).
+
+Raises:
+    HTTPException: 400 if region_id doesn’t exist, 500 if insertion fails.

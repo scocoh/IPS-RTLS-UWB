@@ -1,0 +1,30 @@
+Delete an entity type from the ParcoRTLS system.
+
+This endpoint removes an entity type using the `usp_entity_type_delete` stored procedure. It is used to remove obsolete or unused entity types.
+
+Args:
+    type_id (str): The ID of the entity type to delete (e.g., "1"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Entity type deleted successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the entity type cannot be deleted (e.g., due to existing entities of that type).
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/delete_entity_type/1"
+    ```
+    Response:
+    ```json
+    {"message": "Entity type deleted successfully"}
+    ```
+
+Use Case:
+    - Remove an obsolete entity type ("Temporary Worker") that is no longer needed.
+    - Clean up unused entity types during system maintenance.
+
+Hint:
+    - Ensure no entities are using the `type_id` (check `/get_entities_by_type/{entity_type}`) before deletion to avoid database constraints.

@@ -1,0 +1,38 @@
+Retrieve a list of all entities in the ParcoRTLS system.
+
+This endpoint fetches all entities (e.g., employees, assets, groups) from the system by invoking the `usp_entity_all` stored procedure. It is useful for generating reports or populating UI elements like dropdowns.
+
+Args:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing entity details.
+        - x_id_ent (str): Entity ID.
+        - i_typ_ent (int): Entity type ID.
+        - x_nm_ent (str): Entity name.
+        - d_crt (datetime): Creation date.
+        - d_udt (datetime): Last update date.
+
+Raises:
+    HTTPException:
+        - 404: If no entities are found in the system.
+        - 500: If the database operation fails.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_all_entities"
+    ```
+    Response:
+    ```json
+    [
+        {"x_id_ent": "EMP123", "i_typ_ent": 1, "x_nm_ent": "John Doe", "d_crt": "2025-04-26T10:00:00", "d_udt": "2025-04-26T10:00:00"},
+        {"x_id_ent": "ASSET456", "i_typ_ent": 2, "x_nm_ent": "Medical Device", "d_crt": "2025-04-25T09:00:00", "d_udt": "2025-04-25T09:00:00"}
+    ]
+    ```
+
+Use Case:
+    - Populate a dropdown in the React frontend to allow users to select an entity for assignment or tracking.
+    - Generate a report of all registered entities for auditing purposes.
+
+Hint:
+    - Use this endpoint sparingly in high-traffic scenarios, as it retrieves all entities. Consider filtering by type or ID for better performance.

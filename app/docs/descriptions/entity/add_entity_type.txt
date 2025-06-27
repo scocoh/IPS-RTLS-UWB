@@ -1,0 +1,33 @@
+Add a new entity type to the ParcoRTLS system.
+
+This endpoint creates a new entity type (e.g., Employee, Asset) using the `usp_entity_type_add` stored procedure. Entity types categorize entities for organizational purposes.
+
+Args:
+    request (EntityTypeRequest): The request body containing the entity type details.
+        - type_name (str): The name of the new entity type (e.g., "Employee"). Required.
+
+Returns:
+    dict: A JSON response indicating success and the new type ID.
+        - message (str): Success message ("Entity type added successfully").
+        - type_id (int or str): The ID of the newly created entity type.
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the entity type cannot be added.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/add_entity_type"              -H "Content-Type: application/json"              -d '{"type_name": "Employee"}'
+    ```
+    Response:
+    ```json
+    {"message": "Entity type added successfully", "type_id": 1}
+    ```
+
+Use Case:
+    - Add a new entity type ("Patient") to support tracking patients in a hospital campus.
+    - Create a custom entity type for a specific use case (e.g., "Vehicle").
+
+Hint:
+    - Check existing types with `/list_entity_types` to avoid duplicating type names.
+    - The returned `type_id` can be used when adding entities via `/add_entity`.

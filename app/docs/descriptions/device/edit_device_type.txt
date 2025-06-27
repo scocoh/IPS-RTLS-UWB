@@ -1,0 +1,44 @@
+# Name: edit_device_type.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Update an existing device type's description.
+
+This endpoint modifies the description of a device type using the `usp_device_type_edit` stored procedure. It is used to correct or update type names for clarity or consistency.
+
+Args:
+    type_id (int): The ID of the device type to update (e.g., 1). Required.
+    request (DeviceTypeRequest): The request body containing the updated type details.
+        - description (str): The updated description of the device type (e.g., "Staff Tag"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Device type edited successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X PUT "http://192.168.210.226:8000/edit_device_type?type_id=1"              -H "Content-Type: application/json"              -d '{"description": "Staff Tag"}'
+    ```
+    Response:
+    ```json
+    {"message": "Device type edited successfully"}
+    ```
+
+Use Case:
+    - Rename a device type from "Tag" to "Staff Tag" for better clarity.
+    - Update a type description to reflect a new use case.
+
+Hint:
+    - Verify the `type_id` exists using `/list_device_types` before updating.

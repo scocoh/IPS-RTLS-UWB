@@ -1,0 +1,33 @@
+Add a new assignment reason to the ParcoRTLS system.
+
+This endpoint creates a new reason for entity assignments (e.g., "Employment", "Maintenance") using the `usp_assmt_reason_add` stored procedure. Reasons categorize assignments for reporting and analysis.
+
+Args:
+    request (AssignmentReasonRequest): The request body containing the reason details.
+        - reason (str): The name of the assignment reason (e.g., "Employment"). Required.
+
+Returns:
+    dict: A JSON response indicating success and the new reason ID.
+        - message (str): Success message ("Assignment reason added successfully").
+        - reason_id (int): The ID of the newly created reason.
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the reason cannot be added.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/add_assignment_reason"              -H "Content-Type: application/json"              -d '{"reason": "Employment"}'
+    ```
+    Response:
+    ```json
+    {"message": "Assignment reason added successfully", "reason_id": 1}
+    ```
+
+Use Case:
+    - Add a new reason ("Transfer") for employee reassignments within departments.
+    - Create a reason ("Maintenance") for assigning assets to service teams.
+
+Hint:
+    - Check existing reasons with `/list_assignment_reasons` to avoid duplicating reason names.
+    - The returned `reason_id` is used in `/assign_entity` and other assignment endpoints.

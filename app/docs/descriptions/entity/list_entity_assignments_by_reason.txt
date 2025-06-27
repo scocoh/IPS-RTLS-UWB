@@ -1,0 +1,39 @@
+Retrieve all assignments for a specific reason.
+
+This endpoint fetches all assignments associated with a given reason using the `usp_assign_entity_list_by_reason` stored procedure. It is used to analyze assignments by their purpose.
+
+Args:
+    reason_id (int): The ID of the assignment reason (e.g., 1 for "Employment"). Required.
+    include_ended (bool, optional): Whether to include ended assignments. Defaults to False.
+
+Returns:
+    list: A list of dictionaries, each containing assignment details.
+        - x_id_pnt (str): Parent entity ID.
+        - x_id_chd (str): Child entity ID.
+        - i_rsn_assmt (int): Assignment reason ID.
+        - d_crt (datetime): Creation date.
+        - d_end (datetime, optional): End date (null if active).
+
+Raises:
+    HTTPException:
+        - 404: If no assignments are found for the reason.
+        - 500: If the database operation fails.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_entity_assignments_by_reason/1?include_ended=true"
+    ```
+    Response:
+    ```json
+    [
+        {"x_id_pnt": "DEPT001", "x_id_chd": "EMP123", "i_rsn_assmt": 1, "d_crt": "2025-04-26T10:00:00", "d_end": null}
+    ]
+    ```
+
+Use Case:
+    - List all assignments with reason "Employment" for HR reporting.
+    - Analyze assignments for a specific reason to understand system usage.
+
+Hint:
+    - Retrieve valid `reason_id` values from `/list_assignment_reasons` before querying.
+    - Use `include_ended=True` for comprehensive analysis.

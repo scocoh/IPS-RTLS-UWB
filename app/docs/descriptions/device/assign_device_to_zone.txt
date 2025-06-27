@@ -1,0 +1,49 @@
+# Name: assign_device_to_zone.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Assign a device to a zone or entity in the ParcoRTLS system.
+
+This endpoint creates an assignment between a device and an entity (e.g., a zone or person) using the `usp_assign_dev_add` stored procedure. It validates the device, entity, and reason before creating the assignment, ensuring proper tracking within the system.
+
+Args:
+    device_id (str): The ID of the device to assign (e.g., "TAG001"). Required.
+    entity_id (str): The ID of the entity (e.g., zone or person) to assign the device to (e.g., "ZONE001"). Required.
+    reason_id (int): The ID of the assignment reason (e.g., 1 for "Location Tracking"). Required.
+
+Returns:
+    dict: A JSON response indicating success and the assignment ID.
+        - message (str): Success message ("Device assigned successfully").
+        - assignment_id (str): The ID of the newly created assignment.
+
+Raises:
+    HTTPException:
+        - 400: If the reason ID is invalid.
+        - 404: If the device or entity is not found.
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/assign_device_to_zone"              -H "Content-Type: multipart/form-data"              -F "device_id=TAG001"              -F "entity_id=ZONE001"              -F "reason_id=1"
+    ```
+    Response:
+    ```json
+    {"message": "Device assigned successfully", "assignment_id": "101"}
+    ```
+
+Use Case:
+    - Assign a tag to a zone ("ZONE001") for location tracking in a Zone L1 campus.
+    - Link a beacon to a department entity for enhanced positioning accuracy.
+
+Hint:
+    - Verify `device_id` and `entity_id` exist using `/get_device_by_id/{device_id}` and `/get_entity_by_id/{entity_id}` (from `entity.py`) before assigning.
+    - Retrieve valid `reason_id` values from `/list_assignment_reasons` (from `entity.py`).
+    - Supports form data for compatibility with React frontend forms.

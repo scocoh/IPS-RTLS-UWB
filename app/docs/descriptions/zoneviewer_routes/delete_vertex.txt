@@ -1,0 +1,38 @@
+Delete a specific vertex by ID.
+
+**Description**:
+This endpoint removes a vertex from the ParcoRTLS system, used in the Zone Editor to delete a point from a
+zone’s polygon shape.
+
+**Parameters**:
+- `vertex_id` (int, path parameter, required): The unique identifier of the vertex to delete.
+
+**Returns**:
+- JSON object with:
+  - `message` (str): Confirmation message ("Vertex deleted successfully").
+  - `vertex_id` (int): ID of the deleted vertex.
+
+**Example Usage**:
+```bash
+curl -X DELETE "http://192.168.210.226:8000/zoneviewer/delete_vertex/1001" -H "accept: application/json"
+```
+Response:
+```json
+{
+  "message": "Vertex deleted successfully",
+  "vertex_id": 1001
+}
+```
+
+**Use Case**:
+- **Scenario**: A user removes a vertex from a zone’s polygon to simplify its shape.
+- **Action**: The frontend calls this endpoint to delete the vertex.
+- **Outcome**: The zone’s polygon is updated in the database.
+
+**Errors**:
+- **404 Not Found**: Raised if the `vertex_id` does not exist (`HTTPException`, detail="Vertex {vertex_id} not found").
+- **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+**Hint**:
+- Deleting a vertex may affect the polygon’s shape. Ensure the remaining vertices maintain a valid polygon.
+- Use with `/get_vertices_for_campus/{campus_id}` to refresh the zone’s vertex data after deletion.

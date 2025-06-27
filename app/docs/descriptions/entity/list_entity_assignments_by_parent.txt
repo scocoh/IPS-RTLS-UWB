@@ -1,0 +1,40 @@
+Retrieve all assignments for a specific parent entity.
+
+This endpoint fetches all assignments where the specified entity is the parent using the `usp_assign_entity_list_by_parent` stored procedure. It is used to view an entity's child relationships.
+
+Args:
+    parent_id (str): The ID of the parent entity (e.g., "DEPT001"). Required.
+    include_ended (bool, optional): Whether to include ended assignments. Defaults to False.
+
+Returns:
+    list: A list of dictionaries, each containing assignment details.
+        - x_id_pnt (str): Parent entity ID.
+        - x_id_chd (str): Child entity ID.
+        - i_rsn_assmt (int): Assignment reason ID.
+        - d_crt (datetime): Creation date.
+        - d_end (datetime, optional): End date (null if active).
+
+Raises:
+    HTTPException:
+        - 404: If no assignments are found for the parent entity.
+        - 500: If the database operation fails.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_entity_assignments_by_parent/DEPT001?include_ended=true"
+    ```
+    Response:
+    ```json
+    [
+        {"x_id_pnt": "DEPT001", "x_id_chd": "EMP123", "i_rsn_assmt": 1, "d_crt": "2025-04-26T10:00:00", "d_end": null},
+        {"x_id_pnt": "DEPT001", "x_id_chd": "EMP456", "i_rsn_assmt": 1, "d_crt": "2025-04-25T09:00:00", "d_end": "2025-04-26T12:00:00"}
+    ]
+    ```
+
+Use Case:
+    - List all employees assigned to a department ("DEPT001") in the React frontend.
+    - View all assets assigned to a ward for inventory management.
+
+Hint:
+    - Verify the `parent_id` exists using `/get_entity_by_id/{entity_id}` before querying.
+    - Use `include_ended=True` for historical analysis.

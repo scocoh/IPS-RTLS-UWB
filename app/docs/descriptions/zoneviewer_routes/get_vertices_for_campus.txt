@@ -1,0 +1,52 @@
+Fetch all vertices for zones under a campus, excluding trigger regions.
+
+**Description**:
+This endpoint retrieves all vertex data (coordinates and order) for zones under a specified campus, excluding
+trigger regions (i_trg IS NULL). It is used in the ParcoRTLS Zone Viewer to render zone polygons on maps.
+
+**Parameters**:
+- `campus_id` (int, path parameter, required): The unique identifier of the campus.
+
+**Returns**:
+- JSON object with a single key `vertices`, containing a list of vertex objects. Each vertex object has:
+  - `vertex_id` (int): Unique identifier of the vertex.
+  - `i_rgn` (int): Region ID associated with the vertex.
+  - `x` (float): X coordinate of the vertex.
+  - `y` (float): Y coordinate of the vertex.
+  - `z` (float): Z coordinate of the vertex (often 0.0).
+  - `order` (float): Order of the vertex in the polygon.
+  - `zone_id` (int): ID of the zone the vertex belongs to.
+
+**Example Usage**:
+```bash
+curl -X GET "http://192.168.210.226:8000/zoneviewer/get_vertices_for_campus/1" -H "accept: application/json"
+```
+Response:
+```json
+{
+  "vertices": [
+    {
+      "vertex_id": 1001,
+      "i_rgn": 201,
+      "x": 10.0,
+      "y": 20.0,
+      "z": 0.0,
+      "order": 1.0,
+      "zone_id": 2
+    }
+  ]
+}
+```
+
+**Use Case**:
+- **Scenario**: A user wants to edit zone boundaries in the Zone Viewer.
+- **Action**: The frontend calls this endpoint to fetch vertex data and render zone polygons on the map.
+- **Outcome**: The user can visualize and modify zone shapes.
+
+**Errors**:
+- **404 Not Found**: Not explicitly raised, but an empty `vertices` list is returned if no vertices are found.
+- **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+**Hint**:
+- Use this endpoint to render zone polygons in the UI. Combine with `/get_map_data/{map_id}` for the map context.
+- The `order` field determines the sequence of vertices in a polygon, critical for correct rendering.

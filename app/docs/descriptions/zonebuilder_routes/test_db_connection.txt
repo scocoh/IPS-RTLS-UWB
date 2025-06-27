@@ -1,0 +1,40 @@
+Test the database connection to the `maint` schema.
+
+This endpoint performs a simple query to verify connectivity to the `maint` schema in the
+ParcoRTLS database. It is primarily used for debugging and ensuring the backend can communicate
+with the PostgreSQL database, which is critical for all Zone Builder operations.
+
+Parameters:
+    None
+
+Returns:
+    dict: A JSON object with the following keys:
+          - status (str): Indicates the connection status ("success").
+          - result (int): The result of the test query (typically 1).
+
+Example:
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/test_db_connection
+    ```
+    Response:
+    ```json
+    {
+        "status": "success",
+        "result": 1
+    }
+    ```
+
+Use Case:
+    - A system administrator troubleshooting connectivity issues between the FastAPI backend and
+      the PostgreSQL database uses this endpoint to confirm that the database pool is operational
+      before deploying new Zone Builder features.
+
+Hint:
+    - Run this endpoint after server restarts or configuration changes to verify database
+      connectivity.
+    - If this endpoint fails, check the DB_CONFIG settings and ensure the PostgreSQL server is
+      running at localhost:5432.
+
+Errors:
+    - 500 (Internal Server Error): Raised if the database pool is unavailable or the test query
+      fails. The error message includes details for debugging.

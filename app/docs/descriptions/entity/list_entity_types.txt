@@ -1,0 +1,38 @@
+Retrieve a list of all entity types in the ParcoRTLS system.
+
+This endpoint fetches all entity types (e.g., Employee, Asset) using a raw SQL query on the `tlkentitytypes` table. It is useful for populating UI elements or validating entity type IDs.
+
+Args:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing entity type details.
+        - i_typ_ent (int): Entity type ID.
+        - x_nm_typ (str): Entity type name (aliased as x_dsc_ent in the query).
+        - d_crt (datetime): Creation date.
+        - d_udt (datetime): Last update date.
+
+Raises:
+    HTTPException:
+        - 404: If no entity types are found.
+        - 500: If a database error occurs or an unexpected error is encountered.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_entity_types"
+    ```
+    Response:
+    ```json
+    [
+        {"i_typ_ent": 1, "x_nm_typ": "Employee", "d_crt": "2025-04-26T10:00:00", "d_udt": "2025-04-26T10:00:00"},
+        {"i_typ_ent": 2, "x_nm_typ": "Asset", "d_crt": "2025-04-25T09:00:00", "d_udt": "2025-04-25T09:00:00"}
+    ]
+    ```
+
+Use Case:
+    - Populate a dropdown in the React frontend for selecting entity types when adding a new entity.
+    - Validate entity type IDs before creating or updating entities.
+
+Hint:
+    - This endpoint uses a raw query instead of a stored procedure (`usp_entity_type_list`) due to previous stability issues (see version 0.1.16 changelog).
+    - Log errors are captured for debugging; check logs if a 500 error occurs.

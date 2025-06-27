@@ -1,0 +1,59 @@
+# Name: list_device_assignments_by_device.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Retrieve all assignments for a specific device.
+
+This endpoint fetches all assignments where the specified device is involved, using the `usp_assign_dev_list_by_id` stored procedure. It is used to view the entities (e.g., zones, people) a device is associated with.
+
+Args:
+    device_id (str): The ID of the device to filter by (e.g., "TAG001"). Required.
+    include_ended (bool, optional): Whether to include ended assignments. Defaults to False.
+
+Returns:
+    list: A list of dictionaries, each containing assignment details.
+        - i_asn_dev (int): Assignment ID.
+        - x_id_dev (str): Device ID.
+        - x_id_ent (str): Entity ID.
+        - i_rsn (int): Assignment reason ID.
+        - d_bgn (datetime): Assignment start date.
+        - d_end (datetime or None): Assignment end date (null if active).
+
+Raises:
+    HTTPException:
+        - 404: If no assignments are found for the device.
+        - 500: If a database error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_device_assignments_by_device/TAG001?include_ended=true"
+    ```
+    Response:
+    ```json
+    [
+        {
+            "i_asn_dev": 101,
+            "x_id_dev": "TAG001",
+            "x_id_ent": "ZONE001",
+            "i_rsn": 1,
+            "d_bgn": "2025-04-26T10:00:00",
+            "d_end": null
+        }
+    ]
+    ```
+
+Use Case:
+    - View all zones a tag ("TAG001") is assigned to for tracking purposes.
+    - Check the assignment history of a beacon to understand its usage.
+
+Hint:
+    - Verify the `device_id` exists using `/get_device_by_id/{device_id}` before querying.
+    - Use `include_ended=True` for historical analysis of the device's assignments.

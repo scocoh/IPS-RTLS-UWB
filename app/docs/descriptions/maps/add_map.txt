@@ -1,0 +1,31 @@
+Adds a new map to the ParcoRTLS system.
+
+This endpoint allows administrators to insert a new map with a name and image into the database, typically used when onboarding new physical locations or updating map assets.
+
+Parameters:
+- request (MapAddRequest): The request body containing:
+    - name (str, required): The name of the new map.
+    - image (str, required): The image data or reference for the map (handled by `usp_map_insert`).
+
+Returns:
+- dict: A JSON response with a success message.
+    - message (str): Confirmation that the map was added successfully.
+
+Raises:
+- HTTPException (500): If the map insertion fails or an unexpected error occurs.
+
+Example:
+```bash
+curl -X POST "http://192.168.210.226:8000/api/add_map"          -H "Content-Type: application/json"          -d '{"name": "New Campus Map", "image": "base64_encoded_image_data"}'
+```
+Response:
+```json
+{"message": "Map added successfully"}
+```
+
+Use Case:
+- An administrator adds a new map for a recently constructed building, enabling the ParcoRTLS system to track tags within its zones.
+
+Hint:
+- The `image` field format depends on the `usp_map_insert` stored procedure. Verify whether it expects base64-encoded data or a file path.
+- Ensure the map name is unique to avoid confusion in the frontend interface.

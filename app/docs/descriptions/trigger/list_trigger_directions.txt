@@ -1,0 +1,48 @@
+# Name: list_trigger_directions.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/trigger
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+List all available trigger directions in the ParcoRTLS system.
+
+This endpoint retrieves a list of all trigger direction types (e.g., entry, exit) defined in the database, which are used to categorize triggers based on the direction of movement they detect.
+
+Args:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing:
+        - i_dir (int): Direction ID.
+        - x_dir (str): Direction name (e.g., "Entry", "Exit").
+
+Raises:
+    HTTPException:
+        - 404: If no trigger directions are found.
+        - 500: For database errors or unexpected issues.
+
+Example:
+    To list all trigger directions:
+    ```
+    curl -X GET http://192.168.210.226:8000/list_trigger_directions
+    ```
+    Response:
+    ```json
+    [
+        {"i_dir": 1, "x_dir": "Entry"},
+        {"i_dir": 2, "x_dir": "Exit"}
+    ]
+    ```
+
+Use Case:
+    This endpoint is used when configuring new triggers (e.g., via /add_trigger) to select a valid direction ID. It can also be used in the React frontend to populate dropdown menus for trigger direction selection.
+
+Hint:
+    - Check the tlktrigdirections table (maint.tlktrigdirections) for the full list of direction IDs and names.
+    - Cache the results in the frontend if frequently accessed to reduce database load.

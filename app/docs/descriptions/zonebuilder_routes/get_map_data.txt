@@ -1,0 +1,42 @@
+Fetch map data for the Zone Builder, including the image URL and coordinate bounds.
+
+This endpoint retrieves metadata for a specific map, identified by its map_id, from the `maps`
+table in the `maint` schema. It returns the URL to fetch the map image and the map's coordinate
+bounds (min_x, min_y, max_x, max_y), which are used by the Zone Builder tool to render the map
+correctly in the React frontend. Unlike some other endpoints, it does not perform a zone lookup.
+
+Parameters:
+    map_id (int, required, path): The unique identifier of the map (i_map) to fetch data for.
+
+Returns:
+    dict: A JSON object with the following keys:
+          - imageUrl (str): The URL to fetch the map image (e.g., /zonebuilder/get_map/{map_id}).
+          - bounds (list): A list of two lists representing the map's coordinate bounds:
+            - [[min_y, min_x], [max_y, max_x]].
+
+Example:
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/get_map_data/1
+    ```
+    Response:
+    ```json
+    {
+        "imageUrl": "/zonebuilder/get_map/1",
+        "bounds": [[0.0, 0.0], [100.0, 200.0]]
+    }
+    ```
+
+Use Case:
+    - When a user selects a map in the Zone Builder tool to create a new zone, this endpoint
+      provides the necessary data to display the map image and align it with the coordinate
+      system, allowing the user to draw zone boundaries accurately.
+
+Hint:
+    - The imageUrl returned is relative to the backend server. The frontend should prepend the
+      base URL (http://192.168.210.226:8000) to construct the full URL.
+    - Use this endpoint in conjunction with /get_map/{map_id} to fetch the actual image data.
+
+Errors:
+    - 404 (Not Found): Raised if no map is found for the provided map_id.
+    - 500 (Internal Server Error): Raised if there is a database connection issue or an unexpected
+      error occurs during query execution.

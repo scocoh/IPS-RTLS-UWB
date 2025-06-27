@@ -1,0 +1,36 @@
+Add a new entity to the ParcoRTLS system.
+
+This endpoint creates a new entity (e.g., a person, asset, or group) in the ParcoRTLS system by invoking the `usp_entity_add` stored procedure. It is used to register entities that can be tracked or associated with devices (e.g., tags) or other entities in the system.
+
+Args:
+    request (EntityRequest): The request body containing entity details.
+        - entity_id (str): Unique identifier for the entity (e.g., "EMP123"). Required.
+        - entity_type (int): The type ID of the entity (e.g., 1 for Employee, 2 for Asset). Required.
+        - entity_name (str): Descriptive name of the entity (e.g., "John Doe"). Required.
+
+Returns:
+    dict: A JSON response indicating success and the entity ID.
+        - message (str): Success message ("Entity added successfully").
+        - entity_id (str): The ID of the newly created entity.
+
+Raises:
+    HTTPException:
+        - 400: If the entity ID already exists (duplicate key violation).
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/add_entity"              -H "Content-Type: application/json"              -d '{"entity_id": "EMP123", "entity_type": 1, "entity_name": "John Doe"}'
+    ```
+    Response:
+    ```json
+    {"message": "Entity added successfully", "entity_id": "EMP123"}
+    ```
+
+Use Case:
+    - Register a new employee ("John Doe") with ID "EMP123" and type 1 (Employee) to track their location on a campus.
+    - Add a new asset (e.g., a medical device) to the system for inventory and location tracking.
+
+Hint:
+    - Ensure the `entity_type` corresponds to a valid type ID from the `tlkentitytypes` table, which can be retrieved using the `/list_entity_types` endpoint.
+    - The `entity_id` must be unique across the system to avoid duplicate key errors.

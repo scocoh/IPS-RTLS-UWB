@@ -1,0 +1,29 @@
+Deletes a map from the ParcoRTLS system.
+
+This endpoint removes a map identified by its map_id, typically used when a map is no longer needed or was added in error.
+
+Parameters:
+- map_id (int, path parameter, required): The unique identifier of the map to delete.
+
+Returns:
+- dict: A JSON response with a success message.
+    - message (str): Confirmation that the map was deleted successfully.
+
+Raises:
+- HTTPException (404): If the specified map_id does not exist.
+- HTTPException (500): If an unexpected error occurs during the database operation.
+
+Example:
+```bash
+curl -X DELETE "http://192.168.210.226:8000/api/delete_map/1"
+```
+Response:
+```json
+{"message": "Map 1 deleted successfully"}
+```
+
+Use Case:
+- An administrator deletes an outdated map that is no longer relevant due to a building demolition or map replacement.
+
+Hint:
+- Ensure no zones are linked to the map before deletion, as this may cause orphaned zones. Check with `/get_campus_zones/{campus_id}`.

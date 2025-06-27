@@ -1,0 +1,37 @@
+Retrieve a list of all assignment reasons in the ParcoRTLS system.
+
+This endpoint fetches all assignment reasons (e.g., "Employment", "Maintenance") using the `usp_assmt_reason_list` stored procedure. It is useful for populating UI elements or validating reason IDs.
+
+Args:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing reason details.
+        - i_rsn_assmt (int): Reason ID.
+        - x_rsn_assmt (str): Reason name.
+        - d_crt (datetime): Creation date.
+        - d_udt (datetime): Last update date.
+
+Raises:
+    HTTPException:
+        - 404: If no assignment reasons are found.
+        - 500: If the database operation fails.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_assignment_reasons"
+    ```
+    Response:
+    ```json
+    [
+        {"i_rsn_assmt": 1, "x_rsn_assmt": "Employment", "d_crt": "2025-04-26T10:00:00", "d_udt": "2025-04-26T10:00:00"},
+        {"i_rsn_assmt": 2, "x_rsn_assmt": "Maintenance", "d_crt": "2025-04-25T09:00:00", "d_udt": "2025-04-25T09:00:00"}
+    ]
+    ```
+
+Use Case:
+    - Populate a dropdown in the React frontend for selecting reasons when assigning entities.
+    - Validate reason IDs before creating or updating assignments.
+
+Hint:
+    - Use this endpoint to ensure valid `reason_id` values are used in assignment endpoints.

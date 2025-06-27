@@ -1,9 +1,10 @@
 # Name: maps.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
 # Modified: 250502
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
+# Version 0.1.1 Converted to external descriptions using load_description()
 # Description: Python script for ParcoRTLS backend
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
@@ -30,6 +31,20 @@ from typing import List
 from database.db import call_stored_procedure, execute_raw_query
 import logging
 
+from pathlib import Path
+
+
+def load_description(endpoint_name: str) -> str:
+    """Load endpoint description from external file"""
+    try:
+        desc_path = Path(__file__).parent.parent / "docs" / "descriptions" / "maps" / f"{endpoint_name}.txt"
+        with open(desc_path, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return f"Description for {endpoint_name} not found"
+    except Exception as e:
+        return f"Error loading description: {str(e)}"
+
 router = APIRouter(tags=["maps"])
 logger = logging.getLogger(__name__)
 
@@ -37,45 +52,13 @@ class MapNameUpdateRequest(BaseModel):
     map_id: int
     name: str
 
-@router.post("/update_map_name")
+@router.post(
+    "/update_map_name",
+    summary="Updates the name of a map in the ParcoRTLS system",
+    description=load_description("update_map_name"),
+    tags=["triggers"]
+)
 async def update_map_name(request: MapNameUpdateRequest):
-    """
-    Updates the name of a map in the ParcoRTLS system.
-
-    This endpoint allows administrators to rename a map identified by its map_id. The new name is validated for non-empty content and length constraints before updating the database. It is used to maintain accurate map labels displayed in the React frontend for visualization and zone management.
-
-    Parameters:
-    - request (MapNameUpdateRequest): The request body containing:
-        - map_id (int, required): The unique identifier of the map to update.
-        - name (str, required): The new name for the map, must be non-empty and less than 100 characters.
-
-    Returns:
-    - dict: A JSON response with a success message.
-        - message (str): Confirmation that the map name was updated successfully.
-
-    Raises:
-    - HTTPException (400): If the map name is empty or exceeds 100 characters.
-    - HTTPException (404): If the specified map_id does not exist in the database.
-    - HTTPException (500): If an unexpected error occurs during the database operation.
-
-    Example:
-    ```bash
-    curl -X POST "http://192.168.210.226:8000/api/update_map_name" \
-         -H "Content-Type: application/json" \
-         -d '{"map_id": 1, "name": "Campus Main Building"}'
-    ```
-    Response:
-    ```json
-    {"message": "Map name updated successfully"}
-    ```
-
-    Use Case:
-    - An administrator updates the name of a map from "Building A" to "Campus Main Building" to reflect a new naming convention in the ParcoRTLS system. This ensures the map is correctly labeled in the React frontend when users view zone layouts or track tags.
-
-    Hint:
-    - Ensure the map_id corresponds to an existing map in the `maps` table. You can verify map IDs using the `/get_maps` endpoint.
-    - Map names should be descriptive to help users identify the physical location in the RTLS interface.
-    """
     try:
         if not request.name.strip():
             logger.warning("Map name cannot be empty")
@@ -94,45 +77,13 @@ async def update_map_name(request: MapNameUpdateRequest):
         logger.error(f"Error updating map name for map_id={request.map_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error updating map name: {str(e)}")
 
-@router.get("/get_maps")
+@router.get(
+    "/get_maps",
+    summary="Retrieves a list of all maps in the ParcoRTLS system",
+    description=load_description("get_maps"),
+    tags=["triggers"]
+)
 async def get_maps():
-    """
-    Retrieves a list of all maps in the ParcoRTLS system.
-
-    This endpoint queries the database to fetch all maps stored in the `maps` table, typically used to populate a dropdown or list in the React frontend for map selection or management.
-
-    Parameters:
-    - None
-
-    Returns:
-    - List[dict]: A list of maps, each containing details such as:
-        - i_map (int): The unique map identifier.
-        - x_nm_map (str): The name of the map.
-        - Other fields as returned by the `usp_map_list` stored procedure.
-
-    Raises:
-    - HTTPException (404): If no maps are found in the database.
-    - HTTPException (500): If an unexpected error occurs during the database operation.
-
-    Example:
-    ```bash
-    curl -X GET "http://192.168.210.226:8000/api/get_maps"
-    ```
-    Response:
-    ```json
-    [
-        {"i_map": 1, "x_nm_map": "Campus Main Building", ...},
-        {"i_map": 2, "x_nm_map": "Parking Lot A", ...}
-    ]
-    ```
-
-    Use Case:
-    - A frontend developer uses this endpoint to populate a map selection menu in the ParcoRTLS interface, allowing users to choose a map for viewing zone layouts or tracking assets.
-    - An administrator uses this to verify all available maps before assigning them to zones.
-
-    Hint:
-    - The response format depends on the `usp_map_list` stored procedure. Check the stored procedure definition in the Parco database to understand the exact fields returned.
-    """
     try:
         result = await call_stored_procedure("maint", "usp_map_list")
         if result:
@@ -144,36 +95,13 @@ async def get_maps():
         logger.error(f"Error retrieving maps: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving maps: {str(e)}")
 
-@router.get("/get_map/{map_id}")
+@router.get(
+    "/get_map/{map_id}",
+    summary="Retrieves the stored image for a specific map in the ParcoRTLS system",
+    description=load_description("get_map"),
+    tags=["triggers"]
+)
 async def get_map(map_id: int):
-    """
-    Retrieves the stored image for a specific map in the ParcoRTLS system.
-
-    This endpoint serves the binary image data of a map, which is used by the React frontend to display the map in the user interface for zone visualization or tag tracking.
-
-    Parameters:
-    - map_id (int, path parameter, required): The unique identifier of the map whose image is to be retrieved.
-
-    Returns:
-    - Response: A binary response containing the map image with the appropriate media type (e.g., `image/png`, `image/jpeg`).
-
-    Raises:
-    - HTTPException (404): If no image is found for the specified map_id.
-    - HTTPException (500): If an unexpected error occurs during the database operation.
-
-    Example:
-    ```bash
-    curl -X GET "http://192.168.210.226:8000/api/get_map/1" --output map_image.png
-    ```
-    Response: Binary image data (saved as `map_image.png` in the example).
-
-    Use Case:
-    - The React frontend calls this endpoint to fetch the map image for a specific map_id, displaying it as the background for zone layouts or real-time tag tracking in the ParcoRTLS interface.
-
-    Hint:
-    - Ensure the `x_format` field in the `maps` table is correctly set (e.g., 'png', 'jpeg') to serve the image with the correct media type.
-    - Large images may impact performance; consider optimizing image sizes in the database.
-    """
     try:
         query = "SELECT img_data, x_format FROM maps WHERE i_map = $1;"
         result = await execute_raw_query("maint", query, map_id)
@@ -189,44 +117,13 @@ async def get_map(map_id: int):
         logger.error(f"Error retrieving map image: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving map image")
 
-@router.get("/get_map_data/{zone_id}")
+@router.get(
+    "/get_map_data/{zone_id}",
+    summary="Retrieves map data (image URL and bounds) for a specific zone in the ParcoRTLS system",
+    description=load_description("get_map_data"),
+    tags=["triggers"]
+)
 async def get_map_data(zone_id: int):
-    """
-    Retrieves map data (image URL and bounds) for a specific zone in the ParcoRTLS system.
-
-    This endpoint is designed for the React frontend's `Map.js` component, providing the URL to fetch the map image and the geographical bounds for rendering the map correctly.
-
-    Parameters:
-    - zone_id (int, path parameter, required): The unique identifier of the zone whose associated map data is to be retrieved.
-
-    Returns:
-    - dict: A JSON response containing:
-        - imageUrl (str): The URL to fetch the map image (points to `/get_map/{zone_id}`).
-        - bounds (List[List[float]]): The geographical bounds of the map as [[min_y, min_x], [max_y, max_x]].
-
-    Raises:
-    - HTTPException (404): If the zone or its associated map is not found.
-    - HTTPException (500): If an unexpected error occurs during the database operation.
-
-    Example:
-    ```bash
-    curl -X GET "http://192.168.210.226:8000/api/get_map_data/1"
-    ```
-    Response:
-    ```json
-    {
-        "imageUrl": "http://192.168.210.226:8000/api/get_map/1",
-        "bounds": [[0, 0], [100, 100]]
-    }
-    ```
-
-    Use Case:
-    - The React frontend uses this endpoint to fetch map data for a specific zone, enabling the `Map.js` component to render the map with correct scaling and positioning for tag tracking or zone visualization.
-
-    Hint:
-    - Ensure the zone_id is valid and linked to a map in the `zones` and `maps` tables. Use `/get_campus_zones/{campus_id}` to verify zone mappings.
-    - Default bounds (e.g., [0, 0], [100, 100]) are used if database values are null; verify map metadata for accuracy.
-    """
     try:
         zone_query = "SELECT i_map FROM zones WHERE i_zn = $1;"
         i_map = await execute_raw_query("maint", zone_query, zone_id)
@@ -257,43 +154,13 @@ class MapAddRequest(BaseModel):
     name: str
     image: str
 
-@router.post("/add_map")
+@router.post(
+    "/add_map",
+    summary="Adds a new map to the ParcoRTLS system",
+    description=load_description("add_map"),
+    tags=["triggers"]
+)
 async def add_map(request: MapAddRequest):
-    """
-    Adds a new map to the ParcoRTLS system.
-
-    This endpoint allows administrators to insert a new map with a name and image into the database, typically used when onboarding new physical locations or updating map assets.
-
-    Parameters:
-    - request (MapAddRequest): The request body containing:
-        - name (str, required): The name of the new map.
-        - image (str, required): The image data or reference for the map (handled by `usp_map_insert`).
-
-    Returns:
-    - dict: A JSON response with a success message.
-        - message (str): Confirmation that the map was added successfully.
-
-    Raises:
-    - HTTPException (500): If the map insertion fails or an unexpected error occurs.
-
-    Example:
-    ```bash
-    curl -X POST "http://192.168.210.226:8000/api/add_map" \
-         -H "Content-Type: application/json" \
-         -d '{"name": "New Campus Map", "image": "base64_encoded_image_data"}'
-    ```
-    Response:
-    ```json
-    {"message": "Map added successfully"}
-    ```
-
-    Use Case:
-    - An administrator adds a new map for a recently constructed building, enabling the ParcoRTLS system to track tags within its zones.
-
-    Hint:
-    - The `image` field format depends on the `usp_map_insert` stored procedure. Verify whether it expects base64-encoded data or a file path.
-    - Ensure the map name is unique to avoid confusion in the frontend interface.
-    """
     try:
         result = await call_stored_procedure(
             "maint", "usp_map_insert", request.name, request.image
@@ -307,39 +174,13 @@ async def add_map(request: MapAddRequest):
         logger.error(f"Error adding map: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error adding map: {str(e)}")
 
-@router.delete("/delete_map/{map_id}")
+@router.delete(
+    "/delete_map/{map_id}",
+    summary="Deletes a map from the ParcoRTLS system",
+    description=load_description("delete_map"),
+    tags=["triggers"]
+)
 async def delete_map(map_id: int):
-    """
-    Deletes a map from the ParcoRTLS system.
-
-    This endpoint removes a map identified by its map_id, typically used when a map is no longer needed or was added in error.
-
-    Parameters:
-    - map_id (int, path parameter, required): The unique identifier of the map to delete.
-
-    Returns:
-    - dict: A JSON response with a success message.
-        - message (str): Confirmation that the map was deleted successfully.
-
-    Raises:
-    - HTTPException (404): If the specified map_id does not exist.
-    - HTTPException (500): If an unexpected error occurs during the database operation.
-
-    Example:
-    ```bash
-    curl -X DELETE "http://192.168.210.226:8000/api/delete_map/1"
-    ```
-    Response:
-    ```json
-    {"message": "Map 1 deleted successfully"}
-    ```
-
-    Use Case:
-    - An administrator deletes an outdated map that is no longer relevant due to a building demolition or map replacement.
-
-    Hint:
-    - Ensure no zones are linked to the map before deletion, as this may cause orphaned zones. Check with `/get_campus_zones/{campus_id}`.
-    """
     try:
         result = await call_stored_procedure("maint", "usp_map_delete", map_id)
         if result:
@@ -351,38 +192,13 @@ async def delete_map(map_id: int):
         logger.error(f"Error deleting map: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error deleting map: {str(e)}")
 
-@router.get("/get_map_metadata/{map_id}")
+@router.get(
+    "/get_map_metadata/{map_id}",
+    summary="Retrieves metadata for a specific map in the ParcoRTLS system",
+    description=load_description("get_map_metadata"),
+    tags=["triggers"]
+)
 async def get_map_metadata(map_id: int):
-    """
-    Retrieves metadata for a specific map in the ParcoRTLS system.
-
-    This endpoint fetches metadata such as dimensions and scaling factors, used for configuring map rendering in the frontend or validating map properties.
-
-    Parameters:
-    - map_id (int, path parameter, required): The unique identifier of the map whose metadata is to be retrieved.
-
-    Returns:
-    - List[dict]: Metadata details as returned by the `usp_map_metadata` stored procedure, typically including dimensions and scaling factors.
-
-    Raises:
-    - HTTPException (404): If no metadata is found for the specified map_id.
-    - HTTPException (500): If an unexpected error occurs during the database operation.
-
-    Example:
-    ```bash
-    curl -X GET "http://192.168.210.226:8000/api/get_map_metadata/1"
-    ```
-    Response:
-    ```json
-    [{"min_x": 0, "min_y": 0, "max_x": 100, "max_y": 100, ...}]
-    ```
-
-    Use Case:
-    - A developer uses this endpoint to fetch map dimensions for scaling the map image correctly in the React frontend.
-
-    Hint:
-    - The exact metadata fields depend on the `usp_map_metadata` stored procedure. Review its definition for clarity.
-    """
     try:
         result = await call_stored_procedure("maint", "usp_map_metadata", map_id)
         if result:
@@ -401,46 +217,13 @@ class MapUpdateRequest(BaseModel):
     max_x: float
     max_y: float
 
-@router.put("/update_map_metadata")
+@router.put(
+    "/update_map_metadata",
+    summary="Updates metadata for a specific map in the ParcoRTLS system",
+    description=load_description("update_map_metadata"),
+    tags=["triggers"]
+)
 async def update_map_metadata(request: MapUpdateRequest):
-    """
-    Updates metadata for a specific map in the ParcoRTLS system.
-
-    This endpoint allows administrators to update map metadata, such as geographical bounds, to ensure accurate rendering in the frontend.
-
-    Parameters:
-    - request (MapUpdateRequest): The request body containing:
-        - map_id (int, required): The unique identifier of the map.
-        - min_x (float, required): The minimum X coordinate of the map.
-        - min_y (float, required): The minimum Y coordinate of the map.
-        - max_x (float, required): The maximum X coordinate of the map.
-        - max_y (float, required): The maximum Y coordinate of the map.
-
-    Returns:
-    - dict: A JSON response with a success message.
-        - message (str): Confirmation that the metadata was updated successfully.
-
-    Raises:
-    - HTTPException (404): If the metadata update fails (e.g., map_id not found).
-    - HTTPException (500): If an unexpected error occurs during the database operation.
-
-    Example:
-    ```bash
-    curl -X PUT "http://192.168.210.226:8000/api/update_map_metadata" \
-         -H "Content-Type: application/json" \
-         -d '{"map_id": 1, "min_x": 0, "min_y": 0, "max_x": 200, "max_y": 150}'
-    ```
-    Response:
-    ```json
-    {"message": "Map metadata updated successfully"}
-    ```
-
-    Use Case:
-    - An administrator updates the bounds of a map to reflect a resized or reoriented physical layout, ensuring accurate tag positioning in the frontend.
-
-    Hint:
-    - Validate the coordinate values to ensure they are meaningful for the map’s physical layout.
-    """
     try:
         result = await call_stored_procedure(
             "maint", "usp_map_update_metadata",
@@ -455,67 +238,13 @@ async def update_map_metadata(request: MapUpdateRequest):
         logger.error(f"Error updating map metadata: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error updating map metadata: {str(e)}")
 
-@router.get("/get_campus_zones/{campus_id}")
+@router.get(
+    "/get_campus_zones/{campus_id}",
+    summary="Retrieves the zone hierarchy for a specific campus in the ParcoRTLS system",
+    description=load_description("get_campus_zones"),
+    tags=["triggers"]
+)
 async def get_campus_zones(campus_id: int):
-    """
-    Retrieves the zone hierarchy for a specific campus in the ParcoRTLS system.
-
-    This endpoint fetches all zones associated with a campus, organized hierarchically by parent-child relationships, used for displaying zone structures in the frontend or checking tag locations.
-
-    Parameters:
-    - campus_id (int, path parameter, required): The unique identifier of the campus whose zones are to be retrieved.
-
-    Returns:
-    - dict: A JSON response containing:
-        - zones (List[dict]): A list of top-level zones, each with:
-            - zone_id (int): The zone identifier.
-            - zone_name (str): The name of the zone.
-            - zone_type (int): The type of zone.
-            - parent_zone_id (int or None): The ID of the parent zone.
-            - map_id (int or None): The associated map ID.
-            - children (List[dict]): Child zones in the hierarchy.
-
-    Raises:
-    - HTTPException (404): If no zones are found for the specified campus_id.
-    - HTTPException (500): If an unexpected error occurs during the database operation.
-
-    Example:
-    ```bash
-    curl -X GET "http://192.168.210.226:8000/api/get_campus_zones/1"
-    ```
-    Response:
-    ```json
-    {
-        "zones": [
-            {
-                "zone_id": 1,
-                "zone_name": "Campus Main",
-                "zone_type": 1,
-                "parent_zone_id": null,
-                "map_id": 1,
-                "children": [
-                    {
-                        "zone_id": 2,
-                        "zone_name": "Building A",
-                        "zone_type": 2,
-                        "parent_zone_id": 1,
-                        "map_id": 1,
-                        "children": []
-                    }
-                ]
-            }
-        ]
-    }
-    ```
-
-    Use Case:
-    - The frontend uses this endpoint to display a tree view of zones for a campus, allowing users to navigate the zone hierarchy or check if a tag is within a specific campus zone (e.g., Zone L1 zones).
-    - An administrator uses this to verify zone-to-map assignments before updating map metadata.
-
-    Hint:
-    - This endpoint is useful for checking if a tag is on a campus by traversing the zone hierarchy and verifying tag locations against Zone L1 zones.
-    - The recursive CTE in the query ensures all child zones are included; ensure the `zones` table has correct `i_pnt_zn` values for hierarchy integrity.
-    """
     try:
         result = await execute_raw_query(
             "maint",

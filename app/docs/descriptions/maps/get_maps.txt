@@ -1,0 +1,35 @@
+Retrieves a list of all maps in the ParcoRTLS system.
+
+This endpoint queries the database to fetch all maps stored in the `maps` table, typically used to populate a dropdown or list in the React frontend for map selection or management.
+
+Parameters:
+- None
+
+Returns:
+- List[dict]: A list of maps, each containing details such as:
+    - i_map (int): The unique map identifier.
+    - x_nm_map (str): The name of the map.
+    - Other fields as returned by the `usp_map_list` stored procedure.
+
+Raises:
+- HTTPException (404): If no maps are found in the database.
+- HTTPException (500): If an unexpected error occurs during the database operation.
+
+Example:
+```bash
+curl -X GET "http://192.168.210.226:8000/api/get_maps"
+```
+Response:
+```json
+[
+    {"i_map": 1, "x_nm_map": "Campus Main Building", ...},
+    {"i_map": 2, "x_nm_map": "Parking Lot A", ...}
+]
+```
+
+Use Case:
+- A frontend developer uses this endpoint to populate a map selection menu in the ParcoRTLS interface, allowing users to choose a map for viewing zone layouts or tracking assets.
+- An administrator uses this to verify all available maps before assigning them to zones.
+
+Hint:
+- The response format depends on the `usp_map_list` stored procedure. Check the stored procedure definition in the Parco database to understand the exact fields returned.

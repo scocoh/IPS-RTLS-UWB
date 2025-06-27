@@ -1,0 +1,66 @@
+# Name: list_device_assignments.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Retrieve a list of all device assignments.
+
+This endpoint fetches all device assignments (active or ended) using the `usp_assign_dev_list` stored procedure. It is useful for auditing or displaying device-entity relationships in the React frontend.
+
+Args:
+    include_ended (bool, optional): Whether to include ended assignments. Defaults to False.
+
+Returns:
+    list: A list of dictionaries, each containing assignment details.
+        - i_asn_dev (int): Assignment ID.
+        - x_id_dev (str): Device ID.
+        - x_id_ent (str): Entity ID.
+        - i_rsn (int): Assignment reason ID.
+        - d_bgn (datetime): Assignment start date.
+        - d_end (datetime or None): Assignment end date (null if active).
+
+Raises:
+    HTTPException:
+        - 404: If no assignments are found.
+        - 500: If a database error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_device_assignments?include_ended=true"
+    ```
+    Response:
+    ```json
+    [
+        {
+            "i_asn_dev": 101,
+            "x_id_dev": "TAG001",
+            "x_id_ent": "ZONE001",
+            "i_rsn": 1,
+            "d_bgn": "2025-04-26T10:00:00",
+            "d_end": null
+        },
+        {
+            "i_asn_dev": 102,
+            "x_id_dev": "TAG002",
+            "x_id_ent": "ZONE002",
+            "i_rsn": 2,
+            "d_bgn": "2025-04-25T09:00:00",
+            "d_end": "2025-04-26T12:00:00"
+        }
+    ]
+    ```
+
+Use Case:
+    - Display all active device assignments in the React frontend for administrative oversight.
+    - Generate a report of all assignments, including ended ones, for auditing.
+
+Hint:
+    - Set `include_ended=True` to retrieve historical assignments, useful for tracking changes over time.
+    - Cross-reference `x_id_ent` with `/get_entity_by_id/{entity_id}` (from `entity.py`) for entity details.

@@ -1,0 +1,32 @@
+Delete a map from the ParcoRTLS system.
+
+This endpoint removes a map and its associated metadata from the 'maps' table in the 'maint' schema. It is used when a map is no longer needed or was uploaded in error. Note that deleting a map may affect associated zones, regions, or triggers.
+
+Parameters:
+- map_id (int, required): The unique ID of the map to delete (path parameter).
+
+Returns:
+- JSON object with:
+  - message (str): Confirmation message (e.g., "Map 123 deleted successfully").
+
+Raises:
+- HTTPException (404): If the map ID does not exist in the database.
+- HTTPException (500): If the deletion fails due to database errors.
+
+Example:
+```bash
+curl -X DELETE "http://192.168.210.226:8000/delete_map/123"
+```
+Response:
+```json
+{
+  "message": "Map 123 deleted successfully"
+}
+```
+
+Use Case:
+- A facility manager deletes an outdated map (e.g., for a decommissioned building) to prevent it from being used in tracking operations.
+
+Hint:
+- Before deleting, check if the map is referenced by zones or regions using the `/get_map_zones/{map_id}` or `/get_map_regions/{map_id}` endpoints to avoid orphaned data.
+- Ensure no active tracking operations depend on this map to prevent disruptions.

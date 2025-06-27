@@ -1,0 +1,43 @@
+# Name: delete_device_assignment.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Delete a specific device assignment.
+
+This endpoint removes a device assignment (e.g., a tag's association with a zone) using the `usp_assign_dev_delete` stored procedure. It is used to dissolve assignments when they are no longer needed.
+
+Args:
+    assignment_id (int): The ID of the assignment to delete (e.g., 101). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Device assignment deleted successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/delete_device_assignment/101"
+    ```
+    Response:
+    ```json
+    {"message": "Device assignment deleted successfully"}
+    ```
+
+Use Case:
+    - Remove a tag's assignment to a zone after it is reassigned to a new zone.
+    - Dissolve a beacon's assignment to an entity after it is decommissioned.
+
+Hint:
+    - Verify the `assignment_id` exists using `/list_device_assignments_by_device/{device_id}` before deletion.
+    - The stored procedure may update the assignment's end date rather than deleting it, depending on implementation (see version 0.1.36 changelog).

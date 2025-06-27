@@ -1,0 +1,33 @@
+Updates the name of a map in the ParcoRTLS system.
+
+This endpoint allows administrators to rename a map identified by its map_id. The new name is validated for non-empty content and length constraints before updating the database. It is used to maintain accurate map labels displayed in the React frontend for visualization and zone management.
+
+Parameters:
+- request (MapNameUpdateRequest): The request body containing:
+    - map_id (int, required): The unique identifier of the map to update.
+    - name (str, required): The new name for the map, must be non-empty and less than 100 characters.
+
+Returns:
+- dict: A JSON response with a success message.
+    - message (str): Confirmation that the map name was updated successfully.
+
+Raises:
+- HTTPException (400): If the map name is empty or exceeds 100 characters.
+- HTTPException (404): If the specified map_id does not exist in the database.
+- HTTPException (500): If an unexpected error occurs during the database operation.
+
+Example:
+```bash
+curl -X POST "http://192.168.210.226:8000/api/update_map_name"          -H "Content-Type: application/json"          -d '{"map_id": 1, "name": "Campus Main Building"}'
+```
+Response:
+```json
+{"message": "Map name updated successfully"}
+```
+
+Use Case:
+- An administrator updates the name of a map from "Building A" to "Campus Main Building" to reflect a new naming convention in the ParcoRTLS system. This ensures the map is correctly labeled in the React frontend when users view zone layouts or track tags.
+
+Hint:
+- Ensure the map_id corresponds to an existing map in the `maps` table. You can verify map IDs using the `/get_maps` endpoint.
+- Map names should be descriptive to help users identify the physical location in the RTLS interface.

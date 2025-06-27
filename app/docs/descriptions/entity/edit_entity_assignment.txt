@@ -1,0 +1,35 @@
+Update an existing entity assignment.
+
+This endpoint modifies an entity assignment (e.g., changing the parent or reason) using the `usp_assign_entity_edit` stored procedure. It is used to update hierarchical relationships.
+
+Args:
+    assignment_id (int): The ID of the assignment to update (e.g., 101). Required.
+    request (EntityAssignRequest): The request body containing updated assignment details.
+        - parent_id (str): The updated parent entity ID (e.g., "DEPT002"). Required.
+        - child_id (str): The updated child entity ID (e.g., "EMP123"). Required.
+        - reason_id (int): The updated reason ID (e.g., 2 for "Transfer"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Entity assignment edited successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the assignment cannot be updated.
+
+Example:
+    ```bash
+    curl -X PUT "http://192.168.210.226:8000/edit_entity_assignment?assignment_id=101"              -H "Content-Type: application/json"              -d '{"parent_id": "DEPT002", "child_id": "EMP123", "reason_id": 2}'
+    ```
+    Response:
+    ```json
+    {"message": "Entity assignment edited successfully"}
+    ```
+
+Use Case:
+    - Transfer an employee ("EMP123") from one department ("DEPT001") to another ("DEPT002").
+    - Update the reason for an asset's assignment after a change in usage.
+
+Hint:
+    - Verify the `assignment_id` exists using `/list_entity_assignments_by_id/{assignment_id}` before updating.
+    - Ensure `parent_id`, `child_id`, and `reason_id` are valid using appropriate endpoints.

@@ -1,0 +1,38 @@
+Retrieve all entities of a specific type.
+
+This endpoint fetches all entities of a given type (e.g., all employees or all assets) using the `usp_entity_by_type` stored procedure. It is useful for filtering entities by their category.
+
+Args:
+    entity_type (int): The type ID of the entities to retrieve (e.g., 1 for Employee, 2 for Asset). Required.
+
+Returns:
+    list: A list of dictionaries, each containing entity details.
+        - x_id_ent (str): Entity ID.
+        - i_typ_ent (int): Entity type ID.
+        - x_nm_ent (str): Entity name.
+        - d_crt (datetime): Creation date.
+        - d_udt (datetime): Last update date.
+
+Raises:
+    HTTPException:
+        - 404: If no entities are found for the specified type.
+        - 500: If the database operation fails.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_entities_by_type/1"
+    ```
+    Response:
+    ```json
+    [
+        {"x_id_ent": "EMP123", "i_typ_ent": 1, "x_nm_ent": "John Doe", "d_crt": "2025-04-26T10:00:00", "d_udt": "2025-04-26T10:00:00"},
+        {"x_id_ent": "EMP456", "i_typ_ent": 1, "x_nm_ent": "Jane Smith", "d_crt": "2025-04-25T09:00:00", "d_udt": "2025-04-25T09:00:00"}
+    ]
+    ```
+
+Use Case:
+    - List all employees (type ID 1) in a dropdown for assigning tags in the React frontend.
+    - Generate a report of all assets (type ID 2) for inventory management.
+
+Hint:
+    - Retrieve valid `entity_type` values from the `/list_entity_types` endpoint to ensure accurate filtering.

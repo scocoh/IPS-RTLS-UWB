@@ -1,0 +1,32 @@
+End a specific entity assignment.
+
+This endpoint marks an entity assignment as ended using the `usp_assign_entity_end` stored procedure. It is used to terminate a hierarchical relationship without deleting it, preserving historical data.
+
+Args:
+    request (EntityAssignEndRequest): The request body containing the assignment ID.
+        - assignment_id (int): The ID of the assignment to end (e.g., 101). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Entity assignment ended successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the assignment cannot be ended.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/end_entity_assignment"              -H "Content-Type: application/json"              -d '{"assignment_id": 101}'
+    ```
+    Response:
+    ```json
+    {"message": "Entity assignment ended successfully"}
+    ```
+
+Use Case:
+    - End an employee's assignment to a department after they leave the organization.
+    - Terminate an asset's assignment to a ward when it is moved to storage.
+
+Hint:
+    - Use this endpoint to maintain historical records instead of deleting assignments with `/delete_entity_assignment/{assignment_id}`.
+    - Verify the `assignment_id` exists using `/list_entity_assignments_by_id/{assignment_id}`.

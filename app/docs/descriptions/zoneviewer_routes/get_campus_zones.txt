@@ -1,0 +1,62 @@
+Retrieve all campus zones with their hierarchical structure.
+
+**Description**:
+This endpoint fetches all zones from the ParcoRTLS system, organized hierarchically with campuses (zone_type=1)
+at the root and their child zones nested accordingly. It is used in the Zone Viewer to display the campus
+hierarchy for navigation and management. The response includes zone details like ID, name, type, parent zone,
+and map ID, with child zones nested under their parents.
+
+**Parameters**:
+- None
+
+**Returns**:
+- JSON object with a single key `campuses`, containing a list of campus objects. Each campus object has:
+  - `zone_id` (int): Unique identifier of the zone.
+  - `zone_name` (str): Name of the zone.
+  - `zone_type` (int): Type of zone (1 for campus, 2 for building, etc.).
+  - `parent_zone_id` (int or null): ID of the parent zone, null for campuses.
+  - `map_id` (int or null): ID of the associated map.
+  - `children` (list): List of child zone objects with the same structure.
+
+**Example Usage**:
+```bash
+curl -X GET "http://192.168.210.226:8000/zoneviewer/get_campus_zones" -H "accept: application/json"
+```
+Response:
+```json
+{
+  "campuses": [
+    {
+      "zone_id": 1,
+      "zone_name": "Main Campus",
+      "zone_type": 1,
+      "parent_zone_id": null,
+      "map_id": 101,
+      "children": [
+        {
+          "zone_id": 2,
+          "zone_name": "Building A",
+          "zone_type": 2,
+          "parent_zone_id": 1,
+          "map_id": 102,
+          "children": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Use Case**:
+- **Scenario**: A facility manager needs to view all campuses and their buildings in the ParcoRTLS Zone Viewer.
+- **Action**: The frontend React app calls this endpoint to populate the zone navigation tree, allowing the manager
+  to select a campus and drill down to specific buildings or floors.
+- **Outcome**: The hierarchical structure enables intuitive navigation and management of zones.
+
+**Errors**:
+- **404 Not Found**: Raised if no zones are found in the database (`HTTPException`, detail="No zones found").
+- **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+**Hint**:
+- This endpoint is ideal for initializing the Zone Viewer UI. To check if a tag is within a campus (e.g., for Zone L1),
+  combine this with vertex data from `/get_vertices_for_campus/{campus_id}` to perform spatial queries.

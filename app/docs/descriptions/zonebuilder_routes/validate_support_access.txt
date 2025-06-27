@@ -1,0 +1,39 @@
+Validate support access with a secret password (hidden endpoint).
+
+This internal endpoint verifies a provided password against a hardcoded secret password to grant
+support access. It is not exposed in the Swagger UI and is intended for administrative or support
+purposes within the ParcoRTLS system, such as accessing restricted debugging features or
+configurations in the Zone Builder tool.
+
+Parameters:
+    payload (dict, required, body): A JSON object with the following key:
+        - password (str, required): The password to validate against the secret password.
+
+Returns:
+    dict: A JSON object with the following key:
+          - status (str): Indicates successful validation ("ok") if the password is correct.
+
+Example:
+    ```bash
+    curl -X POST http://192.168.210.226:8000/zonebuilder/validate-support-access         -H "Content-Type: application/json"         -d '{"password": "gene"}'
+    ```
+    Response:
+    ```json
+    {
+        "status": "ok"
+    }
+    ```
+
+Use Case:
+    - A support engineer needs to access restricted debugging tools or configuration settings in the
+      Zone Builder to troubleshoot issues with zone or device management. This endpoint validates
+      their credentials to unlock these features.
+
+Hint:
+    - The secret password is currently hardcoded as "gene". For production environments, consider
+      replacing it with a secure, environment-variable-based secret to enhance security.
+    - Since this endpoint is hidden (include_in_schema=False), it is not visible in the Swagger UI,
+      reducing the risk of unauthorized access. Ensure only authorized personnel know the endpoint URL.
+
+Errors:
+    - 403 (Forbidden): Raised if the provided password does not match the secret password.

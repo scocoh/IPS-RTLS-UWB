@@ -1,0 +1,46 @@
+# Name: set_device_state.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Update a device's state (active or inactive) in the ParcoRTLS system.
+
+This endpoint sets a device's state by either removing its end date (for "active" state) or setting an end date to the current time (for any other state, e.g., "inactive") using the appropriate stored procedures (`usp_device_remove_end_date` or `usp_device_set_end_date`). It is used to manage device operational status.
+
+Args:
+    device_id (str): The ID of the device to update (e.g., "TAG001"). Required.
+    new_state (str): The new state of the device (e.g., "active", "inactive"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Device state updated successfully").
+
+Raises:
+    HTTPException:
+        - 404: If the device is not found.
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X PUT "http://192.168.210.226:8000/set_device_state"              -H "Content-Type: multipart/form-data"              -F "device_id=TAG001"              -F "new_state=inactive"
+    ```
+    Response:
+    ```json
+    {"message": "Device state updated successfully"}
+    ```
+
+Use Case:
+    - Mark a tag as inactive when an employee is on leave.
+    - Set a beacon to active after it is redeployed post-maintenance.
+
+Hint:
+    - Use `/get_device_by_id/{device_id}` to verify the device's current state before updating.
+    - The `new_state` value "active" clears the end date, while any other value sets it to the current time.
+    - Supports form data for compatibility with React frontend forms.

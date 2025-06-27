@@ -1,0 +1,15 @@
+Edit an kobsexisting vertex by ID (i_vtx) using a raw query (inspired by Zone Viewer).
+
+Args:
+    vertex_id: The vertex ID (i_vtx) to edit.
+    region_id: The region ID (i_rgn) the vertex belongs to.
+    x: The x-coordinate (n_x).
+    y: The y-coordinate (n_y).
+    z: The z-coordinate (n_z), optional for 3D.
+    order: The order of the vertex (n_ord).
+
+Returns:
+    dict: Success message if edited.
+
+Raises:
+    HTTPException: 404 if vertex not found, 400 if region_id doesn’t exist, 500 if editing fails.

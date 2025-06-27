@@ -1,0 +1,10 @@
+Delete a vertex by ID (i_vtx).
+
+Args:
+    vertex_id: The vertex ID (i_vtx) to delete.
+
+Returns:
+    dict: Success message if deleted.
+
+Raises:
+    HTTPException: 404 if vertex not found, 500 if deletion fails.

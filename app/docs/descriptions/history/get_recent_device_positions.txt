@@ -1,0 +1,37 @@
+Retrieve recent position data for a specific device in the ParcoRTLS system.
+
+This endpoint queries the `hist_r` schema's `usp_location_by_id` stored procedure to fetch the most recent
+position records for a given device. It is used to track the current or recent location of a device (e.g., a tag
+or asset) within the real-time location system.
+
+Parameters:
+    device_id (str): The unique identifier of the device (e.g., tag ID or asset ID). Required.
+
+Returns:
+    list: A list of position records, each containing fields like `device_id`, `x`, `y`, `z`, and `timestamp`.
+          The exact structure depends on the `usp_location_by_id` stored procedure output.
+          Example: [{"device_id": "TAG123", "x": 10.5, "y": 20.3, "z": 1.2, "timestamp": "2025-04-26T10:00:00"}]
+
+Raises:
+    HTTPException (404): If no recent positions are found for the device.
+    HTTPException (500): If a database error occurs (e.g., connection failure or stored procedure error).
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_recent_device_positions/TAG123"
+    ```
+    Response:
+    ```json
+    [
+        {"device_id": "TAG123", "x": 10.5, "y": 20.3, "z": 1.2, "timestamp": "2025-04-26T10:00:00"},
+        {"device_id": "TAG123", "x": 10.6, "y": 20.4, "z": 1.2, "timestamp": "2025-04-26T10:00:01"}
+    ]
+    ```
+
+Use Case:
+    - **Scenario**: A facility manager needs to check the latest location of a specific asset (e.g., a medical device with tag ID "TAG123") on a campus.
+    - **Application**: The React frontend calls this endpoint to display the device's recent positions on a map, helping the manager locate the asset in real-time.
+
+Hint:
+    - This endpoint is useful for Zone L1 zones (e.g., campus-level tracking) to verify if a tag is within a specific area.
+    - For performance, ensure the `usp_location_by_id` stored procedure is optimized, as it may query large datasets.

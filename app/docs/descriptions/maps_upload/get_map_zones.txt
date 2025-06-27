@@ -1,0 +1,31 @@
+Retrieve the number of zones associated with a specific map.
+
+This endpoint queries the 'zones' table in the 'maint' schema to count the number of zones linked to a given map. It is useful for understanding the scope of a map's usage in the ParcoRTLS system.
+
+Parameters:
+- map_id (int, required): The unique ID of the map (path parameter).
+
+Returns:
+- JSON object with:
+  - zone_count (int): The number of zones associated with the map (0 if none).
+
+Raises:
+- None explicitly, but database errors may result in a 500 status code (handled by FastAPI).
+
+Example:
+```bash
+curl -X GET "http://192.168.210.226:8000/get_map_zones/123"
+```
+Response:
+```json
+{
+  "zone_count": 5
+}
+```
+
+Use Case:
+- A system administrator checks how many zones (e.g., rooms or areas) are defined for a map before updating or deleting it to assess its impact.
+
+Hint:
+- Use this endpoint before deleting a map to ensure no zones are orphaned.
+- A `zone_count` of 0 indicates the map is not yet associated with any zones, which may suggest it is safe to modify or delete.

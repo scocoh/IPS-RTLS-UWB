@@ -1,0 +1,35 @@
+Retrieve details of a specific entity by its ID.
+
+This endpoint fetches the details of a single entity (e.g., employee, asset) using the `usp_entity_by_id` stored procedure. It is used to display entity information or verify existence before performing operations like assignments.
+
+Args:
+    entity_id (str): The unique identifier of the entity (e.g., "EMP123"). Required.
+
+Returns:
+    dict: A dictionary containing entity details.
+        - x_id_ent (str): Entity ID.
+        - i_typ_ent (int): Entity type ID.
+        - x_nm_ent (str): Entity name.
+        - d_crt (datetime): Creation date.
+        - d_udt (datetime): Last update date.
+
+Raises:
+    HTTPException:
+        - 404: If the entity with the specified ID is not found.
+        - 500: If the database operation fails.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_entity_by_id/EMP123"
+    ```
+    Response:
+    ```json
+    {"x_id_ent": "EMP123", "i_typ_ent": 1, "x_nm_ent": "John Doe", "d_crt": "2025-04-26T10:00:00", "d_udt": "2025-04-26T10:00:00"}
+    ```
+
+Use Case:
+    - Display detailed information about an employee ("EMP123") in the React frontend.
+    - Verify that an entity exists before assigning it to a device or another entity.
+
+Hint:
+    - Use this endpoint to prefetch entity data before rendering forms or dashboards to reduce latency.

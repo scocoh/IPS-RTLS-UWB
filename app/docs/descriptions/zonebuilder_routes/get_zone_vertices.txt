@@ -1,0 +1,47 @@
+Fetch vertices for a specific zone, excluding child zones and trigger regions.
+
+This endpoint retrieves the vertices defining the boundary of a specific zone from the `vertices`
+and `regions` tables in the `maint` schema. It excludes vertices from child zones and trigger-related
+regions, ensuring only the target zone's boundary is returned. This is used in the Zone Builder
+tool to display or edit a zone's shape in the ParcoRTLS system.
+
+Parameters:
+    zone_id (int, required, path): The unique identifier of the zone (i_zn) to fetch vertices for.
+
+Returns:
+    dict: A JSON object with a single key "vertices" containing a list of dictionaries. Each dictionary
+          represents a vertex with the following keys:
+          - i_vtx (int): The vertex ID.
+          - i_rgn (int): The region ID associated with the vertex.
+          - n_x (float): The x-coordinate.
+          - n_y (float): The y-coordinate.
+          - n_z (float): The z-coordinate (typically 0 for 2D zones).
+          - n_ord (int): The order of the vertex in the boundary.
+
+Example:
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/get_zone_vertices/1
+    ```
+    Response:
+    ```json
+    {
+        "vertices": [
+            {"i_vtx": 1, "i_rgn": 1, "n_x": 0.0, "n_y": 0.0, "n_z": 0.0, "n_ord": 1},
+            {"i_vtx": 2, "i_rgn": 1, "n_x": 10.0, "n_y": 0.0, "n_z": 0.0, "n_ord": 2}
+        ]
+    }
+    ```
+
+Use Case:
+    - A user editing a zone's boundary in the Zone Builder needs to visualize the current shape.
+      This endpoint provides the vertex coordinates to render the zone's polygon on the map.
+
+Hint:
+    - For campus-level zones (i_typ_zn = 1), use this endpoint to check if a tag's coordinates
+      (from positionhistory) fall within the zone's boundary using a point-in-polygon algorithm.
+    - If no vertices are returned, the zone may not have a defined boundary yet.
+
+Errors:
+    - 500 (Internal Server Error): Raised if there is a database connection issue or an unexpected
+      error occurs during query execution.
+    - Returns {"vertices": []} if no vertices are found for the zone_id (not an error).

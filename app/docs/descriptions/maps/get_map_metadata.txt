@@ -1,0 +1,28 @@
+Retrieves metadata for a specific map in the ParcoRTLS system.
+
+This endpoint fetches metadata such as dimensions and scaling factors, used for configuring map rendering in the frontend or validating map properties.
+
+Parameters:
+- map_id (int, path parameter, required): The unique identifier of the map whose metadata is to be retrieved.
+
+Returns:
+- List[dict]: Metadata details as returned by the `usp_map_metadata` stored procedure, typically including dimensions and scaling factors.
+
+Raises:
+- HTTPException (404): If no metadata is found for the specified map_id.
+- HTTPException (500): If an unexpected error occurs during the database operation.
+
+Example:
+```bash
+curl -X GET "http://192.168.210.226:8000/api/get_map_metadata/1"
+```
+Response:
+```json
+[{"min_x": 0, "min_y": 0, "max_x": 100, "max_y": 100, ...}]
+```
+
+Use Case:
+- A developer uses this endpoint to fetch map dimensions for scaling the map image correctly in the React frontend.
+
+Hint:
+- The exact metadata fields depend on the `usp_map_metadata` stored procedure. Review its definition for clarity.

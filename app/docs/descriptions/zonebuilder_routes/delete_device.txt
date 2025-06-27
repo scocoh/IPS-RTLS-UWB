@@ -1,0 +1,41 @@
+Delete a device and its associated assignments from the ParcoRTLS database.
+
+This endpoint removes a device from the `devices` table and its related assignments from the
+`deviceassmts` table in the `maint` schema. It is used in the Zone Builder tool to decommission
+devices (e.g., UWB tags or anchors) that are no longer in use, ensuring they are removed from the
+ParcoRTLS system's tracking data.
+
+Parameters:
+    device_id (str, required, path): The unique identifier of the device to delete (x_id_dev).
+
+Returns:
+    dict: A JSON object with the following key:
+          - message (str): A success message indicating the device was deleted
+                           ("Device {device_id} deleted successfully").
+
+Example:
+    ```bash
+    curl -X DELETE http://192.168.210.226:8000/zonebuilder/api/delete_device/TAG001
+    ```
+    Response:
+    ```json
+    {
+        "message": "Device TAG001 deleted successfully"
+    }
+    ```
+
+Use Case:
+    - A facility manager identifies a faulty UWB tag that needs to be removed from the system. This
+      endpoint deletes the tag and its assignments, ensuring it no longer appears in tracking reports
+      or zone associations.
+
+Hint:
+    - Before deletion, use `/api/get_all_devices` to confirm the device's details and its current
+      zone association to avoid accidental removal.
+    - For campus-level cleanup, target devices associated with zones where `i_typ_zn=1` to remove
+      all tags from a specific campus.
+
+Errors:
+    - 404 (Not Found): Raised if the `device_id` does not exist in the `devices` table.
+    - 500 (Internal Server Error): Raised if the deletion fails due to database connectivity issues
+      or other unexpected errors. The error message includes details for debugging.

@@ -1,0 +1,58 @@
+Add a new region to the ParcoRTLS system, associating it with a zone and optionally a trigger.
+
+This endpoint creates a new region in the `regions` table, defining its spatial boundaries (min/max coordinates) and linking it to a specific zone and, if applicable, a trigger. Regions are critical in ParcoRTLS for defining spatial areas within zones, such as areas for tracking devices or triggering events. The endpoint uses the stored procedure `usp_region_add` to perform the insertion.
+
+Parameters:
+    request (RegionRequest): A Pydantic model containing the following fields:
+        - region_id (int): The unique identifier for the new region (i_rgn). Required.
+        - zone_id (int): The ID of the zone (i_zn) this region belongs to. Required.
+        - region_name (str): A descriptive name for the region (x_nm_rgn). Required.
+        - max_x (float): The maximum x-coordinate of the region's bounding box (n_max_x). Required.
+        - max_y (float): The maximum y-coordinate of the region's bounding box (n_max_y). Required.
+        - max_z (float): The maximum z-coordinate of the region's bounding box (n_max_z). Required.
+        - min_x (float): The minimum x-coordinate of the region's bounding box (n_min_x). Required.
+        - min_y (float): The minimum y-coordinate of the region's bounding box (n_min_y). Required.
+        - min_z (float): The minimum z-coordinate of the region's bounding box (n_min_z). Required.
+        - trigger_id (int, optional): The ID of the trigger (i_trg) associated with this region, if any. Defaults to None.
+
+Returns:
+    dict: A JSON response with the following structure:
+        - message (str): A confirmation message indicating success ("Region added successfully").
+        - region_id (int or str): The ID of the newly created region (i_rgn).
+
+Raises:
+    HTTPException:
+        - 400: If the request data is invalid or the zone_id/trigger_id does not exist.
+        - 500: If the database operation fails or an unexpected error occurs.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/add_region"              -H "Content-Type: application/json"              -d '{
+               "region_id": 1001,
+               "zone_id": 10,
+               "region_name": "Lobby Area",
+               "max_x": 50.0,
+               "max_y": 50.0,
+               "max_z": 10.0,
+               "min_x": 0.0,
+               "min_y": 0.0,
+               "min_z": 0.0,
+               "trigger_id": null
+             }'
+    ```
+    Response:
+    ```json
+    {
+      "message": "Region added successfully",
+      "region_id": 1001
+    }
+    ```
+
+Use Case:
+    - **Scenario**: A facility manager needs to define a new region within a zone (e.g., a "Lobby Area" in a building zone) to track device movements or set up a trigger for entry/exit alerts. This endpoint is used to create the region with specific spatial boundaries.
+    - **Example**: In a hospital, a region is created for the "Emergency Room" zone to monitor patient tags entering or leaving the area.
+
+Hint:
+    - Ensure the `zone_id` exists in the `zones` table before calling this endpoint. You can verify this using the `/get_parent_zones` endpoint.
+    - If associating with a trigger, confirm the `trigger_id` exists in the `triggers` table using `/list_triggers`.
+    - The coordinates (min_x, max_x, etc.) should align with the map's coordinate system, which can be checked via `/get_map_metadata/{map_id}`.

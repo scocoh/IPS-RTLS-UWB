@@ -1,0 +1,56 @@
+Retrieve all regions from the ParcoRTLS system database using an alternative method.
+
+This endpoint serves as an alternative to `/get_all_regions`, fetching all regions from the `regions` table using the stored procedure `usp_regions_select`. It provides the same data but may differ in implementation details or performance characteristics, offering flexibility for different use cases.
+
+Parameters:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing region details with fields such as:
+        - i_rgn (int): Region ID.
+        - i_zn (int): Zone ID.
+        - x_nm_rgn (str): Region name.
+        - n_max_x (float): Maximum x-coordinate.
+        - n_max_y (float): Maximum y-coordinate.
+        - n_max_z (float): Maximum z-coordinate.
+        - n_min_x (float): Minimum x-coordinate.
+        - n_min_y (float): Minimum y-coordinate.
+        - n_min_z (float): Minimum z-coordinate.
+        - i_trg (int, optional): Trigger ID, if associated.
+
+Raises:
+    HTTPException:
+        - 404: If no regions are found in the database.
+        - 500: If the database query fails or an unexpected error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_all_regions_alt"
+    ```
+    Response:
+    ```json
+    [
+      {
+        "i_rgn": 1001,
+        "i_zn": 10,
+        "x_nm_rgn": "Lobby Area",
+        "n_max_x": 50.0,
+        "n_max_y": 50.0,
+        "n_max_z": 10.0,
+        "n_min_x": 0.0,
+        "n_min_y": 0.0,
+        "n_min_z": 0.0,
+        "i_trg": null
+      },
+      ...
+    ]
+    ```
+
+Use Case:
+    - **Scenario**: A developer needs an alternative method to fetch all regions for testing or performance optimization.
+    - **Example**: In a large-scale deployment, this endpoint is tested to compare query performance against `/get_all_regions`.
+
+Hint:
+    - Use this endpoint when experimenting with different database access patterns or when `usp_region_list` is unavailable.
+    - The data returned is identical to `/get_all_regions`, so the same frontend processing logic can be applied.
+    - For campus-specific filtering, combine with `/get_campus_zones/{campus_id}` from `zoneviewer_routes.py`.

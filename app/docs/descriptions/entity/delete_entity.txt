@@ -1,0 +1,30 @@
+Delete an entity from the ParcoRTLS system.
+
+This endpoint removes an entity (e.g., employee, asset) from the system using the `usp_entity_delete` stored procedure. It is used to decommission entities that are no longer tracked.
+
+Args:
+    entity_id (str): The unique identifier of the entity to delete (e.g., "EMP123"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Entity deleted successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the entity cannot be deleted (e.g., due to existing assignments).
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/delete_entity/EMP123"
+    ```
+    Response:
+    ```json
+    {"message": "Entity deleted successfully"}
+    ```
+
+Use Case:
+    - Remove a retired employee ("EMP123") from the system after they leave the organization.
+    - Decommission an obsolete asset from the inventory.
+
+Hint:
+    - Ensure all assignments (e.g., device or entity assignments) for the entity are removed using `/delete_all_entity_assignments/{entity_id}` or `/end_all_entity_assignments/{entity_id}` before deletion to avoid database constraints.

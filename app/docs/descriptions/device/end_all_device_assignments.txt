@@ -1,0 +1,43 @@
+# Name: end_all_device_assignments.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+End all device assignments in the ParcoRTLS system.
+
+This endpoint marks all device assignments as ended using the `usp_assign_dev_end_all` stored procedure. It is used to terminate all device-entity associations while preserving historical data, typically during system reconfiguration.
+
+Args:
+    None
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("All device assignments ended successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/end_all_device_assignments"
+    ```
+    Response:
+    ```json
+    {"message": "All device assignments ended successfully"}
+    ```
+
+Use Case:
+    - End all tag assignments during a system-wide reset while retaining historical data.
+    - Terminate all beacon assignments before reconfiguring zone associations.
+
+Hint:
+    - Use this endpoint instead of `/delete_all_device_assignments` if historical data needs to be retained.
+    - Ensure all affected devices are reassigned as needed after calling this endpoint.

@@ -1,0 +1,43 @@
+Retrieve metadata (bounds) for a specific map.
+
+**Description**:
+This endpoint fetches the spatial bounds (min_x, min_y, max_x, max_y) of a map, which define its coordinate
+system in the ParcoRTLS system. The metadata is used to scale and align map images and zone vertices in the
+Zone Viewer UI.
+
+**Parameters**:
+- `map_id` (int, path parameter, required): The unique identifier of the map.
+
+**Returns**:
+- JSON object with the following keys:
+  - `min_x` (float): Minimum X coordinate of the map.
+  - `min_y` (float): Minimum Y coordinate of the map.
+  - `max_x` (float): Maximum X coordinate of the map.
+  - `max_y` (float): Maximum Y coordinate of the map.
+
+**Example Usage**:
+```bash
+curl -X GET "http://192.168.210.226:8000/zoneviewer/get_map_metadata/101" -H "accept: application/json"
+```
+Response:
+```json
+{
+  "min_x": 0.0,
+  "min_y": 0.0,
+  "max_x": 100.0,
+  "max_y": 50.0
+}
+```
+
+**Use Case**:
+- **Scenario**: A developer is rendering a map in the Zone Viewer and needs to align zone polygons with the map image.
+- **Action**: The frontend calls this endpoint to get the map’s bounds and uses them to scale the canvas or SVG.
+- **Outcome**: Accurate alignment of zones and entities on the map.
+
+**Errors**:
+- **404 Not Found**: Raised if no metadata is found for the given `map_id` (`HTTPException`, detail="No metadata found for map_id={map_id}").
+- **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+**Hint**:
+- Use this endpoint alongside `/get_map/{map_id}` to ensure proper rendering of maps in the UI.
+- The bounds are critical for spatial calculations, such as determining if a tag’s coordinates are within a zone.

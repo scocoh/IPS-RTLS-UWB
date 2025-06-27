@@ -1,0 +1,35 @@
+Delete a region from the ParcoRTLS system by its ID.
+
+This endpoint removes a region from the `regions` table, including any associated vertices, using the stored procedure `usp_region_delete`. Deleting a region is necessary when reorganizing spatial areas or removing outdated regions. Note that associated vertices are also deleted, as they are linked via the `i_rgn` foreign key.
+
+Parameters:
+    region_id (int): Path parameter specifying the ID of the region to delete (i_rgn). Required.
+
+Returns:
+    dict: A JSON response with the following structure:
+        - message (str): A confirmation message indicating success ("Region deleted successfully").
+
+Raises:
+    HTTPException:
+        - 404: If the region_id does not exist in the `regions` table.
+        - 500: If the database operation fails or an unexpected error occurs.
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/delete_region/1001"
+    ```
+    Response:
+    ```json
+    {
+      "message": "Region deleted successfully"
+    }
+    ```
+
+Use Case:
+    - **Scenario**: A facility manager needs to remove a region that is no longer relevant, such as a temporary event space in a zone.
+    - **Example**: In a warehouse, a region defined for a seasonal storage area is deleted after the season ends.
+
+Hint:
+    - Before deleting, verify the region exists using `/get_region_by_id/{region_id}` to avoid unnecessary errors.
+    - If the region is associated with a trigger, ensure the trigger is updated or deleted separately using `/delete_trigger/{trigger_id}` to maintain data consistency.
+    - Deleting a region will cascade to its vertices, so ensure no critical data is lost.

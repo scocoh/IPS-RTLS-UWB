@@ -1,0 +1,58 @@
+Fetch all zones with additional metadata for trigger demo purposes.
+
+This endpoint retrieves a list of all zones from the `zones` table, including their map ID and
+parent zone ID, sorted by zone type and name. It is designed for experimental or demonstration
+purposes in the ParcoRTLS system, particularly for testing trigger-related functionalities in the
+Zone Builder tool, where additional zone metadata (e.g., map associations) is required.
+
+Parameters:
+    None
+
+Returns:
+    dict: A JSON object with a single key "zones" containing a list of dictionaries. Each dictionary
+          represents a zone with the following keys:
+          - zone_id (int): The unique identifier of the zone (i_zn).
+          - name (str): The name of the zone (x_nm_zn).
+          - level (int): The zone type (i_typ_zn, e.g., 1 for campus).
+          - i_map (int): The map ID associated with the zone (i_map).
+          - parent_zone_id (int or None): The ID of the parent zone (i_pnt_zn), or None if top-level.
+
+Example:
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/get_parent_zones_for_trigger_demo
+    ```
+    Response:
+    ```json
+    {
+        "zones": [
+            {
+                "zone_id": 1,
+                "name": "Main Campus",
+                "level": 1,
+                "i_map": 1,
+                "parent_zone_id": null
+            },
+            {
+                "zone_id": 2,
+                "name": "Building A",
+                "level": 2,
+                "i_map": 1,
+                "parent_zone_id": 1
+            }
+        ]
+    }
+    ```
+
+Use Case:
+    - During a demonstration of trigger functionality, a developer needs to select zones to
+      associate with triggers (e.g., entry/exit alerts). This endpoint provides comprehensive zone
+      data, including map and hierarchy information, to facilitate testing trigger configurations.
+
+Hint:
+    - Use this endpoint for trigger-related demos to ensure zones are correctly associated with
+      maps. Cross-reference i_map with the /get_map_metadata endpoint for map details.
+    - For campus-level checks, filter zones where level = 1 and parent_zone_id is null.
+
+Errors:
+    - 500 (Internal Server Error): Raised if the database pool is unavailable or an unexpected
+      error occurs during query execution. The error message includes details for debugging.

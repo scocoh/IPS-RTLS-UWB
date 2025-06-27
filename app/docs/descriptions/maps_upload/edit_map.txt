@@ -1,0 +1,41 @@
+Update the metadata of an existing map in the ParcoRTLS system.
+
+This endpoint allows users to modify the metadata (e.g., name, coordinates, boundaries) of a map without altering the stored image. The changes are applied to the 'maps' table in the 'maint' schema. This is useful for correcting map details or adjusting coordinates after initial upload.
+
+Parameters:
+- map_id (int, required): The unique ID of the map to update (path parameter).
+- name (str, required): The updated name of the map.
+- lat_origin (float, optional): Updated latitude of the map's origin point. Defaults to None.
+- lon_origin (float, optional): Updated longitude of the map's origin point. Defaults to None.
+- min_x (float, optional): Updated minimum X-coordinate. Defaults to None.
+- min_y (float, optional): Updated minimum Y-coordinate. Defaults to None.
+- min_z (float, optional): Updated minimum Z-coordinate. Defaults to None.
+- max_x (float, optional): Updated maximum X-coordinate. Defaults to None.
+- max_y (float, optional): Updated maximum Y-coordinate. Defaults to None.
+- max_z (float, optional): Updated maximum Z-coordinate. Defaults to None.
+
+Returns:
+- JSON object with:
+  - message (str): Confirmation message ("Map updated successfully").
+
+Raises:
+- HTTPException (500): If the map update fails (e.g., database error).
+- HTTPException (404): If the map ID does not exist (handled by database query returning no rows).
+
+Example:
+```bash
+curl -X PUT "http://192.168.210.226:8000/edit_map/123"          -F "name=Building A Floor 1 Updated"          -F "lat_origin=40.7129"          -F "lon_origin=-74.0061"          -F "min_x=0.0"          -F "min_y=0.0"          -F "max_x=100.0"          -F "max_y=50.0"
+```
+Response:
+```json
+{
+  "message": "Map updated successfully"
+}
+```
+
+Use Case:
+- A facility manager updates the coordinates of a map after discovering an error in the initial latitude/longitude values or adjusts the map name to reflect a new naming convention.
+
+Hint:
+- Only provide parameters that need updating; unchanged fields can be omitted (they will remain as None in the query).
+- Verify the `map_id` exists before calling this endpoint to avoid unnecessary errors.

@@ -1,0 +1,56 @@
+# Name: edit_device.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Update an existing device's details in the ParcoRTLS system.
+
+This endpoint modifies a device's attributes (e.g., ID, type, name, location, zone, service dates, logging flag) using the `usp_device_edit` stored procedure. It is used to update device information when changes occur, such as reassigning a device to a new zone or updating its location coordinates.
+
+Args:
+    device_id (str): The current ID of the device to update (e.g., "TAG001"). Required.
+    new_device_id (str): The new ID for the device (e.g., "TAG002"). Required.
+    device_type (int, optional): Updated device type ID (e.g., 1 for Tag). Defaults to None.
+    device_name (str, optional): Updated device name (e.g., "Updated Employee Tag"). Defaults to None.
+    n_moe_x (float, optional): Updated X-coordinate of the device's margin of error. Defaults to None.
+    n_moe_y (float, optional): Updated Y-coordinate of the device's margin of error. Defaults to None.
+    n_moe_z (float, optional): Updated Z-coordinate of the device's margin of error. Defaults to None.
+    zone_id (int, optional): Updated zone ID (e.g., 2 for "Ward A"). Defaults to None.
+    d_srv_bgn (str, optional): Updated service start date in ISO format (e.g., "2025-04-26T00:00:00Z"). Defaults to None.
+    d_srv_end (str, optional): Updated service end date in ISO format (e.g., "2025-12-31T00:00:00Z"). Defaults to None.
+    f_log (bool, optional): Updated logging flag indicating whether to log device activity. Defaults to None.
+
+Returns:
+    dict: A JSON response indicating success and the updated device ID.
+        - x_id_dev (str): The updated device ID.
+        - message (str): Success message ("Device updated successfully").
+
+Raises:
+    HTTPException:
+        - 404: If the device is not found.
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X PUT "http://192.168.210.226:8000/edit_device/TAG001"              -H "Content-Type: multipart/form-data"              -F "new_device_id=TAG002"              -F "device_type=1"              -F "device_name=Updated Employee Tag"              -F "n_moe_x=150.0"              -F "n_moe_y=250.0"              -F "n_moe_z=15.0"              -F "zone_id=2"              -F "d_srv_bgn=2025-04-26T00:00:00Z"              -F "d_srv_end=2025-12-31T00:00:00Z"              -F "f_log=true"
+    ```
+    Response:
+    ```json
+    {"x_id_dev": "TAG002", "message": "Device updated successfully"}
+    ```
+
+Use Case:
+    - Update a tag's location coordinates after it moves to a new area in a Zone L1 campus.
+    - Reassign a beacon to a different zone or change its service dates after maintenance.
+
+Hint:
+    - Verify the `device_id` exists using `/get_device_by_id/{device_id}` before updating.
+    - Ensure `device_type` and `zone_id` are valid by checking `/list_device_types` and `/zone_list`, respectively.
+    - The `d_srv_bgn` and `d_srv_end` parameters must be in ISO 8601 format with a 'Z' suffix for UTC.

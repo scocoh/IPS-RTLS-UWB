@@ -1,0 +1,30 @@
+Delete an assignment reason from the ParcoRTLS system.
+
+This endpoint removes an assignment reason using the `usp_assmt_reason_delete` stored procedure. It is used to remove obsolete or unused reasons.
+
+Args:
+    reason_id (int): The ID of the reason to delete (e.g., 1). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Assignment reason deleted successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the reason cannot be deleted (e.g., due to existing assignments).
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/delete_assignment_reason/1"
+    ```
+    Response:
+    ```json
+    {"message": "Assignment reason deleted successfully"}
+    ```
+
+Use Case:
+    - Remove an obsolete reason ("Temporary Assignment") that is no longer needed.
+    - Clean up unused reasons during system maintenance.
+
+Hint:
+    - Ensure no assignments use the `reason_id` (check `/list_entity_assignments_by_reason/{reason_id}`) before deletion to avoid database constraints.

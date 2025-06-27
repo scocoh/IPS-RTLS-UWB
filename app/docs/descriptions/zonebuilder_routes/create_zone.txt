@@ -1,0 +1,62 @@
+Create a new zone with associated region and vertices.
+
+This endpoint creates a new zone in the `zones` table, an associated region in the `regions` table,
+and vertices in the `vertices` table in the `maint` schema. It is a core function of the Zone Builder
+tool, allowing users to define new zones (e.g., rooms, floors, campuses) with specific boundaries
+and hierarchical relationships in the ParcoRTLS system.
+
+Parameters:
+    data (dict, required, body): A JSON object containing the following keys:
+        - zone_name (str, required): The name of the zone (x_nm_zn).
+        - map_id (int, required): The ID of the associated map (i_map).
+        - zone_level (int, required): The zone type (i_typ_zn, e.g., 1 for campus).
+        - parent_zone_id (int, optional): The ID of the parent zone (i_pnt_zn), or null for top-level zones.
+        - vertices (list, optional): A list of dictionaries, each with:
+            - n_x (float): The x-coordinate.
+            - n_y (float): The y-coordinate.
+            - n_z (float): The z-coordinate (typically 0 for 2D zones).
+
+Returns:
+    dict: A JSON object with the following keys:
+          - zone_id (int): The ID of the newly created zone (i_zn).
+          - message (str): A success message ("Zone created successfully").
+
+Example:
+    ```bash
+    curl -X POST http://192.168.210.226:8000/zonebuilder/create_zone         -H "Content-Type: application/json"         -d '{
+        "zone_name": "Room 101",
+        "map_id": 1,
+        "zone_level": 4,
+        "parent_zone_id": 2,
+        "vertices": [
+            {"n_x": 0.0, "n_y": 0.0, "n_z": 0.0},
+            {"n_x": 10.0, "n_y": 0.0, "n_z": 0.0},
+            {"n_x": 10.0, "n_y": 10.0, "n_z": 0.0}
+        ]
+    }'
+    ```
+    Response:
+    ```json
+    {
+        "zone_id": 3,
+        "message": "Zone created successfully"
+    }
+    ```
+
+Use Case:
+    - A facility manager uses the Zone Builder to create a new room zone within a building. They
+      specify the room's name, associate it with a floorplan (map_id), set its type as a room
+      (zone_level=4), link it to a parent building (parent_zone_id), and define its boundary
+      with vertices.
+
+Hint:
+    - For campus-level zones (zone_level=1), set parent_zone_id to null to indicate a top-level
+      zone. This is useful for checking if tags are within a campus boundary.
+    - Validate vertices against the map's bounds (from /get_map_metadata) before submission to
+      ensure they are within the map's coordinate system.
+
+Errors:
+    - 400 (Bad Request): Raised if required fields (zone_name, map_id, zone_level) are missing or
+      if map_id or zone_level are not integers.
+    - 500 (Internal Server Error): Raised if zone creation fails due to database issues or unexpected
+      errors.

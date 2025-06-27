@@ -1,0 +1,76 @@
+Fetch all devices with their associated zone IDs from the ParcoRTLS database.
+
+This endpoint retrieves a comprehensive list of all devices stored in the `devices` table of the
+`maint` schema, including their associated zone IDs. It primarily uses the `usp_device_select_all`
+stored procedure to fetch device data, with a fallback to a raw SQL query if the stored procedure
+fails. This endpoint is integral to the Zone Builder tool, enabling users to view and manage devices
+(e.g., UWB tags, anchors) within specific zones for real-time location tracking in the ParcoRTLS system.
+
+Parameters:
+    None
+
+Returns:
+    list: A list of dictionaries, each representing a device with the following keys:
+          - x_id_dev (str): The unique identifier of the device (x_id_dev).
+          - i_typ_dev (int): The device type ID (i_typ_dev, from tlkdevicetypes).
+          - x_nm_dev (str or None): The name of the device (x_nm_dev).
+          - d_srv_bgn (str or None): The start date of service in ISO format (d_srv_bgn).
+          - d_srv_end (str or None): The end date of service in ISO format (d_srv_end).
+          - n_moe_x (float or None): The x-coordinate margin of error (n_moe_x).
+          - n_moe_y (float or None): The y-coordinate margin of error (n_moe_y).
+          - n_moe_z (float or None): The z-coordinate margin of error (n_moe_z).
+          - f_log (bool): Flag indicating whether logging is enabled (f_log).
+          - zone_id (int or None): The ID of the associated zone (zone_id).
+
+Example:
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/api/get_all_devices
+    ```
+    Response:
+    ```json
+    [
+        {
+            "x_id_dev": "TAG001",
+            "i_typ_dev": 1,
+            "x_nm_dev": "Tag 1",
+            "d_srv_bgn": "2025-04-01T00:00:00",
+            "d_srv_end": null,
+            "n_moe_x": 10.0,
+            "n_moe_y": 20.0,
+            "n_moe_z": 0.0,
+            "f_log": false,
+            "zone_id": 1
+        },
+        {
+            "x_id_dev": "TAG002",
+            "i_typ_dev": 1,
+            "x_nm_dev": "Tag 2",
+            "d_srv_bgn": "2025-04-02T00:00:00",
+            "d_srv_end": null,
+            "n_moe_x": 15.0,
+            "n_moe_y": 25.0,
+            "n_moe_z": 0.0,
+            "f_log": false,
+            "zone_id": 2
+        }
+    ]
+    ```
+
+Use Case:
+    - A facility manager uses the Zone Builder tool to review all devices deployed across a campus
+      (zone_id with i_typ_zn=1) to ensure each UWB tag is correctly assigned to its respective zone
+      for accurate tracking. This endpoint provides a complete inventory of devices for monitoring
+      and maintenance purposes.
+
+Hint:
+    - To check if a tag is on a campus, filter devices where `zone_id` corresponds to a zone with
+      `i_typ_zn=1` in the `zones` table. Combine with `/get_zone_vertices/{zone_id}` to verify if
+      the tag's coordinates (n_moe_x, n_moe_y) are within the campus boundary.
+    - The fallback mechanism ensures robustness. If the stored procedure fails, the raw query
+      retrieves data directly from the `devices` table, but it may lack additional processing
+      provided by `usp_device_select_all`.
+
+Errors:
+    - 500 (Internal Server Error): Raised if both the stored procedure and the fallback raw query
+      fail due to database connectivity issues or other unexpected errors. The error message
+      includes details for debugging.

@@ -1,0 +1,70 @@
+Fetch the hierarchical entity tree starting from a given entity ID.
+
+This endpoint recursively builds a tree of entities starting from the specified entity, including all descendants, associated tags, and location data. It uses multiple stored procedures (e.g., `usp_entity_by_id`, `usp_assign_entity_list_by_parent`) to construct the tree and includes margin of error (MOE) checks to alert on tags that are too far from the root entity's tag. It is critical for visualizing organizational hierarchies and tracking entity locations in the ParcoRTLS system.
+
+Args:
+    id (str): The entity ID to start the tree from (e.g., "DEPT001"). Required.
+    location_type (str, optional): Type of location data to fetch ("realtime", "near_realtime", "historical"). Defaults to "realtime".
+    moe (float, optional): Margin of error in feet for progeny tags (default 5.0 feet). If a progeny tag's distance from the root exceeds this, an alert is triggered.
+
+Returns:
+    dict: A nested dictionary representing the entity tree.
+        - id (str): Entity ID.
+        - type_id (int): Entity type ID.
+        - name (str): Entity name.
+        - created_at (datetime): Creation date.
+        - updated_at (datetime): Last update date.
+        - tag_ids (list): List of associated tag IDs.
+        - children (list): List of child entity nodes (recursive structure).
+        - alert (str, optional): Alert message if a tag exceeds the MOE.
+        - location (dict, optional): Location data for the root or queried entity.
+            - x (float): X-coordinate.
+            - y (float): Y-coordinate.
+            - z_min (float): Minimum Z-coordinate.
+            - z_max (float): Maximum Z-coordinate.
+
+Raises:
+    HTTPException:
+        - 400: If `location_type` is invalid or `moe` is negative.
+        - 404: If the entity is not found or the tree cannot be built.
+        - 500: If an unexpected error occurs during tree construction.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/entitytree/DEPT001?location_type=realtime&moe=5.0"
+    ```
+    Response:
+    ```json
+    {
+        "id": "DEPT001",
+        "type_id": 3,
+        "name": "Engineering",
+        "created_at": "2025-04-26T10:00:00",
+        "updated_at": "2025-04-26T10:00:00",
+        "tag_ids": [],
+        "children": [
+            {
+                "id": "EMP123",
+                "type_id": 1,
+                "name": "John Doe",
+                "created_at": "2025-04-26T10:00:00",
+                "updated_at": "2025-04-26T10:00:00",
+                "tag_ids": ["TAG001"],
+                "children": [],
+                "alert": "Tag has eloped from parent (distance: 10.5 feet, MOE: 5.0 feet)"
+            }
+        ],
+        "location": {"x": 100.0, "y": 200.0, "z_min": 0.0, "z_max": 10.0}
+    }
+    ```
+
+Use Case:
+    - Visualize the hierarchy of a department ("DEPT001") and its employees in the React frontend, including their tag locations.
+    - Check if an employee's tag ("TAG001") is within the expected range of their department's tag for Zone L1 campus tracking.
+    - Generate a report of all entities and their locations under a specific root entity.
+
+Hint:
+    - This endpoint is computationally intensive due to recursive queries; use it for specific entities rather than frequently polling large trees.
+    - The `moe` parameter is critical for campuses with Zone L1 zones, as it triggers alerts for tags that have "eloped" (moved too far from their expected location).
+    - If no tags are assigned to the root entity, location data may be incomplete; ensure tags are assigned using device management endpoints.
+    - The `location_type` parameter affects which location data is fetched; use "realtime" for live tracking and "historical" for auditing past locations.

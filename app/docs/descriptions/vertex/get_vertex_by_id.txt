@@ -1,0 +1,10 @@
+Fetch vertex details by ID (i_vtx).
+
+Args:
+    vertex_id: The vertex ID (i_vtx) to fetch.
+
+Returns:
+    dict: Vertex details (i_vtx, n_x, n_y, n_z, n_ord, i_rgn).
+
+Raises:
+    HTTPException: 404 if vertex not found.

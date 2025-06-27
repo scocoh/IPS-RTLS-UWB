@@ -1,0 +1,31 @@
+End all assignments for a specific entity.
+
+This endpoint marks all assignments (parent or child) for a given entity as ended using the `usp_assign_entity_end_all` stored procedure. It is used to terminate all hierarchical relationships while preserving historical data.
+
+Args:
+    entity_id (str): The ID of the entity whose assignments are to be ended (e.g., "EMP123"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("All entity assignments ended successfully for entity").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the assignments cannot be ended.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/end_all_entity_assignments/EMP123"
+    ```
+    Response:
+    ```json
+    {"message": "All entity assignments ended successfully for entity"}
+    ```
+
+Use Case:
+    - End all assignments for an employee ("EMP123") who has retired, preserving historical data.
+    - Terminate all assignments for an asset before reassigning it.
+
+Hint:
+    - Use this endpoint instead of `/delete_all_entity_assignments/{entity_id}` if historical data needs to be retained.
+    - Verify the `entity_id` exists using `/get_entity_by_id/{entity_id}`.

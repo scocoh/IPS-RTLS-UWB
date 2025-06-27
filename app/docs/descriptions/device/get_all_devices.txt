@@ -1,0 +1,67 @@
+# Name: get_all_devices.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Retrieve a list of all devices in the ParcoRTLS system, including their associated zone IDs.
+
+This endpoint fetches all devices (e.g., tags, beacons) from the `devices` table using a raw SQL query. It is used to provide a comprehensive overview of devices for monitoring, reporting, or populating UI elements in the React frontend.
+
+Args:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing device details.
+        - x_id_dev (str): Device ID (e.g., "TAG001").
+        - i_typ_dev (int): Device type ID (e.g., 1 for Tag, 2 for Beacon).
+        - x_nm_dev (str): Device name (e.g., "Employee Tag").
+        - n_moe_x (float or None): X-coordinate of the device's margin of error.
+        - n_moe_y (float or None): Y-coordinate of the device's margin of error.
+        - n_moe_z (float or None): Z-coordinate of the device's margin of error.
+        - zone_id (int or None): ID of the associated zone (e.g., 1 for "Main Lobby").
+
+Raises:
+    None: Returns an empty list on error to prevent frontend crashes.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_all_devices"
+    ```
+    Response:
+    ```json
+    [
+        {
+            "x_id_dev": "TAG001",
+            "i_typ_dev": 1,
+            "x_nm_dev": "Employee Tag",
+            "n_moe_x": 100.5,
+            "n_moe_y": 200.7,
+            "n_moe_z": 10.0,
+            "zone_id": 1
+        },
+        {
+            "x_id_dev": "BEACON002",
+            "i_typ_dev": 2,
+            "x_nm_dev": "Lobby Beacon",
+            "n_moe_x": null,
+            "n_moe_y": null,
+            "n_moe_z": null,
+            "zone_id": 1
+        }
+    ]
+    ```
+
+Use Case:
+    - Populate a dashboard in the React frontend with all devices and their current zones for real-time monitoring.
+    - Generate a report of all devices and their locations for inventory management.
+
+Hint:
+    - Use this endpoint sparingly in high-traffic scenarios, as it retrieves all devices. Consider filtering by type or zone for better performance.
+    - The `zone_id` can be cross-referenced with the `/zone_list` endpoint to get zone details.

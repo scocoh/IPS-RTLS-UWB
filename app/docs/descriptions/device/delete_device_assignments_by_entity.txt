@@ -1,0 +1,43 @@
+# Name: delete_device_assignments_by_entity.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Delete all device assignments for a specific entity.
+
+This endpoint removes all device assignments associated with a given entity (e.g., a zone or person) using the `usp_assign_dev_delete_all_by_ent` stored procedure. It is used to clear assignments when an entity is decommissioned or reassigned.
+
+Args:
+    entity_id (str): The ID of the entity whose assignments are to be deleted (e.g., "ZONE001"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Device assignments deleted successfully for entity").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/delete_device_assignments_by_entity/ZONE001"
+    ```
+    Response:
+    ```json
+    {"message": "Device assignments deleted successfully for entity"}
+    ```
+
+Use Case:
+    - Clear all tag assignments for a zone ("ZONE001") that is being reconfigured.
+    - Remove device assignments for a department entity after it is dissolved.
+
+Hint:
+    - Verify the `entity_id` exists using `/get_entity_by_id/{entity_id}` (from `entity.py`) before deletion.
+    - Use `/end_all_device_assignments` if historical assignment data needs to be preserved.

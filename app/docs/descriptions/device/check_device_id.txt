@@ -1,0 +1,42 @@
+# Name: check_device_id.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Check if a device ID exists in the ParcoRTLS system.
+
+This endpoint queries the database using the `usp_device_select_by_id` stored procedure to verify if a device ID is already registered. It is used to prevent duplicate device IDs during device creation.
+
+Args:
+    device_id (str): The device ID to check (e.g., "TAG001"). Required.
+
+Returns:
+    dict: A JSON response indicating whether the device ID exists.
+        - exists (bool): True if the device ID exists, False otherwise.
+
+Raises:
+    HTTPException:
+        - 500: If a database or unexpected error occurs during the check.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/check_device_id/TAG001"
+    ```
+    Response:
+    ```json
+    {"exists": true}
+    ```
+
+Use Case:
+    - Validate a new device ID in the React frontend before submitting a device creation form.
+    - Ensure uniqueness when registering a new tag or beacon in the system.
+
+Hint:
+    - Use this endpoint before calling `/add_device` to avoid duplicate key errors.

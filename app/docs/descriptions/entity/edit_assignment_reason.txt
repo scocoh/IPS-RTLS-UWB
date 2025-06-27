@@ -1,0 +1,32 @@
+Update an existing assignment reason.
+
+This endpoint modifies the name of an assignment reason using the `usp_assmt_reason_edit` stored procedure. It is used to correct or update reason names.
+
+Args:
+    reason_id (int): The ID of the reason to update (e.g., 1). Required.
+    request (AssignmentReasonRequest): The request body containing the updated reason details.
+        - reason (str): The updated name of the reason (e.g., "Permanent Assignment"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Assignment reason edited successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the reason cannot be updated.
+
+Example:
+    ```bash
+    curl -X PUT "http://192.168.210.226:8000/edit_assignment_reason?reason_id=1"              -H "Content-Type: application/json"              -d '{"reason": "Permanent Assignment"}'
+    ```
+    Response:
+    ```json
+    {"message": "Assignment reason edited successfully"}
+    ```
+
+Use Case:
+    - Rename a reason from "Employment" to "Permanent Assignment" for clarity.
+    - Update a reason to better reflect its purpose.
+
+Hint:
+    - Verify the `reason_id` exists using `/list_assignment_reasons` before updating.

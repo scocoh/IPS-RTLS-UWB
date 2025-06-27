@@ -1,0 +1,67 @@
+Fetch all regions and their associated vertices for a given zone ID in the ParcoRTLS system.
+
+This endpoint retrieves all regions associated with a specified zone from the `regions` table and their corresponding vertices from the `vertices` table. It uses raw SQL queries to ensure accurate filtering by `i_zn` (zone ID), combining region and vertex data into a structured response. This is essential for visualizing or analyzing the spatial layout of regions within a zone.
+
+Parameters:
+    zone_id (int): Path parameter specifying the ID of the zone (i_zn) to filter regions by. Required.
+
+Returns:
+    list: A list of dictionaries, each containing combined region and vertex details. If vertices exist, each dictionary includes:
+        - i_rgn (int): Region ID.
+        - i_zn (int): Zone ID.
+        - x_nm_rgn (str): Region name.
+        - n_max_x (float): Maximum x-coordinate.
+        - n_max_y (float): Maximum y-coordinate.
+        - n_max_z (float): Maximum z-coordinate.
+        - n_min_x (float): Minimum x-coordinate.
+        - n_min_y (float): Minimum y-coordinate.
+        - n_min_z (float): Minimum z-coordinate.
+        - i_trg (int, optional): Trigger ID, if associated.
+        - i_vtx (int): Vertex ID.
+        - n_x (float): Vertex x-coordinate.
+        - n_y (float): Vertex y-coordinate.
+        - n_z (float): Vertex z-coordinate.
+        - n_ord (int): Vertex order.
+    If no vertices exist, the list contains region details only (same fields minus vertex-specific ones).
+
+Raises:
+    HTTPException:
+        - 404: If no regions are found for the specified zone_id.
+        - 500: If the database query fails or an unexpected error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_regions_by_zone/10"
+    ```
+    Response:
+    ```json
+    [
+      {
+        "i_rgn": 1001,
+        "i_zn": 10,
+        "x_nm_rgn": "Lobby Area",
+        "n_max_x": 50.0,
+        "n_max_y": 50.0,
+        "n_max_z": 10.0,
+        "n_min_x": 0.0,
+        "n_min_y": 0.0,
+        "n_min_z": 0.0,
+        "i_trg": null,
+        "i_vtx": 5001,
+        "n_x": 0.0,
+        "n_y": 0.0,
+        "n_z": 0.0,
+        "n_ord": 1
+      },
+      ...
+    ]
+    ```
+
+Use Case:
+    - **Scenario**: A facility manager needs to visualize all regions within a zone, including their vertices, to plan device placements or trigger configurations.
+    - **Example**: In an office building, this endpoint is used to retrieve all regions in the "Main Floor" zone to display their boundaries on a map in the Zone Viewer.
+
+Hint:
+    - This endpoint is particularly useful for rendering region boundaries in the React frontend. Use the returned vertices to draw polygons on a map.
+    - To check if a tag is within a region (e.g., for Zone L1 zones), combine this endpoint with `/trigger_contains_point/{trigger_id}` or `/zones_by_point`.
+    - The endpoint uses raw queries instead of `usp_regions_select_by_zone` due to a previous issue where zone_id was misinterpreted as i_rgn. This ensures accurate filtering.

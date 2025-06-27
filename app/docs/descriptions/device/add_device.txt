@@ -1,0 +1,51 @@
+# Name: add_device.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Add a new device to the ParcoRTLS system using form data.
+
+This endpoint creates a new device (e.g., tag, beacon) in the system by executing the `usp_device_add` stored procedure via a raw query. It supports associating the device with a zone and setting initial location coordinates. It is used to register devices for tracking within the ParcoRTLS system.
+
+Args:
+    device_id (str): Unique identifier for the device (e.g., "TAG001"). Required.
+    device_type (int): Device type ID (e.g., 1 for Tag, 2 for Beacon). Required.
+    device_name (str, optional): Descriptive name of the device (e.g., "Employee Tag"). Defaults to None.
+    n_moe_x (float, optional): X-coordinate of the device's margin of error. Defaults to None.
+    n_moe_y (float, optional): Y-coordinate of the device's margin of error. Defaults to None.
+    n_moe_z (float, optional): Z-coordinate of the device's margin of error. Defaults to 0.
+    zone_id (int, optional): ID of the associated zone (e.g., 1 for "Main Lobby"). Defaults to None.
+
+Returns:
+    dict: A JSON response indicating success and the device ID.
+        - x_id_dev (str): The ID of the newly created device.
+        - message (str): Success message ("Device added successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/add_device"              -H "Content-Type: multipart/form-data"              -F "device_id=TAG001"              -F "device_type=1"              -F "device_name=Employee Tag"              -F "n_moe_x=100.5"              -F "n_moe_y=200.7"              -F "n_moe_z=10.0"              -F "zone_id=1"
+    ```
+    Response:
+    ```json
+    {"x_id_dev": "TAG001", "message": "Device added successfully"}
+    ```
+
+Use Case:
+    - Register a new employee tag ("TAG001") with initial location coordinates and assign it to a specific zone for real-time tracking.
+    - Add a beacon to a zone to enhance location accuracy in a hospital campus.
+
+Hint:
+    - Use `/check_device_id/{device_id}` to verify the `device_id` is unique before calling this endpoint.
+    - Retrieve valid `device_type` values from `/list_device_types` and `zone_id` values from `/zone_list` to ensure accurate inputs.
+    - The `multipart/form-data` content type is used to support form submissions from the React frontend.

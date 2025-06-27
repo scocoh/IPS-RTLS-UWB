@@ -1,0 +1,34 @@
+Update an existing entity's details.
+
+This endpoint modifies the details of an entity (e.g., name or type) using the `usp_entity_edit` stored procedure. It is used to correct or update entity information.
+
+Args:
+    request (EntityRequest): The request body containing updated entity details.
+        - entity_id (str): Unique identifier of the entity to update (e.g., "EMP123"). Required.
+        - entity_type (int): The updated type ID of the entity (e.g., 1 for Employee). Required.
+        - entity_name (str): The updated name of the entity (e.g., "John Smith"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Entity edited successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the entity cannot be updated.
+
+Example:
+    ```bash
+    curl -X PUT "http://192.168.210.226:8000/edit_entity"              -H "Content-Type: application/json"              -d '{"entity_id": "EMP123", "entity_type": 1, "entity_name": "John Smith"}'
+    ```
+    Response:
+    ```json
+    {"message": "Entity edited successfully"}
+    ```
+
+Use Case:
+    - Update an employee's name from "John Doe" to "John Smith" after a legal name change.
+    - Change an asset's type after reclassification.
+
+Hint:
+    - Verify the `entity_id` exists using `/get_entity_by_id/{entity_id}` before attempting to update.
+    - Ensure the `entity_type` is valid by checking `/list_entity_types`.

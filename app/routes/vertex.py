@@ -1,9 +1,10 @@
 # Name: vertex.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
 # Modified: 250502
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
+# Version 0.1.1 Converted to external descriptions using load_description()
 # Description: Python script for ParcoRTLS backend
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
@@ -40,22 +41,30 @@ from database.db import call_stored_procedure, DatabaseError, execute_raw_query
 from typing import List
 import logging
 
+from pathlib import Path
+
 logger = logging.getLogger(__name__)
+
+def load_description(endpoint_name: str) -> str:
+    """Load endpoint description from external file"""
+    try:
+        desc_path = Path(__file__).parent.parent / "docs" / "descriptions" / "vertex" / f"{endpoint_name}.txt"
+        with open(desc_path, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return f"Description for {endpoint_name} not found"
+    except Exception as e:
+        return f"Error loading description: {str(e)}"
+
 router = APIRouter(tags=["vertices"])
 
-@router.delete("/delete_vertex/{vertex_id}")
+@router.delete(
+    "/delete_vertex/{vertex_id}",
+    summary="Delete a vertex by ID (i_vtx)",
+    description=load_description("delete_vertex"),
+    tags=["triggers"]
+)
 async def delete_vertex(vertex_id: int):
-    """Delete a vertex by ID (i_vtx).
-
-    Args:
-        vertex_id: The vertex ID (i_vtx) to delete.
-
-    Returns:
-        dict: Success message if deleted.
-
-    Raises:
-        HTTPException: 404 if vertex not found, 500 if deletion fails.
-    """
     try:
         # Check if vertex exists before attempting deletion
         vertex_exists = await execute_raw_query("maint", "SELECT i_vtx FROM public.vertices WHERE i_vtx = $1", vertex_id)
@@ -80,24 +89,13 @@ async def delete_vertex(vertex_id: int):
         logger.error(f"Error deleting vertex: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/edit_vertex")
+@router.put(
+    "/edit_vertex",
+    summary="Edit an kobsexisting vertex by ID (i_vtx) using a raw query (inspired by Zone Viewer)",
+    description=load_description("edit_vertex"),
+    tags=["triggers"]
+)
 async def edit_vertex(vertex_id: int = Form(...), region_id: int = Form(...), x: float = Form(...), y: float = Form(...), z: float | None = Form(None), order: int = Form(...)):
-    """Edit an kobsexisting vertex by ID (i_vtx) using a raw query (inspired by Zone Viewer).
-
-    Args:
-        vertex_id: The vertex ID (i_vtx) to edit.
-        region_id: The region ID (i_rgn) the vertex belongs to.
-        x: The x-coordinate (n_x).
-        y: The y-coordinate (n_y).
-        z: The z-coordinate (n_z), optional for 3D.
-        order: The order of the vertex (n_ord).
-
-    Returns:
-        dict: Success message if edited.
-
-    Raises:
-        HTTPException: 404 if vertex not found, 400 if region_id doesn’t exist, 500 if editing fails.
-    """
     try:
         # Check if vertex exists before attempting editing
         vertex_exists = await execute_raw_query("maint", "SELECT i_vtx, i_rgn FROM public.vertices WHERE i_vtx = $1", vertex_id)
@@ -145,19 +143,13 @@ async def edit_vertex(vertex_id: int = Form(...), region_id: int = Form(...), x:
         logger.error(f"Error editing vertex: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/get_vertex_by_id/{vertex_id}")
+@router.get(
+    "/get_vertex_by_id/{vertex_id}",
+    summary="Fetch vertex details by ID (i_vtx)",
+    description=load_description("get_vertex_by_id"),
+    tags=["triggers"]
+)
 async def get_vertex_by_id(vertex_id: int):
-    """Fetch vertex details by ID (i_vtx).
-
-    Args:
-        vertex_id: The vertex ID (i_vtx) to fetch.
-
-    Returns:
-        dict: Vertex details (i_vtx, n_x, n_y, n_z, n_ord, i_rgn).
-
-    Raises:
-        HTTPException: 404 if vertex not found.
-    """
     try:
         result = await call_stored_procedure("maint", "usp_vertex_select_by_id", vertex_id)
         if result and isinstance(result, list) and result:
@@ -169,16 +161,13 @@ async def get_vertex_by_id(vertex_id: int):
         logger.error(f"Error fetching vertex: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/list_vertices")
+@router.get(
+    "/list_vertices",
+    summary="Fetch all vertices",
+    description=load_description("list_vertices"),
+    tags=["triggers"]
+)
 async def list_vertices():
-    """Fetch all vertices.
-
-    Returns:
-        list: List of vertex dictionaries (i_vtx, n_x, n_y, n_z, n_ord, i_rgn).
-
-    Raises:
-        HTTPException: 404 if no vertices found.
-    """
     try:
         result = await call_stored_procedure("maint", "usp_vertex_list")
         if result and isinstance(result, list) and result:
@@ -190,23 +179,13 @@ async def list_vertices():
         logger.error(f"Error listing vertices: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/add_vertex")
+@router.post(
+    "/add_vertex",
+    summary="Add a new vertex using a raw query (since usp_vertex_add is missing)",
+    description=load_description("add_vertex"),
+    tags=["triggers"]
+)
 async def add_vertex(region_id: int = Form(...), x: float = Form(...), y: float = Form(...), z: float | None = Form(None), order: int = Form(...)):
-    """Add a new vertex using a raw query (since usp_vertex_add is missing).
-
-    Args:
-        region_id: The region ID (i_rgn) the vertex belongs to.
-        x: The x-coordinate (n_x).
-        y: The y-coordinate (n_y).
-        z: The z-coordinate (n_z), optional for 3D.
-        order: The order of the vertex (n_ord).
-
-    Returns:
-        dict: Success message with new vertex_id (i_vtx).
-
-    Raises:
-        HTTPException: 400 if region_id doesn’t exist, 500 if insertion fails.
-    """
     try:
         # Validate region_id exists before adding
         region_exists = await execute_raw_query("maint", "SELECT i_rgn FROM public.regions WHERE i_rgn = $1", region_id)
@@ -233,19 +212,13 @@ async def add_vertex(region_id: int = Form(...), x: float = Form(...), y: float 
         logger.error(f"Error adding vertex: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/update_vertices")
+@router.post(
+    "/update_vertices",
+    summary="Update multiple vertices in bulk",
+    description=load_description("update_vertices"),
+    tags=["triggers"]
+)
 async def update_vertices(vertices: List[dict]):
-    """Update multiple vertices in bulk.
-
-    Args:
-        vertices: List of dictionaries containing vertex_id, x, y, z (optional), and order.
-
-    Returns:
-        dict: Success message.
-
-    Raises:
-        HTTPException: 404 if a vertex is not found, 500 if update fails.
-    """
     try:
         if not vertices:
             logger.warning("No vertices provided for update")

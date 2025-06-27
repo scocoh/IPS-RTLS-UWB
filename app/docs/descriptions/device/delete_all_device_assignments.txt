@@ -1,0 +1,43 @@
+# Name: delete_all_device_assignments.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Delete all device assignments in the ParcoRTLS system.
+
+This endpoint removes all device assignments using the `usp_assign_dev_delete_all` stored procedure. It is used to reset all device-entity associations, typically during major system maintenance or reconfiguration.
+
+Args:
+    None
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("All device assignments deleted successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/delete_all_device_assignments"
+    ```
+    Response:
+    ```json
+    {"message": "All device assignments deleted successfully"}
+    ```
+
+Use Case:
+    - Clear all device assignments during a system-wide reset or migration.
+    - Remove all tag-zone associations before reconfiguring a campus's zone structure.
+
+Hint:
+    - Use this endpoint cautiously, as it affects all devices and may disrupt tracking operations.
+    - Consider using `/end_all_device_assignments` to preserve historical data instead of deleting assignments.

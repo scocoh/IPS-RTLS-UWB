@@ -1,0 +1,59 @@
+Extract concealed text from the metadata of a default PNG file (hidden endpoint).
+
+This internal endpoint retrieves concealed text embedded in the metadata of the
+`static/default_grid_box.png` file. It is not exposed in the Swagger UI and is intended for
+internal debugging or administrative purposes in the ParcoRTLS system. The response can be
+formatted as JSON or HTML based on the `format` query parameter.
+
+Parameters:
+    format (str, optional, query): Specifies the response format. Set to "html" for an HTML page,
+                                  otherwise returns JSON. Defaults to None (JSON).
+
+Returns:
+    - If format="html": An HTML page (Response with media_type="text/html") containing the concealed
+      text in a formatted <pre> tag.
+    - Otherwise: A JSON object with a single key:
+      - internal_metadata (str): The concealed text extracted from the PNG metadata.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/zonebuilder/internal-metadata?format=html"
+    ```
+    Response (HTML):
+    ```html
+    <html>
+      <head>
+        <title>Internal Metadata</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          pre { background-color: #f4f4f4; padding: 1em; border: 1px solid #ccc; }
+        </style>
+      </head>
+      <body>
+        <h1>Internal Metadata</h1>
+        <pre>Hidden text here</pre>
+      </body>
+    </html>
+    ```
+
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/internal-metadata
+    ```
+    Response (JSON):
+    ```json
+    {"internal_metadata": "Hidden text here"}
+    ```
+
+Use Case:
+    - A developer debugging the Zone Builder tool needs to access hidden configuration data or
+      debug information embedded in the default PNG file used for map rendering.
+
+Hint:
+    - Ensure the `static/default_grid_box.png` file exists in the correct directory and contains
+      the expected metadata.
+    - This endpoint is hidden from Swagger UI (include_in_schema=False) to prevent public exposure.
+
+Errors:
+    - 404 (Not Found): Raised if the concealed metadata is not found in the PNG file.
+    - 500 (Internal Server Error): Raised if there is an issue opening the PNG file or an unexpected
+      error occurs.

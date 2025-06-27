@@ -1,0 +1,42 @@
+Fetch all zone types from the ParcoRTLS database.
+
+This endpoint retrieves a list of zone types from the `tlkzonetypes` table in the `maint` schema.
+Zone types define the hierarchical levels of zones (e.g., campus, building, floor) in the
+ParcoRTLS system. The endpoint is used by the Zone Builder tool to populate a dropdown or list
+of zone types when creating or editing zones.
+
+Parameters:
+    None
+
+Returns:
+    list: A list of dictionaries, each representing a zone type with the following keys:
+          - zone_level (int): The zone type ID (i_typ_zn, e.g., 1 for campus).
+          - zone_name (str): The description of the zone type (x_dsc_zn).
+          - api_endpoint (str): The endpoint to create a zone (hardcoded as "/create_zone").
+
+Example:
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/get_zone_types
+    ```
+    Response:
+    ```json
+    [
+        {"zone_level": 1, "zone_name": "Campus", "api_endpoint": "/create_zone"},
+        {"zone_level": 2, "zone_name": "Building", "api_endpoint": "/create_zone"}
+    ]
+    ```
+
+Use Case:
+    - When creating a new zone in the Zone Builder, a user needs to select the zone type (e.g.,
+      campus or floor). This endpoint provides the available zone types to ensure the zone is
+      correctly categorized in the hierarchy.
+
+Hint:
+    - For campus-level zones, select zone_level = 1. This can be used to check if a tag is on a
+      campus by associating devices with zones of this type.
+    - The api_endpoint field is currently hardcoded. Future enhancements could make it dynamic
+      based on zone type.
+
+Errors:
+    - 500 (Internal Server Error): Raised if there is a database connection issue or an unexpected
+      error occurs during query execution.

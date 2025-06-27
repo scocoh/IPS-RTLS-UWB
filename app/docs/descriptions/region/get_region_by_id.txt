@@ -1,0 +1,52 @@
+Retrieve details of a specific region by its ID in the ParcoRTLS system.
+
+This endpoint fetches the details of a region from the `regions` table using the stored procedure `usp_region_select_by_id`. It returns attributes such as the region's name, zone ID, spatial boundaries, and associated trigger (if any). This is useful for inspecting or validating a region's configuration.
+
+Parameters:
+    region_id (int): Path parameter specifying the ID of the region to retrieve (i_rgn). Required.
+
+Returns:
+    dict: A JSON response containing the region's details, with fields such as:
+        - i_rgn (int): Region ID.
+        - i_zn (int): Zone ID.
+        - x_nm_rgn (str): Region name.
+        - n_max_x (float): Maximum x-coordinate.
+        - n_max_y (float): Maximum y-coordinate.
+        - n_max_z (float): Maximum z-coordinate.
+        - n_min_x (float): Minimum x-coordinate.
+        - n_min_y (float): Minimum y-coordinate.
+        - n_min_z (float): Minimum z-coordinate.
+        - i_trg (int, optional): Trigger ID, if associated.
+
+Raises:
+    HTTPException:
+        - 404: If the region_id does not exist in the `regions` table.
+        - 500: If the database operation fails or an unexpected error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_region_by_id/1001"
+    ```
+    Response:
+    ```json
+    {
+      "i_rgn": 1001,
+      "i_zn": 10,
+      "x_nm_rgn": "Lobby Area",
+      "n_max_x": 50.0,
+      "n_max_y": 50.0,
+      "n_max_z": 10.0,
+      "n_min_x": 0.0,
+      "n_min_y": 0.0,
+      "n_min_z": 0.0,
+      "i_trg": null
+    }
+    ```
+
+Use Case:
+    - **Scenario**: A developer needs to verify the configuration of a region before associating it with a new trigger or updating its vertices.
+    - **Example**: In a museum, the region for an "Exhibit Hall" is checked to ensure its boundaries align with the physical space.
+
+Hint:
+    - Use this endpoint to confirm a region's details before editing it with `/edit_region` or deleting it with `/delete_region`.
+    - To retrieve the vertices associated with this region, use `/get_zone_vertices/{zone_id}` or `/get_regions_by_zone/{zone_id}`.

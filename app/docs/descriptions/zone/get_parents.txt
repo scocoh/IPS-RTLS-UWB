@@ -1,0 +1,39 @@
+Fetch all top-level parent zones from the ParcoRTLSMaint database.
+
+This endpoint retrieves zones that have no parent zone (i.e., `i_pnt_zn IS NULL`), representing the highest level in the zone hierarchy, such as campuses in the ParcoRTLS system. These zones are typically used as the root nodes for building zone hierarchies in the frontend Zone Viewer or for initializing zone selection in administrative interfaces.
+
+Parameters:
+    None
+
+Returns:
+    dict: A JSON object with a single key "parents" containing a list of dictionaries. Each dictionary represents a parent zone with the following fields:
+        - i_zn (int): The unique zone ID.
+        - i_typ_zn (int): The zone type ID (e.g., 1 for Campus).
+        - x_nm_zn (str): The name of the zone.
+    Example: {"parents": [{"i_zn": 1, "i_typ_zn": 1, "x_nm_zn": "Main Campus"}, ...]}
+
+Raises:
+    HTTPException:
+        - 500: If an unexpected error occurs during database query execution (e.g., database connectivity issues).
+
+Example Usage:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/api/get_parents" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+        "parents": [
+            {"i_zn": 1, "i_typ_zn": 1, "x_nm_zn": "Main Campus"},
+            {"i_zn": 2, "i_typ_zn": 1, "x_nm_zn": "West Campus"}
+        ]
+    }
+    ```
+
+Use Case:
+    - **Zone Hierarchy Initialization**: The frontend React app (running at http://192.168.210.226:3000) calls this endpoint to populate a dropdown or tree view with top-level zones (e.g., campuses) when a user starts configuring zones or viewing zone maps.
+    - **Administrative Dashboard**: An admin uses this endpoint to select a parent zone before adding child zones or assigning devices to a campus-level zone.
+
+Hint:
+    - This endpoint is useful for identifying zones of type `i_typ_zn=1` (Campus), which can be used to check if a tag is located within a campus boundary by combining with `/get_zone_vertices/{zone_id}` to fetch boundary coordinates.
+    - Ensure CORS is configured in `app.py` to allow requests from the React frontend.

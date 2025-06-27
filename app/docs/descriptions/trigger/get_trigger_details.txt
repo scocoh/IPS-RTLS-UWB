@@ -1,0 +1,50 @@
+# Name: get_trigger_details.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/trigger
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Fetch details of a specific trigger, including its region vertices.
+
+This endpoint retrieves the vertices defining the region associated with a given trigger, allowing developers to understand the trigger’s spatial boundaries in the ParcoRTLS system.
+
+Args:
+    trigger_id (int): The ID of the trigger to fetch details for (path parameter, required).
+
+Returns:
+    dict: A JSON response containing:
+        - vertices (list): List of dictionaries with vertex details (x, y, z, n_ord).
+
+Raises:
+    HTTPException:
+        - 404: If no region is found for the trigger.
+        - 500: For database errors or unexpected issues.
+
+Example:
+    To fetch details for trigger ID 123:
+    ```
+    curl -X GET http://192.168.210.226:8000/get_trigger_details/123
+    ```
+    Response:
+    ```json
+    {
+        "vertices": [
+            {"x": 0.0, "y": 0.0, "z": 0.0, "n_ord": 1},
+            {"x": 5.0, "y": 0.0, "z": 0.0, "n_ord": 2},
+            {"x": 0.0, "y": 5.0, "z": 0.0, "n_ord": 3}
+        ]
+    }
+    ```
+
+Use Case:
+    This endpoint is used to retrieve the exact geometry of a trigger’s region for visualization in the React frontend (e.g., rendering the trigger area on a map) or for debugging trigger configurations.
+
+Hint:
+    - Ensure the trigger has an associated region (maint.regions, i_trg = trigger_id) to avoid a 404 error.
+    - The n_ord field indicates the order of vertices, which is important for rendering polygons correctly.

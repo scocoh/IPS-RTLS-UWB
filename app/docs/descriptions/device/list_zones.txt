@@ -1,0 +1,58 @@
+# Name: list_zones.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Retrieve a list of all zones in the ParcoRTLS system.
+
+This endpoint fetches all zones using the `usp_zone_list` stored procedure. It is used to provide a list of zones for assignment, mapping, or display in the React frontend.
+
+Args:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing zone details.
+        - i_zn (int): Zone ID.
+        - x_nm_zn (str): Zone name (e.g., "Main Lobby").
+        - i_typ_zn (int): Zone type ID.
+        - i_map (int or None): Associated map ID.
+        - d_crt (datetime): Creation date.
+        - d_udt (datetime): Last update date.
+
+Raises:
+    HTTPException:
+        - 404: If no zones are found.
+        - 500: If a database error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/zone_list"
+    ```
+    Response:
+    ```json
+    [
+        {
+            "i_zn": 1,
+            "x_nm_zn": "Main Lobby",
+            "i_typ_zn": 1,
+            "i_map": 101,
+            "d_crt": "2025-04-26T10:00:00",
+            "d_udt": "2025-04-26T10:00:00"
+        }
+    ]
+    ```
+
+Use Case:
+    - Populate a dropdown in the React frontend for selecting zones when assigning devices.
+    - Generate a report of all zones for campus planning.
+
+Hint:
+    - Use this endpoint to retrieve valid `zone_id` values for `/add_device` or `/edit_device`.
+    - The `i_map` field can be used to link zones to maps in the Build Out Tool.

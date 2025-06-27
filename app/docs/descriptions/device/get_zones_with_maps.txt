@@ -1,0 +1,63 @@
+# Name: get_zones_with_maps.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Retrieve all zones with their associated map IDs for the Build Out Tool.
+
+This endpoint fetches all zones and their map IDs from the `zones` table using a raw SQL query in the `maint` schema. It is specifically designed for the Build Out Tool, which uses this data to associate zones with maps for visualization and configuration in the ParcoRTLS system. The endpoint supports campus planning and zone management by providing essential mapping information for the React frontend running at http://192.168.210.226:3000.
+
+Args:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing zone and map details.
+        - i_zn (int): Zone ID (e.g., 1).
+        - x_nm_zn (str): Zone name (e.g., "Main Lobby").
+        - i_typ_zn (int): Zone type ID (e.g., 1 for indoor zone).
+        - i_map (int or None): Associated map ID (e.g., 101 for a specific map).
+
+Raises:
+    HTTPException:
+        - 404: If no zones are found in the database.
+        - 500: If a database error or unexpected error occurs during the query.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/zones_with_maps"
+    ```
+    Response:
+    ```json
+    [
+        {
+            "i_zn": 1,
+            "x_nm_zn": "Main Lobby",
+            "i_typ_zn": 1,
+            "i_map": 101
+        },
+        {
+            "i_zn": 2,
+            "x_nm_zn": "Ward A",
+            "i_typ_zn": 2,
+            "i_map": 102
+        }
+    ]
+    ```
+
+Use Case:
+    - Populate the Build Out Tool in the React frontend with zone and map associations for configuring campus layouts.
+    - Generate a report of all zones and their map IDs for planning Zone L1 campus expansions.
+    - Support zone visualization in the frontend by linking zones to their respective maps.
+
+Hint:
+    - Use this endpoint in conjunction with `/zone_list` to get additional zone details like creation and update dates.
+    - The `i_map` field links to map data; ensure maps are configured in the system to utilize this data effectively.
+    - For Zone L1 campuses, this endpoint helps verify zone-map associations for accurate device tracking.
+    - Log errors are captured for debugging; check logs at `/var/log` if a 500 error occurs.

@@ -1,0 +1,35 @@
+Delete a zone and all its progeny recursively.
+
+**Description**:
+This endpoint deletes a zone and all its child zones (progeny), along with associated regions and vertices.
+It is used in the Zone Editor to remove entire zone hierarchies, such as when decommissioning a campus or building.
+
+**Parameters**:
+- `zone_id` (int, path parameter, required): The unique identifier of the zone to delete.
+
+**Returns**:
+- JSON object with a single key `message` (str): Confirmation message indicating the zone and its progeny were deleted.
+
+**Example Usage**:
+```bash
+curl -X DELETE "http://192.168.210.226:8000/zoneviewer/delete_zone_recursive/1" -H "accept: application/json"
+```
+Response:
+```json
+{
+  "message": "Deleted zone 1 and its progeny successfully"
+}
+```
+
+**Use Case**:
+- **Scenario**: A facility manager needs to remove an obsolete campus from the ParcoRTLS system.
+- **Action**: The frontend calls this endpoint to delete the campus and all its zones.
+- **Outcome**: The database is updated, and the campus is removed from the system.
+
+**Errors**:
+- **404 Not Found**: Raised if the `zone_id` does not exist (`HTTPException`, detail="Zone {zone_id} not found").
+- **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+**Hint**:
+- Use with caution, as this endpoint permanently deletes zones and their data.
+- Ensure no active tags or entities are associated with the zones before deletion.

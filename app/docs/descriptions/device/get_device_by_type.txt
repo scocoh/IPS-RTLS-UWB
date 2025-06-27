@@ -1,0 +1,64 @@
+# Name: get_device_by_type.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Retrieve all devices of a specific type.
+
+This endpoint fetches devices of a given type (e.g., all tags or all beacons) using the `usp_device_select_by_type` stored procedure. It is useful for filtering devices by their category for reporting or UI display.
+
+Args:
+    device_type (int): The device type ID to filter by (e.g., 1 for Tag, 2 for Beacon). Required.
+
+Returns:
+    list: A list of dictionaries, each containing device details.
+        - x_id_dev (str): Device ID.
+        - i_typ_dev (int): Device type ID.
+        - x_nm_dev (str): Device name.
+        - n_moe_x (float or None): X-coordinate of the margin of error.
+        - n_moe_y (float or None): Y-coordinate of the margin of error.
+        - n_moe_z (float or None): Z-coordinate of the margin of error.
+        - zone_id (int or None): Associated zone ID.
+        - d_srv_bgn (datetime or None): Service start date.
+        - d_srv_end (datetime or None): Service end date.
+        - f_log (bool or None): Logging flag.
+
+Raises:
+    None: Returns an empty list if no devices are found or if an error occurs, preventing frontend crashes.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_device_by_type/1"
+    ```
+    Response:
+    ```json
+    [
+        {
+            "x_id_dev": "TAG001",
+            "i_typ_dev": 1,
+            "x_nm_dev": "Employee Tag",
+            "n_moe_x": 100.5,
+            "n_moe_y": 200.7,
+            "n_moe_z": 10.0,
+            "zone_id": 1,
+            "d_srv_bgn": "2025-04-26T00:00:00",
+            "d_srv_end": null,
+            "f_log": true
+        }
+    ]
+    ```
+
+Use Case:
+    - List all tags (type ID 1) in a dropdown for assigning to entities in the React frontend.
+    - Generate a report of all beacons (type ID 2) for maintenance scheduling.
+
+Hint:
+    - Retrieve valid `device_type` values from `/list_device_types` to ensure accurate filtering.
+    - The empty list return on error aligns with version 0.1.38 changes to improve frontend compatibility.

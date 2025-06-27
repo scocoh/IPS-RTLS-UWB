@@ -1,0 +1,43 @@
+Fetch all child zones of a specified parent zone.
+
+This endpoint retrieves all zones that have the specified `parent_id` as their parent zone (`i_pnt_zn`), allowing the construction of a zone hierarchy below a given parent zone. In the ParcoRTLS system, this is used to display sub-zones (e.g., buildings, floors, or rooms) under a parent zone like a campus or building in the Zone Viewer.
+
+Parameters:
+    parent_id (int, required): The ID of the parent zone (`i_zn`) whose child zones are to be retrieved.
+
+Returns:
+    dict: A JSON object with a single key "children" containing a list of child zone dictionaries. Each dictionary includes fields returned by the `usp_zone_children_select` stored procedure, typically:
+        - i_zn (int): The unique zone ID.
+        - x_nm_zn (str): The name of the zone.
+        - i_typ_zn (int): The zone type ID.
+        - i_pnt_zn (int): The parent zone ID.
+    Example: {"children": [{"i_zn": 3, "x_nm_zn": "Building A", "i_typ_zn": 2, "i_pnt_zn": 1}, ...]}
+    If no children are found, returns {"children": []}.
+
+Raises:
+    HTTPException:
+        - 404: If no child zones are found for the specified `parent_id` (handled by returning an empty list).
+        - 500: If an unexpected error occurs during stored procedure execution.
+        - Custom status codes: If a `DatabaseError` occurs, the status code from the error is used (e.g., 400 for invalid input).
+
+Example Usage:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/api/get_children/1" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+        "children": [
+            {"i_zn": 3, "x_nm_zn": "Building A", "i_typ_zn": 2, "i_pnt_zn": 1},
+            {"i_zn": 4, "x_nm_zn": "Building B", "i_typ_zn": 2, "i_pnt_zn": 1}
+        ]
+    }
+    ```
+
+Use Case:
+    - **Zone Hierarchy Navigation**: The frontend uses this endpoint to expand a parent zone in a tree view, showing its child zones (e.g., buildings under a campus or rooms under a floor).
+    - **Zone Configuration**: An admin calls this endpoint to list child zones when assigning devices or triggers to specific sub-zones within a parent zone.
+
+Hint:
+    - Combine this endpoint with `/get_zone_vertices/{zone_id}` to fetch the boundaries of child zones for rendering on a map.
+    - If the stored procedure `usp_zone_children_select` returns a string, it is JSON-parsed, which may indicate legacy behavior; verify the stored procedure output format in the database schema.

@@ -1,0 +1,57 @@
+Update an existing region's details in the ParcoRTLS system.
+
+This endpoint modifies the attributes of a region in the `regions` table, such as its name, spatial boundaries, or associated zone/trigger, using the stored procedure `usp_region_edit`. It is used to adjust region configurations when spatial definitions or associations change.
+
+Parameters:
+    request (RegionRequest): A Pydantic model containing the following fields:
+        - region_id (int): The ID of the region to update (i_rgn). Required.
+        - zone_id (int): The ID of the zone (i_zn) this region belongs to. Required.
+        - region_name (str): A descriptive name for the region (x_nm_rgn). Required.
+        - max_x (float): The maximum x-coordinate of the region's bounding box (n_max_x). Required.
+        - max_y (float): The maximum y-coordinate of the region's bounding box (n_max_y). Required.
+        - max_z (float): The maximum z-coordinate of the region's bounding box (n_max_z). Required.
+        - min_x (float): The minimum x-coordinate of the region's bounding box (n_min_x). Required.
+        - min_y (float): The minimum y-coordinate of the region's bounding box (n_min_y). Required.
+        - min_z (float): The minimum z-coordinate of the region's bounding box (n_min_z). Required.
+        - trigger_id (int, optional): The ID of the trigger (i_trg) associated with this region, if any. Defaults to None.
+
+Returns:
+    dict: A JSON response with the following structure:
+        - message (str): A confirmation message indicating success ("Region edited successfully").
+
+Raises:
+    HTTPException:
+        - 400: If the request data is invalid or the zone_id/trigger_id does not exist.
+        - 404: If the region_id does not exist in the `regions` table.
+        - 500: If the database operation fails or an unexpected error occurs.
+
+Example:
+    ```bash
+    curl -X PUT "http://192.168.210.226:8000/edit_region"              -H "Content-Type: application/json"              -d '{
+               "region_id": 1001,
+               "zone_id": 10,
+               "region_name": "Updated Lobby Area",
+               "max_x": 60.0,
+               "max_y": 60.0,
+               "max_z": 12.0,
+               "min_x": 0.0,
+               "min_y": 0.0,
+               "min_z": 0.0,
+               "trigger_id": 2001
+             }'
+    ```
+    Response:
+    ```json
+    {
+      "message": "Region edited successfully"
+    }
+    ```
+
+Use Case:
+    - **Scenario**: A facility manager needs to expand the boundaries of a region due to a physical expansion of the area or update its name for clarity.
+    - **Example**: In a retail store, the region for the "Checkout Area" is updated to include additional checkout counters.
+
+Hint:
+    - Verify the new `zone_id` and `trigger_id` exist using `/get_parent_zones` and `/list_triggers` before updating.
+    - Ensure the new coordinates are consistent with the map's coordinate system, which can be validated using `/get_map_metadata/{map_id}`.
+    - If vertices need updating, use the `/update_vertices` endpoint in `vertex.py` after editing the region.

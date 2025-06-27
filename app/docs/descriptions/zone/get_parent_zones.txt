@@ -1,0 +1,39 @@
+Fetch all top-level parent zones from the ParcoRTLSMaint database.
+
+Similar to `/get_parents`, this endpoint retrieves zones with no parent zone (`i_pnt_zn IS NULL`), such as campuses, but returns a simpler structure with only zone ID and name. It is used in scenarios where a minimal representation of top-level zones is needed, such as dropdowns or quick selections in the ParcoRTLS frontend.
+
+Parameters:
+    None
+
+Returns:
+    dict: A JSON object with a single key "zones" containing a list of dictionaries. Each dictionary represents a parent zone with:
+        - zone_id (int): The unique zone ID (`i_zn`).
+        - name (str): The name of the zone (`x_nm_zn`).
+    Example: {"zones": [{"zone_id": 1, "name": "Main Campus"}, ...]}
+    If no parent zones are found, returns {"zones": []}.
+
+Raises:
+    HTTPException:
+        - 500: If an unexpected error occurs during database query execution.
+
+Example Usage:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/api/get_parent_zones" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+        "zones": [
+            {"zone_id": 1, "name": "Main Campus"},
+            {"zone_id": 2, "name": "West Campus"}
+        ]
+    }
+    ```
+
+Use Case:
+    - **Zone Selection**: The frontend uses this endpoint to populate a dropdown for selecting a top-level zone when configuring devices, triggers, or sub-zones.
+    - **Simplified Hierarchy View**: Unlike `/get_parents`, this endpoint provides a lightweight response for scenarios where only zone IDs and names are needed.
+
+Hint:
+    - This endpoint is redundant with `/get_parents` but returns fewer fields; consider consolidating or deprecating one in future iterations to reduce API complexity.
+    - For campus-level tag tracking, combine with `/get_zone_vertices/{zone_id}` to check if a tag's coordinates are within a campus boundary.

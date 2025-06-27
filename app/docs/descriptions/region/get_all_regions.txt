@@ -1,0 +1,56 @@
+Retrieve all regions from the ParcoRTLS system database.
+
+This endpoint fetches all regions from the `regions` table using the stored procedure `usp_region_list`. It provides a comprehensive list of all regions, including their attributes, which is useful for system-wide analysis or auditing.
+
+Parameters:
+    None
+
+Returns:
+    list: A list of dictionaries, each containing region details with fields such as:
+        - i_rgn (int): Region ID.
+        - i_zn (int): Zone ID.
+        - x_nm_rgn (str): Region name.
+        - n_max_x (float): Maximum x-coordinate.
+        - n_max_y (float): Maximum y-coordinate.
+        - n_max_z (float): Maximum z-coordinate.
+        - n_min_x (float): Minimum x-coordinate.
+        - n_min_y (float): Minimum y-coordinate.
+        - n_min_z (float): Minimum z-coordinate.
+        - i_trg (int, optional): Trigger ID, if associated.
+
+Raises:
+    HTTPException:
+        - 404: If no regions are found in the database.
+        - 500: If the database query fails or an unexpected error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_all_regions"
+    ```
+    Response:
+    ```json
+    [
+      {
+        "i_rgn": 1001,
+        "i_zn": 10,
+        "x_nm_rgn": "Lobby Area",
+        "n_max_x": 50.0,
+        "n_max_y": 50.0,
+        "n_max_z": 10.0,
+        "n_min_x": 0.0,
+        "n_min_y": 0.0,
+        "n_min_z": 0.0,
+        "i_trg": null
+      },
+      ...
+    ]
+    ```
+
+Use Case:
+    - **Scenario**: A system administrator needs to audit all regions in the system to ensure proper configuration or to generate a report.
+    - **Example**: In a university campus, this endpoint is used to list all regions across all buildings for a spatial analysis report.
+
+Hint:
+    - Use this endpoint for bulk operations or when initializing a frontend application that needs a complete list of regions.
+    - To fetch vertices for these regions, iterate over the returned `i_zn` values and call `/get_regions_by_zone/{zone_id}`.
+    - For a campus-level overview, combine with `/get_campus_zones` from `zoneviewer_routes.py`.

@@ -1,0 +1,54 @@
+Add a new vertex to a zone.
+
+**Description**:
+This endpoint adds a new vertex to a zone’s region, used in the Zone Editor to extend a zone’s polygon shape.
+It aligns with the `DataV2.VertexAdd` functionality from the original ParcoRTLS system.
+
+**Parameters**:
+- `request` (AddVertexRequest, body, required): Pydantic model with:
+  - `zone_id` (int, required): ID of the zone to add the vertex to.
+  - `x` (float, required): X coordinate of the new vertex.
+  - `y` (float, required): Y coordinate of the new vertex.
+  - `z` (float, optional, default=0.0): Z coordinate of the new vertex.
+  - `order` (float, required): Order of the vertex in the polygon.
+
+**Returns**:
+- JSON object representing the new vertex, with:
+  - `vertex_id` (int): ID of the new vertex.
+  - `i_rgn` (int): Region ID the vertex belongs to.
+  - `x` (float): X coordinate.
+  - `y` (float): Y coordinate.
+  - `z` (float): Z coordinate.
+  - `order` (float): Order in the polygon.
+  - `zone_id` (int): ID of the zone.
+
+**Example Usage**:
+```bash
+curl -X POST "http://192.168.210.226:8000/zoneviewer/add_vertex"       -H "Content-Type: application/json"       -d '{"zone_id": 2, "x": 30.0, "y": 40.0, "z": 0.0, "order": 3}'
+```
+Response:
+```json
+{
+  "vertex_id": 1003,
+  "i_rgn": 201,
+  "x": 30.0,
+  "y": 40.0,
+  "z": 0.0,
+  "order": 3.0,
+  "zone_id": 2
+}
+```
+
+**Use Case**:
+- **Scenario**: A user adds a new point to a zone’s polygon to refine its shape.
+- **Action**: The frontend sends the vertex data to this endpoint to create the vertex.
+- **Outcome**: The zone’s polygon is updated with the new vertex.
+
+**Errors**:
+- **404 Not Found**: Raised if no region is found for the `zone_id` (`HTTPException`, detail="No region found for zone_id={zone_id}").
+- **400 Bad Request**: Raised if the region ID does not exist (`HTTPException`, detail="Region ID {region_id} does not exist").
+- **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+**Hint**:
+- Ensure the `zone_id` has an associated region in the `regions` table.
+- The `order` field determines the vertex’s position in the polygon sequence.

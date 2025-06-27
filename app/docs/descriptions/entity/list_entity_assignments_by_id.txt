@@ -1,0 +1,37 @@
+Retrieve details of a specific entity assignment by its ID.
+
+This endpoint fetches a single assignment using the `usp_assign_entity_list_by_key` stored procedure. It is used to verify or display details of a specific assignment.
+
+Args:
+    assignment_id (int): The ID of the assignment (e.g., 101). Required.
+
+Returns:
+    list: A list containing a single dictionary with assignment details.
+        - x_id_pnt (str): Parent entity ID.
+        - x_id_chd (str): Child entity ID.
+        - i_rsn_assmt (int): Assignment reason ID.
+        - d_crt (datetime): Creation date.
+        - d_end (datetime, optional): End date (null if active).
+
+Raises:
+    HTTPException:
+        - 404: If the assignment is not found.
+        - 500: If the database operation fails.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_entity_assignments_by_id/101"
+    ```
+    Response:
+    ```json
+    [
+        {"x_id_pnt": "DEPT001", "x_id_chd": "EMP123", "i_rsn_assmt": 1, "d_crt": "2025-04-26T10:00:00", "d_end": null}
+    ]
+    ```
+
+Use Case:
+    - Display details of a specific assignment in the React frontend.
+    - Verify an assignment before editing or ending it.
+
+Hint:
+    - Use this endpoint to prefetch assignment data before rendering forms.

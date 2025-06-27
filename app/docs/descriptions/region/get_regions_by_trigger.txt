@@ -1,0 +1,62 @@
+Fetch all regions associated with a specific trigger ID in the ParcoRTLS system.
+
+This endpoint retrieves regions linked to a given trigger from the `regions` table using the stored procedure `usp_regions_select_by_trigger`. It returns region details, including any associated vertices, which is useful for analyzing trigger-related spatial configurations.
+
+Parameters:
+    trigger_id (int): Path parameter specifying the ID of the trigger (i_trg) to filter regions by. Required.
+
+Returns:
+    list: A list of dictionaries containing region and vertex details, with fields such as:
+        - i_rgn (int): Region ID.
+        - i_zn (int): Zone ID.
+        - x_nm_rgn (str): Region name.
+        - n_max_x (float): Maximum x-coordinate.
+        - n_max_y (float): Maximum y-coordinate.
+        - n_max_z (float): Maximum z-coordinate.
+        - n_min_x (float): Minimum x-coordinate.
+        - n_min_y (float): Minimum y-coordinate.
+        - n_min_z (float): Minimum z-coordinate.
+        - i_trg (int): Trigger ID.
+        - Additional vertex fields (if applicable), such as i_vtx, n_x, n_y, n_z, n_ord.
+
+Raises:
+    HTTPException:
+        - 404: If no regions are found for the specified trigger_id.
+        - 500: If the database query fails, the stored procedure returns an unexpected response, or an unexpected error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/get_regions_by_trigger/2001"
+    ```
+    Response:
+    ```json
+    [
+      {
+        "i_rgn": 1002,
+        "i_zn": 10,
+        "x_nm_rgn": "Trigger Region",
+        "n_max_x": 30.0,
+        "n_max_y": 30.0,
+        "n_max_z": 5.0,
+        "n_min_x": 10.0,
+        "n_min_y": 10.0,
+        "n_min_z": 0.0,
+        "i_trg": 2001,
+        "i_vtx": 5002,
+        "n_x": 10.0,
+        "n_y": 10.0,
+        "n_z": 0.0,
+        "n_ord": 1
+      },
+      ...
+    ]
+    ```
+
+Use Case:
+    - **Scenario**: A security team needs to inspect all regions associated with a specific trigger to verify its spatial coverage.
+    - **Example**: In a hospital, this endpoint is used to check the regions linked to an "Emergency Alert" trigger to ensure they cover all critical areas.
+
+Hint:
+    - Verify the `trigger_id` exists using `/list_triggers` before calling this endpoint.
+    - To check if a tag is within a trigger's region (e.g., for Zone L1 zones), combine this endpoint with `/trigger_contains_point/{trigger_id}`.
+    - The endpoint handles cases where the stored procedure returns a success message dictionary, ensuring proper 404 handling.

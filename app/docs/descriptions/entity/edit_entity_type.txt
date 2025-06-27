@@ -1,0 +1,32 @@
+Update an existing entity type's details.
+
+This endpoint modifies the name of an entity type using the `usp_entity_type_edit` stored procedure. It is used to correct or update type names.
+
+Args:
+    type_id (str): The ID of the entity type to update (e.g., "1"). Required.
+    request (EntityTypeRequest): The request body containing the updated type details.
+        - type_name (str): The updated name of the entity type (e.g., "Staff"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Entity type edited successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the entity type cannot be updated.
+
+Example:
+    ```bash
+    curl -X PUT "http://192.168.210.226:8000/edit_entity_type?type_id=1"              -H "Content-Type: application/json"              -d '{"type_name": "Staff"}'
+    ```
+    Response:
+    ```json
+    {"message": "Entity type edited successfully"}
+    ```
+
+Use Case:
+    - Rename an entity type from "Employee" to "Staff" for consistency.
+    - Update a type name to better reflect its purpose.
+
+Hint:
+    - Verify the `type_id` exists using `/list_entity_types` before attempting to update.

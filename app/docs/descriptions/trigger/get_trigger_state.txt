@@ -1,0 +1,52 @@
+# Name: get_trigger_state.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/trigger
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Fetch the last known state of a device for a given trigger.
+
+This endpoint retrieves the most recent state (e.g., inside or outside) of a device (identified by device_id) relative to a specific trigger’s region, useful for tracking device interactions with trigger areas.
+
+Args:
+    trigger_id (int): The ID of the trigger (path parameter, required).
+    device_id (str): The ID of the device (path parameter, required).
+
+Returns:
+    dict: A JSON response containing:
+        - trigger_id (int): The ID of the trigger.
+        - device_id (str): The ID of the device.
+        - last_state (str): The last known state (e.g., "inside", "outside").
+
+Raises:
+    HTTPException:
+        - 404: If no state data is found for the trigger and device.
+        - 500: For database errors or unexpected issues.
+
+Example:
+    To fetch the state of device "TAG001" for trigger ID 123:
+    ```
+    curl -X GET http://192.168.210.226:8000/get_trigger_state/123/TAG001
+    ```
+    Response:
+    ```json
+    {
+        "trigger_id": 123,
+        "device_id": "TAG001",
+        "last_state": "inside"
+    }
+    ```
+
+Use Case:
+    This endpoint is used to monitor whether a device (e.g., a tag on a person or asset) is currently within a trigger’s region, such as checking if a worker is in a restricted area.
+
+Hint:
+    - Ensure the trigger_id and device_id exist in the trigger_states table (maint.trigger_states).
+    - The last_state value depends on the system’s state tracking logic; verify the trigger_states table schema.
+    - Use this endpoint in conjunction with /trigger_contains_point for real-time position checks.

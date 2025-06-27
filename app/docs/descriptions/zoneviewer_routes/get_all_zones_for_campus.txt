@@ -1,0 +1,60 @@
+Retrieve all zones under a specific campus, including hierarchy.
+
+**Description**:
+This endpoint fetches all zones under a given campus (identified by `campus_id`), including their hierarchical
+structure (parent-child relationships). It is used in the ParcoRTLS Zone Viewer to display all zones within a
+campus, such as buildings, floors, or rooms.
+
+**Parameters**:
+- `campus_id` (int, path parameter, required): The unique identifier of the campus.
+
+**Returns**:
+- JSON object with a single key `zones`, containing a list of zone objects. Each zone object has:
+  - `zone_id` (int): Unique identifier of the zone.
+  - `zone_name` (str): Name of the zone.
+  - `zone_type` (int): Type of zone (e.g., 2 for building, 3 for floor).
+  - `parent_zone_id` (int or null): ID of the parent zone.
+  - `map_id` (int or null): ID of the associated map.
+  - `children` (list): List of child zone objects with the same structure.
+
+**Example Usage**:
+```bash
+curl -X GET "http://192.168.210.226:8000/zoneviewer/get_all_zones_for_campus/1" -H "accept: application/json"
+```
+Response:
+```json
+{
+  "zones": [
+    {
+      "zone_id": 1,
+      "zone_name": "Main Campus",
+      "zone_type": 1,
+      "parent_zone_id": null,
+      "map_id": 101,
+      "children": [
+        {
+          "zone_id": 2,
+          "zone_name": "Building A",
+          "zone_type": 2,
+          "parent_zone_id": 1,
+          "map_id": 102,
+          "children": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Use Case**:
+- **Scenario**: A security team needs to manage zones within a campus to track assets.
+- **Action**: The frontend calls this endpoint to display all zones under the campus in a tree view.
+- **Outcome**: The team can navigate and manage zones efficiently.
+
+**Errors**:
+- **404 Not Found**: Not explicitly raised, but an empty `zones` list is returned if no zones are found.
+- **500 Internal Server Error**: Raised for database errors or unexpected failures (`HTTPException`, detail=str(e)).
+
+**Hint**:
+- Use this endpoint to populate a zone management interface for a specific campus.
+- Combine with `/get_vertices_for_campus/{campus_id}` to get spatial data for zones.

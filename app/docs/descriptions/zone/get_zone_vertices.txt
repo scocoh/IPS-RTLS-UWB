@@ -1,0 +1,44 @@
+Fetch vertices for a selected zone to draw its boundary.
+
+This endpoint retrieves the vertices (coordinates) that define the boundary of a specified zone, using the `usp_zone_vertices_select_by_zone` stored procedure. In the ParcoRTLS system, these vertices are used to render the polygon shape of a zone on a map in the Zone Viewer, enabling visualization of zone boundaries for navigation or device tracking.
+
+Parameters:
+    zone_id (int, required): The ID of the zone (`i_zn`) whose vertices are to be retrieved.
+
+Returns:
+    dict: A JSON object with a single key "vertices" containing a list of dictionaries. Each dictionary represents a vertex with fields returned by the stored procedure, typically:
+        - i_vtx (int): The vertex ID.
+        - i_rgn (int): The region ID associated with the vertex.
+        - n_x (float): The x-coordinate.
+        - n_y (float): The y-coordinate.
+        - n_z (float): The z-coordinate (may be null for 2D zones).
+        - n_ord (int): The order of the vertex in the boundary.
+    Example: {"vertices": [{"i_vtx": 1, "i_rgn": 10, "n_x": 0.0, "n_y": 0.0, "n_z": 0.0, "n_ord": 1}, ...]}
+
+Raises:
+    HTTPException:
+        - 404: If no vertices are found for the specified `zone_id`.
+        - 500: If an unexpected error occurs during stored procedure execution.
+
+Example Usage:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/api/get_zone_vertices/5" -H "accept: application/json"
+    ```
+    Response:
+    ```json
+    {
+        "vertices": [
+            {"i_vtx": 1, "i_rgn": 10, "n_x": 0.0, "n_y": 0.0, "n_z": 0.0, "n_ord": 1},
+            {"i_vtx": 2, "i_rgn": 10, "n_x": 10.0, "n_y": 0.0, "n_z": 0.0, "n_ord": 2},
+            {"i_vtx": 3, "i_rgn": 10, "n_x": 10.0, "n_y": 10.0, "n_z": 0.0, "n_ord": 3}
+        ]
+    }
+    ```
+
+Use Case:
+    - **Zone Boundary Rendering**: The frontend uses this endpoint to fetch vertex coordinates and draw the polygon shape of a zone on a map, helping users visualize the spatial extent of a zone (e.g., a room or building).
+    - **Tag Location Validation**: Combine with `/triggers_by_point` to check if a tag's coordinates fall within a zone's boundary for real-time location tracking.
+
+Hint:
+    - For zones of type `i_typ_zn=1` (Campus), these vertices can be used to determine if a tag is on a campus by checking if its coordinates lie within the polygon.
+    - The `n_ord` field indicates the order of vertices, which is critical for correctly drawing the polygon; ensure the frontend respects this order.

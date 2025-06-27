@@ -1,0 +1,10 @@
+Update multiple vertices in bulk.
+
+Args:
+    vertices: List of dictionaries containing vertex_id, x, y, z (optional), and order.
+
+Returns:
+    dict: Success message.
+
+Raises:
+    HTTPException: 404 if a vertex is not found, 500 if update fails.

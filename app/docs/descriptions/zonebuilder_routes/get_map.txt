@@ -1,0 +1,34 @@
+Fetch the binary image data for a specific map.
+
+This endpoint retrieves the binary image data and format for a map identified by its map_id from
+the `maps` table in the `maint` schema. It returns the image as a response, which is used by the
+Zone Builder tool to display the map in the React frontend for zone creation or editing.
+
+Parameters:
+    map_id (int, required, path): The unique identifier of the map (i_map) to fetch.
+
+Returns:
+    Response: A FastAPI Response object containing the binary image data with the appropriate
+              media type (e.g., image/png, image/jpeg) based on the map's format (x_format).
+
+Example:
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/get_map/1 --output map.png
+    ```
+    Response: Binary image data (saved as map.png in the example).
+
+Use Case:
+    - When a user selects a map in the Zone Builder to create or edit a zone, this endpoint
+      provides the actual image data to render the map in the UI, allowing the user to visualize
+      the floorplan or layout.
+
+Hint:
+    - Use this endpoint in conjunction with /get_map_data or /get_map_metadata to get the map's
+      bounds for proper scaling and alignment in the frontend.
+    - Ensure CORS is configured to allow the React frontend (http://192.168.210.226:3000) to
+      access the image.
+
+Errors:
+    - 404 (Not Found): Raised if no map is found for the provided map_id.
+    - 500 (Internal Server Error): Raised if there is a database connection issue or an unexpected
+      error occurs during query execution.

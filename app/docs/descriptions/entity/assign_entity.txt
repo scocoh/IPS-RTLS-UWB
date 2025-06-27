@@ -1,0 +1,35 @@
+Assign a child entity to a parent entity with a reason.
+
+This endpoint creates a hierarchical relationship between two entities (e.g., assigning an employee to a department) using the `usp_assign_entity_add` stored procedure. It is used to build entity hierarchies for organizational or tracking purposes.
+
+Args:
+    request (EntityAssignRequest): The request body containing assignment details.
+        - parent_id (str): The ID of the parent entity (e.g., "DEPT001"). Required.
+        - child_id (str): The ID of the child entity (e.g., "EMP123"). Required.
+        - reason_id (int): The ID of the assignment reason (e.g., 1 for "Employment"). Required.
+
+Returns:
+    dict: A JSON response indicating success and the assignment ID.
+        - message (str): Success message ("Entity assignment added successfully").
+        - assignment_id (int): The ID of the newly created assignment.
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the assignment cannot be created.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/assign_entity"              -H "Content-Type: application/json"              -d '{"parent_id": "DEPT001", "child_id": "EMP123", "reason_id": 1}'
+    ```
+    Response:
+    ```json
+    {"message": "Entity assignment added successfully", "assignment_id": 101}
+    ```
+
+Use Case:
+    - Assign an employee ("EMP123") to a department ("DEPT001") with reason ID 1 ("Employment").
+    - Link a medical device to a hospital ward for location tracking.
+
+Hint:
+    - Verify `parent_id` and `child_id` exist using `/get_entity_by_id/{entity_id}` before assigning.
+    - Retrieve valid `reason_id` values from `/list_assignment_reasons`.

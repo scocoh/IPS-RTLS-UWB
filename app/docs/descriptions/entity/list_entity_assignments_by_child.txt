@@ -1,0 +1,39 @@
+Retrieve all assignments for a specific child entity.
+
+This endpoint fetches all assignments where the specified entity is the child using the `usp_assign_entity_list_by_child` stored procedure. It is used to view an entity's parent relationships.
+
+Args:
+    child_id (str): The ID of the child entity (e.g., "EMP123"). Required.
+    include_ended (bool, optional): Whether to include ended assignments. Defaults to False.
+
+Returns:
+    list: A list of dictionaries, each containing assignment details.
+        - x_id_pnt (str): Parent entity ID.
+        - x_id_chd (str): Child entity ID.
+        - i_rsn_assmt (int): Assignment reason ID.
+        - d_crt (datetime): Creation date.
+        - d_end (datetime, optional): End date (null if active).
+
+Raises:
+    HTTPException:
+        - 404: If no assignments are found for the child entity.
+        - 500: If the database operation fails.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_entity_assignments_by_child/EMP123?include_ended=true"
+    ```
+    Response:
+    ```json
+    [
+        {"x_id_pnt": "DEPT001", "x_id_chd": "EMP123", "i_rsn_assmt": 1, "d_crt": "2025-04-26T10:00:00", "d_end": null}
+    ]
+    ```
+
+Use Case:
+    - View all departments an employee ("EMP123") is assigned to.
+    - Check the assignment history of an asset to understand its usage.
+
+Hint:
+    - Verify the `child_id` exists using `/get_entity_by_id/{entity_id}` before querying.
+    - Use `include_ended=True` for historical analysis.

@@ -1,0 +1,57 @@
+Retrieves the zone hierarchy for a specific campus in the ParcoRTLS system.
+
+This endpoint fetches all zones associated with a campus, organized hierarchically by parent-child relationships, used for displaying zone structures in the frontend or checking tag locations.
+
+Parameters:
+- campus_id (int, path parameter, required): The unique identifier of the campus whose zones are to be retrieved.
+
+Returns:
+- dict: A JSON response containing:
+    - zones (List[dict]): A list of top-level zones, each with:
+        - zone_id (int): The zone identifier.
+        - zone_name (str): The name of the zone.
+        - zone_type (int): The type of zone.
+        - parent_zone_id (int or None): The ID of the parent zone.
+        - map_id (int or None): The associated map ID.
+        - children (List[dict]): Child zones in the hierarchy.
+
+Raises:
+- HTTPException (404): If no zones are found for the specified campus_id.
+- HTTPException (500): If an unexpected error occurs during the database operation.
+
+Example:
+```bash
+curl -X GET "http://192.168.210.226:8000/api/get_campus_zones/1"
+```
+Response:
+```json
+{
+    "zones": [
+        {
+            "zone_id": 1,
+            "zone_name": "Campus Main",
+            "zone_type": 1,
+            "parent_zone_id": null,
+            "map_id": 1,
+            "children": [
+                {
+                    "zone_id": 2,
+                    "zone_name": "Building A",
+                    "zone_type": 2,
+                    "parent_zone_id": 1,
+                    "map_id": 1,
+                    "children": []
+                }
+            ]
+        }
+    ]
+}
+```
+
+Use Case:
+- The frontend uses this endpoint to display a tree view of zones for a campus, allowing users to navigate the zone hierarchy or check if a tag is within a specific campus zone (e.g., Zone L1 zones).
+- An administrator uses this to verify zone-to-map assignments before updating map metadata.
+
+Hint:
+- This endpoint is useful for checking if a tag is on a campus by traversing the zone hierarchy and verifying tag locations against Zone L1 zones.
+- The recursive CTE in the query ensures all child zones are included; ensure the `zones` table has correct `i_pnt_zn` values for hierarchy integrity.

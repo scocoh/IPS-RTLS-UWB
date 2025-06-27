@@ -1,0 +1,43 @@
+# Name: delete_device.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Delete a device from the ParcoRTLS system.
+
+This endpoint removes a device by its ID using the `usp_device_delete` stored procedure. It is used to decommission devices that are no longer in use, such as retired tags or beacons.
+
+Args:
+    device_id (str): The ID of the device to delete (e.g., "TAG001"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Device deleted successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/delete_device/TAG001"
+    ```
+    Response:
+    ```json
+    {"message": "Device deleted successfully"}
+    ```
+
+Use Case:
+    - Remove a tag ("TAG001") from the system after an employee leaves the organization.
+    - Decommission a beacon that is no longer operational.
+
+Hint:
+    - Ensure all assignments for the device are removed using `/delete_all_device_assignments` or `/end_all_device_assignments` before deletion to avoid database constraints.
+    - A return value of 0 from the stored procedure indicates the device was already deleted, which is treated as success.

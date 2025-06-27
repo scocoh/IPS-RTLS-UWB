@@ -1,0 +1,37 @@
+Insert a new position record for a device in the ParcoRTLS system.
+
+This endpoint records a device's position (x, y, z coordinates) at a specific timestamp by calling the `hist_r`
+schema's `usp_position_insert` stored procedure. It first verifies the device's existence in the `maint` schema
+using `usp_device_select_by_id`. This is critical for logging device movements in the RTLS system.
+
+Parameters:
+    device_id (str): The unique identifier of the device (e.g., tag ID or asset ID). Required.
+    x (float): The x-coordinate of the device's position (e.g., in meters). Required.
+    y (float): The y-coordinate of the device's position (e.g., in meters). Required.
+    z (float): The z-coordinate of the device's position (e.g., in meters, for height). Required.
+
+Returns:
+    dict: A JSON object indicating success.
+          Example: {"message": "Position inserted successfully"}
+
+Raises:
+    HTTPException (404): If the device is not found in the `maint` schema.
+    HTTPException (500): If the position insertion fails or a database/general error occurs.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/insert_position"              -F "device_id=TAG123"              -F "x=10.5"              -F "y=20.3"              -F "z=1.2"
+    ```
+    Response:
+    ```json
+    {"message": "Position inserted successfully"}
+    ```
+
+Use Case:
+    - **Scenario**: An RTLS gateway detects a tag's new position and sends it to the backend for storage.
+    - **Application**: This endpoint is used by the ParcoRTLS middleware to log real-time position updates, enabling historical tracking and analytics.
+
+Hint:
+    - Ensure the device ID exists in the `maint` schema before calling this endpoint to avoid 404 errors.
+    - The `start_time` and `end_time` are set to the current timestamp, assuming instantaneous position updates.
+    - For high-frequency updates, consider batching position inserts to optimize database performance.

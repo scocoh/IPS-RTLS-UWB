@@ -1,0 +1,34 @@
+Retrieves map data (image URL and bounds) for a specific zone in the ParcoRTLS system.
+
+This endpoint is designed for the React frontend's `Map.js` component, providing the URL to fetch the map image and the geographical bounds for rendering the map correctly.
+
+Parameters:
+- zone_id (int, path parameter, required): The unique identifier of the zone whose associated map data is to be retrieved.
+
+Returns:
+- dict: A JSON response containing:
+    - imageUrl (str): The URL to fetch the map image (points to `/get_map/{zone_id}`).
+    - bounds (List[List[float]]): The geographical bounds of the map as [[min_y, min_x], [max_y, max_x]].
+
+Raises:
+- HTTPException (404): If the zone or its associated map is not found.
+- HTTPException (500): If an unexpected error occurs during the database operation.
+
+Example:
+```bash
+curl -X GET "http://192.168.210.226:8000/api/get_map_data/1"
+```
+Response:
+```json
+{
+    "imageUrl": "http://192.168.210.226:8000/api/get_map/1",
+    "bounds": [[0, 0], [100, 100]]
+}
+```
+
+Use Case:
+- The React frontend uses this endpoint to fetch map data for a specific zone, enabling the `Map.js` component to render the map with correct scaling and positioning for tag tracking or zone visualization.
+
+Hint:
+- Ensure the zone_id is valid and linked to a map in the `zones` and `maps` tables. Use `/get_campus_zones/{campus_id}` to verify zone mappings.
+- Default bounds (e.g., [0, 0], [100, 100]) are used if database values are null; verify map metadata for accuracy.

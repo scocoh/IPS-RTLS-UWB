@@ -1,0 +1,46 @@
+# Name: add_device_type.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Add a new device type to the ParcoRTLS system.
+
+This endpoint creates a new device type (e.g., Tag, Beacon) using the `usp_device_type_add` stored procedure. Device types categorize devices for organizational and filtering purposes.
+
+Args:
+    request (DeviceTypeRequest): The request body containing the device type details.
+        - description (str): The name or description of the device type (e.g., "Tag"). Required.
+
+Returns:
+    dict: A JSON response indicating success and the new type ID.
+        - message (str): Success message ("Device type added successfully").
+        - type_id (int): The ID of the newly created device type.
+
+Raises:
+    HTTPException:
+        - 400: If the device type description already exists.
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X POST "http://192.168.210.226:8000/add_device_type"              -H "Content-Type: application/json"              -d '{"description": "Tag"}'
+    ```
+    Response:
+    ```json
+    {"message": "Device type added successfully", "type_id": 1}
+    ```
+
+Use Case:
+    - Add a new device type ("Patient Tag") to support tracking patients in a hospital campus.
+    - Create a custom device type for a specific use case (e.g., "Vehicle Tracker").
+
+Hint:
+    - Check existing types with `/list_device_types` to avoid duplicating descriptions.
+    - The returned `type_id` is used when adding devices via `/add_device`.

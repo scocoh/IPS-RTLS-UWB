@@ -1,0 +1,43 @@
+# Name: remove_device_end_date.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/device
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Remove the end date for a device, restoring it to active status.
+
+This endpoint clears a device's service end date using the `usp_device_remove_end_date` stored procedure. It is used to reactivate a device that was previously marked as out-of-service.
+
+Args:
+    device_id (str): The ID of the device to update (e.g., "TAG001"). Required.
+
+Returns:
+    dict: A JSON response indicating success.
+        - message (str): Success message ("Device end date removed successfully").
+
+Raises:
+    HTTPException:
+        - 500: If the database operation fails or the stored procedure returns an unexpected result.
+
+Example:
+    ```bash
+    curl -X DELETE "http://192.168.210.226:8000/remove_device_end_date/TAG001"
+    ```
+    Response:
+    ```json
+    {"message": "Device end date removed successfully"}
+    ```
+
+Use Case:
+    - Reactivate a tag after it is reassigned to a new employee.
+    - Restore a beacon to service after maintenance is completed.
+
+Hint:
+    - Verify the `device_id` exists and is out-of-service using `/get_out_of_service_devices` before calling this endpoint.
+    - This endpoint is equivalent to calling `/set_device_end_date` with a null `end_date`.

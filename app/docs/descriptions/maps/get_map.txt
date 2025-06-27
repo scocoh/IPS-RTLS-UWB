@@ -1,0 +1,26 @@
+Retrieves the stored image for a specific map in the ParcoRTLS system.
+
+This endpoint serves the binary image data of a map, which is used by the React frontend to display the map in the user interface for zone visualization or tag tracking.
+
+Parameters:
+- map_id (int, path parameter, required): The unique identifier of the map whose image is to be retrieved.
+
+Returns:
+- Response: A binary response containing the map image with the appropriate media type (e.g., `image/png`, `image/jpeg`).
+
+Raises:
+- HTTPException (404): If no image is found for the specified map_id.
+- HTTPException (500): If an unexpected error occurs during the database operation.
+
+Example:
+```bash
+curl -X GET "http://192.168.210.226:8000/api/get_map/1" --output map_image.png
+```
+Response: Binary image data (saved as `map_image.png` in the example).
+
+Use Case:
+- The React frontend calls this endpoint to fetch the map image for a specific map_id, displaying it as the background for zone layouts or real-time tag tracking in the ParcoRTLS interface.
+
+Hint:
+- Ensure the `x_format` field in the `maps` table is correctly set (e.g., 'png', 'jpeg') to serve the image with the correct media type.
+- Large images may impact performance; consider optimizing image sizes in the database.

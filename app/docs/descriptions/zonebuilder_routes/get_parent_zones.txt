@@ -1,0 +1,45 @@
+Fetch all zones to allow selection as parent zones in the Zone Builder.
+
+This endpoint retrieves a list of all zones from the `zones` table in the `maint` schema,
+sorted by zone type and name. It is used in the Zone Builder tool to populate a dropdown or
+list of potential parent zones when creating a new zone, supporting the hierarchical structure
+of zones in the ParcoRTLS system (e.g., campuses, buildings, floors).
+
+Parameters:
+    None
+
+Returns:
+    dict: A JSON object with a single key "zones" containing a list of dictionaries. Each dictionary
+          represents a zone with the following keys:
+          - zone_id (int): The unique identifier of the zone (i_zn).
+          - name (str): The name of the zone (x_nm_zn).
+          - level (int): The zone type (i_typ_zn, e.g., 1 for campus, 2 for building).
+
+Example:
+    ```bash
+    curl -X GET http://192.168.210.226:8000/zonebuilder/get_parent_zones
+    ```
+    Response:
+    ```json
+    {
+        "zones": [
+            {"zone_id": 1, "name": "Main Campus", "level": 1},
+            {"zone_id": 2, "name": "Building A", "level": 2}
+        ]
+    }
+    ```
+
+Use Case:
+    - When creating a new zone in the Zone Builder, a user needs to specify a parent zone (e.g.,
+      a floor zone under a building). This endpoint provides the list of all zones that can be
+      selected as parents, ensuring the zone hierarchy is maintained.
+
+Hint:
+    - For campus-level operations (Zone L1), filter the response to include only zones where
+      level = 1 to identify top-level campuses.
+    - The frontend should handle cases where no zones are returned by prompting the user to create
+      a top-level zone first.
+
+Errors:
+    - 500 (Internal Server Error): Raised if the database pool is unavailable or an unexpected
+      error occurs during query execution. The error message includes details for debugging.

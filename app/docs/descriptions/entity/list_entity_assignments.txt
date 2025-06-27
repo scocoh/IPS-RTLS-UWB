@@ -1,0 +1,38 @@
+Retrieve a list of all entity assignments.
+
+This endpoint fetches all entity assignments (active or ended) using the `usp_assign_entity_list` stored procedure. It is useful for auditing or displaying hierarchical relationships.
+
+Args:
+    include_ended (bool, optional): Whether to include ended assignments. Defaults to False.
+
+Returns:
+    list: A list of dictionaries, each containing assignment details.
+        - x_id_pnt (str): Parent entity ID.
+        - x_id_chd (str): Child entity ID.
+        - i_rsn_assmt (int): Assignment reason ID.
+        - d_crt (datetime): Creation date.
+        - d_end (datetime, optional): End date (null if active).
+
+Raises:
+    HTTPException:
+        - 404: If no assignments are found.
+        - 500: If the database operation fails.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/list_entity_assignments?include_ended=true"
+    ```
+    Response:
+    ```json
+    [
+        {"x_id_pnt": "DEPT001", "x_id_chd": "EMP123", "i_rsn_assmt": 1, "d_crt": "2025-04-26T10:00:00", "d_end": null},
+        {"x_id_pnt": "DEPT002", "x_id_chd": "EMP456", "i_rsn_assmt": 2, "d_crt": "2025-04-25T09:00:00", "d_end": "2025-04-26T12:00:00"}
+    ]
+    ```
+
+Use Case:
+    - Display all active assignments in the React frontend for administrative oversight.
+    - Generate a report of all assignments, including ended ones, for auditing.
+
+Hint:
+    - Set `include_ended=True` to retrieve historical assignments, useful for tracking changes over time.

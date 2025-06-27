@@ -1,0 +1,7 @@
+Fetch all vertices.
+
+Returns:
+    list: List of vertex dictionaries (i_vtx, n_x, n_y, n_z, n_ord, i_rgn).
+
+Raises:
+    HTTPException: 404 if no vertices found.
