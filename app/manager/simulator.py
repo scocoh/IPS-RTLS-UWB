@@ -1,7 +1,7 @@
 # Name: simulator.py
-# Version: 0.1.21
+# Version: 0.1.22
 # Created: 971201
-# Modified: 250623
+# Modified: 250627
 # Creator: ParcoAdmin
 # Modified By: ClaudeAI
 # Description: Python script for ParcoRTLS simulator with PortRedirect and EndStream support
@@ -11,6 +11,7 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/simulator.py
+# Version: 0.1.22 - Added TriggerEvent message handling to eliminate unhandled message warnings, bumped from 0.1.21
 # Version: 0.1.21 - Claude Testing 23001 at 100.5,200.7,1.0 .75 zone 422 10 seconds
 # Version: 0.1.20 - Updated heartbeat response for HeartbeatManager, added configurable WebSocket URI, improved connection error handling, fixed syntax errors in finally block, bumped from 0.1.19
 # Previous: Fixed logging AttributeError, preserved all v0.1.18 functionality, added EndStream on stop for control/stream WebSockets, enhanced logging, bumped from 0.1.18
@@ -207,6 +208,19 @@ async def receive_stream_messages(websocket, running):
                         logger.warning(f"Ignoring invalid heartbeat missing heartbeat_id: {data}")
                 else:
                     logger.debug(f"Rate-limiting heartbeat response: {data}")
+            elif data.get("type") == "TriggerEvent":
+                # Handle trigger event messages
+                trigger_id = data.get("trigger_id")
+                trigger_name = data.get("trigger_name")
+                tag_id = data.get("tag_id")
+                direction = data.get("direction")
+                zone_id = data.get("zone_id")
+                timestamp = data.get("timestamp")
+                x = data.get("x")
+                y = data.get("y")
+                z = data.get("z")
+                logger.info(f"TriggerEvent: {trigger_name} (ID:{trigger_id}) for tag {tag_id} at ({x},{y},{z}) zone {zone_id} direction {direction}")
+                logger.debug(f"Full TriggerEvent data: {data}")
             elif data.get("type") == "response":
                 logger.info(f"Received response on stream WebSocket: {data}")
                 if data.get("request") == "EndStrm":
@@ -337,7 +351,7 @@ async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], s
             }
             logger.info(f"Sending GISData with zone_id {zone_id} for {tag_config.tag_id}: {mock_data}")
             try:
-                await current_websocket.send(json.dumps(mock_data))
+                await current_websocket.send(json.dumps(mock_data)) # type: ignore
                 tag_config.increment_sequence()
             except Exception as e:
                 logger.error(f"Failed to send GISData for {tag_config.tag_id}: {str(e)}")
@@ -377,7 +391,7 @@ async def simulator():
     global stream_receive_task
     global should_stop
     uri = f"ws://{WEBSOCKET_HOST}:{CONTROL_PORT}/ws/ControlManager"
-    print("Select simulation mode (v0.1.20):")
+    print("Select simulation mode (v0.1.22):")
     print("1. Single tag at a fixed point")
     print("2. Single tag moving between two points (with linear interpolation)")
     print("3. Multiple tags at fixed points")
