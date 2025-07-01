@@ -1,3 +1,15 @@
+# Name: update_map_name.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/maps
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Updates the name of a map in the ParcoRTLS system.
 
 This endpoint allows administrators to rename a map identified by its map_id. The new name is validated for non-empty content and length constraints before updating the database. It is used to maintain accurate map labels displayed in the React frontend for visualization and zone management.

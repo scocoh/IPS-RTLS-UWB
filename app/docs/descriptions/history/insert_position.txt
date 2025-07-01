@@ -1,3 +1,15 @@
+# Name: insert_position.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/history
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Insert a new position record for a device in the ParcoRTLS system.
 
 This endpoint records a device's position (x, y, z coordinates) at a specific timestamp by calling the `hist_r`

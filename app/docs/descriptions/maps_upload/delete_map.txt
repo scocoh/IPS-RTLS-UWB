@@ -1,3 +1,15 @@
+# Name: delete_map.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/maps_upload
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Delete a map from the ParcoRTLS system.
 
 This endpoint removes a map and its associated metadata from the 'maps' table in the 'maint' schema. It is used when a map is no longer needed or was uploaded in error. Note that deleting a map may affect associated zones, regions, or triggers.

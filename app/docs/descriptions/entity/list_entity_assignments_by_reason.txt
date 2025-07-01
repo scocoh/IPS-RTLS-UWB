@@ -1,3 +1,15 @@
+# Name: list_entity_assignments_by_reason.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve all assignments for a specific reason.
 
 This endpoint fetches all assignments associated with a given reason using the `usp_assign_entity_list_by_reason` stored procedure. It is used to analyze assignments by their purpose.

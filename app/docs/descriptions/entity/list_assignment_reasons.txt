@@ -1,3 +1,15 @@
+# Name: list_assignment_reasons.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve a list of all assignment reasons in the ParcoRTLS system.
 
 This endpoint fetches all assignment reasons (e.g., "Employment", "Maintenance") using the `usp_assmt_reason_list` stored procedure. It is useful for populating UI elements or validating reason IDs.

@@ -1,3 +1,15 @@
+# Name: get_parents.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/zone
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Fetch all top-level parent zones from the ParcoRTLSMaint database.
 
 This endpoint retrieves zones that have no parent zone (i.e., `i_pnt_zn IS NULL`), representing the highest level in the zone hierarchy, such as campuses in the ParcoRTLS system. These zones are typically used as the root nodes for building zone hierarchies in the frontend Zone Viewer or for initializing zone selection in administrative interfaces.

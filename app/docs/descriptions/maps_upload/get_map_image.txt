@@ -1,3 +1,15 @@
+# Name: get_map_image.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/maps_upload
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve the stored map image for a given map ID.
 
 This endpoint fetches the binary image data and file format of a map stored in the 'maps' table in the 'maint' schema. It returns the image as a response with the appropriate media type (e.g., image/png). This is used to display maps in the ParcoRTLS React frontend or other client applications.

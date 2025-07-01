@@ -1,3 +1,15 @@
+# Name: get_regions_by_zone.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/region
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Fetch all regions and their associated vertices for a given zone ID in the ParcoRTLS system.
 
 This endpoint retrieves all regions associated with a specified zone from the `regions` table and their corresponding vertices from the `vertices` table. It uses raw SQL queries to ensure accurate filtering by `i_zn` (zone ID), combining region and vertex data into a structured response. This is essential for visualizing or analyzing the spatial layout of regions within a zone.

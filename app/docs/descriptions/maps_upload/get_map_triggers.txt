@@ -1,3 +1,15 @@
+# Name: get_map_triggers.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/maps_upload
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve the number of triggers associated with a specific map.
 
 This endpoint counts the number of triggers linked to a map by joining the 'triggers', 'regions', and 'zones' tables in the 'maint' schema. Triggers define actions (e.g., alerts) for specific events in regions, and this endpoint helps evaluate a map's automation setup.

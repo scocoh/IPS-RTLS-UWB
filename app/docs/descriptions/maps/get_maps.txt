@@ -1,3 +1,15 @@
+# Name: get_maps.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/maps
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieves a list of all maps in the ParcoRTLS system.
 
 This endpoint queries the database to fetch all maps stored in the `maps` table, typically used to populate a dropdown or list in the React frontend for map selection or management.

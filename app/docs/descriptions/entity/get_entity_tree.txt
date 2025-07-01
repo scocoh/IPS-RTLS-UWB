@@ -1,3 +1,15 @@
+# Name: get_entity_tree.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Fetch the hierarchical entity tree starting from a given entity ID.
 
 This endpoint recursively builds a tree of entities starting from the specified entity, including all descendants, associated tags, and location data. It uses multiple stored procedures (e.g., `usp_entity_by_id`, `usp_assign_entity_list_by_parent`) to construct the tree and includes margin of error (MOE) checks to alert on tags that are too far from the root entity's tag. It is critical for visualizing organizational hierarchies and tracking entity locations in the ParcoRTLS system.

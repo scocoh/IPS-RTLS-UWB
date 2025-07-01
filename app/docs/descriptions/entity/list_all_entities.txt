@@ -1,3 +1,15 @@
+# Name: list_all_entities.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve a list of all entities in the ParcoRTLS system.
 
 This endpoint fetches all entities (e.g., employees, assets, groups) from the system by invoking the `usp_entity_all` stored procedure. It is useful for generating reports or populating UI elements like dropdowns.

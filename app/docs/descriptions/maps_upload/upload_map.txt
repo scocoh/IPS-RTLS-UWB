@@ -1,3 +1,15 @@
+# Name: upload_map.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/maps_upload
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Upload a new map image and its metadata to the ParcoRTLS system.
 
 This endpoint allows users to upload a map image (e.g., a floor plan or campus layout) along with its metadata, such as name, geographic coordinates, and spatial boundaries. The map is stored in the PostgreSQL 'maint' schema in the 'maps' table, with the image stored as binary data. This endpoint is critical for defining the spatial context in which ParcoRTLS tracks entities (e.g., tags, devices) within zones, regions, or triggers.

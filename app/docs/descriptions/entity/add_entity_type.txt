@@ -1,3 +1,15 @@
+# Name: add_entity_type.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Add a new entity type to the ParcoRTLS system.
 
 This endpoint creates a new entity type (e.g., Employee, Asset) using the `usp_entity_type_add` stored procedure. Entity types categorize entities for organizational purposes.

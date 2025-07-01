@@ -1,3 +1,15 @@
+# Name: test_db_connection.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/zonebuilder_routes
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Test the database connection to the `maint` schema.
 
 This endpoint performs a simple query to verify connectivity to the `maint` schema in the

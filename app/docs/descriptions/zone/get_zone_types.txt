@@ -1,3 +1,15 @@
+# Name: get_zone_types.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/zone
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Fetch all zone types from the ParcoRTLSMaint database.
 
 This endpoint retrieves all zone types from the `tlkzonetypes` table, which define the hierarchical levels of zones in the ParcoRTLS system (e.g., Campus, Building, Floor, Room). Each zone type is mapped to an API endpoint for adding triggers, facilitating integration with trigger management.

@@ -1,3 +1,15 @@
+# Name: get_entities_by_type.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve all entities of a specific type.
 
 This endpoint fetches all entities of a given type (e.g., all employees or all assets) using the `usp_entity_by_type` stored procedure. It is useful for filtering entities by their category.

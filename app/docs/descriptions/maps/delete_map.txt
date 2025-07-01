@@ -1,3 +1,15 @@
+# Name: delete_map.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/maps
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Deletes a map from the ParcoRTLS system.
 
 This endpoint removes a map identified by its map_id, typically used when a map is no longer needed or was added in error.

@@ -1,3 +1,15 @@
+# Name: edit_map.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/maps_upload
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Update the metadata of an existing map in the ParcoRTLS system.
 
 This endpoint allows users to modify the metadata (e.g., name, coordinates, boundaries) of a map without altering the stored image. The changes are applied to the 'maps' table in the 'maint' schema. This is useful for correcting map details or adjusting coordinates after initial upload.

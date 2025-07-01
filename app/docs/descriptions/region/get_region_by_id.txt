@@ -1,3 +1,15 @@
+# Name: get_region_by_id.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/region
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve details of a specific region by its ID in the ParcoRTLS system.
 
 This endpoint fetches the details of a region from the `regions` table using the stored procedure `usp_region_select_by_id`. It returns attributes such as the region's name, zone ID, spatial boundaries, and associated trigger (if any). This is useful for inspecting or validating a region's configuration.

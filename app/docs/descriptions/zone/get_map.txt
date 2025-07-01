@@ -1,3 +1,15 @@
+# Name: get_map.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/zone
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Fetch the map image associated with a selected zone as a downloadable file.
 
 This endpoint retrieves the binary map image linked to a zone (via its `i_map` field) from the `maps` table in the ParcoRTLSMaint database. It supports both GET (to download the image) and HEAD (to check metadata without downloading) requests, facilitating efficient map rendering in the frontend Zone Viewer. The image is returned as a file attachment with a dynamically generated filename.

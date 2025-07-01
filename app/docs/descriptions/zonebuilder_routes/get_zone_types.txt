@@ -1,3 +1,15 @@
+# Name: get_zone_types.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/zonebuilder_routes
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Fetch all zone types from the ParcoRTLS database.
 
 This endpoint retrieves a list of zone types from the `tlkzonetypes` table in the `maint` schema.

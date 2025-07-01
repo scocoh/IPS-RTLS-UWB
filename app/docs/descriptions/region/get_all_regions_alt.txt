@@ -1,3 +1,15 @@
+# Name: get_all_regions_alt.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/region
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve all regions from the ParcoRTLS system database using an alternative method.
 
 This endpoint serves as an alternative to `/get_all_regions`, fetching all regions from the `regions` table using the stored procedure `usp_regions_select`. It provides the same data but may differ in implementation details or performance characteristics, offering flexibility for different use cases.

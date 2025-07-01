@@ -1,3 +1,15 @@
+# Name: create_zone.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/zonebuilder_routes
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Create a new zone with associated region and vertices.
 
 This endpoint creates a new zone in the `zones` table, an associated region in the `regions` table,

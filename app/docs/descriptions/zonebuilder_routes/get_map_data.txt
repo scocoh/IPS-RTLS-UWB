@@ -1,3 +1,15 @@
+# Name: get_map_data.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/zonebuilder_routes
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Fetch map data for the Zone Builder, including the image URL and coordinate bounds.
 
 This endpoint retrieves metadata for a specific map, identified by its map_id, from the `maps`

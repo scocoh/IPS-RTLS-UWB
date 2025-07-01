@@ -1,3 +1,15 @@
+# Name: add_entity.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Add a new entity to the ParcoRTLS system.
 
 This endpoint creates a new entity (e.g., a person, asset, or group) in the ParcoRTLS system by invoking the `usp_entity_add` stored procedure. It is used to register entities that can be tracked or associated with devices (e.g., tags) or other entities in the system.

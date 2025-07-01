@@ -1,3 +1,15 @@
+# Name: get_map_data.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/maps
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieves map data (image URL and bounds) for a specific zone in the ParcoRTLS system.
 
 This endpoint is designed for the React frontend's `Map.js` component, providing the URL to fetch the map image and the geographical bounds for rendering the map correctly.

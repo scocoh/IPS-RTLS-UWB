@@ -1,3 +1,15 @@
+# Name: add_region.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/region
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Add a new region to the ParcoRTLS system, associating it with a zone and optionally a trigger.
 
 This endpoint creates a new region in the `regions` table, defining its spatial boundaries (min/max coordinates) and linking it to a specific zone and, if applicable, a trigger. Regions are critical in ParcoRTLS for defining spatial areas within zones, such as areas for tracking devices or triggering events. The endpoint uses the stored procedure `usp_region_add` to perform the insertion.

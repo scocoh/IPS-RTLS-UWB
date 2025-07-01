@@ -1,3 +1,15 @@
+# Name: get_zone_vertices.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/zone
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Fetch vertices for a selected zone to draw its boundary.
 
 This endpoint retrieves the vertices (coordinates) that define the boundary of a specified zone, using the `usp_zone_vertices_select_by_zone` stored procedure. In the ParcoRTLS system, these vertices are used to render the polygon shape of a zone on a map in the Zone Viewer, enabling visualization of zone boundaries for navigation or device tracking.

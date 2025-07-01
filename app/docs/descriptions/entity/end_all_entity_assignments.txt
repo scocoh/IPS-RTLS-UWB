@@ -1,3 +1,15 @@
+# Name: end_all_entity_assignments.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 End all assignments for a specific entity.
 
 This endpoint marks all assignments (parent or child) for a given entity as ended using the `usp_assign_entity_end_all` stored procedure. It is used to terminate all hierarchical relationships while preserving historical data.

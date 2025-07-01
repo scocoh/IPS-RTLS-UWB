@@ -1,3 +1,15 @@
+# Name: edit_region.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/region
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Update an existing region's details in the ParcoRTLS system.
 
 This endpoint modifies the attributes of a region in the `regions` table, such as its name, spatial boundaries, or associated zone/trigger, using the stored procedure `usp_region_edit`. It is used to adjust region configurations when spatial definitions or associations change.

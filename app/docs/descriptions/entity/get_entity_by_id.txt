@@ -1,3 +1,15 @@
+# Name: get_entity_by_id.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve details of a specific entity by its ID.
 
 This endpoint fetches the details of a single entity (e.g., employee, asset) using the `usp_entity_by_id` stored procedure. It is used to display entity information or verify existence before performing operations like assignments.

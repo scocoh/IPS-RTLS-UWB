@@ -1,3 +1,15 @@
+# Name: list_entity_assignments_by_child.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve all assignments for a specific child entity.
 
 This endpoint fetches all assignments where the specified entity is the child using the `usp_assign_entity_list_by_child` stored procedure. It is used to view an entity's parent relationships.

@@ -1,3 +1,15 @@
+# Name: list_entity_assignments_by_id.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieve details of a specific entity assignment by its ID.
 
 This endpoint fetches a single assignment using the `usp_assign_entity_list_by_key` stored procedure. It is used to verify or display details of a specific assignment.

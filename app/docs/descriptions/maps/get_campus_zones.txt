@@ -1,3 +1,15 @@
+# Name: get_campus_zones.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/maps
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Retrieves the zone hierarchy for a specific campus in the ParcoRTLS system.
 
 This endpoint fetches all zones associated with a campus, organized hierarchically by parent-child relationships, used for displaying zone structures in the frontend or checking tag locations.

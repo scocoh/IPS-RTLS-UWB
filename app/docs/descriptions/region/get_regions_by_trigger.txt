@@ -1,3 +1,15 @@
+# Name: get_regions_by_trigger.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/region
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Fetch all regions associated with a specific trigger ID in the ParcoRTLS system.
 
 This endpoint retrieves regions linked to a given trigger from the `regions` table using the stored procedure `usp_regions_select_by_trigger`. It returns region details, including any associated vertices, which is useful for analyzing trigger-related spatial configurations.

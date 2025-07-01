@@ -1,3 +1,15 @@
+# Name: get_children.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/zone
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Fetch all child zones of a specified parent zone.
 
 This endpoint retrieves all zones that have the specified `parent_id` as their parent zone (`i_pnt_zn`), allowing the construction of a zone hierarchy below a given parent zone. In the ParcoRTLS system, this is used to display sub-zones (e.g., buildings, floors, or rooms) under a parent zone like a campus or building in the Zone Viewer.

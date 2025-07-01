@@ -1,3 +1,15 @@
+# Name: assign_entity.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/entity
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
 Assign a child entity to a parent entity with a reason.
 
 This endpoint creates a hierarchical relationship between two entities (e.g., assigning an employee to a department) using the `usp_assign_entity_add` stored procedure. It is used to build entity hierarchies for organizational or tracking purposes.

@@ -1,11 +1,10 @@
 # Name: maps.py
-# Version: 0.1.1
+# Version: 0.1.12
 # Created: 971201
-# Modified: 250502
+# Modified: 250701
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Version 0.1.1 Converted to external descriptions using load_description()
-# Description: Python script for ParcoRTLS backend
+# Modified By: ParcoAdmin, TC and Nexus, Claude AI
+# Description: Python script for ParcoRTLS backend with pure coordinate-based map cropping functionality - TBI-friendly
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
 # Status: Active
@@ -13,9 +12,11 @@
 
 """
 Maps management endpoints for ParcoRTLS FastAPI application.
-# VERSION 250426 /home/parcoadmin/parco_fastapi/app/routes/maps.py 0P.3B.008
-# CHANGED: Bumped version from 0P.3B.007 to 0P.3B.008
-# ADDED: Enhanced docstrings for all endpoints with detailed descriptions, parameters, return values, examples, use cases, error handling, and hints
+# CHANGED: Bumped version from 0.1.11 to 0.1.12
+# REMOVED: Zone creation logic from coordinate crop endpoint
+# REMOVED: _create_zone_hierarchy function (~75 lines)
+# ADDED: Simple coordinate update endpoints for TBI-friendly modularity
+# SIMPLIFIED: Pure image cropping only - no zones/regions complexity
 #
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -33,6 +34,9 @@ import logging
 
 from pathlib import Path
 
+from PIL import Image
+import io
+import asyncpg
 
 def load_description(endpoint_name: str) -> str:
     """Load endpoint description from external file"""
@@ -217,26 +221,157 @@ class MapUpdateRequest(BaseModel):
     max_x: float
     max_y: float
 
-@router.put(
-    "/update_map_metadata",
-    summary="Updates metadata for a specific map in the ParcoRTLS system",
-    description=load_description("update_map_metadata"),
-    tags=["triggers"]
-)
+@router.put("/update_map_metadata")
 async def update_map_metadata(request: MapUpdateRequest):
+    """
+    Updates X,Y metadata for a specific map in the ParcoRTLS system.
+    """
     try:
-        result = await call_stored_procedure(
-            "maint", "usp_map_update_metadata",
-            request.map_id, request.min_x, request.min_y, request.max_x, request.max_y
+        # Use direct SQL instead of missing stored procedure
+        query = """
+            UPDATE maps 
+            SET min_x = $1, min_y = $2, max_x = $3, max_y = $4
+            WHERE i_map = $5
+            RETURNING i_map;
+        """
+        result = await execute_raw_query(
+            "maint", query, 
+            request.min_x, request.min_y, request.max_x, request.max_y, request.map_id
         )
+        
         if result:
             logger.info(f"Map metadata updated for map_id={request.map_id}")
             return {"message": "Map metadata updated successfully"}
-        logger.warning(f"Map metadata update failed for map_id={request.map_id}")
-        raise HTTPException(status_code=404, detail="Map metadata update failed")
+        else:
+            logger.warning(f"Map not found for map_id={request.map_id}")
+            raise HTTPException(status_code=404, detail="Map not found")
+            
     except Exception as e:
         logger.error(f"Error updating map metadata: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error updating map metadata: {str(e)}")
+
+# NEW TBI-FRIENDLY COORDINATE UPDATE ENDPOINTS
+
+class MapCoordinatesRequest(BaseModel):
+    map_id: int
+    min_x: float
+    min_y: float
+    min_z: float
+    max_x: float
+    max_y: float
+    max_z: float
+
+class MapLatLonRequest(BaseModel):
+    map_id: int
+    lat_origin: float
+    lon_origin: float
+
+@router.put("/update_coordinates")
+async def update_map_coordinates(request: MapCoordinatesRequest):
+    """
+    Updates X,Y,Z coordinates for a specific map.
+    
+    Simple endpoint for updating map coordinate bounds.
+    Used by crop tool to fix coordinate scaling.
+    """
+    try:
+        query = """
+            UPDATE maps 
+            SET min_x = $1, min_y = $2, min_z = $3, max_x = $4, max_y = $5, max_z = $6
+            WHERE i_map = $7
+            RETURNING i_map;
+        """
+        result = await execute_raw_query(
+            "maint", query, 
+            request.min_x, request.min_y, request.min_z,
+            request.max_x, request.max_y, request.max_z,
+            request.map_id
+        )
+        
+        if result:
+            logger.info(f"Map coordinates updated for map_id={request.map_id}")
+            return {"message": "Map coordinates updated successfully"}
+        else:
+            logger.warning(f"Map not found for map_id={request.map_id}")
+            raise HTTPException(status_code=404, detail="Map not found")
+            
+    except Exception as e:
+        logger.error(f"Error updating map coordinates: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating coordinates: {str(e)}")
+
+@router.put("/update_lat_lon")
+async def update_map_lat_lon(request: MapLatLonRequest):
+    """
+    Updates latitude/longitude origin for a specific map.
+    
+    Simple endpoint for updating map lat/lon origin points.
+    Used to reset GPS coordinates to 0,0.
+    """
+    try:
+        query = """
+            UPDATE maps 
+            SET lat_origin = $1, lon_origin = $2
+            WHERE i_map = $3
+            RETURNING i_map;
+        """
+        result = await execute_raw_query(
+            "maint", query, 
+            request.lat_origin, request.lon_origin, request.map_id
+        )
+        
+        if result:
+            logger.info(f"Map lat/lon updated for map_id={request.map_id}")
+            return {"message": "Map lat/lon updated successfully"}
+        else:
+            logger.warning(f"Map not found for map_id={request.map_id}")
+            raise HTTPException(status_code=404, detail="Map not found")
+            
+    except Exception as e:
+        logger.error(f"Error updating map lat/lon: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating lat/lon: {str(e)}")
+
+@router.put("/update_all_metadata/{map_id}")
+async def update_all_map_metadata(
+    map_id: int,
+    min_x: float,
+    min_y: float, 
+    min_z: float,
+    max_x: float,
+    max_y: float,
+    max_z: float,
+    lat_origin: float = 0.0,
+    lon_origin: float = 0.0
+):
+    """
+    Updates all map metadata in one call.
+    
+    Complete update endpoint for coordinates + lat/lon.
+    Used by crop tool for single-call updates.
+    """
+    try:
+        query = """
+            UPDATE maps 
+            SET min_x = $1, min_y = $2, min_z = $3, max_x = $4, max_y = $5, max_z = $6,
+                lat_origin = $7, lon_origin = $8
+            WHERE i_map = $9
+            RETURNING i_map;
+        """
+        result = await execute_raw_query(
+            "maint", query, 
+            min_x, min_y, min_z, max_x, max_y, max_z,
+            lat_origin, lon_origin, map_id
+        )
+        
+        if result:
+            logger.info(f"All map metadata updated for map_id={map_id}")
+            return {"message": "All map metadata updated successfully"}
+        else:
+            logger.warning(f"Map not found for map_id={map_id}")
+            raise HTTPException(status_code=404, detail="Map not found")
+            
+    except Exception as e:
+        logger.error(f"Error updating all map metadata: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating metadata: {str(e)}")
 
 @router.get(
     "/get_campus_zones/{campus_id}",
@@ -291,3 +426,185 @@ async def get_campus_zones(campus_id: int):
     except Exception as e:
         logger.error(f"Error retrieving zones for campus_id={campus_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving zones: {str(e)}")
+    
+@router.get("/get_image_metadata/{map_id}")
+async def get_image_metadata(map_id: int):
+    try:
+        query = "SELECT img_data, x_format FROM maps WHERE i_map = $1;"
+        result = await execute_raw_query("maint", query, map_id)
+        if not result:
+            raise HTTPException(status_code=404, detail="Map not found")
+        
+        img_data, file_format = result[0]["img_data"], result[0]["x_format"]
+        image = Image.open(io.BytesIO(img_data))
+        
+        return {
+            "width": image.width,
+            "height": image.height,
+            "format": file_format
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def get_db_connection():
+    """Get database connection for transactions"""
+    return await asyncpg.connect(
+        host="192.168.210.226",
+        port=5432,
+        user="parcoadmin",
+        password="parcoMCSE04106!",
+        database="ParcoRTLSMaint"
+    )
+
+# SIMPLIFIED COORDINATE-BASED MAP CROPPING - IMAGE ONLY, NO ZONES
+
+class CoordinateCropRequest(BaseModel):
+    source_map_id: int
+    crop_name: str
+    min_x: float
+    min_y: float
+    max_x: float
+    max_y: float
+
+@router.post(
+    "/create_coordinate_crop",
+    summary="Create a new map from coordinate-based crop of an existing map - IMAGE ONLY",
+    description="Creates a new map entry that represents a cropped section of a source map, working entirely in ParcoRTLS coordinate space (feet). Pure image cropping with no zone creation.",
+    tags=["maps"]
+)
+async def create_coordinate_crop(request: CoordinateCropRequest):
+    """
+    Create a new map from coordinate-based crop - IMAGE ONLY, NO ZONES
+    
+    This endpoint creates a new map entry with a cropped image and properly scaled 
+    coordinate bounds. Works entirely in ParcoRTLS coordinate space (feet).
+    """
+    try:
+        # 1. Validate source map exists and get its metadata
+        source_map_query = """
+            SELECT i_map, x_nm_map, min_x, min_y, min_z, max_x, max_y, max_z, 
+                   lat_origin, lon_origin, img_data, x_format
+            FROM maps WHERE i_map = $1
+        """
+        source_map_result = await execute_raw_query("maint", source_map_query, request.source_map_id)
+        
+        if not source_map_result:
+            raise HTTPException(status_code=404, detail=f"Source map {request.source_map_id} not found")
+        
+        source_map = source_map_result[0]
+        logger.info(f"Source map found: {source_map['x_nm_map']}")
+        
+        # 2. Validate crop bounds are within source map bounds
+        if (request.min_x < source_map['min_x'] or request.max_x > source_map['max_x'] or
+            request.min_y < source_map['min_y'] or request.max_y > source_map['max_y']):
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Crop bounds ({request.min_x},{request.min_y},{request.max_x},{request.max_y}) "
+                      f"exceed source map bounds ({source_map['min_x']},{source_map['min_y']},"
+                      f"{source_map['max_x']},{source_map['max_y']})"
+            )
+        
+        if request.min_x >= request.max_x or request.min_y >= request.max_y:
+            raise HTTPException(status_code=400, detail="Invalid crop bounds: min values must be less than max values")
+        
+        # 3. Calculate pixel coordinates for cropping the actual image
+        source_width = source_map['max_x'] - source_map['min_x']
+        source_height = source_map['max_y'] - source_map['min_y']
+        
+        # Get actual image dimensions
+        source_image = Image.open(io.BytesIO(source_map['img_data']))
+        img_width, img_height = source_image.size
+        
+        # Calculate scale factors from coordinate space to pixels
+        pixels_per_foot_x = img_width / source_width
+        pixels_per_foot_y = img_height / source_height
+        
+        # Convert crop coordinates to pixel coordinates
+        crop_pixel_x1 = int((request.min_x - source_map['min_x']) * pixels_per_foot_x)
+        crop_pixel_y1 = int((request.min_y - source_map['min_y']) * pixels_per_foot_y)
+        crop_pixel_x2 = int((request.max_x - source_map['min_x']) * pixels_per_foot_x)
+        crop_pixel_y2 = int((request.max_y - source_map['min_y']) * pixels_per_foot_y)
+        
+        # PIL uses top-left origin, but ParcoRTLS uses bottom-left, so flip Y
+        crop_pixel_y1_flipped = img_height - crop_pixel_y2
+        crop_pixel_y2_flipped = img_height - crop_pixel_y1
+        
+        logger.info(f"Source image: {img_width}x{img_height} pixels")
+        logger.info(f"Crop pixels: ({crop_pixel_x1}, {crop_pixel_y1_flipped}) to ({crop_pixel_x2}, {crop_pixel_y2_flipped})")
+        
+        # Validate pixel bounds
+        if (crop_pixel_x1 < 0 or crop_pixel_y1_flipped < 0 or 
+            crop_pixel_x2 > img_width or crop_pixel_y2_flipped > img_height):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Crop area extends beyond image bounds"
+            )
+        
+        # Perform the actual image crop
+        try:
+            cropped_image = source_image.crop((crop_pixel_x1, crop_pixel_y1_flipped, crop_pixel_x2, crop_pixel_y2_flipped))
+            logger.info(f"Cropped image size: {cropped_image.size}")
+            
+            # Convert cropped image to bytes
+            img_buffer = io.BytesIO()
+            cropped_image.save(img_buffer, format=source_map['x_format'])
+            cropped_img_data = img_buffer.getvalue()
+            
+        except Exception as e:
+            logger.error(f"Image cropping failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Image cropping failed: {str(e)}")
+        
+        # 4. Create new map entry with cropped image and new coordinate bounds
+        create_map_query = """
+            INSERT INTO maps (x_nm_map, min_x, min_y, min_z, max_x, max_y, max_z, 
+                            lat_origin, lon_origin, img_data, x_format, d_uploaded)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+            RETURNING i_map
+        """
+        
+        # For the cropped map, the coordinate bounds become the new "full map" bounds
+        crop_width = request.max_x - request.min_x
+        crop_height = request.max_y - request.min_y
+        
+        # New map coordinate space: (0,0) to (crop_width, crop_height)
+        new_map_result = await execute_raw_query(
+            "maint", create_map_query,
+            request.crop_name,
+            0.0,  # new min_x starts at 0
+            0.0,  # new min_y starts at 0  
+            source_map.get('min_z', -1.0),
+            crop_width,   # new max_x is the crop width
+            crop_height,  # new max_y is the crop height
+            source_map.get('max_z', 40.0),
+            source_map.get('lat_origin'),
+            source_map.get('lon_origin'),
+            cropped_img_data,  # Use cropped image data
+            source_map['x_format']
+        )
+        
+        new_map_id = new_map_result[0]['i_map']
+        logger.info(f"Created new cropped map {new_map_id}: {request.crop_name}")
+        
+        return {
+            "new_map_id": new_map_id,
+            "source_map_id": request.source_map_id,
+            "crop_bounds": {
+                "min_x": request.min_x,
+                "min_y": request.min_y, 
+                "max_x": request.max_x,
+                "max_y": request.max_y
+            },
+            "new_map_bounds": {
+                "min_x": 0.0,
+                "min_y": 0.0,
+                "max_x": crop_width,
+                "max_y": crop_height
+            },
+            "message": "Coordinate crop created successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating coordinate crop: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating coordinate crop: {str(e)}")
