@@ -1,114 +1,110 @@
 # Name: simulator.py
-# Version: 0.1.22
+# Version: 0.1.26
 # Created: 971201
-# Modified: 250627
+# Modified: 250703
 # Creator: ParcoAdmin
-# Modified By: ClaudeAI
+# Modified By: TC
 # Description: Python script for ParcoRTLS simulator with PortRedirect and EndStream support
-# Location: /home/parcoadmin/parco_fastapi/app
+# Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Simulator
 # Status: Active
 # Dependent: TRUE
 
-# /home/parcoadmin/parco_fastapi/app/simulator.py
-# Version: 0.1.22 - Added TriggerEvent message handling to eliminate unhandled message warnings, bumped from 0.1.21
-# Version: 0.1.21 - Claude Testing 23001 at 100.5,200.7,1.0 .75 zone 422 10 seconds
-# Version: 0.1.20 - Updated heartbeat response for HeartbeatManager, added configurable WebSocket URI, improved connection error handling, fixed syntax errors in finally block, bumped from 0.1.19
-# Previous: Fixed logging AttributeError, preserved all v0.1.18 functionality, added EndStream on stop for control/stream WebSockets, enhanced logging, bumped from 0.1.18
-# Previous: Restored moving tag interpolation in send_tag_data from v0.1.0, bumped from 0.1.17
-# Previous: Modified to only respond to heartbeats with heartbeat_id, increased HEARTBEAT_RATE_LIMIT to 50, bumped from 0.1.16
-# Previous: Reduced HEARTBEAT_RATE_LIMIT from 100 to 10 to save log space, bumped from 0.1.15
-# Previous: Fixed AttributeError by replacing websocket.open with websocket.state == websockets.State.OPEN, bumped from 0.1.14
-# Previous: Enhanced error handling to ensure clean exit on excessive heartbeat rate error, bumped from 0.1.13
-# Previous: Added heartbeat rate tracking to detect excessive heartbeats (>100 messages/sec), bumped from 0.1.12
-# Previous: Added rate-limiting to heartbeat processing, bumped from 0.1.11
-# Previous: Modified simulator to exit immediately after duration, bumped from 0.1.10
-# Previous: Used monotonic time for elapsed time calculations, bumped from 0.1.9
-# Previous: Added cancellation of receive_stream_messages task, bumped from 0.1.8
-# Previous: Added handling for type="response" messages, bumped from 0.1.7
-# Previous: Cancel receive_task before closing WebSocket, bumped from 0.1.6
-# Previous: Added logging for stop_simulator command, bumped from 0.1.5
-# Previous: Fixed NameError by passing zone_id, bumped from 0.1.4
-# Previous: Send simulation data to stream WebSocket after PortRedirect, simplified send_tag_data, bumped from 0.1.3
-# Previous: Updated WebSocket URI to ControlManager, bumped from 0.1.2
-# Previous: Consolidated BeginStream requests, enhanced PortRedirect logging, bumped from 1.0.28
-# Previous: Added PortRedirect handling, bumped from 1.0.27
-# Previous: Re-ensured zone_id in GISData with added logging (1.0.27)
-#
-# Simulator for ParcoRTLS
-# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
-# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+#!/usr/bin/env python3
+"""
+ParcoRTLS Simulator - Generates test position data for RTLS development
+Version: 0.1.26 - Fixed mode 6 to use multiple tags with different roles, fixed mode prompt, bumped from 0.1.25
+Version: 0.1.25 - Restored all simulation modes from v0.1.22 while keeping v0.1.24 PortRedirect fix, bumped from 0.1.24
+Version: 0.1.24 - Fixed PortRedirect handling from Control WebSocket, bumped from 0.1.23
+Version: 0.1.23 - Added PortRedirect and EndStream support, improved zone handling
+Version: 0.1.22 - Enhanced heartbeat response for HeartbeatManager, added configurable WebSocket URI
+"""
 
 import asyncio
-import websockets
 import json
-from datetime import datetime
 import logging
-import logging.handlers
-import sys
-import select
-import traceback
-from typing import List, Tuple, Dict, Deque
-from collections import deque
+from logging.handlers import RotatingFileHandler
 import os
+import select
+import sys
+import time
+import traceback
+from collections import deque
+from dataclasses import dataclass
+from datetime import datetime
+from typing import List, Optional, Tuple
+import websockets
 
 # Configure logging
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger("simulator")
+logger.setLevel(logging.DEBUG)
 
-# Log directory
-LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
-os.makedirs(LOG_DIR, exist_ok=True)
+# Console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
-# Configure file handler
-file_handler = logging.handlers.RotatingFileHandler(
-    os.path.join(LOG_DIR, "simulator.log"),
-    maxBytes=10*1024*1024,
-    backupCount=5
-)
-file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%y%m%d %H%M%S'))
-logger.handlers = [logging.StreamHandler(), file_handler]
-logger.propagate = False
+# File handler with rotation
+log_directory = "/home/parcoadmin/parco_fastapi/app/logs"
+os.makedirs(log_directory, exist_ok=True)
+log_file = os.path.join(log_directory, "simulator.log")
+file_handler = RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5)
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
-# WebSocket configuration
-WEBSOCKET_HOST = "192.168.210.226"
-CONTROL_PORT = 8001
-
-class TagConfig:
-    def __init__(self, tag_id: str, positions: List[Tuple[float, float, float]], ping_rate: float, move_interval: float = 0):
-        self.tag_id = tag_id
-        self.positions = positions
-        self.ping_rate = ping_rate
-        self.sleep_interval = 1 / ping_rate
-        self.move_interval = move_interval
-        self.sequence_number = 1
-
-    def increment_sequence(self):
-        self.sequence_number += 1
-        if self.sequence_number > 200:
-            self.sequence_number = 1
+# Configuration
+WEBSOCKET_HOST = os.getenv("WEBSOCKET_HOST", "192.168.210.226")
+CONTROL_PORT = int(os.getenv("CONTROL_PORT", "8001"))
+STREAM_PORT = int(os.getenv("STREAM_PORT", "8002"))
 
 # Global variables
 current_websocket = None
-tag_configs = []
+stream_websocket = None
 stream_receive_task = None
 should_stop = False
+tag_configs = []
 
-async def receive_messages(websocket, running, zone_id):
-    global current_websocket
-    global tag_configs
-    global stream_receive_task
-    global should_stop
-    heartbeat_timestamps = deque(maxlen=50)
+@dataclass
+class TagConfig:
+    """Configuration for a simulated tag"""
+    tag_id: str
+    positions: List[Tuple[float, float, float]]
+    ping_rate: float = 0.25  # Hz
+    move_interval: float = 10.0  # seconds
+    current_position_index: int = 0
+    last_move_time: float = 0.0
+    sleep_interval: float = 1.0
+    
+    def __post_init__(self):
+        self.sleep_interval = 1.0 / self.ping_rate
+
+def interpolate_positions(pos1: Tuple[float, float, float], 
+                         pos2: Tuple[float, float, float], 
+                         t: float) -> Tuple[float, float, float]:
+    """Linear interpolation between two positions"""
+    return (
+        pos1[0] + (pos2[0] - pos1[0]) * t,
+        pos1[1] + (pos2[1] - pos1[1]) * t,
+        pos1[2] + (pos2[2] - pos1[2]) * t
+    )
+
+async def receive_messages(websocket, running: List[bool], zone_id: int):
+    """Handle messages from Control WebSocket"""
+    global stream_websocket, stream_receive_task, should_stop
+    last_heartbeat_time = 0
     HEARTBEAT_RATE_LIMIT = 50
-    while True:
-        if should_stop:
-            logger.info("Stopping receive_messages due to should_stop flag")
-            break
-        try:
+    HEARTBEAT_RATE_WINDOW = 5
+    heartbeat_timestamps = deque(maxlen=50)
+    
+    try:
+        while websocket.state == websockets.State.OPEN and not should_stop:
             message = await websocket.recv()
             data = json.loads(message)
-            logger.debug(f"Received message on control WebSocket: {data}")
+            logger.debug(f"Received control WebSocket message: {data}")
+            
             if data.get("type") == "HeartBeat":
                 current_time = asyncio.get_event_loop().time()
                 heartbeat_timestamps.append(current_time)
@@ -117,74 +113,75 @@ async def receive_messages(websocket, running, zone_id):
                     if time_window < 1.0:
                         should_stop = True
                         raise RuntimeError(f"Heartbeat rate exceeded {HEARTBEAT_RATE_LIMIT} messages per second on control WebSocket")
+                
+                if current_time - last_heartbeat_time > 1:
+                    logger.debug(f"Control WebSocket HeartBeat from manager at {datetime.now()}")
+                    last_heartbeat_time = current_time
+                
                 heartbeat_id = data.get("heartbeat_id")
                 if heartbeat_id:
-                    response = json.dumps({
+                    heartbeat_response = {
                         "type": "HeartBeat",
-                        "ts": data["ts"],
-                        "data": {"heartbeat_id": heartbeat_id}
-                    })
-                    await websocket.send(response)
-                    logger.debug(f"Sent heartbeat response: {response}")
-                else:
-                    logger.warning(f"Ignoring invalid heartbeat missing heartbeat_id: {data}")
+                        "heartbeat_id": heartbeat_id,
+                        "ts": int(time.time() * 1000),
+                        "source": "simulator"
+                    }
+                    await websocket.send(json.dumps(heartbeat_response))
+                    logger.debug(f"Responded to control heartbeat with ID: {heartbeat_id}")
+            
             elif data.get("type") == "PortRedirect":
-                logger.info(f"Received PortRedirect: {data}")
-                port = data.get("port")
-                stream_type = data.get("stream_type")
-                manager_name = data.get("manager_name")
-                if port and stream_type and manager_name:
-                    new_uri = f"ws://{WEBSOCKET_HOST}:{port}/ws/{manager_name}"
-                    logger.info(f"Attempting to connect to stream WebSocket: {new_uri}")
+                redirect_port = data.get("port")
+                redirect_zone = data.get("zone")
+                if redirect_port:
+                    logger.info(f"Received PortRedirect to port {redirect_port}, zone {redirect_zone}")
+                    new_uri = f"ws://{WEBSOCKET_HOST}:{redirect_port}/ws/RealTimeManager"
+                    logger.info(f"Connecting to stream WebSocket at {new_uri}")
                     try:
-                        stream_websocket = await websockets.connect(new_uri)
-                        current_websocket = stream_websocket
-                        handshake = json.dumps({
-                            "type": "request",
-                            "request": "BeginStream",
-                            "reqid": "sim_stream",
-                            "params": [{"id": tag_config.tag_id, "data": "true"} for tag_config in tag_configs],
-                            "zone_id": zone_id
-                        })
-                        await stream_websocket.send(handshake)
-                        logger.info(f"Sent BeginStream to stream WebSocket: {handshake}")
+                        stream_websocket = await websockets.connect(new_uri, max_size=2**20)
+                        logger.info(f"Connected to stream WebSocket at port {redirect_port}")
                         stream_receive_task = asyncio.create_task(receive_stream_messages(stream_websocket, running))
                     except Exception as e:
                         logger.error(f"Failed to connect to stream WebSocket {new_uri}: {str(e)}\n{traceback.format_exc()}")
                 else:
                     logger.error(f"Invalid PortRedirect message: {data}")
+            
             elif data.get("type") == "response":
                 logger.info(f"Received response on control WebSocket: {data}")
+            
             elif data.get("command") == "start_simulator":
                 logger.info("Received start_simulator command from manager")
                 running[0] = True
+            
             elif data.get("command") == "stop_simulator":
                 logger.info("Received stop_simulator command from manager")
                 running[0] = False
+            
             else:
                 logger.warning(f"Unhandled message type on control WebSocket: {data.get('type', 'Unknown')}")
-        except websockets.exceptions.ConnectionClosedOK as e:
-            logger.info(f"Control WebSocket connection closed as expected: {str(e)}")
-            break
-        except websockets.exceptions.ConnectionClosed:
-            logger.error(f"WebSocket connection closed\n{traceback.format_exc()}")
-            break
-        except Exception as ex:
-            logger.error(f"Error receiving WebSocket message: {str(ex)}\n{traceback.format_exc()}")
-            should_stop = True
-            raise
+                
+    except websockets.exceptions.ConnectionClosedOK as e:
+        logger.info(f"Control WebSocket connection closed as expected: {str(e)}")
+    except websockets.exceptions.ConnectionClosed:
+        logger.error(f"WebSocket connection closed\n{traceback.format_exc()}")
+    except Exception as ex:
+        logger.error(f"Error receiving WebSocket message: {str(ex)}\n{traceback.format_exc()}")
+        should_stop = True
+        raise
 
 async def receive_stream_messages(websocket, running):
+    """Handle messages from Stream WebSocket"""
     global should_stop
     last_heartbeat_time = 0
     HEARTBEAT_RATE_LIMIT = 50
     HEARTBEAT_RATE_WINDOW = 5
     heartbeat_timestamps = deque(maxlen=50)
+    
     try:
         while websocket.state == websockets.State.OPEN and not should_stop:
             message = await websocket.recv()
             data = json.loads(message)
             logger.debug(f"Received stream WebSocket message: {data}")
+            
             if data.get("type") == "HeartBeat":
                 current_time = asyncio.get_event_loop().time()
                 heartbeat_timestamps.append(current_time)
@@ -193,169 +190,102 @@ async def receive_stream_messages(websocket, running):
                     if time_window < 1.0:
                         should_stop = True
                         raise RuntimeError(f"Heartbeat rate exceeded {HEARTBEAT_RATE_LIMIT} messages per second on stream WebSocket")
-                if current_time - last_heartbeat_time >= HEARTBEAT_RATE_WINDOW:
-                    heartbeat_id = data.get("heartbeat_id")
-                    if heartbeat_id:
-                        response = json.dumps({
-                            "type": "HeartBeat",
-                            "ts": data["ts"],
-                            "data": {"heartbeat_id": heartbeat_id}
-                        })
-                        await websocket.send(response)
-                        logger.debug(f"Sent heartbeat response on stream WebSocket: {response}")
-                        last_heartbeat_time = current_time
-                    else:
-                        logger.warning(f"Ignoring invalid heartbeat missing heartbeat_id: {data}")
-                else:
-                    logger.debug(f"Rate-limiting heartbeat response: {data}")
+                
+                if current_time - last_heartbeat_time > 1:
+                    logger.debug(f"Stream WebSocket HeartBeat from manager at {datetime.now()}")
+                    last_heartbeat_time = current_time
+                
+                heartbeat_id = data.get("heartbeat_id")
+                if heartbeat_id:
+                    heartbeat_response = {
+                        "type": "HeartBeat",
+                        "heartbeat_id": heartbeat_id,
+                        "ts": int(time.time() * 1000),
+                        "source": "simulator"
+                    }
+                    await websocket.send(json.dumps(heartbeat_response))
+                    logger.debug(f"Responded to stream heartbeat with ID: {heartbeat_id}")
+            
             elif data.get("type") == "TriggerEvent":
-                # Handle trigger event messages
                 trigger_id = data.get("trigger_id")
                 trigger_name = data.get("trigger_name")
                 tag_id = data.get("tag_id")
                 direction = data.get("direction")
                 zone_id = data.get("zone_id")
-                timestamp = data.get("timestamp")
-                x = data.get("x")
-                y = data.get("y")
-                z = data.get("z")
-                logger.info(f"TriggerEvent: {trigger_name} (ID:{trigger_id}) for tag {tag_id} at ({x},{y},{z}) zone {zone_id} direction {direction}")
-                logger.debug(f"Full TriggerEvent data: {data}")
+                logger.info(f"TriggerEvent: {trigger_name} (ID:{trigger_id}) for tag {tag_id} zone {zone_id} direction {direction}")
+            
             elif data.get("type") == "response":
                 logger.info(f"Received response on stream WebSocket: {data}")
-                if data.get("request") == "EndStrm":
-                    logger.info(f"Received EndStream response on stream WebSocket: {data}")
-                    should_stop = True
-                    break
-            elif data.get("command") == "start_simulator":
-                logger.info("Received start_simulator command on stream WebSocket")
-                running[0] = True
-            elif data.get("command") == "stop_simulator":
-                logger.info("Received stop_simulator command on stream WebSocket")
-                running[0] = False
-                end_stream = {
-                    "type": "request",
-                    "request": "EndStream",
-                    "reqid": ""
-                }
-                try:
-                    await websocket.send(json.dumps(end_stream))
-                    logger.info(f"Sent EndStream on stream WebSocket: {end_stream}")
-                    file_handler.flush()
-                    message = await asyncio.wait_for(websocket.recv(), timeout=10.0)
-                    data = json.loads(message)
-                    logger.info(f"Received response to EndStream on stream WebSocket: {data}")
-                    file_handler.flush()
-                except Exception as e:
-                    logger.error(f"Failed to send/receive EndStream on stream WebSocket: {str(e)}")
-                    file_handler.flush()
-                break
+            
             else:
-                logger.warning(f"Unhandled message type on stream WebSocket: {data.get('type', 'Unknown')}")
+                logger.debug(f"Unhandled message type on stream WebSocket: {data.get('type', 'Unknown')}")
+                
     except websockets.exceptions.ConnectionClosedOK as e:
         logger.info(f"Stream WebSocket connection closed as expected: {str(e)}")
     except websockets.exceptions.ConnectionClosed:
-        logger.info(f"Stream WebSocket connection closed as expected (placeholder handler)")
+        logger.error(f"Stream WebSocket connection closed\n{traceback.format_exc()}")
     except Exception as ex:
         logger.error(f"Error receiving stream WebSocket message: {str(ex)}\n{traceback.format_exc()}")
         should_stop = True
         raise
-    finally:
-        if websocket.state == websockets.State.OPEN:
-            end_stream = {
-                "type": "request",
-                "request": "EndStream",
-                "reqid": ""
-            }
-            try:
-                await websocket.send(json.dumps(end_stream))
-                logger.info(f"Sent EndStream on stream WebSocket: {end_stream}")
-                file_handler.flush()
-                message = await asyncio.wait_for(websocket.recv(), timeout=10.0)
-                data = json.loads(message)
-                logger.info(f"Received response to EndStream on stream WebSocket: {data}")
-                file_handler.flush()
-            except Exception as e:
-                logger.error(f"Failed to send/receive EndStream on stream WebSocket: {str(e)}")
-                file_handler.flush()
-            try:
-                await websocket.close()
-                logger.info(f"Stream WebSocket closed with code: {websocket.close_code}")
-                file_handler.flush()
-            except Exception as e:
-                logger.error(f"Error closing stream WebSocket: {str(e)}")
-                file_handler.flush()
 
-async def send_data(websocket, tag_configs: List[TagConfig], running: List[bool], duration: float, zone_id: int):
-    start_time = asyncio.get_event_loop().time()
-    tasks = []
-    for tag_config in tag_configs:
-        task = asyncio.create_task(send_tag_data(websocket, tag_config, running, start_time, duration, zone_id))
-        tasks.append(task)
-    await asyncio.gather(*tasks, return_exceptions=True)
-    logger.info("All tag simulations complete, closing WebSocket.")
-    await websocket.close()
-
-async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], start_time: float, duration: float, zone_id: int):
-    global current_websocket
-    global should_stop
-    while True:
-        if should_stop:
-            logger.info(f"Stopping send_tag_data for {tag_config.tag_id} due to should_stop flag")
-            break
-        elapsed_time = asyncio.get_event_loop().time() - start_time
-        if elapsed_time >= duration:
-            logger.info(f"Duration {duration} seconds reached for {tag_config.tag_id}, stopping transmission")
-            break
-        if running[0]:
-            logger.debug(f"Elapsed time for {tag_config.tag_id}: {elapsed_time:.2f} seconds")
-            if len(tag_config.positions) > 1 and tag_config.move_interval > 0:
-                cycle_time = elapsed_time % (2 * tag_config.move_interval)
-                logger.debug(f"Cycle time for {tag_config.tag_id}: {cycle_time:.2f}, move_interval: {tag_config.move_interval}")
-                if cycle_time < tag_config.move_interval:
-                    t = cycle_time / tag_config.move_interval
-                    start_pos = tag_config.positions[0]
-                    end_pos = tag_config.positions[1]
-                    logger.debug(f"Moving from {start_pos} to {end_pos}, t={t:.2f}")
-                else:
-                    t = (cycle_time - tag_config.move_interval) / tag_config.move_interval
-                    start_pos = tag_config.positions[1]
-                    end_pos = tag_config.positions[0]
-                    logger.debug(f"Moving from {start_pos} to {end_pos}, t={t:.2f}")
-                x = start_pos[0] + t * (end_pos[0] - start_pos[0])
-                y = start_pos[1] + t * (end_pos[1] - start_pos[1])
-                z = start_pos[2] + t * (end_pos[2] - start_pos[2])
-                x = round(x, 2)
-                y = round(y, 2)
-                z = round(z, 2)
-                logger.debug(f"Interpolated position for {tag_config.tag_id}: t={t:.2f}, pos=({x:.2f}, {y:.2f}, {z:.2f})")
-            else:
-                x, y, z = tag_config.positions[0]
-                x = round(x, 2)
-                y = round(y, 2)
-                z = round(z, 2)
-                logger.debug(f"Stationary position for {tag_config.tag_id}: pos=({x:.2f}, {y:.2f}, {z:.2f})")
-            mock_data = {
-                "type": "GISData",
-                "ID": tag_config.tag_id,
-                "Type": "Sim",
-                "TS": datetime.now().isoformat(),
-                "X": x,
-                "Y": y,
-                "Z": z,
-                "Bat": 100,
-                "CNF": 95.0,
-                "GWID": "SIM-GW",
-                "Sequence": tag_config.sequence_number,
-                "zone_id": zone_id
-            }
-            logger.info(f"Sending GISData with zone_id {zone_id} for {tag_config.tag_id}: {mock_data}")
+async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], 
+                       duration: float, zone_id: int, start_time: float):
+    """Send position data for a single tag"""
+    global stream_websocket, should_stop
+    sequence = 0
+    
+    while (asyncio.get_event_loop().time() - start_time) < duration and running[0] and not should_stop:
+        current_time = asyncio.get_event_loop().time()
+        elapsed_time = current_time - start_time
+        
+        # Update position for moving tags
+        if len(tag_config.positions) > 1:
+            if current_time - tag_config.last_move_time >= tag_config.move_interval:
+                tag_config.current_position_index = (tag_config.current_position_index + 1) % len(tag_config.positions)
+                tag_config.last_move_time = current_time
+                logger.info(f"Tag {tag_config.tag_id} moved to position index {tag_config.current_position_index}")
+            
+            # Interpolate between positions
+            pos1_idx = tag_config.current_position_index
+            pos2_idx = (tag_config.current_position_index + 1) % len(tag_config.positions)
+            progress = (current_time - tag_config.last_move_time) / tag_config.move_interval
+            progress = min(1.0, progress)
+            
+            position = interpolate_positions(
+                tag_config.positions[pos1_idx],
+                tag_config.positions[pos2_idx],
+                progress
+            )
+        else:
+            position = tag_config.positions[0]
+        
+        sequence += 1
+        message = {
+            "type": "GISData",
+            "ID": tag_config.tag_id,
+            "zone_id": zone_id,
+            "sequence": sequence,
+            "X": round(position[0], 6),
+            "Y": round(position[1], 6),
+            "Z": round(position[2], 6),
+            "cnf": 95,
+            "ts": datetime.now().isoformat(),
+            "gwid": "SIM_GW",
+            "bat": 100,
+            "type_msg": "Sim POTTER"
+        }
+        
+        target_websocket = stream_websocket if stream_websocket else websocket
+        if target_websocket and target_websocket.state == websockets.State.OPEN:
             try:
-                await current_websocket.send(json.dumps(mock_data)) # type: ignore
-                tag_config.increment_sequence()
+                await target_websocket.send(json.dumps(message))
+                target_type = "stream" if stream_websocket else "control"
+                logger.info(f"Tag {tag_config.tag_id}: Sent position ({position[0]:.2f}, {position[1]:.2f}, {position[2]:.2f}) to {target_type} WebSocket at {datetime.now()}")
             except Exception as e:
-                logger.error(f"Failed to send GISData for {tag_config.tag_id}: {str(e)}")
+                logger.error(f"Failed to send data for tag {tag_config.tag_id}: {str(e)}")
                 break
+        
         remaining_time = duration - (asyncio.get_event_loop().time() - start_time)
         sleep_time = min(tag_config.sleep_interval, max(remaining_time, 0))
         if sleep_time <= 0:
@@ -363,7 +293,25 @@ async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], s
             break
         await asyncio.sleep(sleep_time)
 
+async def send_data(websocket, tag_configs: List[TagConfig], running: List[bool], 
+                   duration: float, zone_id: int):
+    """Send data for all configured tags"""
+    start_time = asyncio.get_event_loop().time()
+    tasks = []
+    
+    for tag_config in tag_configs:
+        task = asyncio.create_task(
+            send_tag_data(websocket, tag_config, running, duration, zone_id, start_time)
+        )
+        tasks.append(task)
+    
+    await asyncio.gather(*tasks, return_exceptions=True)
+    
+    elapsed_time = asyncio.get_event_loop().time() - start_time
+    logger.info(f"All send tasks completed after {elapsed_time:.2f} seconds")
+
 async def handle_user_input(running: List[bool], receive_task, send_task, websocket):
+    """Handle keyboard input during simulation"""
     print("Press 's' to start, 't' to stop, 'q' to quit")
     while True:
         if should_stop:
@@ -391,15 +339,15 @@ async def simulator():
     global stream_receive_task
     global should_stop
     uri = f"ws://{WEBSOCKET_HOST}:{CONTROL_PORT}/ws/ControlManager"
-    print("Select simulation mode (v0.1.22):")
+    print("Select simulation mode (v0.1.26):")
     print("1. Single tag at a fixed point")
     print("2. Single tag moving between two points (with linear interpolation)")
     print("3. Multiple tags at fixed points")
     print("4. One tag stationary, one tag moving")
     print("5. Two tags with different ping rates")
-    print("6. ClaudeAI Special")
+    print("6. TETSE Debug Mode")
     try:
-        mode = int(input("Enter mode (1-5): ").strip() or 1)
+        mode = int(input("Enter mode (1-6): ").strip() or 1)
     except ValueError as e:
         logger.error(f"Invalid mode input: {str(e)}")
         sys.exit(1)
@@ -478,7 +426,7 @@ async def simulator():
         zone_id = 422  # Existing zone: "6005Campus"
         tag_configs.append(TagConfig(tag_id, [(x, y, z)], ping_rate))
         print(f"Option 6: TETSE Debug - tag {tag_id} at ({x}, {y}, {z}) with ping rate {ping_rate}Hz in zone_id {zone_id} (6005Campus)")
-        duration = 10  # Override duration to 10 seconds    
+        duration = 10  # Override duration to 10 seconds
     running = [True]
     stream_websocket = None
     should_stop = False
@@ -581,4 +529,10 @@ async def simulator():
     sys.exit(0)
 
 if __name__ == "__main__":
-    asyncio.run(simulator())
+    try:
+        asyncio.run(simulator())
+    except KeyboardInterrupt:
+        print("\nSimulation terminated by user")
+    except Exception as e:
+        logger.error(f"Simulator error: {e}")
+        sys.exit(1)

@@ -1,46 +1,32 @@
 # Name: websocket_control.py
-# Version: 0.1.52
-# Created: 250512
-# Modified: 250526
+# Version: 0.1.2
+# Created: 250513
+# Modified: 250703
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS Control WebSocket server on port 8001
+# Modified By: ParcoAdmin & TC
+# Description: Python script for ParcoRTLS Control WebSocket server on port 8001 - Added PortRedirect support for simulator v0.1.23
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
-# /home/parcoadmin/parco_fastapi/app/manager/websocket_control.py
-# Version: 0.1.52 - Integrated HeartbeatManager, removed custom heartbeat logic, bumped from 0.1.51
-# Previous: Replaced RotatingFileHandler with LineLimitedFileHandler for 999-line limit, bumped from 0.1.50
-# Previous: Fixed GISData forwarding, added heartbeat_id, enhanced subscription logging, bumped from 0.1.49
-# Previous: Fixed log directory to /home/parcoadmin/parco_fastapi/app/logs, added error handling for log file creation, bumped from 0.1.48
-# Previous: Added explicit log directory creation, permission checks, enhanced GISData logging with subscription details, bumped from 0.1.47
-# Previous: Added logging for GISData message forwarding, bumped from 0.1.46
-# Previous: Added EndStream message before disconnecting due to heartbeat timeout, bumped from 0.1.45
-# Previous: Fixed heartbeat feedback loop by removing server response to client heartbeats, added timeout for manager responsiveness, bumped from 0.1.44
-# Previous: Added explicit flush() calls after key log messages to ensure log writing, removed invalid buffering=1, bumped from 0.1.43
-# Previous: Added debug logging for heartbeat rate-limiting to diagnose feedback loop issue, bumped from 0.1.42
-# Previous: Added rate-limiting for heartbeat responses to prevent feedback loop, bumped from 0.1.41
-# Previous: Added file logging with rotation, bumped from 0.1.40
-# Previous: Fixed rapid heartbeat loop by adding error handling and ensuring 60-second interval, bumped from 0.1.39
-# Previous: Send PortRedirect to all clients after BeginStream, bumped from 0.1.38
-# Previous: Send PortRedirect to simulator clients, bumped from 0.1.37
-# Previous: Moved manager.start() to lifespan for heartbeat functionality (0.1.37)
-# Previous: Added debug logging to start() method (0.1.36)
-# Previous: Fixed zone_id handling in WebSocket handler (0.1.35)
-# Note: This server handles control messages for ParcoRTLS, using Control type (i_typ_res=10).
-
 import asyncio
 import logging
 import os
 import stat
+import sys
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncpg
 import json
 from datetime import datetime
+from typing import Optional
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from db_config_helper import config_helper
+
 from .manager import Manager
 from .sdk_client import SDKClient
 from .models import HeartBeat, Response, ResponseType, Request, Tag
@@ -94,18 +80,57 @@ ENABLE_MULTI_PORT = True
 STREAM_TYPE = "Control"
 RESOURCE_TYPE = 10  # Control
 
-# Database connection string
-MAINT_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
+# Default redirect port for RealTime stream
+DEFAULT_REALTIME_PORT = 8002
+
+# Cache for connection string and CORS origins
+_cached_connection_string: Optional[str] = None
+_cached_cors_origins: Optional[list] = None
+
+async def get_connection_string() -> str:
+    """Get maintenance database connection string from config helper"""
+    global _cached_connection_string
+    if _cached_connection_string is None:
+        try:
+            # Load server configuration from database
+            server_config = await config_helper.get_server_config()
+            host = server_config.get('host', '192.168.210.226')
+            _cached_connection_string = config_helper.get_connection_string("ParcoRTLSMaint", host)
+            logger.info(f"Control server connection string configured for host: {host}")
+        except Exception as e:
+            logger.warning(f"Failed to load connection string from database, using fallback: {e}")
+            # Fallback connection string
+            _cached_connection_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
+    
+    return _cached_connection_string
+
+async def get_cors_origins() -> list:
+    """Get CORS origins from server configuration"""
+    global _cached_cors_origins
+    if _cached_cors_origins is None:
+        try:
+            server_config = await config_helper.get_server_config()
+            host = server_config.get('host', '192.168.210.226')
+            _cached_cors_origins = [f"http://{host}:3000"]
+            logger.info(f"CORS origins configured for host: {host}")
+        except Exception as e:
+            logger.warning(f"Failed to get CORS origins from config, using fallback: {e}")
+            _cached_cors_origins = ["http://192.168.210.226:3000"]
+    
+    return _cached_cors_origins
 
 # Heartbeat configuration
 HEARTBEAT_INTERVAL = 30.0  # Heartbeat every 30 seconds
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.debug("Starting lifespan: Initializing DB pool")
+    logger.debug("Starting lifespan: Initializing connection string and DB pool")
     file_handler.flush()
     try:
-        async with asyncpg.create_pool(MAINT_CONN_STRING) as pool:
+        # Initialize connection string
+        maint_conn_string = await get_connection_string()
+        
+        async with asyncpg.create_pool(maint_conn_string) as pool:
             logger.debug("DB pool created successfully")
             file_handler.flush()
             async with pool.acquire() as conn:
@@ -117,7 +142,7 @@ async def lifespan(app: FastAPI):
                     file_handler.flush()
                     manager_name = manager['x_nm_res']
                     if manager_name not in _MANAGER_INSTANCES:
-                        manager_instance = Manager(manager_name, zone_id=None)
+                        manager_instance = Manager(manager_name, zone_id=None)  # type: ignore
                         _MANAGER_INSTANCES[manager_name] = manager_instance
                         logger.debug(f"Starting manager {manager_name}")
                         file_handler.flush()
@@ -134,31 +159,38 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://192.168.210.226:3000"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
-)
-logger.debug("CORS middleware added with allow_origins: http://192.168.210.226:3000")
-file_handler.flush()
+# Configure CORS middleware with dynamic origins
+@app.on_event("startup")
+async def configure_cors():
+    """Configure CORS with dynamic origins after server config is loaded"""
+    cors_origins = await get_cors_origins()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["*"],
+    )
+    logger.debug(f"CORS middleware added with allow_origins: {cors_origins}")
+    file_handler.flush()
 
 _MANAGER_INSTANCES = {}
 _WEBSOCKET_CLIENTS = {}
 
 @app.websocket("/ws/{manager_name}")
 async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
-    client_host = websocket.client.host
-    client_port = websocket.client.port
+    client_host = websocket.client.host  # type: ignore
+    client_port = websocket.client.port  # type: ignore
     client_id = f"{client_host}:{client_port}"
     logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {client_id}")
     file_handler.flush()
 
-    async with asyncpg.create_pool(MAINT_CONN_STRING) as pool:
+    maint_conn_string = await get_connection_string()
+    
+    async with asyncpg.create_pool(maint_conn_string) as pool:
         async with pool.acquire() as conn:
             manager_info = await conn.fetchrow(
-                "SELECT i_typ_res FROM tlkresources WHERE X_NM_RES = $1 AND i_typ_res = $2",
+                "SELECT i_typ_res FROM tlkresources WHERE X_NM_RES = $1 AND i_typ_res = $2", 
                 manager_name, RESOURCE_TYPE)
             if not manager_info:
                 logger.error(f"Manager {manager_name} not found or invalid type")
@@ -168,65 +200,51 @@ async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
 
     sdk_client = None
     is_disconnected = False
-    heartbeat_manager = HeartbeatManager(websocket, client_id=client_id, interval=HEARTBEAT_INTERVAL, timeout=5)
-    
     try:
         await websocket.accept()
-        logger.info(f"WebSocket connection accepted for /ws/{manager_name} from {client_id}")
+        logger.info(f"WebSocket connection accepted for /ws/{manager_name}")
         file_handler.flush()
-
+        
         if manager_name not in _MANAGER_INSTANCES:
-            manager = Manager(manager_name, zone_id=None)
+            manager = Manager(manager_name, zone_id=None)  # type: ignore
             _MANAGER_INSTANCES[manager_name] = manager
         else:
             manager = _MANAGER_INSTANCES[manager_name]
-
+            
         sdk_client = SDKClient(websocket, client_id)
-        sdk_client.parent = manager
+        sdk_client.parent = manager  # type: ignore
         manager.sdk_clients[client_id] = sdk_client
         sdk_client.start_q_timer()
 
         if manager_name not in _WEBSOCKET_CLIENTS:
             _WEBSOCKET_CLIENTS[manager_name] = []
         _WEBSOCKET_CLIENTS[manager_name].append(sdk_client)
-        logger.debug(f"Added client {client_id} to _WEBSOCKET_CLIENTS for {manager_name}. Total clients: {len(_WEBSOCKET_CLIENTS[manager_name])}")
-        file_handler.flush()
 
-        # Start heartbeat loop
-        heartbeat_task = asyncio.create_task(heartbeat_loop(heartbeat_manager))
+        # Initialize heartbeat manager
+        heartbeat_manager = HeartbeatManager(websocket, str(HEARTBEAT_INTERVAL))  # type: ignore
+        await heartbeat_manager.start()  # type: ignore
 
         while True:
             try:
                 data = await websocket.receive_text()
                 logger.debug(f"Received WebSocket message from client {client_id}: {data}")
                 file_handler.flush()
+                
                 json_data = json.loads(data)
                 msg_type = json_data.get("type", "")
 
                 if msg_type == "HeartBeat":
-                    heartbeat_result = heartbeat_manager.validate_response(json_data)
-                    if heartbeat_result is False:
-                        await websocket.send_json({
-                            "type": "EndStream",
-                            "reason": "Too many invalid heartbeats"
-                        })
-                        logger.info(f"Sent EndStream to client {client_id}: Too many invalid heartbeats")
-                        file_handler.flush()
-                        sdk_client.is_closing = True
-                        break
-                    elif heartbeat_result is True:
-                        if heartbeat_manager.too_frequent():
-                            await websocket.send_json({
-                                "type": "Warning",
-                                "reason": "Heartbeat too frequent"
-                            })
-                            logger.debug(f"Sent warning to client {client_id}: Heartbeat too frequent")
-                            file_handler.flush()
+                    hb = HeartBeat(ticks=json_data["ts"])
+                    sdk_client.heartbeat = hb.ticks
+                    await heartbeat_manager.handle_heartbeat(hb.ticks)  # type: ignore
+                    logger.debug(f"Processed HeartBeat for client {client_id}, ts: {hb.ticks}")
+                    file_handler.flush()
                     continue
 
                 elif msg_type == "request":
                     request_type = json_data.get("request", "")
                     req_id = json_data.get("reqid", "")
+                    zone_id = json_data.get("zone_id")
 
                     req_type = REQUEST_TYPE_MAP.get(request_type)
                     if not req_type:
@@ -243,10 +261,19 @@ async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
                     req = Request(
                         req_type=req_type,
                         req_id=req_id,
-                        tags=[Tag(id=tag["id"], send_payload_data=tag["data"] == "true")
+                        tags=[Tag(id=tag["id"], send_payload_data=tag["data"] == "true") 
                               for tag in json_data.get("params", [])]
                     )
-                    sdk_client.request_msg = req
+                    
+                    if zone_id is not None:
+                        req.zone_id = zone_id  # type: ignore
+                        if manager.zone_id != zone_id:
+                            manager.zone_id = zone_id
+                            await manager.load_triggers(zone_id)
+                            logger.info(f"Manager {manager_name} zone changed to {zone_id}, triggers reloaded")
+                            file_handler.flush()
+
+                    sdk_client.request_msg = req  # type: ignore
                     resp = Response(response_type=ResponseType(req.req_type.value), req_id=req_id)
 
                     if req.req_type == RequestType.BeginStream:
@@ -258,53 +285,64 @@ async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
                         sdk_client.sent_begin_msg = True
                         sdk_client.sent_req = True
                         await websocket.send_text(resp.to_json())
-                        logger.info(f"Client {client_id} subscribed to tags: {[t.id for t in req.tags]}, zone_id: {json_data.get('zone_id')}")
+                        logger.info(f"BeginStream processed for client {client_id}, tags: {[t.id for t in req.tags]}")
                         file_handler.flush()
-                        if not resp.message:
-                            port_redirect = {
+                        
+                        if not resp.message:  # Only send PortRedirect if BeginStream was successful
+                            # Send PortRedirect message to inform simulator of RealTime stream port
+                            port_redirect_msg = {
                                 "type": "PortRedirect",
-                                "port": 8002,
-                                "stream_type": "RealTime",
-                                "manager_name": "RealTimeManager",
-                                "heartbeat_id": str(int(datetime.now().timestamp() * 1000))
+                                "port": DEFAULT_REALTIME_PORT
                             }
-                            await websocket.send_text(json.dumps(port_redirect))
-                            logger.info(f"Sent PortRedirect to client {client_id}: {port_redirect}")
+                            await websocket.send_text(json.dumps(port_redirect_msg))
+                            logger.info(f"Sent PortRedirect to client {client_id}, redirecting to port {DEFAULT_REALTIME_PORT}")
                             file_handler.flush()
-                        if resp.message:
+                        else:
                             await manager.close_client(sdk_client)
                             break
+                            
                     elif req.req_type == RequestType.EndStream:
                         await websocket.send_text(resp.to_json())
-                        logger.info(f"Sent EndStream response to client {client_id}: {resp.to_json()}")
-                        file_handler.flush()
                         await manager.close_client(sdk_client)
-                        break
-                    else:
-                        resp.message = "Request not supported in Control stream."
-                        await websocket.send_text(resp.to_json())
-                        logger.debug(f"Sent error response to client {client_id}: {resp.to_json()}")
+                        logger.info(f"EndStream processed for client {client_id}")
                         file_handler.flush()
-
-                elif msg_type == "GISData":
-                    logger.debug(f"Ignoring GISData message from client {client_id}: {json_data}")
-                    file_handler.flush()
-                    continue
+                        break
+                        
+                    elif req.req_type == RequestType.AddTag:
+                        if req.tags:
+                            for t in req.tags:
+                                sdk_client.add_tag(t.id, t)
+                            logger.info(f"AddTag processed for client {client_id}, tags: {[t.id for t in req.tags]}")
+                            file_handler.flush()
+                        await websocket.send_text(resp.to_json())
+                        
+                    elif req.req_type == RequestType.RemoveTag:
+                        if req.tags:
+                            for t in req.tags:
+                                sdk_client.remove_tag(t.id)
+                            logger.info(f"RemoveTag processed for client {client_id}, tags: {[t.id for t in req.tags]}")
+                            file_handler.flush()
+                        await websocket.send_text(resp.to_json())
+                        
+                    else:
+                        resp.message = f"Request type {request_type} not supported in Control stream."
+                        await websocket.send_text(resp.to_json())
+                        logger.debug(f"Unsupported request type {request_type} from client {client_id}")
+                        file_handler.flush()
 
                 else:
                     logger.warning(f"Unknown message type from client {client_id}: {msg_type}")
                     file_handler.flush()
 
             except WebSocketDisconnect:
-                logger.info(f"WebSocket disconnected for /ws/{manager_name} from {client_id}")
+                logger.info(f"WebSocket disconnected for /ws/{manager_name}")
                 file_handler.flush()
                 is_disconnected = True
                 await sdk_client.close()
                 break
             except Exception as e:
-                logger.error(f"Error in WebSocket handler for client {client_id}: {str(e)}")
+                logger.error(f"Error in WebSocket handler: {str(e)}")
                 file_handler.flush()
-                sdk_client.is_closing = True
                 break
     finally:
         if sdk_client and not is_disconnected:
@@ -313,12 +351,13 @@ async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
             del manager.sdk_clients[client_id]
         if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
             _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
-        heartbeat_task.cancel()
-        logger.info(f"Cleaned up client {client_id} for /ws/{manager_name}")
+        logger.info(f"WebSocket cleanup completed for client {client_id}")
         file_handler.flush()
 
-async def heartbeat_loop(heartbeat_manager: HeartbeatManager):
-    while heartbeat_manager.is_connected():
-        await heartbeat_manager.send_heartbeat()
-        await heartbeat_manager.check_timeout()
-        await asyncio.sleep(HEARTBEAT_INTERVAL)
+def refresh_connection_config():
+    """Clear cached connection configuration to force reload"""
+    global _cached_connection_string, _cached_cors_origins
+    _cached_connection_string = None
+    _cached_cors_origins = None
+    logger.info("Connection configuration cache cleared")
+    file_handler.flush()

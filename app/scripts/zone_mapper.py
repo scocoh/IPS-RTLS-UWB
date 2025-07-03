@@ -1,10 +1,10 @@
 # Name: zone_mapper.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250703
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS backend
+# Modified By: ParcoAdmin & AI Assistant
+# Description: Python script for ParcoRTLS backend - Updated to use database-driven configuration
 # Location: /home/parcoadmin/parco_fastapi/app/scripts
 # Role: Backend
 # Status: Active
@@ -28,15 +28,12 @@ from psycopg2 import Error
 import os
 import paho.mqtt.publish as mqtt_publish
 import json
+import sys
+import asyncio
 
-# ✅ Hardcode database credentials
-DB_CONFIG = {
-    'dbname': 'ParcoRTLSMaint',
-    'user': 'parcoadmin',
-    'password': 'parcoMCSE04106!',
-    'host': '192.168.210.226',
-    'port': '5432'
-}
+# Add import for db_config_helper
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from db_config_helper import config_helper
 
 # Logging configuration
 LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
@@ -53,12 +50,55 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-VERSION = "0P.1B.25"
+VERSION = "0P.1B.26"  # Bumped version for database-driven configuration
 
-def get_db_connection():
-    """Establish a new database connection with hardcoded credentials"""
+# Global for caching database config
+_db_config = None
+_mqtt_host = None
+
+async def get_db_config():
+    """Get database configuration from tlkresources table"""
+    global _db_config
+    if _db_config is None:
+        try:
+            server_config = await config_helper.get_server_config()
+            host = server_config.get('host', '192.168.210.226')
+            _db_config = {
+                'dbname': 'ParcoRTLSMaint',
+                'user': 'parcoadmin',
+                'password': 'parcoMCSE04106!',
+                'host': host,
+                'port': '5432'
+            }
+            logger.info(f"Database configuration loaded for host: {host}")
+        except Exception as e:
+            logger.warning(f"Failed to load config from database, using fallback: {e}")
+            _db_config = {
+                'dbname': 'ParcoRTLSMaint',
+                'user': 'parcoadmin',
+                'password': 'parcoMCSE04106!',
+                'host': '192.168.210.226',
+                'port': '5432'
+            }
+    return _db_config
+
+async def get_mqtt_host():
+    """Get MQTT host from database configuration"""
+    global _mqtt_host
+    if _mqtt_host is None:
+        try:
+            server_config = await config_helper.get_server_config()
+            _mqtt_host = server_config.get('host', '192.168.210.226')
+            logger.info(f"MQTT host configured: {_mqtt_host}")
+        except Exception as e:
+            logger.warning(f"Failed to get MQTT host from database, using fallback: {e}")
+            _mqtt_host = '192.168.210.226'
+    return _mqtt_host
+
+def get_db_connection(db_config):
+    """Establish a new database connection with provided credentials"""
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = psycopg2.connect(**db_config)
         logger.info("Database connection established successfully.")
         return conn
     except Exception as e:
@@ -74,25 +114,27 @@ def release_db_connection(conn):
     except Exception as e:
         logger.error(f"Error closing database connection: {e}")
 
-def send_mqtt_message(message):
+async def send_mqtt_message(message):
     """Send message via MQTT"""
     try:
+        mqtt_host = await get_mqtt_host()
         mqtt_publish.single(
             "parco/zone_mapper",
             json.dumps(message),
-            hostname="192.168.210.226",
+            hostname=mqtt_host,
             port=1883
         )
-        logger.info(f"MQTT message sent: {json.dumps(message)}")
+        logger.info(f"MQTT message sent to {mqtt_host}: {json.dumps(message)}")
     except Exception as e:
         logger.error(f"Failed to send MQTT message: {e}")
 
-def map_zones():
+async def map_zones():
     logger.info(f"Starting zone_mapper.py Version: {VERSION}")
-    send_mqtt_message({"version": VERSION, "status": "Zone Mapper Service Started"})
+    await send_mqtt_message({"version": VERSION, "status": "Zone Mapper Service Started"})
     logger.info("Starting zone mapping process with test log...")
 
-    conn = get_db_connection()
+    db_config = await get_db_config()
+    conn = get_db_connection(db_config)
     if not conn:
         logger.error("Database connection failed. Exiting.")
         return
@@ -123,7 +165,7 @@ def map_zones():
         updated_count = 0
         for zone_id, zone_name, current_map in unassociated_zones:
             # Use the first available map with image data (e.g., map 24)
-            target_map = 24  # Hardcode to map ID 24 (Boom2502271142) since it’s the only map with image data
+            target_map = 24  # Hardcode to map ID 24 (Boom2502271142) since it's the only map with image data
             if target_map in maps_with_images:
                 logger.debug(f"Processing zone {zone_id} ({zone_name}) with map {target_map}")
                 cur.execute("""
@@ -138,7 +180,7 @@ def map_zones():
                 logger.warning(f"Map {target_map} has no image data. Skipping association for zone {zone_id} ({zone_name}).")
 
         logger.info(f"Updated/Inserted {updated_count} map associations successfully.")
-        send_mqtt_message({"version": VERSION, "status": f"Updated/Inserted {updated_count} zones"})
+        await send_mqtt_message({"version": VERSION, "status": f"Updated/Inserted {updated_count} zones"})
 
     except Error as e:
         logger.error(f"Database error during zone mapping: {str(e)}")
@@ -147,7 +189,11 @@ def map_zones():
         release_db_connection(conn)
 
     logger.info("Zone mapping process completed.")
-    send_mqtt_message({"version": VERSION, "status": "Zone mapping process completed"})
+    await send_mqtt_message({"version": VERSION, "status": "Zone mapping process completed"})
+
+def main():
+    """Main entry point for running as script"""
+    asyncio.run(map_zones())
 
 if __name__ == "__main__":
-    map_zones()
+    main()

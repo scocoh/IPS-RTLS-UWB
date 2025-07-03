@@ -1,75 +1,193 @@
 # Name: websocket.py
-# Version: 0.1.28
-# Created: 971201
-# Modified: 250513
+# Version: 0.1.1
+# Created: 250513
+# Modified: 250702
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS backend with multi-port WebSocket support and PortRedirect
+# Description: Python script for ParcoRTLS Main WebSocket server - Updated to use database-driven configuration
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
-# Status: Not Active
+# Status: Active
 # Dependent: TRUE
-
-# /home/parcoadmin/parco_fastapi/app/manager/websocket.py
-# Version: 1.0.49 - Removed unnecessary accept call in stream_handler, bumped from 1.0.48
-# Previous: Simplified stream_handler to skip header validation, reapplied request_headers fix (1.0.48)
-# Previous: Fixed headers access in stream_handler using request_headers (1.0.47)
 
 import asyncio
 import logging
 import traceback
+import sys
+import os
+import websockets  # type: ignore
+from typing import Optional, Dict, List, Any
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncpg
+import json
+from datetime import datetime
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from db_config_helper import config_helper
+
 from .manager import Manager
 from .sdk_client import SDKClient
 from .models import HeartBeat, Response, ResponseType, Request, Tag
 from .enums import RequestType, eMode
-import json
-import websockets
-from websockets.datastructures import Headers
-from websockets.exceptions import ConnectionClosed, InvalidState, InvalidHeader, InvalidMessage, InvalidHandshake
+from .constants import REQUEST_TYPE_MAP, NEW_REQUEST_TYPES
 
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# Feature flag for multi-port support
-ENABLE_MULTI_PORT = True
+# Cache for connection string and CORS origins
+_cached_connection_string: Optional[str] = None
+_cached_cors_origins: Optional[List[str]] = None
 
-# Define stream ports for multi-port support
+async def get_connection_string() -> str:
+    """Get maintenance database connection string from config helper"""
+    global _cached_connection_string
+    if _cached_connection_string is None:
+        try:
+            # Load server configuration from database
+            server_config = await config_helper.get_server_config()
+            host = server_config.get('host', '192.168.210.226')
+            _cached_connection_string = config_helper.get_connection_string("ParcoRTLSMaint", host)
+            logger.info(f"Main WebSocket connection string configured for host: {host}")
+        except Exception as e:
+            logger.warning(f"Failed to load connection string from database, using fallback: {e}")
+            # Fallback connection string
+            _cached_connection_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
+    
+    return _cached_connection_string
+
+async def get_cors_origins() -> List[str]:
+    """Get CORS origins from server configuration"""
+    global _cached_cors_origins
+    if _cached_cors_origins is None:
+        try:
+            server_config = await config_helper.get_server_config()
+            host = server_config.get('host', '192.168.210.226')
+            _cached_cors_origins = [f"http://{host}:3000"]
+            logger.info(f"CORS origins configured for host: {host}")
+        except Exception as e:
+            logger.warning(f"Failed to get CORS origins from config, using fallback: {e}")
+            _cached_cors_origins = ["http://192.168.210.226:3000"]
+    
+    return _cached_cors_origins
+
+# Stream ports configuration
 STREAM_PORTS = {
-    "RealTime": 8002
+    "RealTime": 8002,
+    "HistoricalData": 8003,
+    "OData": 8006,
+    "Control": 8001
 }
 
-async def process_raw_request(ws, request):
-    """Log raw request data and validate path, adjusted for (ws, request) arguments."""
-    stream_type = "RealTime"  # Hard-coded for now; could be passed via closure if needed
-    path = request.path  # Extract path from the Request object
-    logger.debug(f"process_raw_request called with ws={ws}, request={request}, extracted path={path}")
-    
-    header_dict = dict(request.headers)
-    client_addr = header_dict.get("host", "unknown")
-    logger.debug(f"Raw request received for {stream_type}: path={path}, headers={header_dict}")
+async def process_raw_request(path, request_headers):
+    """Process raw WebSocket requests"""
+    logger.debug(f"Processing raw request: path={path}, headers={dict(request_headers)}")
+    return None
 
-    # Validate path
-    expected_path = "/ws/Manager1"
-    if path != expected_path:
-        logger.info(f"Invalid WebSocket path from {client_addr} on {stream_type}: got {path}, expected {expected_path}")
-        return websockets.http11.Response(
-            status_code=400,
-            reason_phrase="Invalid path",
-            headers=Headers(),
-            body=f"Invalid path: {path}".encode()
-        )
-    return None  # Proceed with WebSocket handshake
+async def stream_handler(websocket: Any, stream_type: str):  # type: ignore
+    """Handler for stream-specific WebSocket connections."""
+    client_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+    logger.info(f"Stream handler for {stream_type} - client {client_id}")
+    
+    try:
+        # Handle different stream types
+        if stream_type == "RealTime":
+            await handle_realtime_stream(websocket, client_id)
+        elif stream_type == "HistoricalData":
+            await handle_historical_stream(websocket, client_id)
+        elif stream_type == "OData":
+            await handle_odata_stream(websocket, client_id)
+        elif stream_type == "Control":
+            await handle_control_stream(websocket, client_id)
+        else:
+            logger.warning(f"Unknown stream type: {stream_type}")
+            await websocket.close(code=1008, reason="Unknown stream type")
+            
+    except websockets.exceptions.ConnectionClosed:
+        logger.info(f"Stream connection closed for {stream_type} client {client_id}")
+    except Exception as e:
+        logger.error(f"Error in stream handler for {stream_type}: {e}")
+        await websocket.close(code=1011, reason="Internal error")
+
+async def handle_realtime_stream(websocket: Any, client_id: str):  # type: ignore
+    """Handle real-time stream connections"""
+    logger.info(f"Handling real-time stream for client {client_id}")
+    
+    try:
+        async for message in websocket:
+            data = json.loads(message)
+            logger.debug(f"Real-time message from {client_id}: {data}")
+            
+            # Echo back for now - implement actual real-time logic
+            response = {"type": "ack", "original": data}
+            await websocket.send(json.dumps(response))
+            
+    except Exception as e:
+        logger.error(f"Error in real-time stream for {client_id}: {e}")
+
+async def handle_historical_stream(websocket: Any, client_id: str):  # type: ignore
+    """Handle historical data stream connections"""
+    logger.info(f"Handling historical stream for client {client_id}")
+    
+    try:
+        async for message in websocket:
+            data = json.loads(message)
+            logger.debug(f"Historical message from {client_id}: {data}")
+            
+            # Echo back for now - implement actual historical logic
+            response = {"type": "historical_ack", "original": data}
+            await websocket.send(json.dumps(response))
+            
+    except Exception as e:
+        logger.error(f"Error in historical stream for {client_id}: {e}")
+
+async def handle_odata_stream(websocket: Any, client_id: str):  # type: ignore
+    """Handle OData stream connections"""
+    logger.info(f"Handling OData stream for client {client_id}")
+    
+    try:
+        async for message in websocket:
+            data = json.loads(message)
+            logger.debug(f"OData message from {client_id}: {data}")
+            
+            # Echo back for now - implement actual OData logic
+            response = {"type": "odata_ack", "original": data}
+            await websocket.send(json.dumps(response))
+            
+    except Exception as e:
+        logger.error(f"Error in OData stream for {client_id}: {e}")
+
+async def handle_control_stream(websocket: Any, client_id: str):  # type: ignore
+    """Handle control stream connections"""
+    logger.info(f"Handling control stream for client {client_id}")
+    
+    try:
+        async for message in websocket:
+            data = json.loads(message)
+            logger.debug(f"Control message from {client_id}: {data}")
+            
+            # Echo back for now - implement actual control logic
+            response = {"type": "control_ack", "original": data}
+            await websocket.send(json.dumps(response))
+            
+    except Exception as e:
+        logger.error(f"Error in control stream for {client_id}: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.debug("Starting lifespan: Initializing DB pool")
+    logger.debug("Starting lifespan: Initializing connection string and DB pool")
     try:
-        async with asyncpg.create_pool("postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint") as pool:
+        # Initialize connection string
+        maint_conn_string = await get_connection_string()
+        
+        async with asyncpg.create_pool(maint_conn_string) as pool:
             logger.debug("DB pool created successfully")
             async with pool.acquire() as conn:
                 logger.debug("Acquired DB connection, querying tlkresources")
@@ -82,8 +200,8 @@ async def lifespan(app: FastAPI):
         # Start WebSocket servers for stream ports
         servers = []
         for stream_type, port in STREAM_PORTS.items():
-            async def handler(ws, path=None):  # Ignore path argument since stream_handler doesn't need it
-                logger.debug(f"Handler called with ws={ws}, path={path}")
+            async def handler(ws, path=None, stream_type=stream_type):  # Capture stream_type in closure
+                logger.debug(f"Handler called with ws={ws}, path={path}, stream_type={stream_type}")
                 await stream_handler(ws, stream_type)
             
             server = await websockets.serve(
@@ -113,14 +231,19 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://192.168.210.226:3000"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
-)
-logger.debug("CORS middleware added with allow_origins: http://192.168.210.226:3000")
+# Configure CORS middleware with dynamic origins
+@app.on_event("startup")
+async def configure_cors():
+    """Configure CORS with dynamic origins after server config is loaded"""
+    cors_origins = await get_cors_origins()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["*"],
+    )
+    logger.debug(f"CORS middleware added with allow_origins: {cors_origins}")
 
 REQUEST_TYPE_MAP = {
     "BeginStream": RequestType.BeginStream,
@@ -132,62 +255,41 @@ REQUEST_TYPE_MAP = {
 _MANAGER_INSTANCES = {}
 _WEBSOCKET_CLIENTS = {}
 
-async def stream_handler(websocket: websockets.WebSocketServerProtocol, stream_type: str):
-    """Handler for stream-specific WebSocket connections."""
-    client_addr = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
-    logger.debug(f"Stream handler started for {stream_type}, client: {client_addr}")
-    
-    try:
-        # Handshake is already handled by websockets.serve; no need to call accept
-        logger.info(f"Stream WebSocket connection established for {stream_type} from {client_addr}")
-        # Keep connection open to test message handling
-        try:
-            data = await asyncio.wait_for(websocket.recv(), timeout=10.0)
-            logger.debug(f"Received message from {client_addr}: {data}")
-        except asyncio.TimeoutError:
-            logger.debug(f"No message received from {client_addr} within 10 seconds")
-        except ConnectionClosed as e:
-            logger.info(f"Connection closed by {client_addr} during receive: {str(e)}")
-        except InvalidState as e:
-            logger.info(f"Invalid WebSocket state from {client_addr}: {str(e)}")
-        except InvalidHeader as e:
-            logger.info(f"Invalid WebSocket header from {client_addr}: {str(e)}")
-        await websocket.close(code=1000, reason="Temporary handler")
-    except (InvalidMessage, InvalidHandshake) as e:
-        logger.info(f"Invalid WebSocket handshake from {client_addr} on {stream_type}: {str(e)}")
-        await websocket.close(code=1008, reason=str(e))
-    except Exception as e:
-        logger.error(f"Unexpected error in stream_handler for {stream_type} from {client_addr}: {str(e)}\n{traceback.format_exc()}")
-        await websocket.close(code=1011, reason="Internal error")
-
 @app.websocket("/ws/{manager_name}")
-async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
-    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {websocket.client.host}:{websocket.client.port}")
-    async with asyncpg.create_pool("postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint") as pool:
+async def websocket_endpoint_main(websocket: WebSocket, manager_name: str):
+    """Main WebSocket endpoint for manager connections"""
+    client_host = websocket.client.host  # type: ignore
+    client_port = websocket.client.port  # type: ignore
+    client_id = f"{client_host}:{client_port}"
+    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {client_id}")
+
+    maint_conn_string = await get_connection_string()
+    
+    async with asyncpg.create_pool(maint_conn_string) as pool:
         async with pool.acquire() as conn:
             res = await conn.fetchval("SELECT COUNT(*) FROM tlkresources WHERE X_NM_RES = $1", manager_name)
             if not res:
                 logger.error(f"Manager {manager_name} not found in tlkresources")
                 await websocket.close(code=1008, reason="Manager not found")
                 return
+    
     sdk_client = None
-    client_id = None
     is_disconnected = False
     try:
         logger.debug(f"Attempting to accept WebSocket for {manager_name}")
         await websocket.accept()
         logger.info(f"WebSocket connection accepted for /ws/{manager_name}")
+        
         if manager_name not in _MANAGER_INSTANCES:
-            manager = Manager(manager_name, zone_id=None)
+            manager = Manager(manager_name, zone_id=None)  # type: ignore
             logger.debug(f"Created new Manager instance for {manager_name} with initial zone_id=None")
             _MANAGER_INSTANCES[manager_name] = manager
         else:
             manager = _MANAGER_INSTANCES[manager_name]
             logger.debug(f"Using existing Manager instance for {manager_name}, current zone_id={manager.zone_id}")
-        client_id = f"{websocket.client.host}:{websocket.client.port}"
-        logger.debug(f"Creating SDKClient for {client_id}")
+        
         sdk_client = SDKClient(websocket, client_id)
-        sdk_client.parent = manager
+        sdk_client.parent = manager  # type: ignore
         manager.sdk_clients[client_id] = sdk_client
         logger.debug(f"Starting q_timer for {client_id}")
         sdk_client.start_q_timer()
@@ -195,188 +297,116 @@ async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
         if manager_name not in _WEBSOCKET_CLIENTS:
             _WEBSOCKET_CLIENTS[manager_name] = []
         _WEBSOCKET_CLIENTS[manager_name].append(sdk_client)
-        logger.debug(f"Added client {client_id} to _WEBSOCKET_CLIENTS for manager {manager_name}")
 
         while True:
             try:
                 data = await websocket.receive_text()
                 logger.debug(f"Received WebSocket message from client {client_id}: {data}")
+                
+                json_data = json.loads(data)
+                msg_type = json_data.get("type", "")
 
-                try:
-                    json_data = json.loads(data)
-                    msg_type = json_data.get("type", "")
-                    logger.debug(f"Message type for client {client_id}: {msg_type}")
-
-                    if msg_type == "HeartBeat":
-                        hb = HeartBeat(ticks=json_data["ts"])
-                        sdk_client.heartbeat = hb.ticks
-                        logger.debug(f"Processed HeartBeat for client {client_id}, ts: {hb.ticks}")
-                        continue
-
-                    elif msg_type == "request":
-                        request_type_str = json_data.get("request", "")
-                        logger.debug(f"Received request type for client {client_id}: {request_type_str}")
-                        req_type = REQUEST_TYPE_MAP.get(request_type_str)
-                        if not req_type:
-                            logger.error(f"Invalid RequestType for client {client_id}: {request_type_str}")
-                            resp = Response(
-                                response_type=ResponseType.Unknown,
-                                req_id=json_data.get("reqid", ""),
-                                message=f"Invalid request type: {request_type_str}"
-                            )
-                            await websocket.send_text(resp.to_json())
-                            logger.debug(f"Sent error response to client {client_id}: {resp.to_json()}")
-                            continue
-                        req = Request(
-                            req_type=req_type,
-                            req_id=json_data["reqid"],
-                            tags=[Tag(id=tag["id"], send_payload_data=tag["data"] == "true") for tag in json_data.get("params", [])]
-                        )
-                        sdk_client.request_msg = req
-                        resp = Response(response_type=ResponseType(req.req_type.value), req_id=req.req_id)
-
-                        # Set zone_id on SDKClient and Manager from BeginStream request
-                        if "zone_id" in json_data:
-                            new_zone_id = int(json_data["zone_id"])
-                            sdk_client.zone_id = new_zone_id
-                            logger.debug(f"Set sdk_client.zone_id={new_zone_id} for client {client_id}")
-                            if manager.zone_id is None or manager.zone_id != new_zone_id:
-                                manager.zone_id = new_zone_id
-                                logger.info(f"Updated manager {manager_name} zone_id to {new_zone_id}")
-                                manager.triggers = []
-                                await manager.load_triggers(new_zone_id)
-                                logger.debug(f"Reloaded triggers for zone {new_zone_id}")
-                            else:
-                                logger.debug(f"Manager {manager_name} zone_id already set to {new_zone_id}, no update needed")
-
-                        if req.req_type == RequestType.BeginStream:
-                            if ENABLE_MULTI_PORT:
-                                # Register tags and send PortRedirect
-                                for t in req.tags:
-                                    sdk_client.add_tag(t.id, t)
-                                    logger.debug(f"Added tag {t.id} to client {client_id}")
-                                logger.debug(f"Client {client_id} subscribed to tags: {list(sdk_client.tags.keys())}")
-                                port_redirect = {
-                                    "type": "PortRedirect",
-                                    "port": STREAM_PORTS["RealTime"],
-                                    "stream_type": "RealTime",
-                                    "manager_name": manager_name
-                                }
-                                await websocket.send_text(json.dumps(port_redirect))
-                                logger.info(f"Sent PortRedirect to client {client_id}: {port_redirect}")
-                                continue
-                            else:
-                                if manager.mode == eMode.Stream:
-                                    pass
-                                else:
-                                    if not req.tags:
-                                        resp.message = "Begin stream requests must contain at least one tag for Subscription resources."
-                                    else:
-                                        for t in req.tags:
-                                            sdk_client.add_tag(t.id, t)
-                                            logger.debug(f"Added tag {t.id} to client {client_id}")
-                                        logger.debug(f"Client {client_id} subscribed to tags: {list(sdk_client.tags.keys())}")
-                                sdk_client.sent_begin_msg = True
-                                sdk_client.sent_req = True
-                                await websocket.send_text(resp.to_json())
-                                logger.debug(f"Sent BeginStream response to client {client_id}: {resp.to_json()}")
-                                if resp.message:
-                                    await manager.close_client(sdk_client)
-                                    break
-                        elif req.req_type == RequestType.EndStream:
-                            await websocket.send_text(resp.to_json())
-                            logger.debug(f"Sent EndStream response to client {client_id}: {resp.to_json()}")
-                            await manager.close_client(sdk_client)
-                            break
-                        elif req.req_type == RequestType.AddTag:
-                            if manager.mode == eMode.Stream:
-                                resp.message = "Request to add tag not valid in this stream resource."
-                                await websocket.send_text(resp.to_json())
-                                logger.debug(f"Sent AddTag error response to client {client_id}: {resp.to_json()}")
-                            else:
-                                for t in req.tags:
-                                    sdk_client.add_tag(t.id, t)
-                                await websocket.send_text(resp.to_json())
-                                logger.debug(f"Sent AddTag response to client {client_id}: {resp.to_json()}")
-                        elif req.req_type == RequestType.RemoveTag:
-                            if manager.mode == eMode.Stream:
-                                resp.message = "Request to remove tag not valid in this stream resource."
-                                await websocket.send_text(resp.to_json())
-                                logger.debug(f"Sent RemoveTag error response to client {client_id}: {resp.to_json()}")
-                            else:
-                                for t in req.tags:
-                                    sdk_client.remove_tag(t.id)
-                                await websocket.send_text(resp.to_json())
-                                logger.debug(f"Sent RemoveTag response to client {client_id}: {resp.to_json()}")
-                                if sdk_client.count == 0:
-                                    await manager.close_client(sdk_client)
-                                    break
-                        else:
-                            resp.message = "Unrecognized request."
-                            await websocket.send_text(resp.to_json())
-                            logger.warning(f"Manager {manager_name}: Unrecognized SDK request ({req.req_type}) from {client_id}")
-                            logger.debug(f"Sent unrecognized request response to client {client_id}: {resp.to_json()}")
-
-                    elif msg_type == "GISData":
-                        logger.debug(f"Received GISData from client {client_id}")
-                        await manager.parser_data_arrived(json_data)
-                    elif msg_type == "ReloadTriggers":
-                        logger.info(f"Received ReloadTriggers message for manager {manager_name}")
-                        manager.triggers = []
-                        current_zone_id = manager.get_current_zone_id()
-                        await manager.load_triggers(current_zone_id)
-                        logger.info(f"Triggers reloaded for manager {manager_name}, zone {current_zone_id}")
-                    else:
-                        logger.warning(f"Unknown message type from client {client_id}: {msg_type}")
-
-                except json.JSONDecodeError:
-                    logger.error(f"Failed to parse JSON message from client {client_id}: {data}\n{traceback.format_exc()}")
+                if msg_type == "HeartBeat":
+                    hb = HeartBeat(ticks=json_data["ts"])
+                    sdk_client.heartbeat = hb.ticks
+                    await websocket.send_text(json.dumps({"type": "HeartBeat", "ts": hb.ticks}))
+                    logger.debug(f"Processed HeartBeat for client {client_id}, ts: {hb.ticks}")
                     continue
 
-            except WebSocketDisconnect as e:
-                logger.info(f"WebSocket disconnected for /ws/{manager_name}: {str(e)}")
+                elif msg_type == "request":
+                    request_type = json_data.get("request", "")
+                    req_id = json_data.get("reqid", "")
+                    zone_id = json_data.get("zone_id")
+
+                    req_type = REQUEST_TYPE_MAP.get(request_type)
+                    if not req_type:
+                        resp = Response(
+                            response_type=ResponseType.Unknown,
+                            req_id=req_id,
+                            message=f"Invalid request type: {request_type}"
+                        )
+                        await websocket.send_text(resp.to_json())
+                        logger.debug(f"Sent error response to client {client_id}: {resp.to_json()}")
+                        continue
+
+                    req = Request(
+                        req_type=req_type,
+                        req_id=req_id,
+                        tags=[Tag(id=tag["id"], send_payload_data=tag["data"] == "true") 
+                              for tag in json_data.get("params", [])]
+                    )
+                    
+                    if zone_id is not None:
+                        if manager.zone_id != zone_id:
+                            manager.zone_id = zone_id
+                            await manager.load_triggers(zone_id)
+                            logger.info(f"Manager {manager_name} zone changed to {zone_id}, triggers reloaded")
+
+                    sdk_client.request_msg = req  # type: ignore
+                    resp = Response(response_type=ResponseType(req.req_type.value), req_id=req_id)
+
+                    if req.req_type == RequestType.BeginStream:
+                        if not req.tags:
+                            resp.message = "Begin stream requests must contain at least one tag."
+                        else:
+                            for t in req.tags:
+                                sdk_client.add_tag(t.id, t)
+                        sdk_client.sent_begin_msg = True
+                        sdk_client.sent_req = True
+                        await websocket.send_text(resp.to_json())
+                        logger.info(f"BeginStream processed for client {client_id}, tags: {[t.id for t in req.tags]}")
+                        if resp.message:
+                            await manager.close_client(sdk_client)
+                            break
+                            
+                    elif req.req_type == RequestType.EndStream:
+                        await websocket.send_text(resp.to_json())
+                        await manager.close_client(sdk_client)
+                        logger.info(f"EndStream processed for client {client_id}")
+                        break
+                        
+                    elif req.req_type == RequestType.AddTag:
+                        if req.tags:
+                            for t in req.tags:
+                                sdk_client.add_tag(t.id, t)
+                            logger.info(f"AddTag processed for client {client_id}, tags: {[t.id for t in req.tags]}")
+                        await websocket.send_text(resp.to_json())
+                        
+                    elif req.req_type == RequestType.RemoveTag:
+                        if req.tags:
+                            for t in req.tags:
+                                sdk_client.remove_tag(t.id)
+                            logger.info(f"RemoveTag processed for client {client_id}, tags: {[t.id for t in req.tags]}")
+                        await websocket.send_text(resp.to_json())
+                        
+                    else:
+                        resp.message = f"Request type {request_type} not supported."
+                        await websocket.send_text(resp.to_json())
+                        logger.debug(f"Unsupported request type {request_type} from client {client_id}")
+
+                else:
+                    logger.warning(f"Unknown message type from client {client_id}: {msg_type}")
+
+            except WebSocketDisconnect:
+                logger.info(f"WebSocket disconnected for /ws/{manager_name}")
                 is_disconnected = True
-                manager.sdk_child_count -= 1
-                if client_id in manager.sdk_clients:
-                    del manager.sdk_clients[client_id]
-                if manager.log_sdk_connections:
-                    logger.info(f"SDK client connection closed - {client_id}")
-                if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
-                    _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
-                    logger.debug(f"Removed client {client_id} from _WEBSOCKET_CLIENTS for manager {manager_name}")
-                if sdk_client is not None:
-                    await sdk_client.close()
+                await sdk_client.close()
                 break
             except Exception as e:
-                logger.error(f"Error in WebSocket handler for /ws/{manager_name}: {str(e)}\n{traceback.format_exc()}")
-                if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
-                    _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
-                    logger.debug(f"Removed client {client_id} from _WEBSOCKET_CLIENTS for manager {manager_name}")
-                if sdk_client is not None:
-                    await sdk_client.close()
+                logger.error(f"Error in WebSocket handler: {str(e)}")
                 break
-
-    except Exception as e:
-        logger.error(f"Failed to accept WebSocket connection for /ws/{manager_name}: {str(e)}\n{traceback.format_exc()}")
     finally:
-        if sdk_client is not None and not is_disconnected and not sdk_client.is_closing:
+        if sdk_client and not is_disconnected:
             await sdk_client.close()
-            if client_id in manager.sdk_clients:
-                del manager.sdk_clients[client_id]
-            if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
-                _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
-                logger.debug(f"Removed client {client_id} from _WEBSOCKET_CLIENTS for manager {manager_name} in finally block")
+        if client_id in manager.sdk_clients:
+            del manager.sdk_clients[client_id]
+        if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
+            _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
+        logger.info(f"WebSocket cleanup completed for client {client_id}")
 
-@app.post("/api/reload_triggers")
-async def reload_triggers():
-    logger.info("Received request to reload triggers for all managers")
-    reload_message = {"type": "ReloadTriggers"}
-    for manager_name, clients in _WEBSOCKET_CLIENTS.items():
-        for client in clients:
-            if not client.is_closing:
-                try:
-                    await client.websocket.send_json(reload_message)
-                    logger.debug(f"Sent ReloadTriggers message to client {client.client_id} for manager {manager_name}")
-                except Exception as e:
-                    logger.error(f"Failed to send ReloadTriggers to client {client.client_id}: {str(e)}\n{traceback.format_exc()}")
-    return {"status": "success", "message": "Reload triggers message sent to all clients"}
+def refresh_connection_config():
+    """Clear cached connection configuration to force reload"""
+    global _cached_connection_string, _cached_cors_origins
+    _cached_connection_string = None
+    _cached_cors_origins = None
+    logger.info("Main WebSocket connection configuration cache cleared")

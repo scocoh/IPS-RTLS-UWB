@@ -1,16 +1,17 @@
 /* Name: EntityMergeDemo.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 971201 */
-/* Modified: 250502 */
+/* Modified: 250703 */
 /* Creator: ParcoAdmin */
-/* Modified By: ParcoAdmin */
-/* Description: JavaScript file for ParcoRTLS frontend */
+/* Modified By: AI Assistant */
+/* Description: JavaScript file for ParcoRTLS frontend - Updated to use centralized configuration */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/EntityMergeDemo.js
+// Version: v0.1.0 - Updated to use centralized configuration instead of hardcoded IP
 // Version: v0.0.9 - Refactored to use EntityMap component for Leaflet map rendering
 // Version: v0.0.8 - Fixed marker creation timing, added static marker for testing, improved logging
 // Version: v0.0.7 - Added default coordinates for devices and entities with missing locations
@@ -23,6 +24,7 @@
 import React, { useEffect, useRef, useState, memo } from "react";
 import { Form, Button, Col, Row } from "react-bootstrap";
 import EntityMap from "./EntityMap";
+import { config, getApiUrl } from "../config";
 
 const EntityMergeDemo = memo(() => {
   const [deviceTypes, setDeviceTypes] = useState([]);
@@ -42,7 +44,7 @@ const EntityMergeDemo = memo(() => {
   useEffect(() => {
     const fetchDeviceTypes = async () => {
       try {
-        const response = await fetch("http://192.168.210.226:8000/api/list_device_types");
+        const response = await fetch(getApiUrl("/api/list_device_types"));
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
         console.log("✅ Fetched device types:", data);
@@ -56,7 +58,7 @@ const EntityMergeDemo = memo(() => {
 
     const fetchEntityTypes = async () => {
       try {
-        const response = await fetch("http://192.168.210.226:8000/api/list_entity_types");
+        const response = await fetch(getApiUrl("/api/list_entity_types"));
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
         console.log("✅ Fetched entity types:", data);
@@ -70,7 +72,7 @@ const EntityMergeDemo = memo(() => {
 
     const fetchAssignmentReasons = async () => {
       try {
-        const response = await fetch("http://192.168.210.226:8000/api/list_assignment_reasons");
+        const response = await fetch(getApiUrl("/api/list_assignment_reasons"));
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
         console.log("✅ Fetched assignment reasons:", data);
@@ -98,7 +100,7 @@ const EntityMergeDemo = memo(() => {
     const fetchDevices = async () => {
       try {
         const devicesPromises = selectedDeviceTypes.map(async (typeId) => {
-          const response = await fetch(`http://192.168.210.226:8000/api/get_device_by_type/${typeId}`);
+          const response = await fetch(getApiUrl(`/api/get_device_by_type/${typeId}`));
           if (!response.ok) {
             if (response.status === 404) {
               return []; // Treat 404 as no devices for this type
@@ -124,7 +126,7 @@ const EntityMergeDemo = memo(() => {
     const fetchEntitiesAndAssignments = async () => {
       try {
         // Fetch all entities
-        const entitiesResponse = await fetch("http://192.168.210.226:8000/api/list_all_entities");
+        const entitiesResponse = await fetch(getApiUrl("/api/list_all_entities"));
         if (!entitiesResponse.ok) throw new Error(`HTTP error! Status: ${entitiesResponse.status}`);
         const entitiesData = await entitiesResponse.json();
         console.log("✅ Fetched entities:", entitiesData);
@@ -133,7 +135,7 @@ const EntityMergeDemo = memo(() => {
         // Fetch assignments for each entity
         const assignments = {};
         for (const entity of entitiesData) {
-          const response = await fetch(`http://192.168.210.226:8000/api/list_device_assignments_by_entity/${entity.x_id_ent}`);
+          const response = await fetch(getApiUrl(`/api/list_device_assignments_by_entity/${entity.x_id_ent}`));
           if (!response.ok) {
             if (response.status === 404) {
               assignments[entity.x_id_ent] = []; // Treat 404 as no assignments
@@ -176,7 +178,7 @@ const EntityMergeDemo = memo(() => {
       const newEntityId = crypto.randomUUID();
       console.log(`Merging devices ${parentDeviceId} (parent) and ${childDeviceId} (child) into entity ${newEntityId}`);
 
-      const createEntityResponse = await fetch("http://192.168.210.226:8000/add_entity", {
+      const createEntityResponse = await fetch(getApiUrl("/add_entity"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -192,14 +194,14 @@ const EntityMergeDemo = memo(() => {
       await assignDeviceToEntity(parentDeviceId, newEntityId, null);
       await assignDeviceToEntity(childDeviceId, newEntityId, null);
 
-      const entitiesResponse = await fetch("http://192.168.210.226:8000/api/list_all_entities");
+      const entitiesResponse = await fetch(getApiUrl("/api/list_all_entities"));
       if (!entitiesResponse.ok) throw new Error(`HTTP error! Status: ${entitiesResponse.status}`);
       const entitiesData = await entitiesResponse.json();
       setEntities(entitiesData);
 
       const assignments = {};
       for (const entity of entitiesData) {
-        const response = await fetch(`http://192.168.210.226:8000/api/list_device_assignments_by_entity/${entity.x_id_ent}`);
+        const response = await fetch(getApiUrl(`/api/list_device_assignments_by_entity/${entity.x_id_ent}`));
         if (!response.ok) {
           if (response.status === 404) {
             assignments[entity.x_id_ent] = [];
@@ -207,149 +209,158 @@ const EntityMergeDemo = memo(() => {
           }
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        assignments[entity.x_id_ent] = await response.json();
+        const data = await response.json();
+        assignments[entity.x_id_ent] = data;
       }
       setEntityAssignments(assignments);
-      entityHierarchyRef.current = Object.fromEntries(
-        Object.entries(assignments).map(([entityId, assigns]) => [
-          entityId,
-          assigns.reduce((acc, assign) => {
-            acc[assign.x_id_dev] = assign;
-            return acc;
-          }, {}),
-        ])
-      );
 
-      alert(`Successfully merged devices ${parentDeviceId} and ${childDeviceId} into entity ${newEntityId}`);
+      mergedDevicesRef.current.add(parentDeviceId);
+      mergedDevicesRef.current.add(childDeviceId);
+      console.log(`✅ Devices ${parentDeviceId} and ${childDeviceId} merged into entity ${newEntityId}`);
     } catch (error) {
       console.error("❌ Error merging devices:", error);
       setError(`Error merging devices: ${error.message}`);
     }
   };
 
-  const assignDeviceToEntity = async (deviceId, entityId, parentEntityId = null) => {
-    try {
-      const formData = new FormData();
-      formData.append("device_id", deviceId);
-      formData.append("entity_id", entityId);
-      formData.append("reason_id", selectedReasonId);
-
-      const assignResponse = await fetch("http://192.168.210.226:8000/api/assign_device_to_zone", {
-        method: "POST",
-        body: formData,
-      });
-      if (!assignResponse.ok) throw new Error(`Failed to assign device ${deviceId}: ${assignResponse.status}`);
-      const assignResult = await assignResponse.json();
-      console.log(`Assigned ${deviceId} to entity ${entityId}:`, assignResult);
-
-      mergedDevicesRef.current.add(deviceId);
-    } catch (error) {
-      throw new Error(`Failed to assign device ${deviceId}: ${error.message}`);
-    }
+  // Assign a device to an entity
+  const assignDeviceToEntity = async (deviceId, entityId, parentEntityId) => {
+    const response = await fetch(getApiUrl("/api/assign_device_to_zone"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        device_id: deviceId,
+        entity_id: entityId,
+        parent_entity_id: parentEntityId,
+        reason_id: parseInt(selectedReasonId),
+      }),
+    });
+    if (!response.ok) throw new Error(`Failed to assign device: ${response.status}`);
+    const result = await response.json();
+    console.log(`Device ${deviceId} assigned to entity ${entityId}:`, result);
   };
 
-  const handleDeviceTypeChange = (typeId) => {
+  // Handle device type selection
+  const handleDeviceTypeToggle = (typeId) => {
     setSelectedDeviceTypes(prev =>
-      prev.includes(typeId)
-        ? prev.filter(id => id !== typeId)
-        : [...prev, typeId]
+      prev.includes(typeId) ? prev.filter(id => id !== typeId) : [...prev, typeId]
     );
   };
 
-  const renderHierarchy = () => {
-    const buildTree = (entityId, assignments, depth = 0) => {
-      const children = assignments.filter(a => a.x_id_pnt === entityId);
-      const indent = "  ".repeat(depth);
-      const entityDevices = assignments.filter(a => a.x_id_ent === entityId && !a.x_id_pnt);
-      const deviceList = entityDevices.map(a => `${indent}- Tag ${a.x_id_dev}`).join("\n");
-      const childTrees = children.map(child => {
-        const childAssignments = entityAssignments[child.x_id_ent] || [];
-        return `${indent}- Child Entity ${child.x_id_ent}\n${buildTree(child.x_id_ent, childAssignments, depth + 1)}`;
-      }).join("\n");
-      return `${deviceList}${childTrees ? "\n" + childTrees : ""}`;
-    };
+  // Determine map devices and entities (includes error handling)
+  const mapDevices = devices
+    .filter(device => !mergedDevicesRef.current.has(device.x_id_dev))
+    .map(device => ({
+      ...device,
+      n_moe_x: device.n_moe_x || Math.random() * 100,
+      n_moe_y: device.n_moe_y || Math.random() * 100,
+      n_moe_z: device.n_moe_z || 0,
+    }));
 
-    return entities.map(entity => {
-      const assignments = entityAssignments[entity.x_id_ent] || [];
-      if (assignments.length === 0) return null;
-      return (
-        <div key={entity.x_id_ent} style={{ marginBottom: "10px" }}>
-          <strong>Entity {entity.x_id_ent}</strong>
-          <pre style={{ fontSize: "12px", whiteSpace: "pre-wrap" }}>
-            {buildTree(entity.x_id_ent, assignments)}
-          </pre>
-        </div>
-      );
-    });
-  };
+  const mapEntities = entities.map(entity => ({
+    ...entity,
+    x: entity.x || Math.random() * 100 + 50,
+    y: entity.y || Math.random() * 100 + 50,
+    z: entity.z || 0,
+    devices: entityAssignments[entity.x_id_ent] || [],
+  }));
 
   return (
-    <Row>
-      <Col md={8}>
-        <h2>Entity Merge Demo</h2>
-        {error && <div style={{ color: "red" }}>{error}</div>}
-        <Form.Group>
-          <Form.Label>Select Device Types (Tags)</Form.Label>
-          {deviceTypes.map(type => (
-            <Form.Check
-              key={type.i_typ_dev}
-              type="checkbox"
-              label={`${type.x_dsc_dev} (ID: ${type.i_typ_dev})`}
-              checked={selectedDeviceTypes.includes(type.i_typ_dev)}
-              onChange={() => handleDeviceTypeChange(type.i_typ_dev)}
+    <div style={{ padding: "20px" }}>
+      <h1>Entity Merge Demo</h1>
+      {error && <div style={{ color: "red", marginBottom: "10px" }}>⚠️ {error}</div>}
+
+      <Row style={{ marginBottom: "20px" }}>
+        <Col md={6}>
+          <h3>Select Device Types</h3>
+          <Form>
+            {deviceTypes.map(type => (
+              <Form.Check
+                key={type.i_typ_dev}
+                type="checkbox"
+                label={`${type.x_dsc_dev} (Type ${type.i_typ_dev})`}
+                checked={selectedDeviceTypes.includes(type.i_typ_dev)}
+                onChange={() => handleDeviceTypeToggle(type.i_typ_dev)}
+              />
+            ))}
+          </Form>
+        </Col>
+        <Col md={6}>
+          <h3>Merge Configuration</h3>
+          <Form.Group>
+            <Form.Label>Entity Type</Form.Label>
+            <Form.Control
+              as="select"
+              value={selectedEntityType}
+              onChange={(e) => setSelectedEntityType(e.target.value)}
+            >
+              <option value="">Select Entity Type</option>
+              {entityTypes.map(type => (
+                <option key={type.i_typ_ent} value={type.i_typ_ent}>
+                  {type.x_dsc_ent} (Type {type.i_typ_ent})
+                </option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+          <Form.Group style={{ marginTop: "10px" }}>
+            <Form.Label>Assignment Reason</Form.Label>
+            <Form.Control
+              as="select"
+              value={selectedReasonId}
+              onChange={(e) => setSelectedReasonId(e.target.value)}
+            >
+              <option value="">Select Reason</option>
+              {assignmentReasons.map(reason => (
+                <option key={reason.i_rsn} value={reason.i_rsn}>
+                  {reason.x_rsn} (ID: {reason.i_rsn})
+                </option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col md={8}>
+          <h3>Map View</h3>
+          <div style={{ height: "600px", border: "1px solid #ccc" }}>
+            <EntityMap
+              devices={mapDevices}
+              entities={mapEntities}
+              onMerge={handleMerge}
+              selectedEntityType={selectedEntityType}
+              selectedReasonId={selectedReasonId}
             />
-          ))}
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Entity Type for New Entities</Form.Label>
-          <Form.Control
-            as="select"
-            value={selectedEntityType}
-            onChange={e => setSelectedEntityType(e.target.value)}
-          >
-            <option value="">Select Entity Type</option>
-            {entityTypes.map(type => (
-              <option key={type.i_typ_ent} value={type.i_typ_ent}>
-                {type.x_nm_typ} (ID: {type.i_typ_ent})
-              </option>
-            ))}
-          </Form.Control>
-        </Form.Group>
-        <Form.Group>
-          <Form.Label>Assignment Reason for Merging</Form.Label>
-          <Form.Control
-            as="select"
-            value={selectedReasonId}
-            onChange={e => setSelectedReasonId(e.target.value)}
-          >
-            <option value="">Select Reason</option>
-            {assignmentReasons.map(reason => (
-              <option key={reason.i_rsn} value={reason.i_rsn}>
-                {reason.x_rsn} (ID: {reason.i_rsn})
-              </option>
-            ))}
-          </Form.Control>
-        </Form.Group>
-        <EntityMap
-          devices={devices}
-          entities={entities}
-          entityAssignments={entityAssignments}
-          entityHierarchy={entityHierarchyRef.current}
-          onMerge={handleMerge}
-          onAssign={assignDeviceToEntity}
-        />
-      </Col>
-      <Col md={4}>
-        <h3>Entity Hierarchy</h3>
-        <div style={{ maxHeight: "600px", overflowY: "auto", border: "1px solid #ccc", padding: "10px" }}>
-          {entities.length === 0 ? (
-            <p>No entities found.</p>
-          ) : (
-            renderHierarchy()
-          )}
-        </div>
-      </Col>
-    </Row>
+          </div>
+        </Col>
+        <Col md={4}>
+          <h3>Entity Hierarchy</h3>
+          <div style={{ maxHeight: "600px", overflowY: "auto", border: "1px solid #ccc", padding: "10px" }}>
+            {entities.length === 0 ? (
+              <p>No entities created yet. Drag devices to merge them.</p>
+            ) : (
+              entities.map(entity => (
+                <div key={entity.x_id_ent} style={{ marginBottom: "10px", padding: "5px", backgroundColor: "#f0f0f0" }}>
+                  <strong>{entity.x_nm_ent || entity.x_id_ent}</strong> (Type: {entity.i_typ_ent})
+                  <ul>
+                    {(entityAssignments[entity.x_id_ent] || []).map(assignment => (
+                      <li key={assignment.x_id_dev}>
+                        Device: {assignment.x_id_dev} (Reason: {assignment.i_rsn})
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            )}
+          </div>
+        </Col>
+      </Row>
+
+      <div style={{ marginTop: "20px" }}>
+        <h3>Device List</h3>
+        <p>Total Devices: {devices.length} | Unmerged: {mapDevices.length} | Merged: {mergedDevicesRef.current.size}</p>
+      </div>
+    </div>
   );
 });
 

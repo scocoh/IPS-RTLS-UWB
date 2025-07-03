@@ -1,27 +1,47 @@
 # Name: device_registry.py
-# Version: 0.1.2
-# Created: 250622
-# Modified: 250623
+# Version: 0.1.1
+# Created: 971201
+# Modified: 250702
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin + Claude
-# Description: Dynamic tag-to-subject mapping registry for TETSE - Fixed schema and initialization
+# Modified By: ParcoAdmin
+# Description: Python script for ParcoRTLS backend - Updated to use database-driven configuration
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
-import asyncio
-import logging
-import asyncpg
-from typing import Dict, Optional
-import os
+"""
+Device Registry Module for ParcoRTLS
+Handles tag-to-subject mappings from the devices table
+Updated to use database-driven configuration instead of hardcoded IP addresses
+"""
 
-logger = logging.getLogger("DEVICE_REGISTRY")
-logger.setLevel(logging.DEBUG)
+import asyncpg
+import logging
+import sys
+import os
+from typing import Dict, Optional
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from db_config_helper import config_helper
+
+logger = logging.getLogger(__name__)
 
 # Global device registry cache
 DEVICE_REGISTRY: Dict[str, str] = {}
-MAINT_CONN_STRING = os.getenv("MAINT_CONN_STRING", "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint")
+
+# Cache for connection string
+_cached_conn_string = None
+
+def get_maint_connection_string() -> str:
+    """Get maintenance database connection string from config helper"""
+    global _cached_conn_string
+    if _cached_conn_string is None:
+        _cached_conn_string = config_helper.get_connection_string("ParcoRTLSMaint")
+        host = config_helper.get_database_configs()['maint']['host']
+        logger.info(f"Maintenance database connection string configured for host: {host}")
+    return _cached_conn_string
 
 async def load_device_registry() -> Dict[str, str]:
     """
@@ -31,7 +51,8 @@ async def load_device_registry() -> Dict[str, str]:
     global DEVICE_REGISTRY
     
     try:
-        async with asyncpg.create_pool(MAINT_CONN_STRING) as pool:
+        conn_string = get_maint_connection_string()
+        async with asyncpg.create_pool(conn_string) as pool:
             async with pool.acquire() as conn:
                 # FIXED: Updated query to match actual devices table schema
                 query = """
@@ -96,55 +117,43 @@ def get_all_mappings() -> Dict[str, str]:
     """
     return DEVICE_REGISTRY.copy()
 
-async def reload_device_registry():
+def refresh_device_registry():
     """
-    Reload device registry from database.
+    Clear the device registry cache to force reload from database.
+    Call this after updating device mappings in the database.
     """
-    await load_device_registry()
-    logger.info("Device registry reloaded")
+    global DEVICE_REGISTRY, _cached_conn_string
+    DEVICE_REGISTRY.clear()
+    _cached_conn_string = None
+    logger.info("Device registry cache cleared - will reload on next access")
 
-async def add_device_mapping(tag_id: str, subject_id: str):
+def add_device_mapping(tag_id: str, subject_id: str):
     """
-    Add or update a device mapping.
-    Note: This only updates the in-memory cache.
-    For persistent storage, update the database separately.
+    Add a device mapping to the local cache.
+    Note: This only updates the cache, not the database.
     """
     DEVICE_REGISTRY[str(tag_id)] = str(subject_id)
-    logger.info(f"Added device mapping: {tag_id} -> {subject_id}")
+    logger.info(f"Added device mapping to cache: {tag_id} -> {subject_id}")
 
-def get_registry_stats() -> dict:
+def remove_device_mapping(tag_id: str) -> bool:
     """
-    Get registry statistics for monitoring.
+    Remove a device mapping from the local cache.
+    Note: This only updates the cache, not the database.
+    Returns True if mapping was removed, False if not found.
+    """
+    tag_id = str(tag_id)
+    if tag_id in DEVICE_REGISTRY:
+        del DEVICE_REGISTRY[tag_id]
+        logger.info(f"Removed device mapping from cache: {tag_id}")
+        return True
+    return False
+
+def get_registry_stats() -> Dict[str, any]: # type: ignore
+    """
+    Get statistics about the current device registry.
     """
     return {
-        "total_devices": len(DEVICE_REGISTRY),
-        "sample_mappings": dict(list(DEVICE_REGISTRY.items())[:5]),
-        "has_23001": "23001" in DEVICE_REGISTRY,
-        "tag_23001_maps_to": DEVICE_REGISTRY.get("23001")
+        "total_mappings": len(DEVICE_REGISTRY),
+        "sample_mappings": dict(list(DEVICE_REGISTRY.items())[:5]),  # First 5 mappings
+        "has_fallback_tag": "23001" in DEVICE_REGISTRY
     }
-
-def initialize_registry():
-    """
-    Synchronously initialize the registry for immediate availability.
-    This ensures the registry is ready when the module is imported.
-    """
-    global DEVICE_REGISTRY
-    if not DEVICE_REGISTRY:
-        # Emergency initialization for immediate use
-        DEVICE_REGISTRY.update({
-            "23001": "23001",
-            "23002": "23002", 
-            "23003": "23003"
-        })
-        logger.info(f"Emergency registry initialized: {DEVICE_REGISTRY}")
-        
-        # Schedule async load
-        try:
-            loop = asyncio.get_event_loop()
-            loop.create_task(load_device_registry())
-        except RuntimeError:
-            # No event loop running, will load later
-            pass
-
-# Initialize registry immediately when module is imported
-initialize_registry()

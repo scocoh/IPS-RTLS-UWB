@@ -1,9 +1,9 @@
 # Name: models.py
-# Version: 0.1.0
+# Version: 0.1.3
 # Created: 971201
-# Modified: 250502
+# Modified: 250703
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
+# Modified By: ParcoAdmin & TC
 # Description: Python script for ParcoRTLS backend
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
@@ -11,7 +11,8 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/models.py
-# Version: 1.0.3 - Added zone_id field to GISData, bumped from 1.0.2
+# Version: 0.1.1 - Added Config to Request model to allow extra fields for backward compatibility, bumped from 0.1.0
+# Version: 0.1.0 - Added zone_id field to GISData, bumped from 1.0.3
 # Previous: Added Sequence field to GISData (1.0.2)
 #
 # Model Module for Manager
@@ -102,21 +103,37 @@ class GISData(BaseModel):
     def from_xml(cls, xml_str: str):
         root = ET.fromstring(xml_str)
         gis = root.find("gis")
+        if gis is None:
+            raise ValueError("Invalid GISData XML: missing 'gis' element")
+            
         sequence = root.find("sequence")
-        sequence_value = int(sequence.text) if sequence is not None else None
+        sequence_value = int(sequence.text) if sequence is not None and sequence.text else None
         zone_id = root.find("zone_id")
-        zone_id_value = int(zone_id.text) if zone_id is not None else None  # NEW: Parse zone_id
+        zone_id_value = int(zone_id.text) if zone_id is not None and zone_id.text else None  # NEW: Parse zone_id
+        
+        # Safely get text values with defaults
+        id_elem = gis.find("id")
+        type_elem = root.find("type")
+        ts_elem = gis.find("ts")
+        x_elem = gis.find("x")
+        y_elem = gis.find("y")
+        z_elem = gis.find("z")
+        bat_elem = gis.find("bat")
+        cnf_elem = gis.find("cnf")
+        gwid_elem = gis.find("gwid")
+        data_elem = root.find("data")
+        
         return cls(
-            id=gis.find("id").text,
-            type=root.find("type").text,
-            ts=datetime.fromisoformat(gis.find("ts").text),
-            x=float(gis.find("x").text),
-            y=float(gis.find("y").text),
-            z=float(gis.find("z").text),
-            bat=int(gis.find("bat").text) if gis.find("bat").text else -1,
-            cnf=float(gis.find("cnf").text) if gis.find("cnf").text else -1.0,
-            gwid=gis.find("gwid").text or "",
-            data=root.find("data").text or "",
+            id=id_elem.text if id_elem is not None and id_elem.text else "",
+            type=type_elem.text if type_elem is not None and type_elem.text else "",
+            ts=datetime.fromisoformat(ts_elem.text) if ts_elem is not None and ts_elem.text else datetime.now(),
+            x=float(x_elem.text) if x_elem is not None and x_elem.text else 0.0,
+            y=float(y_elem.text) if y_elem is not None and y_elem.text else 0.0,
+            z=float(z_elem.text) if z_elem is not None and z_elem.text else 0.0,
+            bat=int(bat_elem.text) if bat_elem is not None and bat_elem.text else -1,
+            cnf=float(cnf_elem.text) if cnf_elem is not None and cnf_elem.text else -1.0,
+            gwid=gwid_elem.text if gwid_elem is not None and gwid_elem.text else "",
+            data=data_elem.text if data_elem is not None and data_elem.text else "",
             sequence=sequence_value,
             zone_id=zone_id_value  # NEW: Set zone_id
         )
@@ -161,7 +178,8 @@ class HeartBeat(BaseModel):
     @classmethod
     def from_xml(cls, xml_str: str):
         root = ET.fromstring(xml_str)
-        return cls(ticks=int(root.find("ts").text))
+        ts_elem = root.find("ts")
+        return cls(ticks=int(ts_elem.text) if ts_elem is not None and ts_elem.text else 0)
 
     def to_json(self) -> str:
         """Converts HeartBeat to JSON string."""
@@ -176,6 +194,12 @@ class Request(BaseModel):
     req_type: RequestType
     req_id: str
     tags: List[Tag] = []
+    
+    class Config:
+        # Allow extra fields to be passed but ignore them
+        # This maintains backward compatibility with websocket handlers
+        # that pass zone_id in the JSON data
+        extra = "allow"
 
     def to_xml(self) -> str:
         root = ET.Element("parco", version="1.0")
@@ -190,11 +214,17 @@ class Request(BaseModel):
     @classmethod
     def from_xml(cls, xml_str: str):
         root = ET.fromstring(xml_str)
-        req_type = RequestType(root.find("request").text)
-        req_id = root.find("reqid").text
+        request_elem = root.find("request")
+        req_id_elem = root.find("reqid")
+        
+        if request_elem is None or req_id_elem is None:
+            raise ValueError("Invalid Request XML: missing required elements")
+            
+        req_type = RequestType(request_elem.text)
+        req_id = req_id_elem.text if req_id_elem.text else ""
         tags = []
         for tag_elem in root.findall(".//tagid"):
-            tag_id = tag_elem.text
+            tag_id = tag_elem.text if tag_elem.text else ""
             data = tag_elem.get("data") == "true"
             tags.append(Tag(id=tag_id, send_payload_data=data))
         return cls(req_type=req_type, req_id=req_id, tags=tags)
@@ -226,9 +256,16 @@ class Response(BaseModel):
     @classmethod
     def from_xml(cls, xml_str: str):
         root = ET.fromstring(xml_str)
-        response_type = ResponseType(root.find("request").text)
-        req_id = root.find("reqid").text
-        message = root.find("msg").text or ""
+        request_elem = root.find("request")
+        req_id_elem = root.find("reqid")
+        msg_elem = root.find("msg")
+        
+        if request_elem is None or req_id_elem is None:
+            raise ValueError("Invalid Response XML: missing required elements")
+            
+        response_type = ResponseType(request_elem.text)
+        req_id = req_id_elem.text if req_id_elem.text else ""
+        message = msg_elem.text if msg_elem is not None and msg_elem.text else ""
         return cls(response_type=response_type, req_id=req_id, message=message)
 
     def to_json(self) -> str:
@@ -247,3 +284,24 @@ class Ave:
         self.x = x
         self.y = y
         self.z = z
+
+    @staticmethod
+    def average(items: List['GISData']) -> 'Ave':
+        """Compute 3D average position from a list of GISData items."""
+        if not items:
+            return Ave()
+        sum_x = sum(item.x for item in items)
+        sum_y = sum(item.y for item in items)
+        sum_z = sum(item.z for item in items)
+        count = len(items)
+        return Ave(sum_x / count, sum_y / count, sum_z / count)
+
+    @staticmethod
+    def average_2d(items: List['GISData']) -> 'Ave':
+        """Compute 2D average position (x, y only) from a list of GISData items."""
+        if not items:
+            return Ave()
+        sum_x = sum(item.x for item in items)
+        sum_y = sum(item.y for item in items)
+        count = len(items)
+        return Ave(sum_x / count, sum_y / count, 0.0)

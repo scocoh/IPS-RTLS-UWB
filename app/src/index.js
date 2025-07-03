@@ -38,7 +38,7 @@ import ZoneBuilder from "./components/ZoneBuilder";
 import ZoneViewer from "./components/ZoneViewer";
 import BuildOutTool from "./components/BuildOutTool";
 import BuildOutMapCal from "./components/BuildOutMapCal";
-import NewTriggerDemo from "./components/NewTriggerDemo";
+import NewTriggerDemo from "./components/NewTriggerDemo/NTD_index";
 import EntityMergeDemo from "./components/EntityMergeDemo";
 import PortableTriggerAdd from "./components/PortableTriggerAdd";
 import RuleBuilder from "./components/RuleBuilder";

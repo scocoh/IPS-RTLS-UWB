@@ -1,0 +1,196 @@
+/* Name: NewTriggerDemo.css */
+/* Version: 0.1.0 */
+/* Created: 250625 */
+/* Modified: 250625 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin + Claude */
+/* Description: Styles for NewTriggerDemo components */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/styles */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
+/* Main container styles */
+.new-trigger-demo {
+  padding: 20px;
+}
+
+.new-trigger-demo h2 {
+  margin-bottom: 20px;
+}
+
+/* Tab content spacing */
+.tab-content {
+  padding-top: 20px;
+}
+
+/* Event list styles */
+.trigger-events-container {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.trigger-events-list {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.trigger-events-list li {
+  padding: 4px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.trigger-events-list li:last-child {
+  border-bottom: none;
+}
+
+/* System events styles */
+.system-events-list {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.system-events-list li {
+  padding: 6px 0;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+/* Tag info display */
+.tag-info-display {
+  margin-top: 10px;
+  white-space: pre-wrap;
+  font-family: monospace;
+  background-color: #f8f9fa;
+  padding: 10px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* Form spacing */
+.trigger-form-group {
+  margin-bottom: 15px;
+}
+
+/* Zone selector indent styling */
+.zone-select option {
+  font-family: monospace;
+}
+
+/* Map container */
+.zone-preview-container {
+  margin-top: 15px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.zone-preview-container strong {
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* TETSE conversion tab styles */
+.tetse-rules-table {
+  margin-top: 20px;
+}
+
+.tetse-rule-type-badge {
+  font-size: 0.85em;
+}
+
+.conversion-status-badge {
+  font-size: 0.85em;
+}
+
+/* WebSocket status indicators */
+.connection-status {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.connection-status.connected {
+  background-color: #28a745;
+}
+
+.connection-status.disconnected {
+  background-color: #dc3545;
+}
+
+/* Button spacing */
+.action-buttons {
+  margin-top: 10px;
+}
+
+.action-buttons .btn {
+  margin-right: 10px;
+}
+
+/* Error messages */
+.fetch-error {
+  color: #dc3545;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+}
+
+/* Loading indicator */
+.loading-indicator {
+  text-align: center;
+  padding: 20px;
+  color: #6c757d;
+}
+
+/* Trigger direction selector */
+.trigger-direction-select {
+  margin-bottom: 15px;
+}
+
+/* Z-axis input group */
+.z-axis-modifier {
+  margin-top: 10px;
+}
+
+/* Checkbox spacing */
+.form-check {
+  margin-bottom: 10px;
+}
+
+/* Delete tab table */
+.trigger-delete-table {
+  margin-top: 20px;
+}
+
+.trigger-delete-table .btn {
+  margin-right: 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .new-trigger-demo {
+    padding: 10px;
+  }
+  
+  .trigger-events-container {
+    max-height: 150px;
+  }
+  
+  .system-events-list {
+    max-height: 300px;
+  }
+}

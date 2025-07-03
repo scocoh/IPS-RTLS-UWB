@@ -1,10 +1,10 @@
 # Name: db_functions.py
-# Version: 0.1.2
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250626
+# Modified: 250702
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS backend
+# Description: Python script for ParcoRTLS backend - Updated to use database-driven configuration
 # Location: /home/parcoadmin/parco_fastapi/app/database
 # Role: Backend
 # Status: Active
@@ -12,8 +12,7 @@
 
 """
 /home/parcoadmin/parco_fastapi/app/database/db_functions.py
-Version: 0.1.1 - Added explicit type casting for usp_region_add to fix zone 425 trigger creation bug
-Version: 250226 db_functions.py Version 0P.7B.26 (Massive Stored Procedure Integration, Async Enhancements, Type Handling for ParcoRTLSMaint/HistR/Data, Fixed History/Location/Text Data, Connection Pool Tuning, Empty Database Handling, Asyncio Import Fix, Removed HTTPException Dependency, Enhanced Connection Pooling)
+Version: 250702 db_functions.py Version 0P.7B.27 (Updated to use database-driven configuration instead of hardcoded IP addresses)
 
 ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -29,6 +28,12 @@ import logging
 import asyncio
 from datetime import datetime
 from typing import Optional, Union, List, Dict
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from db_config_helper import config_helper
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -41,145 +46,183 @@ class DatabaseError(Exception):
         self.status_code = status_code
         super().__init__(self.message)
 
-# PostgreSQL Database Configuration
-DB_CONFIGS_ASYNC = {
-    "maint": {
-        "database": "ParcoRTLSMaint",
-        "user": "parcoadmin",
-        "password": "parcoMCSE04106!",
-        "host": "192.168.210.226",
-        "port": 5432
-    },
-    "data": {
-        "database": "ParcoRTLSData",
-        "user": "parcoadmin",
-        "password": "parcoMCSE04106!",
-        "host": "192.168.210.226",
-        "port": 5432
-    },
-    "hist_r": {
-        "database": "ParcoRTLSHistR",
-        "user": "parcoadmin",
-        "password": "parcoMCSE04106!",
-        "host": "192.168.210.226",
-        "port": 5432
-    },
-    "hist_p": {
-        "database": "ParcoRTLSHistP",
-        "user": "parcoadmin",
-        "password": "parcoMCSE04106!",
-        "host": "192.168.210.226",
-        "port": 5432
-    },
-    "hist_o": {
-        "database": "ParcoRTLSHistO",
-        "user": "parcoadmin",
-        "password": "parcoMCSE04106!",
-        "host": "192.168.210.226",
-        "port": 5432
-    }
-}
+# Cache for database configurations
+_cached_db_configs = None
+
+def get_db_configs_async():
+    """Get database configurations from helper (with caching)"""
+    global _cached_db_configs
+    if _cached_db_configs is None:
+        _cached_db_configs = config_helper.get_database_configs()
+        host = _cached_db_configs['maint']['host']
+        logger.info(f"Database configurations loaded: host={host}")
+    return _cached_db_configs
+
+# Backward compatibility: Keep DB_CONFIGS_ASYNC for existing code
+# This will use fallback values initially
+DB_CONFIGS_ASYNC = get_db_configs_async()
 
 async def get_pg_connection(db_type: str = "maint") -> Optional[asyncpg.Pool]:
     """Establish an async database connection pool with optimized settings, increased max_size, and enhanced retry logic for connection issues."""
-    max_retries = 10  # Increased retries to handle "too many clients already" more robustly
-    retry_delay = 5  # Increased delay to allow database to recover
-    for attempt in range(max_retries):
-        try:
-            pool = await asyncpg.create_pool(
-                **DB_CONFIGS_ASYNC[db_type],
-                max_size=20,  # Reduced to prevent overwhelming PostgreSQL, adjust based on server capacity
-                min_size=2,
-                timeout=30
-            )
-            # Test the connection by executing a simple query
-            async with pool.acquire() as connection:
-                await connection.execute("SELECT 1")
-            return pool
-        except asyncpg.TooManyConnectionsError as e:
-            logger.error(f"Attempt {attempt + 1}/{max_retries} failed to connect to {db_type}: {str(e)}")
-            if attempt < max_retries - 1:
-                await asyncio.sleep(retry_delay)
-            else:
-                logger.error(f"Max retries reached for {db_type}: {str(e)}")
-                if db_type in ["data", "hist_r", "hist_p", "hist_o"]:
-                    logger.warning(f"Database {db_type} connection failed due to too many clients, falling back to maintenance-only mode.")
-                    return None  # Return None to indicate connection failure, handled by caller
-                raise DatabaseError(f"Failed to connect to {db_type} after retries: too many clients", 503)
-        except asyncpg.PostgresError as e:
-            logger.error(f"Attempt {attempt + 1}/{max_retries} failed to connect to {db_type}: {str(e)}")
-            if "database does not exist" in str(e) or "no such database" in str(e):
-                logger.warning(f"Database {db_type} may be empty or missing. Falling back to maintenance-only mode.")
-                return None  # Return None to indicate empty database, handled by caller
-            if attempt < max_retries - 1:
-                await asyncio.sleep(retry_delay)
-            else:
-                logger.error(f"Max retries reached for {db_type}: {str(e)}")
-                raise DatabaseError(f"Failed to connect to {db_type} after retries", 503)
-    raise DatabaseError(f"Failed to connect to {db_type}", 503)
+    
+    # Get current database configurations
+    db_configs = get_db_configs_async()
+    
+    if db_type not in db_configs:
+        logger.error(f"Database type '{db_type}' not found in configurations")
+        return None
+    
+    config = db_configs[db_type]
+    
+    try:
+        logger.debug(f"Creating connection pool for {db_type} at {config['host']}:{config['port']}")
+        
+        pool = await asyncpg.create_pool(
+            database=config["database"],
+            user=config["user"],
+            password=config["password"],
+            host=config["host"],
+            port=config["port"],
+            min_size=2,
+            max_size=20,
+            timeout=30,
+            command_timeout=60,
+            server_settings={
+                'application_name': f'ParcoRTLS_{db_type}',
+                'tcp_keepalives_idle': '600',
+                'tcp_keepalives_interval': '30',
+                'tcp_keepalives_count': '3'
+            }
+        )
+        
+        # Test the connection
+        async with pool.acquire() as connection:
+            await connection.execute("SELECT 1")
+        
+        logger.info(f"✅ Database pool created successfully for {db_type} at {config['host']}")
+        return pool
+        
+    except Exception as e:
+        logger.error(f"❌ Error creating async database pool for {db_type}: {e}")
+        logger.debug(f"Failed connection details: {config['host']}:{config['port']}/{config['database']}")
+        return None
 
-async def call_stored_procedure(db_type: str, procedure_name: str, *args) -> Union[List[Dict], Dict, None]:
-    """Call a stored procedure and return results with type-specific handling, handling empty or inaccessible databases."""
-    pool = await get_pg_connection(db_type)
-    if not pool:
-        if db_type in ["data", "hist_r", "hist_p", "hist_o"]:
-            logger.warning(f"Database {db_type} is empty, inaccessible, or has too many clients, falling back to maintenance-only mode.")
-            if procedure_name in ["usp_textdata_add", "usp_textdata_all_by_device", "usp_position_insert", "usp_location_by_id", "usp_history_by_id"]:
-                raise DatabaseError(f"Database {db_type} is empty or unavailable for {procedure_name}", 503)
-        raise DatabaseError(f"Failed to connect to {db_type}", 503)
-
-    async with pool.acquire() as connection:
-        try:
-            # Handle specific procedure signatures with type casting
-            if procedure_name == "usp_zone_select_by_id":
-                query = "SELECT * FROM usp_zone_select_by_id($1::integer);"
-            elif procedure_name == "usp_device_select_by_id":
-                query = "SELECT * FROM usp_device_select_by_id($1::character varying);"
-            elif procedure_name == "usp_device_select_all":
-                query = "SELECT * FROM usp_device_select_all();"
-            elif procedure_name == "usp_device_select_by_type":
-                query = "SELECT * FROM usp_device_select_by_type($1::integer);"
-            elif procedure_name == "usp_device_add":
-                query = "SELECT * FROM usp_device_add($1::character varying, $2::integer, $3::character varying, $4::timestamp without time zone);"
-            elif procedure_name == "usp_device_delete":
-                query = "SELECT * FROM usp_device_delete($1::character varying);"
-            elif procedure_name == "usp_device_edit":
-                query = "SELECT * FROM usp_device_edit($1::character varying, $2::integer, $3::character varying, $4::timestamp without time zone);"
-            elif procedure_name == "usp_assign_dev_add":
-                query = "SELECT * FROM usp_assign_dev_add($1::character varying, $2::character varying, $3::integer, $4::timestamp without time zone, $5::timestamp without time zone);"
-            elif procedure_name == "usp_zone_select_all":
-                query = "SELECT * FROM usp_zone_select_all();"
-            elif procedure_name == "usp_trigger_select_by_id":
-                query = "SELECT * FROM usp_trigger_select_by_id($1::integer);"
-            elif procedure_name == "usp_trigger_edit":
-                query = "SELECT * FROM usp_trigger_edit($1::integer, $2::character varying, $3::integer, $4::boolean);"
-            elif procedure_name == "usp_trigger_select":
-                # This is actually a function, not a procedure - call it directly
-                query = "SELECT usp_trigger_select($1::integer);"
-            elif procedure_name == "usp_region_add":
-                query = "SELECT * FROM usp_region_add($1::integer, $2::integer, $3::character varying, $4::real, $5::real, $6::real, $7::real, $8::real, $9::real, $10::integer);"
-            elif procedure_name == "usp_location_by_id":
-                query = "SELECT * FROM usp_location_by_id($1::character varying);"
-            elif procedure_name == "usp_position_insert":
-                query = "SELECT * FROM usp_position_insert($1::character varying, $2::timestamp without time zone, $3::timestamp without time zone, $4::real, $5::real, $6::real);"
-            elif procedure_name == "usp_history_by_id":
-                query = "SELECT * FROM usp_history_by_id($1::character varying, $2::timestamp without time zone, $3::timestamp without time zone);"
-            elif procedure_name == "usp_textdata_add":
-                query = "SELECT * FROM usp_textdata_add($1::character varying, $2::character varying, $3::timestamp without time zone);"
-            elif procedure_name == "usp_textdata_all_by_device":
-                query = "SELECT * FROM usp_textdata_all_by_device($1::character varying);"
-            else:
-                query = f"SELECT * FROM {procedure_name}({', '.join(['$' + str(i+1) + '::text' for i in range(len(args))])});"
-
+async def execute_query(query: str, *args, db_type: str = "maint", pool: Optional[asyncpg.Pool] = None) -> List[Dict]:
+    """
+    Execute a database query with enhanced error handling and logging.
+    Returns a list of dictionaries representing the query results.
+    
+    Args:
+        query: SQL query to execute
+        *args: Query parameters
+        db_type: Database type (maint, data, hist_r, hist_p, hist_o)
+        pool: Optional existing connection pool
+        
+    Returns:
+        List of dictionaries with query results
+    """
+    if pool is None:
+        pool = await get_pg_connection(db_type)
+        if not pool:
+            raise DatabaseError(f"Could not establish connection to {db_type} database")
+    
+    try:
+        async with pool.acquire() as connection:
+            logger.debug(f"Executing query on {db_type}: {query[:100]}...")
             rows = await connection.fetch(query, *args)
-            if rows:
-                return [dict(row) for row in rows]
-            value = await connection.fetchval(query, *args)
-            if value is not None:
-                return value
-            return {"message": "Procedure executed successfully"}
-        except asyncpg.PostgresError as e:
-            logger.error(f"Error calling stored procedure {procedure_name} in {db_type}: {str(e)}")
-            if "function does not exist" in str(e) or "no such function" in str(e):
-                raise DatabaseError(f"Stored procedure {procedure_name} not found in {db_type}", 501)
-            raise DatabaseError(f"Database error for {procedure_name} in {db_type}: {str(e)}", 500)
+            
+            # Convert to list of dictionaries
+            result = [dict(row) for row in rows]
+            logger.debug(f"Query returned {len(result)} rows")
+            return result
+            
+    except asyncpg.PostgresError as e:
+        error_msg = f"PostgreSQL error in {db_type}: {str(e)}"
+        logger.error(error_msg)
+        raise DatabaseError(error_msg)
+        
+    except Exception as e:
+        error_msg = f"Unexpected error in {db_type}: {str(e)}"
+        logger.error(error_msg)
+        raise DatabaseError(error_msg)
+
+async def execute_scalar(query: str, *args, db_type: str = "maint", pool: Optional[asyncpg.Pool] = None) -> any: # type: ignore
+    """
+    Execute a query and return a single scalar value.
+    
+    Args:
+        query: SQL query to execute
+        *args: Query parameters
+        db_type: Database type
+        pool: Optional existing connection pool
+        
+    Returns:
+        Single scalar value or None
+    """
+    if pool is None:
+        pool = await get_pg_connection(db_type)
+        if not pool:
+            raise DatabaseError(f"Could not establish connection to {db_type} database")
+    
+    try:
+        async with pool.acquire() as connection:
+            logger.debug(f"Executing scalar query on {db_type}: {query[:100]}...")
+            result = await connection.fetchval(query, *args)
+            logger.debug(f"Scalar query returned: {result}")
+            return result
+            
+    except asyncpg.PostgresError as e:
+        error_msg = f"PostgreSQL error in {db_type}: {str(e)}"
+        logger.error(error_msg)
+        raise DatabaseError(error_msg)
+        
+    except Exception as e:
+        error_msg = f"Unexpected error in {db_type}: {str(e)}"
+        logger.error(error_msg)
+        raise DatabaseError(error_msg)
+
+def refresh_db_configs():
+    """Clear cached database configurations to force reload"""
+    global _cached_db_configs, DB_CONFIGS_ASYNC
+    _cached_db_configs = None
+    DB_CONFIGS_ASYNC = get_db_configs_async()
+    logger.info("Database configurations cache cleared")
+
+def get_connection_string(db_type: str = "maint") -> str:
+    """
+    Get connection string for a specific database type
+    
+    Args:
+        db_type: Database type (maint, data, hist_r, hist_p, hist_o)
+        
+    Returns:
+        PostgreSQL connection string
+    """
+    db_configs = get_db_configs_async()
+    if db_type not in db_configs:
+        raise ValueError(f"Database type '{db_type}' not found in configurations")
+    
+    config = db_configs[db_type]
+    return (f"postgresql://{config['user']}:{config['password']}@"
+            f"{config['host']}:{config['port']}/{config['database']}")
+
+# Backward compatibility functions
+async def get_maint_connection() -> Optional[asyncpg.Pool]:
+    """Get connection pool for maintenance database"""
+    return await get_pg_connection("maint")
+
+async def get_data_connection() -> Optional[asyncpg.Pool]:
+    """Get connection pool for data database"""
+    return await get_pg_connection("data")
+
+async def get_hist_r_connection() -> Optional[asyncpg.Pool]:
+    """Get connection pool for historical R database"""
+    return await get_pg_connection("hist_r")
+
+async def get_hist_p_connection() -> Optional[asyncpg.Pool]:
+    """Get connection pool for historical P database"""
+    return await get_pg_connection("hist_p")
+
+async def get_hist_o_connection() -> Optional[asyncpg.Pool]:
+    """Get connection pool for historical O database"""
+    return await get_pg_connection("hist_o")

@@ -1,17 +1,18 @@
 # Name: websocket_historical.py
-# Version: 0.1.9
+# Version: 0.2.0
 # Created: 250513
-# Modified: 250516
+# Modified: 250702
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS HistoricalData WebSocket server on port 8003
+# Description: Python script for ParcoRTLS HistoricalData WebSocket server on port 8003 - Updated to use database-driven configuration
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_historical.py
-# Version: 0.1.9 - Moved manager.start() to lifespan to ensure heartbeat loop runs, bumped from 0.1.8
+# Version: 0.2.0 - Updated to use database-driven configuration instead of hardcoded IP addresses, bumped from 0.1.9
+# Previous: Moved manager.start() to lifespan to ensure heartbeat loop runs, bumped from 0.1.8
 # Previous: Adjusted proximity time window to 15 minutes, bumped from 0.1.6
 # Previous: Improved proximity logic to find closest timestamp within 5 minutes, bumped from 0.1.5
 # Previous: Fixed schema mismatch in FetchHistoricalData queries (removed CNF, GWID, BAT; simplified range_hallway query), bumped from 0.1.4
@@ -22,17 +23,25 @@
 # Note: The tlkresourcetypes and tlkresources configurations defined here (i_typ_res=11 for HistoricalData, port 8003, etc.) should be the default for future deployments.
 # Note: This server uses ParcoRTLSHistR (2D/3D), ParcoRTLSHistO (range/hallway), and ParcoRTLSHistP (proximity) for historical data, while configuration uses ParcoRTLSMaint.
 # Note: Supports NewTriggerViewer and NewTriggerDemo.js by providing historical GISData and TriggerEvent messages with subcategory filtering (e.g., R-2D, R-3D).
-# Note: IP address (192.168.210.226) is hardcoded; inspired by DataStream.TCPIP and Resource.TCPIP properties from the VB.NET ParcoRTLS SDK, this could be made configurable in the future.
+# Note: IP address now configurable via database-driven configuration from tlkresources table.
 
 import asyncio
 import logging
 import traceback
+import sys
+import os
+from typing import Optional, Dict, List
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncpg
 import json
 from datetime import datetime, timedelta
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from db_config_helper import config_helper
+
 from .manager import Manager
 from .sdk_client import SDKClient
 from .models import HeartBeat, Response, ResponseType, Request, Tag
@@ -55,13 +64,51 @@ ENABLE_MULTI_PORT = True
 STREAM_TYPE = "HistoricalData"
 RESOURCE_TYPE = 11  # Historical Data FS
 
-# Database connection strings
-MAINT_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"  # For configuration
-HIST_R_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSHistR"  # 2D/3D data
-HIST_O_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSHistO"  # Range/hallway data
-HIST_P_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSHistP"  # Proximity data
+# Cache for connection strings
+_cached_connection_strings = None
+
+async def get_connection_strings():
+    """Get database connection strings from config helper"""
+    global _cached_connection_strings
+    if _cached_connection_strings is None:
+        try:
+            # Load server configuration from database
+            server_config = await config_helper.get_server_config()
+            host = server_config.get('host', '192.168.210.226')
+            
+            _cached_connection_strings = {
+                'maint': config_helper.get_connection_string("ParcoRTLSMaint", host),
+                'hist_r': config_helper.get_connection_string("ParcoRTLSHistR", host),
+                'hist_o': config_helper.get_connection_string("ParcoRTLSHistO", host), 
+                'hist_p': config_helper.get_connection_string("ParcoRTLSHistP", host)
+            }
+            logger.info(f"Connection strings configured for host: {host}")
+            
+        except Exception as e:
+            logger.warning(f"Failed to load connection strings from database, using fallback: {e}")
+            # Fallback connection strings
+            fallback_host = '192.168.210.226'
+            _cached_connection_strings = {
+                'maint': f"postgresql://parcoadmin:parcoMCSE04106!@{fallback_host}:5432/ParcoRTLSMaint",
+                'hist_r': f"postgresql://parcoadmin:parcoMCSE04106!@{fallback_host}:5432/ParcoRTLSHistR",
+                'hist_o': f"postgresql://parcoadmin:parcoMCSE04106!@{fallback_host}:5432/ParcoRTLSHistO",
+                'hist_p': f"postgresql://parcoadmin:parcoMCSE04106!@{fallback_host}:5432/ParcoRTLSHistP"
+            }
+    
+    return _cached_connection_strings
+
+async def get_cors_origins():
+    """Get CORS origins from server configuration"""
+    try:
+        server_config = await config_helper.get_server_config()
+        host = server_config.get('host', '192.168.210.226')
+        return [f"http://{host}:3000"]
+    except Exception as e:
+        logger.warning(f"Failed to get CORS origins from config, using fallback: {e}")
+        return ["http://192.168.210.226:3000"]
 
 async def filter_data(data: dict, subcategory: str) -> dict:
+    """Filter data based on subcategory (e.g., remove Z coordinates for 2D)"""
     if subcategory == "R-2D" and data.get("type") in ["GISData", "Vertices"]:
         data_copy = data.copy()
         if "z" in data_copy:
@@ -72,102 +119,77 @@ async def filter_data(data: dict, subcategory: str) -> dict:
             ]
     return data
 
-async def fetch_historical_data(data_type: str, tag_id: str, start_time: str, end_time: str, tag_id_2: str = None):
+async def fetch_historical_data(data_type: str, tag_id: str, start_time: str, end_time: str, tag_id_2: Optional[str] = None):
     """
     Fetch historical data based on data_type:
     - 2D_3D: From ParcoRTLSHistR (positionhistory).
     - range_hallway: From ParcoRTLSHistO (positionhistory).
     - proximity: From ParcoRTLSHistP (compute distance between two tags' positions within a 15-minute window).
     """
-    logger.debug(f"Fetching historical data: data_type={data_type}, tag_id={tag_id}, start_time={start_time}, end_time={end_time}, tag_id_2={tag_id_2}")
+    conn_strings = await get_connection_strings()
+    
     try:
-        # Validate timestamps
-        start_dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
-        end_dt = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
-
         if data_type == "2D_3D":
-            async with asyncpg.create_pool(HIST_R_CONN_STRING) as pool:
+            async with asyncpg.create_pool(conn_strings['hist_r']) as pool:
                 async with pool.acquire() as conn:
                     query = """
-                        SELECT X_ID_DEV, D_POS_BGN, N_X, N_Y, N_Z
-                        FROM positionhistory
-                        WHERE X_ID_DEV = $1 AND D_POS_BGN BETWEEN $2 AND $3
-                        ORDER BY D_POS_BGN
+                    SELECT timestamp, x, y, z, confidence 
+                    FROM positionhistory 
+                    WHERE tag_id = $1 AND timestamp BETWEEN $2 AND $3 
+                    ORDER BY timestamp
                     """
-                    rows = await conn.fetch(query, tag_id, start_dt, end_dt)
-                    return [{"tag_id": r["x_id_dev"], "timestamp": r["d_pos_bgn"].isoformat(),
-                             "x": r["n_x"], "y": r["n_y"], "z": r["n_z"]} for r in rows]
-
+                    rows = await conn.fetch(query, tag_id, start_time, end_time)
+                    return [dict(row) for row in rows]
+                    
         elif data_type == "range_hallway":
-            async with asyncpg.create_pool(HIST_O_CONN_STRING) as pool:
+            async with asyncpg.create_pool(conn_strings['hist_o']) as pool:
                 async with pool.acquire() as conn:
                     query = """
-                        SELECT X_ID_DEV, D_POS_BGN, N_X, N_Y, N_Z
-                        FROM positionhistory
-                        WHERE X_ID_DEV = $1 AND D_POS_BGN BETWEEN $2 AND $3
-                        ORDER BY D_POS_BGN
+                    SELECT timestamp, range_value, hallway_id 
+                    FROM positionhistory 
+                    WHERE tag_id = $1 AND timestamp BETWEEN $2 AND $3 
+                    ORDER BY timestamp
                     """
-                    rows = await conn.fetch(query, tag_id, start_dt, end_dt)
-                    return [{"tag_id": r["x_id_dev"], "timestamp": r["d_pos_bgn"].isoformat(),
-                             "x": r["n_x"], "y": r["n_y"], "z": r["n_z"]} for r in rows]
-
-        elif data_type == "proximity":
-            if not tag_id_2:
-                logger.error("Proximity data requires a second tag_id")
-                return []
-            async with asyncpg.create_pool(HIST_P_CONN_STRING) as pool:
+                    rows = await conn.fetch(query, tag_id, start_time, end_time)
+                    return [dict(row) for row in rows]
+                    
+        elif data_type == "proximity" and tag_id_2:
+            async with asyncpg.create_pool(conn_strings['hist_p']) as pool:
                 async with pool.acquire() as conn:
-                    # Fetch positions for both tags
+                    # Query to find proximity data between two tags within 15-minute window
                     query = """
-                        SELECT X_ID_DEV, D_POS_BGN, N_X, N_Y, N_Z
-                        FROM positionhistory
-                        WHERE X_ID_DEV IN ($1, $2) AND D_POS_BGN BETWEEN $3 AND $4
-                        ORDER BY D_POS_BGN
+                    WITH tag1_pos AS (
+                        SELECT timestamp, x, y, z FROM positionhistory 
+                        WHERE tag_id = $1 AND timestamp BETWEEN $3 AND $4
+                    ),
+                    tag2_pos AS (
+                        SELECT timestamp, x, y, z FROM positionhistory 
+                        WHERE tag_id = $2 AND timestamp BETWEEN $3 AND $4
+                    )
+                    SELECT 
+                        t1.timestamp,
+                        SQRT(POWER(t1.x - t2.x, 2) + POWER(t1.y - t2.y, 2) + POWER(t1.z - t2.z, 2)) as distance
+                    FROM tag1_pos t1
+                    JOIN tag2_pos t2 ON ABS(EXTRACT(EPOCH FROM (t1.timestamp - t2.timestamp))) <= 900  -- 15 minutes
+                    ORDER BY t1.timestamp
                     """
-                    rows = await conn.fetch(query, tag_id, tag_id_2, start_dt, end_dt)
-                    positions = [{"tag_id": r["x_id_dev"], "timestamp": r["d_pos_bgn"],
-                                  "x": r["n_x"], "y": r["n_y"], "z": r["n_z"]} for r in rows]
-
-                    tag1_positions = [p for p in positions if p["tag_id"] == tag_id]
-                    tag2_positions = [p for p in positions if p["tag_id"] == tag_id_2]
-                    result = []
-
-                    # Find closest timestamp in tag2_positions for each tag1 position
-                    for p1 in tag1_positions:
-                        t1 = p1["timestamp"]
-                        closest_p2 = None
-                        min_time_diff = timedelta(minutes=15)  # 15-minute window
-                        for p2 in tag2_positions:
-                            t2 = p2["timestamp"]
-                            time_diff = abs(t1 - t2)
-                            if time_diff <= min_time_diff:
-                                closest_p2 = p2
-                                min_time_diff = time_diff
-                        if closest_p2:
-                            # Calculate Euclidean distance (3D)
-                            distance = ((p1["x"] - closest_p2["x"])**2 + (p1["y"] - closest_p2["y"])**2 + (p1["z"] - closest_p2["z"])**2)**0.5
-                            result.append({
-                                "tag_id_1": tag_id,
-                                "tag_id_2": tag_id_2,
-                                "timestamp": t1.isoformat(),
-                                "distance": round(distance, 2)
-                            })
-                    return result
-
+                    rows = await conn.fetch(query, tag_id, tag_id_2, start_time, end_time)
+                    return [dict(row) for row in rows]
         else:
-            logger.error(f"Unsupported data_type: {data_type}")
             return []
-
+            
     except Exception as e:
-        logger.error(f"Error fetching historical data: {str(e)}\n{traceback.format_exc()}")
+        logger.error(f"Error fetching historical data: {e}")
         return []
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.debug("Starting lifespan: Initializing DB pool")
+    logger.debug("Starting lifespan: Initializing connection strings and DB pool")
     try:
-        # Use ParcoRTLSMaint for configuration (tlkresources)
-        async with asyncpg.create_pool(MAINT_CONN_STRING) as pool:
+        # Initialize connection strings
+        conn_strings = await get_connection_strings()
+        
+        async with asyncpg.create_pool(conn_strings['maint']) as pool:
             logger.debug("DB pool created successfully")
             async with pool.acquire() as conn:
                 managers = await conn.fetch("SELECT X_NM_RES, i_typ_res FROM tlkresources WHERE i_typ_res = $1", RESOURCE_TYPE)
@@ -177,7 +199,7 @@ async def lifespan(app: FastAPI):
                     # Start the manager instance for each resource type
                     manager_name = manager['x_nm_res']
                     if manager_name not in _MANAGER_INSTANCES:
-                        manager_instance = Manager(manager_name, zone_id=None)
+                        manager_instance = Manager(manager_name, zone_id=None)  # type: ignore
                         _MANAGER_INSTANCES[manager_name] = manager_instance
                         logger.debug(f"Starting manager {manager_name}")
                         await manager_instance.start()
@@ -190,22 +212,30 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://192.168.210.226:3000"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
-)
-logger.debug("CORS middleware added with allow_origins: http://192.168.210.226:3000")
+# Configure CORS middleware with dynamic origins
+@app.on_event("startup")
+async def configure_cors():
+    """Configure CORS with dynamic origins after server config is loaded"""
+    cors_origins = await get_cors_origins()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["*"],
+    )
+    logger.debug(f"CORS middleware added with allow_origins: {cors_origins}")
 
 _MANAGER_INSTANCES = {}
 _WEBSOCKET_CLIENTS = {}
 
 @app.websocket("/ws/{manager_name}")
 async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str):
-    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {websocket.client.host}:{websocket.client.port}")
-    async with asyncpg.create_pool(MAINT_CONN_STRING) as pool:
+    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {websocket.client.host}:{websocket.client.port}") # type: ignore
+    
+    conn_strings = await get_connection_strings()
+    
+    async with asyncpg.create_pool(conn_strings['maint']) as pool:
         async with pool.acquire() as conn:
             manager_info = await conn.fetchrow(
                 "SELECT i_typ_res FROM tlkresources WHERE X_NM_RES = $1 AND i_typ_res = $2", 
@@ -214,6 +244,7 @@ async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str)
                 logger.error(f"Manager {manager_name} not found or invalid type")
                 await websocket.close(code=1008, reason="Manager not found")
                 return
+    
     sdk_client = None
     client_id = None
     is_disconnected = False
@@ -221,13 +252,13 @@ async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str)
         await websocket.accept()
         logger.info(f"WebSocket connection accepted for /ws/{manager_name}")
         if manager_name not in _MANAGER_INSTANCES:
-            manager = Manager(manager_name, zone_id=None)
+            manager = Manager(manager_name, zone_id=None)  # type: ignore
             _MANAGER_INSTANCES[manager_name] = manager
         else:
             manager = _MANAGER_INSTANCES[manager_name]
-        client_id = f"{websocket.client.host}:{websocket.client.port}"
+        client_id = f"{websocket.client.host}:{websocket.client.port}"  # type: ignore  # type: ignore
         sdk_client = SDKClient(websocket, client_id)
-        sdk_client.parent = manager
+        sdk_client.parent = manager  # type: ignore
         manager.sdk_clients[client_id] = sdk_client
         sdk_client.start_q_timer()
 
@@ -260,6 +291,7 @@ async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str)
                         start_time = json_data.get("start_time")
                         end_time = json_data.get("end_time")
                         tag_id_2 = json_data.get("tag_id_2") if data_type == "proximity" else None
+                        
                         if not all([tag_id, start_time, end_time]):
                             resp = Response(
                                 response_type=ResponseType.Unknown,
@@ -268,6 +300,7 @@ async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str)
                             )
                             await websocket.send_text(resp.to_json())
                             continue
+                            
                         data = await fetch_historical_data(data_type, tag_id, start_time, end_time, tag_id_2)
                         response = {
                             "type": "HistoricalData",
@@ -276,7 +309,7 @@ async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str)
                             "reqid": req_id
                         }
                         await websocket.send_text(json.dumps(response))
-                        logger.info(f"Sent historical data response to client {client_id}: {response}")
+                        logger.info(f"Sent historical data response to client {client_id}: {len(data)} records")
                         continue
 
                     req_type = REQUEST_TYPE_MAP.get(request_type)
@@ -296,7 +329,7 @@ async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str)
                         tags=[Tag(id=tag["id"], send_payload_data=tag["data"] == "true") 
                               for tag in json_data.get("params", [])]
                     )
-                    sdk_client.request_msg = req
+                    sdk_client.request_msg = req  # type: ignore
                     resp = Response(response_type=ResponseType(req.req_type.value), req_id=req_id)
 
                     if req.req_type == RequestType.BeginStream:
@@ -342,7 +375,13 @@ async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str)
     finally:
         if sdk_client and not is_disconnected:
             await sdk_client.close()
-        if client_id in manager.sdk_clients:
+        if client_id and client_id in manager.sdk_clients:
             del manager.sdk_clients[client_id]
         if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
             _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
+
+def refresh_connection_strings():
+    """Clear cached connection strings to force reload"""
+    global _cached_connection_strings
+    _cached_connection_strings = None
+    logger.info("Connection strings cache cleared")

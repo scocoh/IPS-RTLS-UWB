@@ -1,9 +1,9 @@
 # Name: heartbeat_manager.py
-# Version: 0.1.3
+# Version: 0.1.5
 # Created: 250526
-# Modified: 250527
+# Modified: 250703
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
+# Modified By: ParcoAdmin & TC
 # Description: Manages heartbeat logic for ParcoRTLS WebSocket servers
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
@@ -11,8 +11,10 @@
 # Dependent: TRUE
 
 # Version History:
-# - v0.1.3: Reverted logger to use __name__ for consistency, bumped from 0.1.2
-# - v0.1.2: Fixed state check for FastAPI WebSocket, ensured proper disconnection, bumped from 0.1.1
+# - v0.1.5: Fixed return type annotation for validate_response method, bumped from 0.1.4
+# - v0.1.4: Reverted logger to use __name__ for consistency, bumped from 0.1.3
+# - v0.1.3: Fixed state check for FastAPI WebSocket, ensured proper disconnection, bumped from 0.1.2
+# - v0.1.2: Added violation tracking in check_timeout, added is_connected method, bumped from 0.1.1
 # - v0.1.1: Added violation tracking in check_timeout, added is_connected method, bumped from 0.1.0
 # - v0.1.0: Initial implementation of HeartbeatManager
 
@@ -20,6 +22,7 @@ import time
 import asyncio
 import logging
 from datetime import datetime, timedelta
+from typing import Optional
 from starlette.websockets import WebSocketState
 
 logger = logging.getLogger(__name__)
@@ -35,6 +38,20 @@ class HeartbeatManager:
         self.last_received_time = datetime.utcnow() # Timestamp of last valid response
         self.violation_count = 0                    # Heartbeat violations counter
         self._connected = True                      # Track connection state
+
+    async def start(self, manager_instance=None):
+        """
+        Compatibility method for websocket servers.
+        
+        Args:
+            manager_instance: Optional manager instance (ignored for compatibility)
+            
+        Returns:
+            bool: True if started successfully
+        """
+        logger = logging.getLogger(__name__)
+        logger.info("HeartbeatManager.start() called - compatibility mode")
+        return True
 
     async def send_heartbeat(self):
         """Send a heartbeat with a unique timestamp ID."""
@@ -77,7 +94,7 @@ class HeartbeatManager:
                     logger.error(f"[{self.client_id}] Error during forced disconnect: {e}")
                     self._connected = False
 
-    def validate_response(self, message: dict) -> bool:
+    def validate_response(self, message: dict) -> Optional[bool]:
         """
         Validate the incoming heartbeat response.
 
@@ -105,7 +122,7 @@ class HeartbeatManager:
                 return False
             return None
 
-    def too_frequent(self) -> bool:
+    def too_frequent(self) -> Optional[bool]:
         """Return True if client is sending heartbeats too frequently."""
         if not self._connected:
             return False
