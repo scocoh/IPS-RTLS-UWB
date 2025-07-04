@@ -47,3 +47,4 @@ node_modules/.cache/
 *.bak
 *.tmp
 
+file_list.txt
