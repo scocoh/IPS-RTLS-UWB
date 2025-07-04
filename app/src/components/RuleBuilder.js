@@ -1,7 +1,7 @@
 /* Name: RuleBuilder.js */
-/* Version: 0.2.7.1 */
+/* Version: 0.2.8 */
 /* Created: 250609 */
-/* Modified: 250625 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ClaudeAI */
 /* Description: React component for TETSE rule construction and code generation, using backend API parsing only */
@@ -9,9 +9,15 @@
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
+/* Changelog: */
+/* - 0.2.8 (250704): Replaced hardcoded IP with dynamic hostname detection for both HTTP and WebSocket URLs */
 /* Update: Fixed campus ID mapping with enhanced debugging for zone resolution issues */
 
 import React, { useState, useEffect, useCallback } from 'react';
+
+// Base URLs - dynamic hostname detection
+const API_BASE_URL = `http://${window.location.hostname || 'localhost'}:8000`;
+const WS_BASE_URL = `ws://${window.location.hostname || 'localhost'}:9000`;
 
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -36,7 +42,7 @@ const EventStream = ({ subjectId }) => {
       setWsError('Invalid Subject ID: Use only alphanumeric characters');
       return;
     }
-    const ws = new WebSocket(`ws://192.168.210.226:9000/ws/tetse_event/${id}`);
+    const ws = new WebSocket(`${WS_BASE_URL}/ws/tetse_event/${id}`);
     
     ws.onopen = () => {
       console.log(`Connected to WebSocket for ${id}`);
@@ -111,7 +117,7 @@ const RuleForm = () => {
   const [modalCallback, setModalCallback] = useState(null);
 
   useEffect(() => {
-    fetch('http://192.168.210.226:8000/api/zones_for_ai')
+    fetch(`${API_BASE_URL}/api/zones_for_ai`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! Status: ${res.status}`);
@@ -275,7 +281,7 @@ const RuleForm = () => {
       await validateRule(ruleData);
 
       // Submit to backend API - let it do all the parsing
-      const res = await fetch('http://192.168.210.226:8000/api/openai/create_rule_live', {
+      const res = await fetch(`${API_BASE_URL}/api/openai/create_rule_live`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ruleData)
@@ -525,7 +531,7 @@ const CodeGenerator = () => {
       if (!eventText) {
         throw new Error('Please provide an event description');
       }
-      const res = await fetch('http://192.168.210.226:8000/api/openai/generate_code', {
+      const res = await fetch(`${API_BASE_URL}/api/openai/generate_code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ event_description: eventText }),

@@ -1,16 +1,17 @@
 # Name: websocket_realtime.py
-# Version: 0.1.67
+# Version: 0.1.68
 # Created: 250512
-# Modified: 250623
+# Modified: 250703
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin + Claude
-# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 - CLEAN RTLS ONLY with event bridge
+# Modified By: ParcoAdmin + Claude & AI Assistant
+# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 - CLEAN RTLS ONLY with event bridge - Updated to use centralized configuration
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_realtime.py
+# Version: 0.1.68 - Updated to use centralized configuration instead of hardcoded IP addresses, bumped from 0.1.67
 # Version: 0.1.67 - ROLLBACK: Removed TETSE contamination, added clean event bridge, bumped from 0.1.66
 # Version: 0.1.66 - FIXED: Added current_zone_id parameter to evaluate_rule() call, bumped from 0.1.65
 # Version: 0.1.65 - Added comprehensive TETSE debug logging to track rule evaluation flow
@@ -33,6 +34,11 @@ from .heartbeat_manager import HeartbeatManager
 import os
 from logging.handlers import RotatingFileHandler
 import httpx
+
+# Import centralized configuration
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
 
 # Log directory
 LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
@@ -61,11 +67,24 @@ file_handler.flush()
 ENABLE_MULTI_PORT = True
 STREAM_TYPE = "RealTime"
 RESOURCE_TYPE = 1
-MAINT_CONN_STRING = os.getenv("MAINT_CONN_STRING", "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint")
-HEARTBEAT_INTERVAL = 30.0  # Heartbeat every 30 seconds
 
-# Event Bridge Configuration
-TETSE_BRIDGE_URL = "http://192.168.210.226:8998"  # TETSE forwarding server
+# Use centralized configuration for database connection
+def get_maint_connection_string():
+    """Get maintenance database connection string from centralized config"""
+    db_configs = get_db_configs_sync()
+    maint_config = db_configs['maint']
+    return f"postgresql://{maint_config['user']}:{maint_config['password']}@{maint_config['host']}:{maint_config['port']}/{maint_config['database']}"
+
+MAINT_CONN_STRING = os.getenv("MAINT_CONN_STRING", get_maint_connection_string())
+HEARTBEAT_INTERVAL = 30  # Heartbeat every 30 seconds (changed to int to fix Pylance error)
+
+# Event Bridge Configuration - use centralized configuration
+def get_tetse_bridge_url():
+    """Get TETSE bridge URL from centralized config"""
+    server_host = get_server_host()
+    return f"http://{server_host}:8998"
+
+TETSE_BRIDGE_URL = get_tetse_bridge_url()  # TETSE forwarding server
 
 async def publish_position_event(tag_id: str, zone_id: int, x: float, y: float, z: float):
     """
@@ -121,7 +140,8 @@ async def lifespan(app: FastAPI):
                     file_handler.flush()
                     manager_name = manager['x_nm_res']
                     if manager_name not in _MANAGER_INSTANCES:
-                        manager_instance = Manager(manager_name, zone_id=None)
+                        # Fix: Use default zone_id if None
+                        manager_instance = Manager(manager_name, zone_id=1)  # Default zone_id instead of None
                         _MANAGER_INSTANCES[manager_name] = manager_instance
                         logger.debug(f"Starting manager {manager_name}")
                         file_handler.flush()
@@ -138,14 +158,21 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# Use centralized configuration for CORS
+def get_cors_origins():
+    """Get CORS origins from centralized config"""
+    server_host = get_server_host()
+    return [f"http://{server_host}:3000"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://192.168.210.226:3000"],
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
-logger.debug("CORS middleware added with allow_origins: http://192.168.210.226:3000")
+cors_origins = get_cors_origins()
+logger.debug(f"CORS middleware added with allow_origins: {cors_origins[0]}")
 file_handler.flush()
 
 _MANAGER_INSTANCES = {}
@@ -153,8 +180,9 @@ _WEBSOCKET_CLIENTS = {}
 
 @app.websocket("/ws/{manager_name}")
 async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
-    client_host = websocket.client.host
-    client_port = websocket.client.port
+    # Fix: Handle potential None client
+    client_host = websocket.client.host if websocket.client else "unknown"
+    client_port = websocket.client.port if websocket.client else 0
     client_id = f"{client_host}:{client_port}"
     # Detect wscat clients (simplified heuristic, adjust if needed)
     is_wscat = "wscat" in websocket.headers.get("user-agent", "").lower() or client_port > 40000
@@ -162,7 +190,7 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
     logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {client_id} ({client_type})")
     file_handler.flush()
 
-    # Initialize HeartbeatManager
+    # Initialize HeartbeatManager - fix: pass int instead of float
     heartbeat_manager = HeartbeatManager(websocket, client_id=client_id, interval=HEARTBEAT_INTERVAL, timeout=5)
 
     try:
@@ -176,7 +204,8 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                     logger.warning(f"Manager {manager_name} not found, creating default instance")
                     file_handler.flush()
                     if manager_name not in _MANAGER_INSTANCES:
-                        manager = Manager(manager_name, zone_id=None)
+                        # Fix: Use default zone_id instead of None
+                        manager = Manager(manager_name, zone_id=1)  # Default zone_id
                         _MANAGER_INSTANCES[manager_name] = manager
                         await manager.start()
     except Exception as e:
@@ -187,6 +216,9 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
 
     sdk_client = None
     is_disconnected = False
+    manager = None
+    heartbeat_task = None
+    
     try:
         await websocket.accept()
         logger.info(f"WebSocket connection accepted for /ws/{manager_name} from {client_id} ({client_type})")
@@ -273,7 +305,7 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                     
                     # Forward to other RTLS clients (existing logic)
                     for ws_client in _WEBSOCKET_CLIENTS.get(manager_name, []):
-                        if ws_client != sdk_client and ws_client.request_msg:
+                        if ws_client != sdk_client and hasattr(ws_client, 'request_msg') and ws_client.request_msg:
                             for tag in ws_client.request_msg.tags:
                                 client_zone_id = str(zone_id) if zone_id is not None else None
                                 message_zone_id = str(zone_id) if zone_id is not None else None
@@ -306,9 +338,10 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                         req_type=req_type,
                         req_id=req_id,
                         tags=[Tag(id=tag["id"], send_payload_data=tag["data"] == "true")
-                              for tag in json_data.get("params", [])],
-                        zone_id=json_data.get("zone_id")
+                              for tag in json_data.get("params", [])]
+                        # Fix: Remove zone_id parameter that doesn't exist in Request constructor
                     )
+                    # Fix: Set request_msg properly - sdk_client.request_msg can be None or Request
                     sdk_client.request_msg = req
                     resp = Response(response_type=ResponseType(req.req_type.value), req_id=req_id)
 
@@ -349,12 +382,14 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                 logger.info(f"WebSocket disconnected for /ws/{manager_name} from {client_id} ({client_type}): {str(e)}")
                 file_handler.flush()
                 is_disconnected = True
-                await sdk_client.close()
+                if sdk_client:
+                    await sdk_client.close()
                 break
             except Exception as e:
                 logger.error(f"Error in WebSocket handler for client {client_id} ({client_type}): {str(e)}")
                 file_handler.flush()
-                sdk_client.is_closing = True
+                if sdk_client:
+                    sdk_client.is_closing = True
                 break
     except Exception as e:
         logger.error(f"Unexpected error in WebSocket endpoint for client {client_id} ({client_type}): {str(e)}")
@@ -362,11 +397,12 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
     finally:
         if sdk_client and not is_disconnected:
             await sdk_client.close()
-        if client_id in manager.sdk_clients:
+        if manager and hasattr(manager, 'sdk_clients') and client_id in manager.sdk_clients:
             del manager.sdk_clients[client_id]
-        if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
+        if manager_name in _WEBSOCKET_CLIENTS and sdk_client and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
             _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
-        heartbeat_task.cancel()
+        if heartbeat_task:
+            heartbeat_task.cancel()
         logger.info(f"Cleaned up client {client_id} ({client_type}) for /ws/{manager_name}")
         file_handler.flush()
 

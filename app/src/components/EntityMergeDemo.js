@@ -330,7 +330,7 @@ const EntityMergeDemo = memo(() => {
               onMerge={handleMerge}
               selectedEntityType={selectedEntityType}
               selectedReasonId={selectedReasonId}
-            />
+            />I
           </div>
         </Col>
         <Col md={4}>

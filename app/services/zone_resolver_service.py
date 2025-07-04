@@ -1,9 +1,9 @@
 # Name: zone_resolver_service.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 250623
-# Modified: 250623
-# Creator: ParcoAdmin + Claude
-# Description: Zone resolution service for converting coordinates to zones
+# Modified: 250703
+# Creator: ParcoAdmin + Claude & AI Assistant
+# Description: Zone resolution service for converting coordinates to zones - Updated to use centralized configuration
 # Location: /home/parcoadmin/parco_fastapi/app/services/
 # Role: Service
 # Status: Active
@@ -13,6 +13,12 @@ import logging
 import httpx
 from typing import Optional, Dict, Any
 import asyncpg
+import sys
+import os
+
+# Import centralized configuration
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +26,21 @@ class ZoneResolverService:
     """
     Service to resolve coordinates to zones for proper data flow.
     This ensures the simulator doesn't need to provide zone_id - it's resolved from position.
+    Updated to use centralized configuration instead of hardcoded IP addresses.
     """
     
-    def __init__(self, fastapi_base_url: str = "http://localhost:8000"):
-        self.fastapi_base_url = fastapi_base_url
-        self.conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
+    def __init__(self, fastapi_base_url: Optional[str] = None):
+        # Use centralized configuration for FastAPI base URL
+        if fastapi_base_url is None:
+            server_host = get_server_host()
+            self.fastapi_base_url = f"http://{server_host}:8000"
+        else:
+            self.fastapi_base_url = fastapi_base_url
+            
+        # Use centralized configuration for database connection
+        db_configs = get_db_configs_sync()
+        maint_config = db_configs['maint']
+        self.conn_string = f"postgresql://{maint_config['user']}:{maint_config['password']}@{maint_config['host']}:{maint_config['port']}/{maint_config['database']}"
     
     async def resolve_zone_from_coordinates(self, x: float, y: float, z: float, campus_id: int = 422) -> Optional[int]:
         """

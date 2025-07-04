@@ -1,7 +1,7 @@
 # Name: tetse_rule_enrich_ingest.py
 # Version: 0.1.0
 # Created: 971201
-# Modified: 250502
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: ParcoRTLS backend script
@@ -11,8 +11,8 @@
 # Dependent: TRUE
 
 # File: tetse_rule_enrich_ingest.py
-# Version: 0.1.3
-# Updated: 250615
+# Version: 0.1.4
+# Updated: 250704
 # Author: ParcoAdmin + QuantumSage AI
 # Purpose: End-to-end rule ingestion: NL -> Enrich -> Adapt -> Insert into TETSE
 
@@ -25,11 +25,21 @@ from routes.tetse_rule_enricher import enrich_rule
 from dotenv import load_dotenv
 import os
 
+# Import centralized configuration
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
+
 # Load DB config from .env
 load_dotenv("/home/parcoadmin/parco_fastapi/app/.env")
 
-MAINT_CONN_STRING = os.getenv("MAINT_CONN_STRING", "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint")
-DATA_CONN_STRING = os.getenv("DATA_CONN_STRING", "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSData")
+# Get centralized configuration
+server_host = get_server_host()
+db_configs = get_db_configs_sync()
+maint_config = db_configs['maint']
+data_config = db_configs['data']
+
+MAINT_CONN_STRING = os.getenv("MAINT_CONN_STRING", f"postgresql://{maint_config['user']}:{maint_config['password']}@{server_host}:{maint_config['port']}/{maint_config['database']}")
+DATA_CONN_STRING = os.getenv("DATA_CONN_STRING", f"postgresql://{data_config['user']}:{data_config['password']}@{server_host}:{data_config['port']}/{data_config['database']}")
 
 def adapt_rulebuilder_to_tetse(rule_dict):
     """

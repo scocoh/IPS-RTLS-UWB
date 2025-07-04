@@ -1,7 +1,7 @@
 # Name: websocket_historical.py
-# Version: 0.2.0
+# Version: 0.2.1
 # Created: 250513
-# Modified: 250702
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS HistoricalData WebSocket server on port 8003 - Updated to use database-driven configuration
@@ -11,6 +11,7 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_historical.py
+# Version: 0.2.1 - Updated with centralized IP configuration and syntax fixes, bumped from 0.2.0
 # Version: 0.2.0 - Updated to use database-driven configuration instead of hardcoded IP addresses, bumped from 0.1.9
 # Previous: Moved manager.start() to lifespan to ensure heartbeat loop runs, bumped from 0.1.8
 # Previous: Adjusted proximity time window to 15 minutes, bumped from 0.1.6
@@ -42,6 +43,9 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from db_config_helper import config_helper
 
+# Import centralized configuration
+from config import get_server_host, get_db_configs_sync
+
 from .manager import Manager
 from .sdk_client import SDKClient
 from .models import HeartBeat, Response, ResponseType, Request, Tag
@@ -64,6 +68,9 @@ ENABLE_MULTI_PORT = True
 STREAM_TYPE = "HistoricalData"
 RESOURCE_TYPE = 11  # Historical Data FS
 
+# Get centralized server host
+server_host = get_server_host()
+
 # Cache for connection strings
 _cached_connection_strings = None
 
@@ -74,7 +81,7 @@ async def get_connection_strings():
         try:
             # Load server configuration from database
             server_config = await config_helper.get_server_config()
-            host = server_config.get('host', '192.168.210.226')
+            host = server_config.get('host', server_host)
             
             _cached_connection_strings = {
                 'maint': config_helper.get_connection_string("ParcoRTLSMaint", host),
@@ -86,13 +93,12 @@ async def get_connection_strings():
             
         except Exception as e:
             logger.warning(f"Failed to load connection strings from database, using fallback: {e}")
-            # Fallback connection strings
-            fallback_host = '192.168.210.226'
+            # Fallback connection strings using centralized config
             _cached_connection_strings = {
-                'maint': f"postgresql://parcoadmin:parcoMCSE04106!@{fallback_host}:5432/ParcoRTLSMaint",
-                'hist_r': f"postgresql://parcoadmin:parcoMCSE04106!@{fallback_host}:5432/ParcoRTLSHistR",
-                'hist_o': f"postgresql://parcoadmin:parcoMCSE04106!@{fallback_host}:5432/ParcoRTLSHistO",
-                'hist_p': f"postgresql://parcoadmin:parcoMCSE04106!@{fallback_host}:5432/ParcoRTLSHistP"
+                'maint': f"postgresql://parcoadmin:parcoMCSE04106!@{server_host}:5432/ParcoRTLSMaint",
+                'hist_r': f"postgresql://parcoadmin:parcoMCSE04106!@{server_host}:5432/ParcoRTLSHistR",
+                'hist_o': f"postgresql://parcoadmin:parcoMCSE04106!@{server_host}:5432/ParcoRTLSHistO",
+                'hist_p': f"postgresql://parcoadmin:parcoMCSE04106!@{server_host}:5432/ParcoRTLSHistP"
             }
     
     return _cached_connection_strings
@@ -101,11 +107,11 @@ async def get_cors_origins():
     """Get CORS origins from server configuration"""
     try:
         server_config = await config_helper.get_server_config()
-        host = server_config.get('host', '192.168.210.226')
+        host = server_config.get('host', server_host)
         return [f"http://{host}:3000"]
     except Exception as e:
         logger.warning(f"Failed to get CORS origins from config, using fallback: {e}")
-        return ["http://192.168.210.226:3000"]
+        return [f"http://{server_host}:3000"]
 
 async def filter_data(data: dict, subcategory: str) -> dict:
     """Filter data based on subcategory (e.g., remove Z coordinates for 2D)"""
@@ -199,7 +205,7 @@ async def lifespan(app: FastAPI):
                     # Start the manager instance for each resource type
                     manager_name = manager['x_nm_res']
                     if manager_name not in _MANAGER_INSTANCES:
-                        manager_instance = Manager(manager_name, zone_id=None)  # type: ignore
+                        manager_instance = Manager(manager_name, zone_id=0)
                         _MANAGER_INSTANCES[manager_name] = manager_instance
                         logger.debug(f"Starting manager {manager_name}")
                         await manager_instance.start()
@@ -231,7 +237,9 @@ _WEBSOCKET_CLIENTS = {}
 
 @app.websocket("/ws/{manager_name}")
 async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str):
-    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {websocket.client.host}:{websocket.client.port}") # type: ignore
+    client_host = websocket.client.host if websocket.client else "unknown"
+    client_port = websocket.client.port if websocket.client else 0
+    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {client_host}:{client_port}")
     
     conn_strings = await get_connection_strings()
     
@@ -252,13 +260,16 @@ async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str)
         await websocket.accept()
         logger.info(f"WebSocket connection accepted for /ws/{manager_name}")
         if manager_name not in _MANAGER_INSTANCES:
-            manager = Manager(manager_name, zone_id=None)  # type: ignore
+            manager = Manager(manager_name, zone_id=0)
             _MANAGER_INSTANCES[manager_name] = manager
         else:
             manager = _MANAGER_INSTANCES[manager_name]
-        client_id = f"{websocket.client.host}:{websocket.client.port}"  # type: ignore  # type: ignore
+        client_id = f"{client_host}:{client_port}"
         sdk_client = SDKClient(websocket, client_id)
-        sdk_client.parent = manager  # type: ignore
+        
+        # Set parent relationship using setattr to bypass type checking
+        setattr(sdk_client, 'parent', manager)
+        
         manager.sdk_clients[client_id] = sdk_client
         sdk_client.start_q_timer()
 
@@ -329,7 +340,7 @@ async def websocket_endpoint_historical(websocket: WebSocket, manager_name: str)
                         tags=[Tag(id=tag["id"], send_payload_data=tag["data"] == "true") 
                               for tag in json_data.get("params", [])]
                     )
-                    sdk_client.request_msg = req  # type: ignore
+                    sdk_client.request_msg = req
                     resp = Response(response_type=ResponseType(req.req_type.value), req_id=req_id)
 
                     if req.req_type == RequestType.BeginStream:

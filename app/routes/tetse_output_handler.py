@@ -1,7 +1,7 @@
 # Name: tetse_output_handler.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: ParcoRTLS backend script
@@ -11,13 +11,19 @@
 # Dependent: TRUE
 
 # File: tetse_output_handler.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 250615
 # Author: ParcoAdmin + QuantumSage AI
 # Purpose: (Phase 6C.3B )
 # Status: Production-ready
 
 # Location: /home/parcoadmin/parco_fastapi/app/routes
+
+# Import centralized configuration
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host
 
 import logging
 import asyncio
@@ -30,7 +36,7 @@ from routes.tetse_event_dispatcher import enqueue_event
 # =============================================================================
 
 # MQTT Settings (adjust if needed)
-MQTT_BROKER = "192.168.210.226"
+MQTT_BROKER = get_server_host()
 MQTT_PORT = 1883
 MQTT_TOPIC_PREFIX = "tetse/events"
 

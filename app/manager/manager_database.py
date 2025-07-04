@@ -1,10 +1,10 @@
 # Name: manager_database.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 250703
-# Modified: 250703
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: AI Assistant
-# Description: Database handler module for ParcoRTLS Manager - Extracted from manager.py v0.1.21
+# Description: Database handler module for ParcoRTLS Manager - Updated with centralized IP configuration
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
@@ -21,6 +21,7 @@ This module handles all database operations for the Manager class including:
 - Database queries and updates
 
 Extracted from manager.py v0.1.21 for better modularity and maintainability.
+Updated to use centralized IP configuration system.
 """
 
 import asyncpg
@@ -29,8 +30,9 @@ import os
 import logging
 from typing import Optional
 
-# Add path for db_config_helper
+# Add path for centralized configuration and db_config_helper
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
 from db_config_helper import config_helper  # type: ignore
 
 logger = logging.getLogger(__name__)
@@ -75,16 +77,20 @@ class ManagerDatabase:
         if self.conn_string is None or self.hist_conn_string is None:
             try:
                 server_config = await config_helper.get_server_config()
-                host = server_config.get('host', '192.168.210.226')
+                host = server_config.get('host', get_server_host())
                 self.conn_string = config_helper.get_connection_string("ParcoRTLSMaint", host)
                 self.hist_conn_string = config_helper.get_connection_string("ParcoRTLSHistR", host)
                 logger.info(f"Connection strings configured for host: {host}")
                 return True
             except Exception as e:
                 logger.warning(f"Failed to load connection strings from database, using fallback: {e}")
-                # Fallback to hardcoded values
-                self.conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
-                self.hist_conn_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSHistR"
+                # Fallback to centralized configuration
+                server_host = get_server_host()
+                db_configs = get_db_configs_sync()
+                maint_config = db_configs['maint']
+                hist_config = db_configs['hist']
+                self.conn_string = f"postgresql://{maint_config['user']}:{maint_config['password']}@{server_host}:{maint_config['port']}/{maint_config['database']}"
+                self.hist_conn_string = f"postgresql://{hist_config['user']}:{hist_config['password']}@{server_host}:{hist_config['port']}/{hist_config['database']}"
                 return False
         return True
 

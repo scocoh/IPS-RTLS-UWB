@@ -1,20 +1,21 @@
 # Name: subject_registry.py
-# Version: 0.1.2
+# Version: 0.1.3
 # Created: 971201
-# Modified: 250623
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: AI Assistant
-# Description: ParcoRTLS backend script - Database-driven subject registry using TETSE device registry with direct device table support
+# Description: ParcoRTLS backend script - Database-driven subject registry with centralized IP configuration
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # File: subject_registry.py
-# Version: 0.1.2 - FIXED: Added direct database query for physical devices before API fallback
+# Version: 0.1.3 - Updated to use centralized IP configuration, bumped from 0.1.2
+# v0.1.2 - FIXED: Added direct database query for physical devices before API fallback
 # v0.1.1 - Updated to use tetse_device_registry.py FastAPI endpoints instead of hardcoded subjects
 # Created: 250615
-# Modified: 250623
+# Modified: 250704
 # Author: ParcoAdmin + QuantumSage AI
 # Purpose: Map subject_id to live tag/device state for TETSE evaluations using database persistence.
 # Status: Production
@@ -22,7 +23,13 @@
 import logging
 import httpx
 import asyncpg
+import sys
+import os
 from typing import Optional
+
+# Import centralized configuration
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -34,12 +41,27 @@ logger.setLevel(logging.DEBUG)
 TETSE_DEVICE_API_BASE = "http://localhost:8000/api/tetse/devices"
 
 async def get_maint_pool():
-    """Get ParcoRTLSMaint database pool"""
-    return await asyncpg.create_pool(
-        "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint",
-        min_size=1,
-        max_size=10
-    )
+    """Get ParcoRTLSMaint database pool using centralized configuration"""
+    try:
+        server_host = get_server_host()
+        db_configs = get_db_configs_sync()
+        maint_config = db_configs['maint']
+        conn_string = f"postgresql://{maint_config['user']}:{maint_config['password']}@{server_host}:{maint_config['port']}/{maint_config['database']}"
+        
+        return await asyncpg.create_pool(
+            conn_string,
+            min_size=1,
+            max_size=10
+        )
+    except Exception as e:
+        logger.error(f"Failed to create database pool with centralized config: {str(e)}")
+        # Fallback to environment variable or localhost
+        fallback_conn = os.getenv("MAINT_CONN_STRING", "postgresql://parcoadmin:parcoMCSE04106!@localhost:5432/ParcoRTLSMaint")
+        return await asyncpg.create_pool(
+            fallback_conn,
+            min_size=1,
+            max_size=10
+        )
 
 async def get_subject_current_zone(subject_id: str) -> Optional[int]:
     """

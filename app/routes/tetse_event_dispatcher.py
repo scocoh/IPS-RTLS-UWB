@@ -1,17 +1,17 @@
 # Name: tetse_event_dispatcher.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250704
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Description: ParcoRTLS backend script
+# Modified By: AI Assistant
+# Description: ParcoRTLS backend script - Updated with centralized IP configuration
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # File: tetse_event_dispatcher.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 250615
 # Author: ParcoAdmin + QuantumSage AI
 # Purpose: (Phase 6C.3A )
@@ -22,7 +22,13 @@
 import asyncio
 import logging
 import json
+import sys
+import os
 import paho.mqtt.client as mqtt
+
+# Import centralized configuration
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host
 
 # =============================================================================
 # TETSE Event Dispatcher (Phase 6C.3A)
@@ -32,7 +38,7 @@ import paho.mqtt.client as mqtt
 EVENT_QUEUE = asyncio.Queue()
 
 # MQTT Settings
-MQTT_BROKER = "192.168.210.226"
+MQTT_BROKER = get_server_host()
 MQTT_PORT = 1883
 MQTT_TOPIC_PREFIX = "tetse/events"
 

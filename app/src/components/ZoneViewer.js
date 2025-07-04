@@ -1,7 +1,7 @@
 /* Name: ZoneViewer.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 971201 */
-/* Modified: 250502 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -9,6 +9,8 @@
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
+/* Changelog: */
+/* - 0.1.1 (250704): Replaced hardcoded IP with dynamic hostname detection */
 
 // # VERSION 250414 /home/parcoadmin/parco_fastapi/app/src/components/ZoneViewer.js 0P.10B.05
 // # --- CHANGED: Bumped version from 0P.10B.04 to 0P.10B.05
@@ -37,7 +39,7 @@ const ZoneViewer = () => {
     const [fetchError, setFetchError] = useState(null);
     const [selectedVertices, setSelectedVertices] = useState(new Set());
     const [targetVertex, setTargetVertex] = useState(null);
-    const API_BASE_URL = "http://192.168.210.226:8000";
+    const API_BASE_URL = `http://${window.location.hostname || 'localhost'}:8000`;
 
     useEffect(() => {
         const fetchCampuses = async () => {

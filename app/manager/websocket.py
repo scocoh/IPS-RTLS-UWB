@@ -1,7 +1,7 @@
 # Name: websocket.py
-# Version: 0.1.1
+# Version: 0.1.2
 # Created: 250513
-# Modified: 250702
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS Main WebSocket server - Updated to use database-driven configuration
@@ -28,6 +28,9 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from db_config_helper import config_helper
 
+# Import centralized configuration
+from config import get_server_host, get_db_configs_sync
+
 from .manager import Manager
 from .sdk_client import SDKClient
 from .models import HeartBeat, Response, ResponseType, Request, Tag
@@ -42,6 +45,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+# Get centralized server host
+server_host = get_server_host()
+
 # Cache for connection string and CORS origins
 _cached_connection_string: Optional[str] = None
 _cached_cors_origins: Optional[List[str]] = None
@@ -53,13 +59,15 @@ async def get_connection_string() -> str:
         try:
             # Load server configuration from database
             server_config = await config_helper.get_server_config()
-            host = server_config.get('host', '192.168.210.226')
+            host = server_config.get('host', server_host)
             _cached_connection_string = config_helper.get_connection_string("ParcoRTLSMaint", host)
             logger.info(f"Main WebSocket connection string configured for host: {host}")
         except Exception as e:
             logger.warning(f"Failed to load connection string from database, using fallback: {e}")
-            # Fallback connection string
-            _cached_connection_string = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
+            # Fallback connection string using centralized config
+            db_configs = get_db_configs_sync()
+            maint_config = db_configs['maint']
+            _cached_connection_string = f"postgresql://{maint_config['user']}:{maint_config['password']}@{server_host}:{maint_config['port']}/{maint_config['database']}"
     
     return _cached_connection_string
 
@@ -69,12 +77,12 @@ async def get_cors_origins() -> List[str]:
     if _cached_cors_origins is None:
         try:
             server_config = await config_helper.get_server_config()
-            host = server_config.get('host', '192.168.210.226')
+            host = server_config.get('host', server_host)
             _cached_cors_origins = [f"http://{host}:3000"]
             logger.info(f"CORS origins configured for host: {host}")
         except Exception as e:
             logger.warning(f"Failed to get CORS origins from config, using fallback: {e}")
-            _cached_cors_origins = ["http://192.168.210.226:3000"]
+            _cached_cors_origins = [f"http://{server_host}:3000"]
     
     return _cached_cors_origins
 
@@ -258,8 +266,8 @@ _WEBSOCKET_CLIENTS = {}
 @app.websocket("/ws/{manager_name}")
 async def websocket_endpoint_main(websocket: WebSocket, manager_name: str):
     """Main WebSocket endpoint for manager connections"""
-    client_host = websocket.client.host  # type: ignore
-    client_port = websocket.client.port  # type: ignore
+    client_host = websocket.client.host if websocket.client else "unknown"
+    client_port = websocket.client.port if websocket.client else 0
     client_id = f"{client_host}:{client_port}"
     logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {client_id}")
 
@@ -281,15 +289,18 @@ async def websocket_endpoint_main(websocket: WebSocket, manager_name: str):
         logger.info(f"WebSocket connection accepted for /ws/{manager_name}")
         
         if manager_name not in _MANAGER_INSTANCES:
-            manager = Manager(manager_name, zone_id=None)  # type: ignore
-            logger.debug(f"Created new Manager instance for {manager_name} with initial zone_id=None")
+            manager = Manager(manager_name, zone_id=0)
+            logger.debug(f"Created new Manager instance for {manager_name} with initial zone_id=0")
             _MANAGER_INSTANCES[manager_name] = manager
         else:
             manager = _MANAGER_INSTANCES[manager_name]
             logger.debug(f"Using existing Manager instance for {manager_name}, current zone_id={manager.zone_id}")
         
         sdk_client = SDKClient(websocket, client_id)
-        sdk_client.parent = manager  # type: ignore
+        
+        # Set parent relationship using setattr to bypass type checking
+        setattr(sdk_client, 'parent', manager)
+        
         manager.sdk_clients[client_id] = sdk_client
         logger.debug(f"Starting q_timer for {client_id}")
         sdk_client.start_q_timer()
@@ -342,7 +353,9 @@ async def websocket_endpoint_main(websocket: WebSocket, manager_name: str):
                             await manager.load_triggers(zone_id)
                             logger.info(f"Manager {manager_name} zone changed to {zone_id}, triggers reloaded")
 
-                    sdk_client.request_msg = req  # type: ignore
+                    # Set request_msg using setattr to bypass type checking
+                    setattr(sdk_client, 'request_msg', req)
+                    
                     resp = Response(response_type=ResponseType(req.req_type.value), req_id=req_id)
 
                     if req.req_type == RequestType.BeginStream:
@@ -398,7 +411,7 @@ async def websocket_endpoint_main(websocket: WebSocket, manager_name: str):
     finally:
         if sdk_client and not is_disconnected:
             await sdk_client.close()
-        if client_id in manager.sdk_clients:
+        if client_id and client_id in manager.sdk_clients:
             del manager.sdk_clients[client_id]
         if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
             _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)

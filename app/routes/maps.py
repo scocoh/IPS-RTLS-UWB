@@ -1,10 +1,10 @@
 # Name: maps.py
-# Version: 0.1.12
+# Version: 0.1.13
 # Created: 971201
-# Modified: 250701
+# Modified: 250703
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin, TC and Nexus, Claude AI
-# Description: Python script for ParcoRTLS backend with pure coordinate-based map cropping functionality - TBI-friendly
+# Modified By: ParcoAdmin, TC and Nexus, Claude AI & AI Assistant
+# Description: Python script for ParcoRTLS backend with pure coordinate-based map cropping functionality - TBI-friendly - Updated to use centralized configuration
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
 # Status: Active
@@ -12,7 +12,8 @@
 
 """
 Maps management endpoints for ParcoRTLS FastAPI application.
-# CHANGED: Bumped version from 0.1.11 to 0.1.12
+# CHANGED: Bumped version from 0.1.12 to 0.1.13
+# UPDATED: Replaced hardcoded IP addresses with centralized configuration
 # REMOVED: Zone creation logic from coordinate crop endpoint
 # REMOVED: _create_zone_hierarchy function (~75 lines)
 # ADDED: Simple coordinate update endpoints for TBI-friendly modularity
@@ -37,6 +38,12 @@ from pathlib import Path
 from PIL import Image
 import io
 import asyncpg
+
+# Import centralized configuration
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
 
 def load_description(endpoint_name: str) -> str:
     """Load endpoint description from external file"""
@@ -142,9 +149,12 @@ async def get_map_data(zone_id: int):
             logger.warning(f"No map data found for map_id={i_map}")
             raise HTTPException(status_code=404, detail=f"No map data found for map_id={i_map}")
 
+        # Use centralized configuration for server host
+        server_host = get_server_host()
+        
         logger.info(f"Retrieved map data for zone_id={zone_id}, map_id={i_map}")
         return {
-            "imageUrl": f"http://192.168.210.226:8000/api/get_map/{zone_id}",
+            "imageUrl": f"http://{server_host}:8000/api/get_map/{zone_id}",
             "bounds": [
                 [map_data[0]["min_y"] or 0, map_data[0]["min_x"] or 0],
                 [map_data[0]["max_y"] or 100, map_data[0]["max_x"] or 100]
@@ -447,13 +457,16 @@ async def get_image_metadata(map_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 async def get_db_connection():
-    """Get database connection for transactions"""
+    """Get database connection for transactions using centralized configuration"""
+    db_configs = get_db_configs_sync()
+    maint_config = db_configs['maint']
+    
     return await asyncpg.connect(
-        host="192.168.210.226",
-        port=5432,
-        user="parcoadmin",
-        password="parcoMCSE04106!",
-        database="ParcoRTLSMaint"
+        host=maint_config['host'],
+        port=maint_config['port'],
+        user=maint_config['user'],
+        password=maint_config['password'],
+        database=maint_config['database']
     )
 
 # SIMPLIFIED COORDINATE-BASED MAP CROPPING - IMAGE ONLY, NO ZONES

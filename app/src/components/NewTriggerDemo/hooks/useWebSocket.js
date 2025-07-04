@@ -1,10 +1,10 @@
 /* Name: useWebSocket.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 250625 */
-/* Modified: 250625 */
+/* Modified: 250703 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: WebSocket connection hook for NewTriggerDemo */
+/* Description: WebSocket connection hook for NewTriggerDemo - updated with centralized IP configuration */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/hooks */
 /* Role: Frontend */
 /* Status: Active */
@@ -14,8 +14,9 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { getFormattedTimestamp, formatWebSocketStatus } from '../utils/formatters';
 import { triggerApi } from '../services/triggerApi';
 
-// Constants
-const CONTROL_WS_URL = "ws://192.168.210.226:8001/ws/ControlManager";
+// Centralized configuration - dynamic server detection
+const getServerHost = () => window.location.hostname || 'localhost';
+const CONTROL_WS_URL = () => `ws://${getServerHost()}:8001/ws/ControlManager`;
 const MAX_RECONNECT_ATTEMPTS = 10;
 const RECONNECT_INTERVAL = 5000;
 const DATA_TIMEOUT = 60000; // 60 seconds
@@ -282,8 +283,9 @@ export const useWebSocket = ({
       console.log("Control WebSocket close initiated due to reconnect");
     }
 
-    console.log(`Connecting to control WebSocket: ${CONTROL_WS_URL}`);
-    const ws = new WebSocket(CONTROL_WS_URL);
+    const controlUrl = CONTROL_WS_URL();
+    console.log(`Connecting to control WebSocket: ${controlUrl}`);
+    const ws = new WebSocket(controlUrl);
     wsRef.current = ws;
     reconnectAttempts.current = 0;
 
@@ -336,7 +338,8 @@ export const useWebSocket = ({
         if (port) {
           // Default to RealTimeManager on port 8002 if manager_name not provided
           const managerName = manager_name || "RealTimeManager";
-          const streamUrl = `ws://192.168.210.226:${port}/ws/${managerName}`;
+          // Use centralized server host configuration
+          const streamUrl = `ws://${getServerHost()}:${port}/ws/${managerName}`;
           console.log(`Connecting to stream WebSocket: ${streamUrl}`);
           console.log(`Using manager_name: ${managerName}, stream_type: ${stream_type || 'RealTime'}`);
           

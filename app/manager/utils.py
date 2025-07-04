@@ -1,7 +1,7 @@
 # Name: utils.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250703
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -27,6 +27,13 @@ import xml.etree.ElementTree as ET
 import asyncio  # For asyncio.get_event_loop().time()
 import logging  # For logging functionality
 import json     # For JSON support
+import sys
+import os
+from typing import Optional, List
+
+# Add centralized configuration imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host
 
 class MessageUtilities:
     # XML constants for message formatting
@@ -42,18 +49,20 @@ class MessageUtilities:
         return {"version": "1.0"}
 
 # Constants for API and MQTT
-FASTAPI_BASE_URL = "http://192.168.210.226:8000"
+# Use centralized configuration for server host
+server_host = get_server_host()
+FASTAPI_BASE_URL = f"http://{server_host}:8000"
 MQTT_BROKER = "localhost"
 
 # Metrics tracking function to calculate tag rate
-def track_metrics(counter: int, last_time: float, timestamps: list = None) -> float:
+def track_metrics(counter: int, last_time: float, timestamps: Optional[List[float]] = None) -> float:
     """
     Tracks and logs the tag processing rate (tags/sec) over a 10-second window.
     
     Args:
         counter (int): Total number of tags processed (cumulative count).
         last_time (float): Last time the rate was updated (Unix timestamp).
-        timestamps (list): List of tag arrival timestamps (Unix timestamps).
+        timestamps (Optional[List[float]]): List of tag arrival timestamps (Unix timestamps).
     
     Returns:
         float: Updated last_time (current time if rate logged, else unchanged).

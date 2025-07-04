@@ -1,7 +1,7 @@
 # Name: tetse_realtime_loop.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: ParcoRTLS backend script
@@ -22,6 +22,12 @@ import asyncio
 import asyncpg
 import json
 import logging
+import sys
+import os
+
+# Import centralized configuration
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_db_configs_sync
 
 from routes.tetse_rule_engine import evaluate_house_exclusion_rule
 from routes.subject_registry import get_subject_current_zone
@@ -30,7 +36,9 @@ from routes.subject_registry import get_subject_current_zone
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Postgres connection string for ParcoRTLSData
-DATA_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSData"
+db_configs = get_db_configs_sync()
+data_config = db_configs['data']
+DATA_CONN_STRING = f"postgresql://{data_config['user']}:{data_config['password']}@{data_config['host']}:{data_config['port']}/{data_config['database']}"
 
 async def preload_rules():
     """

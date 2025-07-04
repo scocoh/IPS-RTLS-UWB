@@ -1,7 +1,7 @@
 # Name: datastream.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250703
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -25,10 +25,17 @@
 import asyncio
 import logging
 import xml.etree.ElementTree as ET
-from typing import Optional, Callable, List
+from typing import Optional, Callable, List, Union, Awaitable
 from dataclasses import dataclass
 import websockets
 import httpx
+import sys
+import os
+
+# Add centralized configuration imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host
+
 from .enums import ConnectionState, TriggerDirections, RequestType, ResponseType  # Updated: Added ResponseType
 from .models import Tag, GISData, HeartBeat, Request, Response
 from .trigger import Trigger
@@ -41,21 +48,21 @@ from datetime import datetime  # Updated: Moved to top for clarity
 logger = logging.getLogger(__name__)
 
 class DataStream:
-    def __init__(self, tcp_ip: str = None, port: int = None):
+    def __init__(self, tcp_ip: Optional[str] = None, port: Optional[int] = None):
         self.name = ""
         self.is_subscription_based = True
         self.is_averaged = False
         self.resource_type = 0
         self.tcp_ip = tcp_ip
         self.port = port
-        self.websocket = None
+        self.websocket = None  # type: ignore
         self.buffer = ""
         self.is_connected = False
         self.connection_state = ConnectionState.NotKnown
-        self.stream_callback: Optional[Callable[[StreamDataEventArgs], None]] = None
-        self.heartbeat_callback: Optional[Callable[[StreamHeartbeatEventArgs], None]] = None
-        self.response_callback: Optional[Callable[[StreamResponseEventArgs], None]] = None
-        self.connection_callback: Optional[Callable[[StreamConnectionEventArgs], None]] = None
+        self.stream_callback: Optional[Callable[[StreamDataEventArgs], Union[None, Awaitable[None]]]] = None
+        self.heartbeat_callback: Optional[Callable[[StreamHeartbeatEventArgs], Union[None, Awaitable[None]]]] = None
+        self.response_callback: Optional[Callable[[StreamResponseEventArgs], Union[None, Awaitable[None]]]] = None
+        self.connection_callback: Optional[Callable[[StreamConnectionEventArgs], Union[None, Awaitable[None]]]] = None
         self.triggers: List[Trigger] = []
 
     def add_trigger(self, trigger: Trigger):
@@ -108,7 +115,7 @@ class DataStream:
                     )
                     async def on_trigger(event: StreamDataEventArgs):
                         print(f"Trigger Fired: {event.tag} for trigger {trigger_name}")
-                    trigger.trigger_callback = on_trigger
+                    trigger.trigger_callback = on_trigger  # type: ignore
                     self.add_trigger(trigger)
                     logger.info(f"Loaded trigger {trigger_name} (ID: {trigger_id}) for zone {zone_id}")
 
@@ -145,13 +152,17 @@ class DataStream:
             self.is_connected = True
             self.connection_state = ConnectionState.Connected
             if self.connection_callback:
-                await self.connection_callback(StreamConnectionEventArgs(state="Connected"))
+                result = self.connection_callback(StreamConnectionEventArgs(state="Connected"))
+                if asyncio.iscoroutine(result):
+                    await result
             asyncio.create_task(self.start_reading_live())
         except Exception as ex:
             self.is_connected = False
             self.connection_state = ConnectionState.Disconnected
             if self.connection_callback:
-                await self.connection_callback(StreamConnectionEventArgs(state="Disconnected"))
+                result = self.connection_callback(StreamConnectionEventArgs(state="Disconnected"))
+                if asyncio.iscoroutine(result):
+                    await result
             raise Exception(f"Failed to connect: {str(ex)}")
 
     async def close(self):
@@ -162,7 +173,9 @@ class DataStream:
             self.is_connected = False
             self.connection_state = ConnectionState.Disconnected
             if self.connection_callback:
-                await self.connection_callback(StreamConnectionEventArgs(state="Disconnected"))
+                result = self.connection_callback(StreamConnectionEventArgs(state="Disconnected"))
+                if asyncio.iscoroutine(result):
+                    await result
         finally:
             self.websocket = None
 
@@ -186,24 +199,41 @@ class DataStream:
 
     async def start_reading_live(self):
         try:
-            while self.is_connected:
+            while self.is_connected and self.websocket:
                 data = await self.websocket.recv()
+                # Handle both string and bytes data
+                if isinstance(data, bytes):
+                    data = data.decode('utf-8')
                 await self.live_data_arrived(data)
         except websockets.exceptions.ConnectionClosed:
             self.is_connected = False
             self.connection_state = ConnectionState.Disconnected
             if self.connection_callback:
-                await self.connection_callback(StreamConnectionEventArgs(state="Disconnected"))
+                result = self.connection_callback(StreamConnectionEventArgs(state="Disconnected"))
+                if asyncio.iscoroutine(result):
+                    await result
         except Exception as ex:
             logger.error(f"LiveDataReceived Error: {str(ex)}")
             self.is_connected = False
             self.connection_state = ConnectionState.Disconnected
             if self.connection_callback:
-                await self.connection_callback(StreamConnectionEventArgs(state="Disconnected"))
+                result = self.connection_callback(StreamConnectionEventArgs(state="Disconnected"))
+                if asyncio.iscoroutine(result):
+                    await result
 
-    async def live_data_arrived(self, data: str):
+    async def live_data_arrived(self, data: Union[str, bytes, bytearray, memoryview]):
+        # Convert data to string if it's not already
+        if isinstance(data, bytes):
+            data_str = data.decode('utf-8')
+        elif isinstance(data, bytearray):
+            data_str = data.decode('utf-8')
+        elif isinstance(data, memoryview):
+            data_str = bytes(data).decode('utf-8')
+        else:
+            data_str = str(data)
+        
         # Existing XML handling
-        self.buffer += data
+        self.buffer += data_str
         temp = ""
         messages = self.buffer.split(MessageUtilities.XMLDefTag)
 
@@ -218,13 +248,18 @@ class DataStream:
 
                 if "<type>HeartBeat</type>" in msg:
                     hb = HeartBeat.from_xml(MessageUtilities.XMLDefTag + msg)
-                    await self.websocket.send_text(MessageUtilities.XMLDefTag + msg)  # Echo back XML
+                    if self.websocket:
+                        await self.websocket.send(MessageUtilities.XMLDefTag + msg)  # Echo back XML
                     if self.heartbeat_callback:
-                        await self.heartbeat_callback(StreamHeartbeatEventArgs(heartbeat=hb))
+                        result = self.heartbeat_callback(StreamHeartbeatEventArgs(heartbeat=hb))
+                        if asyncio.iscoroutine(result):
+                            await result
                 elif "<type>response</type>" in msg:
                     resp = Response.from_xml(MessageUtilities.XMLDefTag + msg)
                     if self.response_callback:
-                        await self.response_callback(StreamResponseEventArgs(response=resp))
+                        result = self.response_callback(StreamResponseEventArgs(response=resp))
+                        if asyncio.iscoroutine(result):
+                            await result
                 elif "<type>HeartBeat</type>" not in msg:
                     gis_data = GISData.from_xml(MessageUtilities.XMLDefTag + msg)
                     tag = Tag(
@@ -241,7 +276,9 @@ class DataStream:
                         send_payload_data=False
                     )
                     if self.stream_callback:
-                        await self.stream_callback(StreamDataEventArgs(tag=tag))
+                        result = self.stream_callback(StreamDataEventArgs(tag=tag))
+                        if asyncio.iscoroutine(result):
+                            await result
                     for trigger in self.triggers:
                         await trigger.check_trigger(tag)
 
@@ -249,13 +286,16 @@ class DataStream:
 
         # NEW: JSON handling
         try:
-            json_data = json.loads(data)  # Attempt to parse as JSON
+            json_data = json.loads(data_str)  # Attempt to parse as JSON
             msg_type = json_data.get("type", "")
             if msg_type == "HeartBeat":
                 hb = HeartBeat(ticks=json_data["ts"])
-                await self.websocket.send_text(hb.to_json())  # Echo back JSON
+                if self.websocket:
+                    await self.websocket.send(hb.to_json())  # Echo back JSON
                 if self.heartbeat_callback:
-                    await self.heartbeat_callback(StreamHeartbeatEventArgs(heartbeat=hb))
+                    result = self.heartbeat_callback(StreamHeartbeatEventArgs(heartbeat=hb))
+                    if asyncio.iscoroutine(result):
+                        await result
             elif msg_type == "response":
                 resp = Response(
                     response_type=ResponseType(json_data["request"]),
@@ -263,7 +303,9 @@ class DataStream:
                     message=json_data.get("msg", "")
                 )
                 if self.response_callback:
-                    await self.response_callback(StreamResponseEventArgs(response=resp))
+                    result = self.response_callback(StreamResponseEventArgs(response=resp))
+                    if asyncio.iscoroutine(result):
+                        await result
             else:  # Assume GISData
                 gis = json_data["gis"]
                 gis_data = GISData(
@@ -292,7 +334,9 @@ class DataStream:
                     send_payload_data=False
                 )
                 if self.stream_callback:
-                    await self.stream_callback(StreamDataEventArgs(tag=tag))
+                    result = self.stream_callback(StreamDataEventArgs(tag=tag))
+                    if asyncio.iscoroutine(result):
+                        await result
                 for trigger in self.triggers:
                     await trigger.check_trigger(tag)
         except json.JSONDecodeError:
@@ -300,7 +344,9 @@ class DataStream:
 
 # Example Usage of DataStream with Trigger
 async def main():
-    ds = DataStream(tcp_ip="192.168.210.226", port=8000)
+    # Use centralized configuration for server host
+    server_host = get_server_host()
+    ds = DataStream(tcp_ip=server_host, port=8000)
     ds.name = "Manager1"
 
     await ds.load_triggers(zone_id=1)

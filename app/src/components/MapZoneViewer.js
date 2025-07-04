@@ -1,7 +1,7 @@
 /* Name: MapZoneViewer.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 971201 */
-/* Modified: 250502 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -10,9 +10,9 @@
 /* Status: Active */
 /* Dependent: TRUE */
 
-// # VERSION 250414 /home/parcoadmin/parco_fastapi/app/src/components/MapZoneViewer.js 0P.10B.06
-// # --- CHANGED: Bumped version from 0P.10B.05 to 0P.10B.06
-// # --- FIXED: Removed independent fetching of zoneVertices, now using vertices prop directly
+// # VERSION 250704 /home/parcoadmin/parco_fastapi/app/src/components/MapZoneViewer.js 0P.10B.07
+// # --- CHANGED: Bumped version from 0P.10B.06 to 0P.10B.07
+// # --- FIXED: Added config import and replaced hardcoded fetch URL with config-based API URL
 // # 
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -28,6 +28,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
 import "leaflet-draw";
 import "./Map.css";
+import { config } from "../config.js";
 
 const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUpdate, useLeaflet }) => {
     const mapRef = useRef(null);
@@ -46,7 +47,7 @@ const MapZoneViewer = memo(({ mapId, zones, checkedZones, vertices, onVerticesUp
         if (mapId) {
             const fetchMapData = async () => {
                 try {
-                    const response = await fetch(`/zoneviewer/get_map_data/${mapId}`);
+                    const response = await fetch(`${config.API_BASE_URL}/zoneviewer/get_map_data/${mapId}`);
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     const data = await response.json();
                     console.log("✅ Fetched map data:", data);

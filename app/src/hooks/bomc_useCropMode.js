@@ -1,7 +1,7 @@
 /* Name: bomc_useCropMode.js */
-/* Version: 0.1.1 */
+/* Version: 0.1.2 */
 /* Created: 250701 */
-/* Modified: 250701 */
+/* Modified: 250704 */
 /* Creator: Claude AI */
 /* Modified By: Claude AI */
 /* Description: Pure map cropping with coordinate correction */
@@ -13,6 +13,9 @@
 import { useState } from 'react';
 
 export const useCropMode = () => {
+    // Dynamic hostname detection for API calls
+    const API_BASE_URL = `http://${window.location.hostname || 'localhost'}:8000`;
+    
     const [cropMode, setCropMode] = useState(false);
     const [cropBounds, setCropBounds] = useState({ min_x: null, min_y: null, max_x: null, max_y: null });
     const [cropName, setCropName] = useState('');
@@ -103,7 +106,7 @@ export const useCropMode = () => {
         } : correctedBounds;
         
         try {
-            const response = await fetch('http://192.168.210.226:8000/maps/create_coordinate_crop', {
+            const response = await fetch(`${API_BASE_URL}/maps/create_coordinate_crop`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

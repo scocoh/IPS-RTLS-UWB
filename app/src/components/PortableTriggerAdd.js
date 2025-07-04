@@ -1,7 +1,7 @@
 /* Name: PortableTriggerAdd.js */
-/* Version: 0.1.3 */
+/* Version: 0.1.4 */
 /* Created: 250607 */
-/* Modified: 250607 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend to add portable triggers */
@@ -9,8 +9,11 @@
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
+/* Changelog: */
+/* - 0.1.4 (250704): Replaced hardcoded IP with dynamic hostname detection */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/PortableTriggerAdd.js
+// Version: 0.1.4 - Replaced hardcoded IP with dynamic hostname detection
 // Version: 0.1.3 - Updated retryReloadTriggers to use port 8000, bumped from 0.1.2
 // Version: 0.1.2 - Updated to call /api/add_portable_trigger, added debug logging, bumped from 0.1.1
 // Previous: Added Host Tag ID real/simulated toggle, Zone first with max radius, Z Min/Max auto-fill, device type sorting, fixed fetchError syntax, bumped from 0.1.0
@@ -41,6 +44,9 @@ const PortableTriggerAdd = () => {
   const [selectedDeviceType, setSelectedDeviceType] = useState("");
   const [fetchError, setFetchError] = useState(null);
 
+  // Base URL - dynamic hostname detection
+  const API_BASE_URL = `http://${window.location.hostname || 'localhost'}:8000`;
+
   const getFormattedTimestamp = () => {
     const now = new Date();
     const pad = (val) => String(val).padStart(2, "0");
@@ -49,7 +55,7 @@ const PortableTriggerAdd = () => {
 
   const fetchZones = async () => {
     try {
-      const response = await fetch("http://192.168.210.226:8000/zonebuilder/get_parent_zones_for_trigger_demo");
+      const response = await fetch(`${API_BASE_URL}/zonebuilder/get_parent_zones_for_trigger_demo`);
       if (!response.ok) throw new Error(`Failed to fetch zones: ${response.status}`);
       const text = await response.text();
       let data;
@@ -107,7 +113,7 @@ const PortableTriggerAdd = () => {
 
   const fetchTriggerDirections = async () => {
     try {
-      const res = await fetch("http://192.168.210.226:8000/api/list_trigger_directions");
+      const res = await fetch(`${API_BASE_URL}/api/list_trigger_directions`);
       if (!res.ok) throw new Error(`Failed to fetch trigger directions: ${res.status}`);
       const data = await res.json();
       setTriggerDirections(data);
@@ -118,7 +124,7 @@ const PortableTriggerAdd = () => {
 
   const fetchDevices = async () => {
     try {
-      const res = await fetch("http://192.168.210.226:8000/api/get_all_devices");
+      const res = await fetch(`${API_BASE_URL}/api/get_all_devices`);
       if (!res.ok) throw new Error(`Failed to fetch devices: ${res.status}`);
       const data = await res.json();
       // TODO: Consider filtering by device types [1, 2, 4, 12, 24] (e.g., Tag, Personel Badge, Barcode Tag, CASE Cart)
@@ -137,7 +143,7 @@ const PortableTriggerAdd = () => {
 
   const fetchZoneVertices = async (zoneId) => {
     try {
-      const response = await fetch(`http://192.168.210.226:8000/zoneviewer/get_vertices_for_campus/${zoneId}`);
+      const response = await fetch(`${API_BASE_URL}/zoneviewer/get_vertices_for_campus/${zoneId}`);
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
       const vertices = data.vertices.map(vertex => ({
@@ -171,7 +177,7 @@ const PortableTriggerAdd = () => {
   const retryReloadTriggers = async (retries = 3, delay = 1000) => {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const reloadRes = await fetch("http://192.168.210.226:8000/api/reload_triggers", {
+        const reloadRes = await fetch(`${API_BASE_URL}/api/reload_triggers`, {
           method: "POST",
           headers: { "Content-Type": "application/json" }
         });
@@ -248,7 +254,7 @@ const PortableTriggerAdd = () => {
     };
     console.debug("Creating portable trigger payload:", JSON.stringify(payload, null, 2));
     try {
-      const res = await fetch("http://192.168.210.226:8000/api/add_portable_trigger", {
+      const res = await fetch(`${API_BASE_URL}/api/add_portable_trigger`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

@@ -1,17 +1,18 @@
 /* Name: NewTriggerViewer.js */
-/* Version: 0.1.2 */
+/* Version: 0.1.4 */
 /* Created: 971201 */
-/* Modified: 250526 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
-/* Description: JavaScript file for ParcoRTLS frontend */
+/* Description: JavaScript file for ParcoRTLS frontend - Updated with IP centralization */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerViewer.js
-// Version: v0.1.2-250526 - Fixed triggers undefined error with default prop and optional chaining, retained WebSocket heartbeat logic, bumped from v0.1.1
+// Version: v0.1.4-250704 - Fixed imageUrl in API response to use correct server host instead of 127.0.0.1, bumped from v0.1.3
+// Previous: Fixed triggers undefined error with default prop and optional chaining, retained WebSocket heartbeat logic, bumped from v0.1.1
 // Previous: Added WebSocket connection for heartbeat handling, bumped from v0.1.0
 // Previous: Removed division scaling for portable trigger radii to match map scale, bumped from v0.0.33
 // Previous: Scaled tag markers based on associated trigger radius_ft, bumped from v0.0.32 (v0.0.33)
@@ -62,13 +63,16 @@ const NewTriggerViewer = memo(({
   const firstTagAppearance = useRef(true);
   const wsRef = useRef(null);
 
+  // Dynamic server host configuration
+  const server_host = window.location.hostname || 'localhost';
+
   // WebSocket connection for heartbeats
   useEffect(() => {
-    const ws = new WebSocket(`ws://192.168.210.226:8002/ws/realtime?client_id=trigger_viewer_${Date.now()}`);
+    const ws = new WebSocket(`ws://${server_host}:8002/ws/realtime?client_id=trigger_viewer_${Date.now()}`);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log("✅ WebSocket connected to ws://192.168.210.226:8002/ws/realtime");
+      console.log(`✅ WebSocket connected to ws://${server_host}:8002/ws/realtime`);
       setIsConnected(true);
     };
 
@@ -106,15 +110,22 @@ const NewTriggerViewer = memo(({
         console.log("🧹 WebSocket cleaned up");
       }
     };
-  }, []);
+  }, [server_host]);
 
   useEffect(() => {
     if (mapId) {
       const fetchMapData = async () => {
         try {
-          const response = await fetch(`http://192.168.210.226:8000/zoneviewer/get_map_data/${mapId}`);
+          const response = await fetch(`http://${server_host}:8000/zoneviewer/get_map_data/${mapId}`);
           if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
           const data = await response.json();
+          
+          // Fix imageUrl to use correct server host if it contains localhost/127.0.0.1
+          if (data.imageUrl && (data.imageUrl.includes('127.0.0.1') || data.imageUrl.includes('localhost'))) {
+            data.imageUrl = data.imageUrl.replace(/https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/, `http://${server_host}:8000`);
+            console.log("✅ Fixed imageUrl to use correct server host:", data.imageUrl);
+          }
+          
           console.log("✅ Fetched map data:", data);
           setMapData(data);
           setError(null);
@@ -125,7 +136,7 @@ const NewTriggerViewer = memo(({
       };
       fetchMapData();
     }
-  }, [mapId]);
+  }, [mapId, server_host]);
 
   useEffect(() => {
     if (checkedZones.length === 0) {
@@ -137,7 +148,7 @@ const NewTriggerViewer = memo(({
     const fetchZoneVertices = async () => {
       try {
         const verticesPromises = checkedZones.map(async (zoneId) => {
-          const response = await fetch(`http://192.168.210.226:8000/zoneviewer/get_vertices_for_campus/${zoneId}`);
+          const response = await fetch(`http://${server_host}:8000/zoneviewer/get_vertices_for_campus/${zoneId}`);
           if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
           const data = await response.json();
           return data.vertices.map(vertex => ({
@@ -161,7 +172,7 @@ const NewTriggerViewer = memo(({
     };
 
     fetchZoneVertices();
-  }, [checkedZones, onVerticesUpdate]);
+  }, [checkedZones, onVerticesUpdate, server_host]);
 
   useEffect(() => {
     if (!useLeaflet && mapData && canvasRef.current && !isInitialized.current) {

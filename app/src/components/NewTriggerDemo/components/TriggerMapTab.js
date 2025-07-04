@@ -1,10 +1,10 @@
 /* Name: TriggerMapTab.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.2 */
 /* Created: 250625 */
-/* Modified: 250625 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Map & Trigger tab component for NewTriggerDemo */
+/* Description: Map & Trigger tab component for NewTriggerDemo - Fixed to use single NewTriggerViewer.js file */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -12,6 +12,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Form, Button, FormCheck, InputGroup, FormControl } from "react-bootstrap";
+// Fixed import to use single NewTriggerViewer.js file instead of modular directory
 import NewTriggerViewer from "../../NewTriggerViewer";
 import { triggerApi } from "../services/triggerApi";
 import { zoneApi } from "../services/zoneApi";

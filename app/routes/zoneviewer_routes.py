@@ -1,11 +1,12 @@
 # Name: zoneviewer_routes.py
-# Version: 0.1.1
+# Version: 0.1.2
 # Created: 971201
-# Modified: 250502
+# Modified: 250703
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
+# Modified By: ParcoAdmin & AI Assistant
+# Version 0.1.2 Updated to use centralized configuration instead of hardcoded IP addresses, bumped from 0.1.1
 # Version 0.1.1 Converted to external descriptions using load_description()
-# Description: Python script for ParcoRTLS backend
+# Description: Python script for ParcoRTLS backend - Updated to use centralized configuration
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
 # Status: Active
@@ -13,11 +14,13 @@
 
 """
 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py
-Version: 0.1.18 (Enhanced endpoint documentation)
+Version: 0.1.2 (Updated to use centralized configuration)
 Zone Viewer & Editor endpoints for ParcoRTLS FastAPI application.
-# VERSION 250426 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py 0P.10B.03
-# --- CHANGED: Bumped version from 0P.10B.02 to 0P.10B.03
-# --- ADDED: Enhanced docstrings for all endpoints with detailed descriptions, parameters, return values, examples, use cases, and error handling
+# VERSION 250703 /home/parcoadmin/parco_fastapi/app/routes/zoneviewer_routes.py 0P.10B.04
+# --- CHANGED: Bumped version from 0P.10B.03 to 0P.10B.04, updated to use centralized configuration
+# --- UPDATED: Replaced hardcoded IP addresses with centralized configuration
+# --- UPDATED: DATABASE_URL now uses centralized configuration
+# --- PREVIOUS: 0P.10B.03 (Enhanced endpoint documentation)
 # --- PREVIOUS: 0P.10B.02 (Added /get_maps_with_zone_types endpoint)
 #
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
@@ -39,6 +42,11 @@ import traceback
 
 from pathlib import Path
 
+# Import centralized configuration
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
 
 def load_description(endpoint_name: str) -> str:
     """Load endpoint description from external file"""
@@ -58,8 +66,14 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 logger.setLevel(logging.DEBUG)
 
-# Database connection for transaction support
-DATABASE_URL = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
+# Database connection for transaction support using centralized configuration
+def get_database_url():
+    """Get database URL from centralized configuration"""
+    db_configs = get_db_configs_sync()
+    maint_config = db_configs['maint']
+    return f"postgresql://{maint_config['user']}:{maint_config['password']}@{maint_config['host']}:{maint_config['port']}/{maint_config['database']}"
+
+DATABASE_URL = get_database_url()
 engine = create_engine(DATABASE_URL)
 
 class AddVertexRequest(BaseModel):
@@ -191,10 +205,13 @@ async def get_map_data(map_id: int):
             logger.warning(f"No map data found for map_id={map_id}")
             raise HTTPException(status_code=404, detail=f"No map data found for map_id={map_id}")
 
+        # Use centralized configuration for server host
+        server_host = get_server_host()
+        
         logger.info(f"Retrieved map data for map_id={map_id}")
         data = map_data[0]
         return {
-            "imageUrl": f"http://192.168.210.226:8000/zoneviewer/get_map/{map_id}",
+            "imageUrl": f"http://{server_host}:8000/zoneviewer/get_map/{map_id}",
             "bounds": [
                 [float(data["min_y"]), float(data["min_x"])],
                 [float(data["max_y"]), float(data["max_x"])]

@@ -1,7 +1,7 @@
 # Name: fastapi_service.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250703
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -17,6 +17,12 @@
 
 import httpx
 import logging
+import sys
+import os
+
+# Add centralized configuration imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host
 
 # Force logging configuration for this module
 logger = logging.getLogger(__name__)
@@ -29,9 +35,9 @@ logger.propagate = False
 
 class FastAPIService:
     def __init__(self):
-        # TODO: Make BASE_URL configurable via environment variables or config file
-        # This allows FastAPI server IP/Port to change easily for multi-server setups.
-        self.BASE_URL = "http://192.168.210.226:8000"
+        # Use centralized configuration for server host
+        server_host = get_server_host()
+        self.BASE_URL = f"http://{server_host}:8000"
 
     async def get_triggers_by_zone(self, zone_id: int) -> list:
         """

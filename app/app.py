@@ -1,16 +1,17 @@
 # Name: app.py
-# Version: 0.1.73
+# Version: 0.1.74
 # Created: 971201
-# Modified: 250622
+# Modified: 250703
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS backend
+# Modified By: ParcoAdmin & AI Assistant
+# Description: Python script for ParcoRTLS backend - Updated to use centralized configuration
 # Location: /home/parcoadmin/parco_fastapi/app/app.py
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/app.py
+# Version: 0.1.74 - Updated to use centralized configuration instead of hardcoded IP addresses, bumped from 0.1.73
 # Version: 0.1.73 - create zone types and device types in TETSE to store and retrieve virtual data
 # Version: 0.1.70 - Added in tetse_zone for the Rule Buider
 # Version: 0.1.68 - Added prefix=/api to portable_triggers_router, bumped from 0.1.67
@@ -70,6 +71,9 @@ import uvicorn
 import multiprocessing
 import os
 
+# Import centralized configuration
+from config import get_server_host, get_db_configs_sync, initialize_config
+
 # Log directory
 LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -105,6 +109,10 @@ file_handler.flush()
 async def lifespan(app: FastAPI):
     # Startup logic
     logger.info("Initializing async database connections...")
+    
+    # Initialize centralized configuration
+    await initialize_config()
+    
     app.state.async_db_pools = {}
     for db_type in ["maint", "data", "hist_r", "hist_p", "hist_o"]:
         try:
@@ -122,7 +130,7 @@ async def lifespan(app: FastAPI):
     logger.info("Registered routes:")
     for route in app.routes:
         if hasattr(route, "path") and hasattr(route, "methods"):
-            logger.info(f"Path: {route.path}, Methods: {route.methods}")
+            logger.info(f"Path: {route.path}, Methods: {route.methods}") # type: ignore
 
     yield  # Application runs here
     
@@ -156,31 +164,44 @@ async def bypass_cors_for_websocket(request: Request, call_next):
             return response
 
         response = await call_next(request)
-        response.headers["Access-Control-Allow-Origin"] = "http://192.168.210.226:3000"
+        
+        # Use centralized configuration for CORS origin
+        server_host = get_server_host()
+        cors_origin = f"http://{server_host}:3000"
+        
+        response.headers["Access-Control-Allow-Origin"] = cors_origin
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "*"
         return response
     except Exception as e:
         logger.error(f"Middleware error: {str(e)}")
+        
+        # Use centralized configuration for error response CORS
+        server_host = get_server_host()
+        cors_origin = f"http://{server_host}:3000"
+        
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "Internal Server Error"},
             headers={
-                "Access-Control-Allow-Origin": "http://192.168.210.226:3000",
+                "Access-Control-Allow-Origin": cors_origin,
                 "Access-Control-Allow-Credentials": "true",
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
                 "Access-Control-Allow-Headers": "*"
             }
         )
 
-# Configure CORS for HTTP requests
+# Configure CORS for HTTP requests using centralized configuration
+server_host = get_server_host()
+cors_origins = [
+    f"http://{server_host}:3000",  # Allow your React development server
+    f"http://{server_host}:8000"   # Allow HTTP requests from the same host
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://192.168.210.226:3000",  # Allow your React development server
-        "http://192.168.210.226:8000"   # Allow HTTP requests from the same host
-    ],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,16 +1,21 @@
 # Name: mqtt_actions.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 250601
-# Modified: 250601
+# Modified: 250704
 # Creator: ParcoAdmin
 # Location: /home/parcoadmin/parco_fastapi/app/routes/mqtt_actions.py
 # Role: MQTT Integration for TETSE Actions
 # Status: Active
 # Dependent: TRUE
 
+# Import centralized configuration
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host
+
 import paho.mqtt.client as mqtt
 import logging
-import os
 from manager.line_limited_logging import LineLimitedFileHandler
 
 # Log directory
@@ -32,7 +37,9 @@ logger.handlers = [console_handler, file_handler]
 logger.propagate = False
 
 class MQTTClient:
-    def __init__(self, broker="192.168.210.226", port=1883, username=None, password=None):
+    def __init__(self, broker=None, port=1883, username=None, password=None):
+        if broker is None:
+            broker = get_server_host()
         self.client = mqtt.Client()
         if username and password:
             self.client.username_pw_set(username, password)

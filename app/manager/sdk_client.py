@@ -1,16 +1,17 @@
 # Name: sdk_client.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250703
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS backend
+# Modified By: ParcoAdmin & AI Assistant
+# Description: Python script for ParcoRTLS backend - Fixed type annotations
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/sdk_client.py
+# Version: 0.1.1 - Fixed type annotations for zone_id parameter, bumped from 0.1.0
 # Version: 1.0.8 - Added logging and validation for zone_id, bumped from 1.0.7
 # Previous: Added zone_id attribute to SDKClient to track client subscription zone (1.0.7)
 #
@@ -26,16 +27,19 @@
 
 from queue import Queue
 import asyncio
-from typing import Dict
+from typing import Dict, Optional, TYPE_CHECKING
 from datetime import datetime
 from fastapi import WebSocket, WebSocketDisconnect
 from .models import Tag
 import logging
 
+if TYPE_CHECKING:
+    from .models import Request
+
 logger = logging.getLogger(__name__)
 
 class SDKClient:
-    def __init__(self, websocket: WebSocket, client_id: str, zone_id: int = None):
+    def __init__(self, websocket: WebSocket, client_id: str, zone_id: Optional[int] = None):
         self.websocket = websocket
         self.client_id = client_id
         self._zone_id = zone_id  # NEW: Zone ID this client is subscribed to
@@ -44,7 +48,7 @@ class SDKClient:
         self.failed_heartbeat = False
         self.received_data = False
         self.began_listening = datetime.utcnow()
-        self.request_msg = None
+        self.request_msg: Optional['Request'] = None  # Can be None or Request object
         self.tags: Dict[str, Tag] = {}
         self.is_closing = False
         self.sent_req = False
@@ -56,11 +60,11 @@ class SDKClient:
         self._is_closed = False
 
     @property
-    def zone_id(self) -> int:
+    def zone_id(self) -> Optional[int]:
         return self._zone_id
 
     @zone_id.setter
-    def zone_id(self, value: int):
+    def zone_id(self, value: Optional[int]):
         if value is not None and not isinstance(value, int):
             logger.error(f"Invalid zone_id for client {self.client_id}: {value}, must be an integer")
             raise ValueError("zone_id must be an integer")

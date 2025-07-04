@@ -1,9 +1,9 @@
 # Name: tetse_device_registry.py
-# Version: 0.1.9
+# Version: 0.1.10
 # Created: 250623
-# Modified: 250623
+# Modified: 250704
 # Creator: ParcoAdmin
-# Modified By: AI Assistant
+# Modified By: ParcoAdmin
 # Description: TETSE Device Registry - Maps physical tags to virtual subjects with database persistence
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
@@ -21,6 +21,12 @@ Virtual Device Ranges:
 - Zone IDs: 9000-9999 (e.g., 9901)
 - Zone Type: 901 ("Virtual Subject Zone")
 """
+
+# Import centralized configuration
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
 
 import logging
 import asyncpg
@@ -53,9 +59,14 @@ class CreateMappingRequest(BaseModel):
     campus_id: int = 422
 
 async def get_maint_pool():
-    """Get ParcoRTLSMaint database pool"""
+    """Get ParcoRTLSMaint database pool using centralized configuration"""
+    server_host = get_server_host()
+    db_configs = get_db_configs_sync()
+    maint_config = db_configs['maint']
+    conn_string = f"postgresql://{maint_config['user']}:{maint_config['password']}@{server_host}:{maint_config['port']}/{maint_config['database']}"
+    
     return await asyncpg.create_pool(
-        "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint",
+        conn_string,
         min_size=1,
         max_size=10
     )

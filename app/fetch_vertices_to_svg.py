@@ -1,7 +1,7 @@
 # Name: fetch_vertices_to_svg.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -23,10 +23,18 @@ Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
 """
 
 import json
+import sys
+import os
 from sqlalchemy import create_engine, text
 
+# Import centralized configuration
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from config import get_db_configs_sync
+
 # Database connection
-DATABASE_URL = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
+db_configs = get_db_configs_sync()
+maint_config = db_configs['maint']
+DATABASE_URL = f"postgresql://{maint_config['user']}:{maint_config['password']}@{maint_config['host']}:{maint_config['port']}/{maint_config['database']}"
 engine = create_engine(DATABASE_URL)
 
 def prompt_step(message):

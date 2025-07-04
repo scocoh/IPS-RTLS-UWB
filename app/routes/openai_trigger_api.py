@@ -1,9 +1,9 @@
 # Name: openai_trigger_api.py
-# Version: 0.3.2
+# Version: 0.3.3
 # Created: 250617
-# Modified: 250625
+# Modified: 250704
 # Author: ParcoAdmin + QuantumSage AI
-# Modified By: ParcoAdmin + Temporal Claude
+# Modified By: ParcoAdmin
 # Purpose: Enhanced TETSE Rule Creation with proximity conditions, layered triggers, and zone transitions
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
@@ -30,7 +30,12 @@
 # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
 """
 
+# Import centralized configuration
+import sys
 import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
+
 import logging
 import asyncpg
 import json
@@ -65,8 +70,13 @@ logger.propagate = False
 
 router = APIRouter(tags=["tetse_ai"])
 
-MAINT_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSData"
-MAINT_DB_NAME = "ParcoRTLSMaint"
+# Database connections using centralized configuration
+server_host = get_server_host()
+db_configs = get_db_configs_sync()
+data_config = db_configs['data']
+maint_config = db_configs['maint']
+MAINT_CONN_STRING = f"postgresql://{data_config['user']}:{data_config['password']}@{server_host}:{data_config['port']}/{data_config['database']}"
+MAINT_DB_NAME = maint_config['database']
 
 class RuleInput(BaseModel):
     rule_text: str
@@ -79,10 +89,15 @@ class RuleInput(BaseModel):
 
 async def get_maint_db_pool():
     """
-    Create a connection pool for ParcoRTLSMaint database.
+    Create a connection pool for ParcoRTLSMaint database using centralized configuration.
     """
+    server_host = get_server_host()
+    db_configs = get_db_configs_sync()
+    maint_config = db_configs['maint']
+    conn_string = f"postgresql://{maint_config['user']}:{maint_config['password']}@{server_host}:{maint_config['port']}/{maint_config['database']}"
+    
     return await asyncpg.create_pool(
-        f"postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/{MAINT_DB_NAME}",
+        conn_string,
         min_size=1,
         max_size=5
     )

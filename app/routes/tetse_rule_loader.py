@@ -1,7 +1,7 @@
 # Name: tetse_rule_loader.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: ParcoRTLS backend script
@@ -10,6 +10,7 @@
 # Status: Active
 # Dependent: TRUE
 
+# TECHNICAL DEBT: zone 422 is hardcoded
 # File: tetse_rule_loader.py
 # Version: 0.3.4
 # Created: 250615
@@ -21,11 +22,16 @@
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Update: Filtered None rules, fixed import; bumped from 0.3.3
 
+# Import centralized configuration
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
+
 import asyncio
 import asyncpg
 import json
 import logging
-import os
 from fastapi import APIRouter
 from routes.temporal_context import get_house_exclusion_context
 from routes.tetse_zone_utils import get_zone_descendants_raw
@@ -51,8 +57,11 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelnam
 logger.handlers = [console_handler, file_handler]
 logger.propagate = False
 
-# DB Connection
-DATA_CONN_STRING = os.getenv("DATA_CONN_STRING", "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSData")
+# DB Connection using centralized configuration
+server_host = get_server_host()
+db_configs = get_db_configs_sync()
+data_config = db_configs['data']
+DATA_CONN_STRING = f"postgresql://{data_config['user']}:{data_config['password']}@{server_host}:{data_config['port']}/{data_config['database']}"
 
 async def preload_rules():
     """
@@ -107,21 +116,20 @@ async def evaluate_house_exclusion_rule(rule):
     exclude_parent_zone = rule.get("exclude_parent_zone")
 
     # Simulate entity status
-    entity_status = {
-        "current_zone_id": 422,
-        "timestamp": "2025-06-16T03:25:00Z"
-    }
+    current_zone_id = 422  # Test zone
+    campus_zone_id = 422   # Campus zone ID
+    house_parent_zone_id = zone_id  # Use rule zone as house parent
+    exclusion_duration_min = duration_sec // 60  # Convert seconds to minutes
 
-    # Build context request
-    context_request = {
-        "subject_id": subject_id,
-        "zone": zone_id,
-        "duration_sec": duration_sec,
-        "exclude_parent_zone": exclude_parent_zone,
-        "entity_status": entity_status
-    }
-
-    context = await get_house_exclusion_context(context_request)
+    # Call function with correct parameters
+    context = await get_house_exclusion_context(
+        entity_id=subject_id,
+        campus_zone_id=campus_zone_id,
+        house_parent_zone_id=house_parent_zone_id,
+        exclusion_duration_min=exclusion_duration_min,
+        current_zone_id=current_zone_id
+    )
+    
     triggered = context["status"] == "OUTSIDE_THRESHOLD"
     logger.debug(f"Rule evaluation complete for subject {subject_id}: triggered={triggered}, context={context}")
     return {"triggered": triggered, "status": context["status"], "details": context}

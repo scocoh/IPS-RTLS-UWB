@@ -1,7 +1,7 @@
 # Name: remote_ws_client.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: ParcoRTLS backend script
@@ -11,13 +11,19 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/remote_ws_client.py
-# Version: 0.1.0 - Initial implementation for remote FastAPI WebSocket client
+# Version: 0.1.1 - Updated with centralized IP configuration
 # Description: This script sets up a FastAPI application on the remote site that connects to the on-premise
-# ParcoRTLS Manager's WebSocket endpoint (`ws://192.168.210.226:8001/ws/Manager1`). It subscribes to real-time
+# ParcoRTLS Manager's WebSocket endpoint using centralized configuration. It subscribes to real-time
 # `TriggerEvent` messages for specific tags and zones, processes these messages, and exposes them to local clients
 # (e.g., HomeAssistant, TriggerDemo apps, or custom applications) via a local WebSocket endpoint (`/ws/events`)
 # and a REST endpoint (`/recent_events`). The script includes reconnection logic to handle network interruptions
 # and ensures the connection remains active by responding to `HeartBeat` messages from the Manager.
+
+# Import centralized configuration
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host
 
 import asyncio
 import json
@@ -44,11 +50,11 @@ app = FastAPI()
 # a database (e.g., SQLite, Redis) for persistence and scalability.
 recent_events = []
 
-# Define the Manager's WebSocket URL (on-premise)
+# Define the Manager's WebSocket URL (on-premise) using centralized configuration
 # This URL points to the on-premise Manager's WebSocket endpoint, running on port 8001. The remote FastAPI will
-# connect to this URL to subscribe to `TriggerEvent` messages. In a production environment, this URL could be
-# configured via an environment variable (e.g., `MANAGER_WS_URL=ws://192.168.210.226:8001/ws/Manager1`) for flexibility.
-MANAGER_WS_URL = "ws://192.168.210.226:8001/ws/Manager1"
+# connect to this URL to subscribe to `TriggerEvent` messages. Uses centralized configuration for flexibility.
+server_host = get_server_host()
+MANAGER_WS_URL = f"ws://{server_host}:8001/ws/Manager1"
 
 async def connect_to_manager():
     """
@@ -119,7 +125,9 @@ async def connect_to_manager():
                                     await client.send_text(json.dumps(data))
                                 except WebSocketDisconnect:
                                     local_ws_clients.remove(client)
-                                    logger.debug(f"Removed disconnected local client: {client.client.host}")
+                                    # Fix for Pylance error: check if client exists before accessing attributes
+                                    client_host = getattr(client.client, 'host', 'unknown') if hasattr(client, 'client') and client.client else 'unknown'
+                                    logger.debug(f"Removed disconnected local client: {client_host}")
 
                         # Handle BeginStream response to confirm subscription
                         # The Manager sends a response to the `BeginStream` request to confirm that the subscription
@@ -156,7 +164,9 @@ async def local_ws_endpoint(websocket: WebSocket):
     list to prevent sending messages to closed connections.
     """
     await websocket.accept()
-    logger.debug(f"Local client connected to /ws/events: {websocket.client.host}")
+    # Fix for Pylance error: check if client exists before accessing attributes
+    client_host = getattr(websocket.client, 'host', 'unknown') if hasattr(websocket, 'client') and websocket.client else 'unknown'
+    logger.debug(f"Local client connected to /ws/events: {client_host}")
     local_ws_clients.append(websocket)
     try:
         while True:
@@ -165,7 +175,9 @@ async def local_ws_endpoint(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         local_ws_clients.remove(websocket)
-        logger.debug(f"Local client disconnected from /ws/events: {websocket.client.host}")
+        # Fix for Pylance error: check if client exists before accessing attributes
+        client_host = getattr(websocket.client, 'host', 'unknown') if hasattr(websocket, 'client') and websocket.client else 'unknown'
+        logger.debug(f"Local client disconnected from /ws/events: {client_host}")
 
 @app.on_event("startup")
 async def startup_event():

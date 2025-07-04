@@ -1,7 +1,7 @@
 /* Name: SupportAccess.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 971201 */
-/* Modified: 250502 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -14,6 +14,9 @@
 import React from "react";
 
 function SupportAccess() {
+  // Dynamic hostname detection for API calls
+  const API_BASE_URL = `http://${window.location.hostname || 'localhost'}:8000`;
+  
   const handleClick = async (event) => {
     // Check if CTRL and SHIFT are pressed (for macOS, you might also check event.metaKey)
     if (event.ctrlKey && event.shiftKey) {
@@ -33,7 +36,7 @@ function SupportAccess() {
           if (result.status === "ok") {
             // Open the internal metadata page in a new tab
             window.open(
-              "http://192.168.210.226:8000/zonebuilder/internal-metadata?format=html",
+              `${API_BASE_URL}/zonebuilder/internal-metadata?format=html`,
               "_blank"
             );
           }

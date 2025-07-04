@@ -1,79 +1,92 @@
-# Name: detect_ports.py
-# Version: 0.1.0
+# Name: utils.py
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250703
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
-# Location: /home/parcoadmin/parco_fastapi/app
+# Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
-#!/home/parcoadmin/parco_fastapi/venv/bin/python
-import socket
+# /home/parcoadmin/parco_fastapi/app/manager/utils.py
+# Version: 1.0.2 - Fixed track_metrics to calculate actual tags/sec rate over a 10-second window
+# 
+# Utils Module for Manager
+#   
+# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
+# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
+# Invented by Scott Cohen & Bertrand Dugal.
+# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
+# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
+#
+# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+
+import xml.etree.ElementTree as ET
+import asyncio  # For asyncio.get_event_loop().time()
+import logging  # For logging functionality
+import json     # For JSON support
+import sys
 import os
-import psutil
-import json
-import paho.mqtt.publish as publish
+from typing import Optional, List
 
-MQTT_BROKER = "192.168.210.226"
-MQTT_TOPIC = "homeassistant/sensor/rtls_ports"
+# Add centralized configuration imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host
 
-def get_open_ports(host="192.168.210.226", port_range=(5000, 9000)):
-    open_ports = {}
+class MessageUtilities:
+    # XML constants for message formatting
+    XMLDefTag = '<?xml version="1.0" encoding="UTF-8" ?>'
+    ParcoV1Tag = '<parco version="1.0">'
+    ParcoEndTag = '</parco>'
+    # JSON constants for message formatting
+    JSON_VERSION = {"version": "1.0"}  # Base JSON header
+
+    @staticmethod
+    def json_base() -> dict:
+        """Returns a base JSON object with version."""
+        return {"version": "1.0"}
+
+# Constants for API and MQTT
+# Use centralized configuration for server host
+server_host = get_server_host()
+FASTAPI_BASE_URL = f"http://{server_host}:8000"
+MQTT_BROKER = "localhost"
+
+# Metrics tracking function to calculate tag rate
+def track_metrics(counter: int, last_time: float, timestamps: Optional[List[float]] = None) -> float:
+    """
+    Tracks and logs the tag processing rate (tags/sec) over a 10-second window.
     
-    for port in range(port_range[0], port_range[1]):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.5)
-            if s.connect_ex((host, port)) == 0:
-                service = get_service_name(port)
-                open_ports[port] = service
-
-    return open_ports
-
-# Custom mapping of ports to friendly names
-SERVICE_MAPPING = {
-    5000: "Flask (Python)",
-    5432: "PostgreSQL",
-    8000: "FastAPI (Python3)",
-    8123: "Home Assistant",
-}
-
-def get_service_name(port):
-    """Finds the service running on a given port."""
+    Args:
+        counter (int): Total number of tags processed (cumulative count).
+        last_time (float): Last time the rate was updated (Unix timestamp).
+        timestamps (Optional[List[float]]): List of tag arrival timestamps (Unix timestamps).
     
-    if port in SERVICE_MAPPING:
-        print(f"Using custom mapping for port {port}: {SERVICE_MAPPING[port]}")
-        return SERVICE_MAPPING[port]
+    Returns:
+        float: Updated last_time (current time if rate logged, else unchanged).
+    """
+    logger = logging.getLogger(__name__)
+    current_time = asyncio.get_event_loop().time()
+    
+    # If timestamps are provided, calculate the actual rate over a 10-second window
+    if timestamps:
+        window_start = current_time - 10  # 10-second window
+        # Filter timestamps within the window
+        recent_timestamps = [ts for ts in timestamps if ts >= window_start]
+        # Calculate rate: (number of tags - 1) / time span
+        if len(recent_timestamps) > 1:
+            time_span = (recent_timestamps[-1] - recent_timestamps[0])  # Seconds
+            rate = (len(recent_timestamps) - 1) / time_span if time_span > 0 else 0
+        else:
+            rate = 0
+        logger.debug(f"Tag rate: {rate:.2f} tags/sec, total count: {counter}")
+    else:
+        # Fallback to old behavior: log counter as rate (not accurate, for compatibility)
+        if current_time - last_time >= 1.0:  # Every second
+            logger.debug(f"Tag count: {counter} tags (rate calculation unavailable without timestamps)")
+            return current_time  # Reset last_time
+        return last_time  # Keep old last_time if not yet 1 second
 
-    try:
-        service = socket.getservbyport(port)
-        print(f"Socket found service for port {port}: {service}")
-        return service
-    except OSError:
-        print(f"Socket lookup failed for port {port}")
-
-    # Match port to PID
-    connections = psutil.net_connections(kind="inet")
-    for conn in connections:
-        if conn.laddr.port == port and conn.pid:
-            try:
-                process = psutil.Process(conn.pid)
-                print(f"psutil found service for port {port}: {process.name()}")
-                return process.name()
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                print(f"psutil failed for port {port}")
-                return "Unknown Service"
-
-    print(f"Returning 'Unknown Service' for port {port}")
-    return "Unknown Service"
-
-def publish_to_mqtt(open_ports):
-    payload = json.dumps({"services": open_ports})
-    publish.single(MQTT_TOPIC, payload, hostname=MQTT_BROKER)
-    print("Published services:", payload)
-
-if __name__ == "__main__":
-    detected_ports = get_open_ports()
-    publish_to_mqtt(detected_ports)
+    return current_time  # Always update last_time when using timestamps

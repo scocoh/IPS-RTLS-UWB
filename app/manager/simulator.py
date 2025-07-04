@@ -1,10 +1,10 @@
 # Name: simulator.py
-# Version: 0.1.26
+# Version: 0.1.27
 # Created: 971201
-# Modified: 250703
+# Modified: 250704
 # Creator: ParcoAdmin
-# Modified By: TC
-# Description: Python script for ParcoRTLS simulator with PortRedirect and EndStream support
+# Modified By: AI Assistant
+# Description: Python script for ParcoRTLS simulator with centralized IP configuration
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Simulator
 # Status: Active
@@ -13,6 +13,7 @@
 #!/usr/bin/env python3
 """
 ParcoRTLS Simulator - Generates test position data for RTLS development
+Version: 0.1.27 - Updated to use centralized IP configuration system, bumped from 0.1.26
 Version: 0.1.26 - Fixed mode 6 to use multiple tags with different roles, fixed mode prompt, bumped from 0.1.25
 Version: 0.1.25 - Restored all simulation modes from v0.1.22 while keeping v0.1.24 PortRedirect fix, bumped from 0.1.24
 Version: 0.1.24 - Fixed PortRedirect handling from Control WebSocket, bumped from 0.1.23
@@ -35,6 +36,10 @@ from datetime import datetime
 from typing import List, Optional, Tuple
 import websockets
 
+# Import centralized configuration
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host
+
 # Configure logging
 logger = logging.getLogger("simulator")
 logger.setLevel(logging.DEBUG)
@@ -56,7 +61,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 # Configuration
-WEBSOCKET_HOST = os.getenv("WEBSOCKET_HOST", "192.168.210.226")
+WEBSOCKET_HOST = os.getenv("WEBSOCKET_HOST", get_server_host())
 CONTROL_PORT = int(os.getenv("CONTROL_PORT", "8001"))
 STREAM_PORT = int(os.getenv("STREAM_PORT", "8002"))
 
@@ -339,7 +344,7 @@ async def simulator():
     global stream_receive_task
     global should_stop
     uri = f"ws://{WEBSOCKET_HOST}:{CONTROL_PORT}/ws/ControlManager"
-    print("Select simulation mode (v0.1.26):")
+    print("Select simulation mode (v0.1.27):")
     print("1. Single tag at a fixed point")
     print("2. Single tag moving between two points (with linear interpolation)")
     print("3. Multiple tags at fixed points")

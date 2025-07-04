@@ -1,7 +1,7 @@
 /* Name: zoneApi.js */
-/* Version: 0.1.1 */
+/* Version: 0.1.2 */
 /* Created: 250625 */
-/* Modified: 250625 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
 /* Description: API service for zone operations */
@@ -9,9 +9,11 @@
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
+/* Changelog: */
+/* - 0.1.2 (250704): Replaced hardcoded IP with dynamic hostname detection */
 
-// Base URL - will be replaced with config later
-const API_BASE_URL = "http://192.168.210.226:8000";
+// Base URL - dynamic hostname detection
+const API_BASE_URL = `http://${window.location.hostname || 'localhost'}:8000`;
 
 // Helper functions defined outside the object
 const fetchZones = async () => {

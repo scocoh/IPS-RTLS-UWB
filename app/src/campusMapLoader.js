@@ -1,7 +1,7 @@
 /* Name: campusMapLoader.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 971201 */
-/* Modified: 250502 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -12,7 +12,7 @@
 
 // Version: 250227 campusMapLoader.js Version 0P.6B.48t 🚀
 // # 
-// #  
+// #  
 // # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 // # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 // # Invented by Scott Cohen & Bertrand Dugal.
@@ -22,6 +22,9 @@
 // # Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
 
 console.log("[INFO] Loaded campusMapLoader.js Version 0P.6B.48t 🚀");
+
+// Dynamic hostname detection for API calls
+const LEGACY_API_BASE_URL = `http://${window.location.hostname || 'localhost'}:5002`;
 
 // Declare mapImage and vertexData globally
 let mapImage;
@@ -263,7 +266,7 @@ function loadCampusMap() {
     }
 
     // Fetch and display the map from zonebuilder_api.py on port 5002
-    fetch(`http://192.168.210.226:5002/get_map/${selectedCampus}`)  
+    fetch(`${LEGACY_API_BASE_URL}/get_map/${selectedCampus}`)  
         .then(response => {
             console.log(`[DEBUG] Map fetch response for /get_map/${selectedCampus} (Version 0P.6B.48t):`, response);
             if (!response.ok) throw new Error(`Map fetch failed: ${response.status}`);
@@ -274,7 +277,7 @@ function loadCampusMap() {
             mapImage = new Image();
             mapImage.crossOrigin = "Anonymous";
             mapImage.onload = () => {
-                fetch(`http://192.168.210.226:5002/get_map_metadata/${selectedCampus}`)  
+                fetch(`${LEGACY_API_BASE_URL}/get_map_metadata/${selectedCampus}`)  
                     .then(metaResponse => {
                         console.log(`[DEBUG] Map metadata fetch response for /get_map_metadata/${selectedCampus} (Version 0P.6B.48t):`, metaResponse);
                         if (!metaResponse.ok) throw new Error(`Metadata fetch failed: ${metaResponse.status}`);
@@ -306,7 +309,7 @@ function loadCampusMap() {
         .catch(error => console.error(`[ERROR] Loading map failed (Version 0P.6B.48t):`, error));
 
     // Fetch and display all zones recursively with event listeners from zonebuilder_api.py on port 5002
-    fetch(`http://192.168.210.226:5002/get_all_zones_for_campus/${campusId}`)  
+    fetch(`${LEGACY_API_BASE_URL}/get_all_zones_for_campus/${campusId}`)  
         .then(response => {
             console.log(`[DEBUG] Zones fetch response for /get_all_zones_for_campus/${campusId} (Version 0P.6B.48t):`, response);
             if (!response.ok) {
@@ -330,7 +333,7 @@ function loadCampusMap() {
         });
 
     // Fetch and display vertices from zonebuilder_api.py on port 5002
-    fetch(`http://192.168.210.226:5002/get_vertices_for_campus/${campusId}`)  
+    fetch(`${LEGACY_API_BASE_URL}/get_vertices_for_campus/${campusId}`)  
         .then(response => {
             console.log(`[DEBUG] Vertices fetch response for /get_vertices_for_campus/${campusId} (Version 0P.6B.48t):`, response);
             if (!response.ok) {
@@ -407,7 +410,7 @@ function saveAllVertices() {
 
     console.log(`[INFO] Saving updated vertices:`, updatedVertices);
 
-    fetch('http://192.168.210.226:5002/update_vertices', {  
+    fetch(`${LEGACY_API_BASE_URL}/update_vertices`, {  
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ vertices: updatedVertices })

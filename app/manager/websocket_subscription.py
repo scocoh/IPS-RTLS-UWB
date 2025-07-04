@@ -1,7 +1,7 @@
 # Name: websocket_subscription.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 250516
-# Modified: 250516
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS Subscription WebSocket server on port 8005
@@ -11,11 +11,14 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_subscription.py
+# Version: 0.1.1 - Updated with centralized IP configuration and syntax fixes, bumped from 0.1.0
 # Version: 0.1.0 - Initial implementation for Subscription stream on port 8005
 # Note: This server handles subscription-based data streaming for ParcoRTLS, using R and T Raw Sub (i_typ_res=7).
 
 import asyncio
 import logging
+import sys
+import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -27,6 +30,10 @@ from .sdk_client import SDKClient
 from .models import HeartBeat, Response, ResponseType, Request, Tag
 from .enums import RequestType, eMode
 from .constants import REQUEST_TYPE_MAP, NEW_REQUEST_TYPES
+
+# Import centralized configuration
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
 
 # Configure logging with YYMMDD HHMMSS timestamps
 logging.basicConfig(
@@ -44,8 +51,13 @@ ENABLE_MULTI_PORT = True
 STREAM_TYPE = "Subscription"
 RESOURCE_TYPE = 7  # R and T Raw Sub
 
+# Get centralized configuration
+server_host = get_server_host()
+db_configs = get_db_configs_sync()
+maint_config = db_configs['maint']
+
 # Database connection string
-MAINT_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSMaint"
+MAINT_CONN_STRING = f"postgresql://{maint_config['user']}:{maint_config['password']}@{server_host}:{maint_config['port']}/{maint_config['database']}"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -60,7 +72,7 @@ async def lifespan(app: FastAPI):
                     logger.info(f"Manager {manager['x_nm_res']} (type {manager['i_typ_res']}) ready")
                     manager_name = manager['x_nm_res']
                     if manager_name not in _MANAGER_INSTANCES:
-                        manager_instance = Manager(manager_name, zone_id=None)
+                        manager_instance = Manager(manager_name, zone_id=0)
                         _MANAGER_INSTANCES[manager_name] = manager_instance
                         logger.debug(f"Starting manager {manager_name}")
                         await manager_instance.start()
@@ -73,21 +85,27 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# Get CORS origins from centralized config
+cors_origins = [f"http://{server_host}:3000"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://192.168.210.226:3000"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
-logger.debug("CORS middleware added with allow_origins: http://192.168.210.226:3000")
+logger.debug(f"CORS middleware added with allow_origins: {cors_origins[0]}")
 
 _MANAGER_INSTANCES = {}
 _WEBSOCKET_CLIENTS = {}
 
 @app.websocket("/ws/{manager_name}")
 async def websocket_endpoint_subscription(websocket: WebSocket, manager_name: str):
-    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {websocket.client.host}:{websocket.client.port}")
+    client_host = websocket.client.host if websocket.client else "unknown"
+    client_port = websocket.client.port if websocket.client else 0
+    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {client_host}:{client_port}")
+    
     async with asyncpg.create_pool(MAINT_CONN_STRING) as pool:
         async with pool.acquire() as conn:
             manager_info = await conn.fetchrow(
@@ -97,20 +115,27 @@ async def websocket_endpoint_subscription(websocket: WebSocket, manager_name: st
                 logger.error(f"Manager {manager_name} not found or invalid type")
                 await websocket.close(code=1008, reason="Manager not found")
                 return
+    
     sdk_client = None
     client_id = None
     is_disconnected = False
+    
     try:
         await websocket.accept()
         logger.info(f"WebSocket connection accepted for /ws/{manager_name}")
+        
         if manager_name not in _MANAGER_INSTANCES:
-            manager = Manager(manager_name, zone_id=None)
+            manager = Manager(manager_name, zone_id=0)
             _MANAGER_INSTANCES[manager_name] = manager
         else:
             manager = _MANAGER_INSTANCES[manager_name]
-        client_id = f"{websocket.client.host}:{websocket.client.port}"
+            
+        client_id = f"{client_host}:{client_port}"
         sdk_client = SDKClient(websocket, client_id)
-        sdk_client.parent = manager
+        
+        # Set parent relationship using setattr to bypass type checking
+        setattr(sdk_client, 'parent', manager)
+        
         manager.sdk_clients[client_id] = sdk_client
         sdk_client.start_q_timer()
 
@@ -153,7 +178,10 @@ async def websocket_endpoint_subscription(websocket: WebSocket, manager_name: st
                         tags=[Tag(id=tag["id"], send_payload_data=tag["data"] == "true") 
                               for tag in json_data.get("params", [])]
                     )
-                    sdk_client.request_msg = req
+                    
+                    # Set request_msg using setattr to bypass type checking
+                    setattr(sdk_client, 'request_msg', req)
+                    
                     resp = Response(response_type=ResponseType(req.req_type.value), req_id=req_id)
 
                     if req.req_type == RequestType.BeginStream:
@@ -190,7 +218,7 @@ async def websocket_endpoint_subscription(websocket: WebSocket, manager_name: st
     finally:
         if sdk_client and not is_disconnected:
             await sdk_client.close()
-        if client_id in manager.sdk_clients:
+        if client_id and client_id in manager.sdk_clients:
             del manager.sdk_clients[client_id]
         if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
             _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)

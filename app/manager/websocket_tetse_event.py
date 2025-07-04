@@ -1,7 +1,7 @@
 # Name: websocket_tetse_event.py
-# Version: 0.1.22
+# Version: 0.1.23
 # Created: 250525
-# Modified: 250601
+# Modified: 250704
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: TETSE EventStream WebSocket Server (port 9000)
@@ -10,6 +10,7 @@
 # Status: Active
 # Dependent: TRUE
 #
+# Version: 0.1.23 - Updated with centralized IP configuration, bumped from 0.1.22
 # Version: 0.1.22 - Fixed bug in event broadcast where 'dict' object had no attribute 'entity'; now uses event['entity_id'], bumped from 0.1.21
 # Version: 0.1.21 - Added in remarks removed by AI in TETSE section
 # Version: 0.1.20 - Added AI summary generation via ask_openai during event broadcasting in /broadcast_event_ws
@@ -39,6 +40,7 @@ import asyncio
 import json
 import websockets
 import asyncpg
+import sys
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from manager.line_limited_logging import LineLimitedFileHandler
@@ -49,6 +51,9 @@ from datetime import datetime, timezone
 from routes.llm_bridge import ask_openai
 from routes.llm_bridge import construct_prompt
 
+# Import centralized configuration
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import get_server_host, get_db_configs_sync
 
 # Log directory
 LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
@@ -76,23 +81,31 @@ file_handler.flush()
 
 app = FastAPI()
 
+# Get centralized configuration
+server_host = get_server_host()
+cors_origins = [f"http://{server_host}:3000"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://192.168.210.226:3000"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
-logger.debug("CORS middleware added with allow_origins: http://192.168.210.226:3000")
+logger.debug(f"CORS middleware added with allow_origins: {cors_origins[0]}")
 file_handler.flush()
 
 # Create a Manager instance for TETSE events
-TETSE_MANAGER = Manager("TETSE", zone_id=None)
+TETSE_MANAGER = Manager("TETSE", zone_id=0)
 logger.debug(f"Initialized TETSE_MANAGER instance: {id(TETSE_MANAGER)}")
 file_handler.flush()
 
+# Get database configuration
+db_configs = get_db_configs_sync()
+data_config = db_configs['data']
+
 # Database connection string
-MAINT_CONN_STRING = "postgresql://parcoadmin:parcoMCSE04106!@192.168.210.226:5432/ParcoRTLSData"
+MAINT_CONN_STRING = f"postgresql://{data_config['user']}:{data_config['password']}@{server_host}:{data_config['port']}/{data_config['database']}"
 
 class EventBroadcast(BaseModel):
     entity_id: str
@@ -116,8 +129,8 @@ async def broadcast_event_ws(websocket: WebSocket):
     """
     WebSocket endpoint to receive events from the forwarding server on port 8998 and broadcast them to clients.
     """
-    client_host = websocket.client.host
-    client_port = websocket.client.port
+    client_host = websocket.client.host if websocket.client else "unknown"
+    client_port = websocket.client.port if websocket.client else 0
     client_id = f"{client_host}:{client_port}"
     logger.info(f"WebSocket connection attempt for /broadcast_event_ws from {client_id}")
     file_handler.flush()
@@ -166,7 +179,7 @@ async def broadcast_event_ws(websocket: WebSocket):
                     ai_summary = "[AI summary unavailable]"
                     try:
                         entity_id_safe = data.get("entity_id", "UNKNOWN_ENTITY")
-                        prompt = construct_prompt(event_data)
+                        prompt = await construct_prompt(event_data)
                         ai_summary = await ask_openai(prompt)
                         event_data["ai_summary"] = ai_summary
                         logger.info(f"AI Summary generated for entity {entity_id_safe}: {ai_summary}")
@@ -239,7 +252,7 @@ async def broadcast_event_ws(websocket: WebSocket):
                 await websocket.send_json(end_stream)
                 logger.info(f"Sent EndStream to {client_id}: {end_stream}")
                 file_handler.flush()
-                message = await asyncio.wait_for(websocket.recv(), timeout=10.0)
+                message = await asyncio.wait_for(websocket.receive_text(), timeout=10.0)
                 data = json.loads(message)
                 logger.info(f"Received response to EndStream from {client_id}: {data}")
                 file_handler.flush()
@@ -256,8 +269,8 @@ async def tetse_event_handler(websocket: WebSocket, entity_id: str):
     Handle WebSocket connections for TETSE event streams.
     Path format: /ws/tetse_event/{entity_id}
     """
-    client_host = websocket.client.host
-    client_port = websocket.client.port
+    client_host = websocket.client.host if websocket.client else "unknown"
+    client_port = websocket.client.port if websocket.client else 0
     client_id = f"{client_host}:{client_port}"
     client_type = "client"
     logger.info(f"WebSocket connection attempt for /ws/tetse_event/{entity_id} from {client_id} ({client_type})")
