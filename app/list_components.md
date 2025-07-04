@@ -9,7 +9,7 @@ copy.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for 
 06-devsession.sh | 0.1.3 | 971201 | 250515 | ParcoAdmin | ParcoAdmin | Shell script for ParcoRTLS utilities | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
 07-setup.sh | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Shell script for ParcoRTLS utilities | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
 08-showtree.sh | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Shell script for ParcoRTLS utilities | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
-09-update.sh | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Shell script for ParcoRTLS utilities | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
+09-update.sh | 0.2.1 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Shell script for ParcoRTLS utilities | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
 10-utilitymenu.sh | 0.1.64 | 971201 | 250607 | ParcoAdmin | ParcoAdmin | Shell script for ParcoRTLS utilities | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
 11-shutdown.sh | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Shell script for ParcoRTLS utilities | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
 12-start_frontend.sh | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Shell script for ParcoRTLS utilities | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
@@ -38,16 +38,16 @@ db_connection.py | 0.1.1 | 971201 | 250702 | ParcoAdmin | ParcoAdmin | Python sc
 detect_ports.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
 entity_models.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
 fetch_vertices.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
-fetch_vertices_to_svg.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
+fetch_vertices_to_svg.py | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
 file_list.txt | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Text file for ParcoRTLS configuration | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
 flask_log.txt | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Text file for ParcoRTLS configuration | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
 gitdiff.sh | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Shell script for ParcoRTLS utilities | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
-map_upload.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
+map_upload.py | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
 models.py | 0.1.1 | 971201 | 250503 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
 old_app.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
 parco_Functions_pac.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
 psql.sh | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Shell script for ParcoRTLS utilities | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
-remote_ws_client.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
+remote_ws_client.py | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
 requirements.txt | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS config text file | /home/parcoadmin/parco_fastapi/app | Utility | Active | t
 scaling_tool.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app | Backend | Active | t
 server_config.py | 0.1.0 | 250702 | 250702 | ParcoAdmin & TC | ParcoAdmin | Centralized server configuration for ParcoRTLS | /home/parcoadmin/parco_fastapi/app | Configuration | Active | t
@@ -85,7 +85,7 @@ ui_building_outside_l2.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | 
 ui_campus_l1.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/api_modules | Backend | Active | t
 upload_map_coordinates.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/api_modules | Backend | Active | t
 wing_l5.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/api_modules | Backend | Active | t
-app.py | 0.1.73 | 971201 | 250622 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/app.py | Backend | Active | t
+app.py | 0.1.74 | 971201 | 250703 | ParcoAdmin | ParcoAdmin & AI Assistant | Python script for ParcoRTLS backend - Updated to use centralized configuration | /home/parcoadmin/parco_fastapi/app/app.py | Backend | Active | t
 db_functions.py | 0.1.1 | 971201 | 250702 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend - Updated to use database-driven configuration | /home/parcoadmin/parco_fastapi/app/database | Backend | Active | t
 db.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/database | Backend | Active | t
 add_device.txt | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS config text file | /home/parcoadmin/parco_fastapi/app/docs/descriptions/device | Utility | Active | t
@@ -228,14 +228,14 @@ get_vertices_for_campus.txt | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin 
 update_vertices.txt | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS config text file | /home/parcoadmin/parco_fastapi/app/docs/descriptions/zoneviewer_routes | Utility | Active | t
 constants.py | 0.1.0 | 250513 | 250513 | ParcoAdmin | ParcoAdmin | Shared constants for ParcoRTLS WebSocket servers | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 data_processor.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-datastream.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+datastream.py | 0.1.1 | 971201 | 250703 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 enums.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 events.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-fastapi_service.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+fastapi_service.py | 0.1.1 | 971201 | 250703 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 heartbeat_manager.py | 0.1.5 | 250526 | 250703 | ParcoAdmin | ParcoAdmin & TC | Manages heartbeat logic for ParcoRTLS WebSocket servers | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 line_limited_logging.py | 0.1.0 | 250519 | 250519 | ParcoAdmin | ParcoAdmin | Custom logging handler for line-limited logs | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 manager_clients.py | 0.1.0 | 250703 | 250703 | ParcoAdmin | AI Assistant | Client manager handler module for ParcoRTLS Manager - Extracted from manager.py v0.1.22 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-manager_database.py | 0.1.0 | 250703 | 250703 | ParcoAdmin | AI Assistant | Database handler module for ParcoRTLS Manager - Extracted from manager.py v0.1.21 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+manager_database.py | 0.1.1 | 250703 | 250704 | ParcoAdmin | AI Assistant | Database handler module for ParcoRTLS Manager - Updated with centralized IP configuration | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 manager_data.py | 0.1.0 | 250703 | 250703 | ParcoAdmin | AI Assistant | Data processing handler module for ParcoRTLS Manager - Extracted from manager.py v0.1.22 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 manager_heartbeat.py | 0.1.0 | 250703 | 250703 | ParcoAdmin | AI Assistant | Heartbeat handler module for ParcoRTLS Manager - Extracted from manager.py v0.1.22 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 manager.py | 0.1.23 | 971201 | 250703 | ParcoAdmin | AI Assistant | Streamlined Python script for ParcoRTLS backend + Event Engine (TETSE) WebSocket support | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
@@ -243,23 +243,23 @@ manager_triggers.py | 0.1.1 | 250703 | 250703 | ParcoAdmin | AI Assistant | Trig
 models.py | 0.1.3 | 971201 | 250703 | ParcoAdmin | ParcoAdmin & TC | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 portable_trigger.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 region.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-sdk_client.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-simulator.py | 0.1.26 | 971201 | 250703 | ParcoAdmin | TC | Python script for ParcoRTLS simulator with PortRedirect and EndStream support | /home/parcoadmin/parco_fastapi/app/manager | Simulator | Active | t
+sdk_client.py | 0.1.1 | 971201 | 250703 | ParcoAdmin | ParcoAdmin & AI Assistant | Python script for ParcoRTLS backend - Fixed type annotations | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 simulator.py | 0.1.18 | 971201 | 250519 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend with PortRedirect support | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+simulator.py | 0.1.27 | 971201 | 250704 | ParcoAdmin | AI Assistant | Python script for ParcoRTLS simulator with centralized IP configuration | /home/parcoadmin/parco_fastapi/app/manager | Simulator | Active | t
 test_client.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-tetse_realtime_loop.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+tetse_realtime_loop.py | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
 trigger.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-utils.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-websocket_averaged.py | 0.1.5 | 250513 | 250516 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS AveragedData WebSocket server on port 8004 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-websocket_control.py | 0.1.2 | 971201 | 250703 | ParcoAdmin | ParcoAdmin & TC | Python script for ParcoRTLS Control WebSocket server on port 8001 - Added PortRedirect support for simulator v0.1.23 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-websocket_historical.py | 0.2.0 | 250513 | 250702 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS HistoricalData WebSocket server on port 8003 - Updated to use database-driven configuration | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-websocket_odata.py | 0.1.0 | 250516 | 250516 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS OData WebSocket server on port 8006 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-websocket.py | 0.1.1 | 971201 | 250702 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS Main WebSocket server - Updated to use database-driven configuration | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-websocket_realtime.py | 0.1.67 | 250513 | 250623 | ParcoAdmin | ParcoAdmin + Claude | Python script for ParcoRTLS RealTime WebSocket server on port 8002 - CLEAN RTLS ONLY with event bridge | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-websocket_sensordata.py | 0.1.0 | 250516 | 250516 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS SensorData WebSocket server on port 8007 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-websocket_subscription.py | 0.1.0 | 250516 | 250516 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS Subscription WebSocket server on port 8005 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
-websocket_tetse_event.py | 0.1.22 | 250525 | 250601 | ParcoAdmin | ParcoAdmin | TETSE EventStream WebSocket Server (port 9000) | /home/parcoadmin/parco_fastapi/app/manager/websocket_tetse_event.py | WebSocket Interface for TETSE | Active | t
-websocket_tetse.py | 0.1.7 | 250526 | 250623 | ParcoAdmin | ParcoAdmin + Claude | WebSocket Server on port 8998 to forward events from main app to TETSE WebSocket server on port 9000 - Enhanced for position events | /home/parcoadmin/parco_fastapi/app/manager/websocket_tetse.py | WebSocket Interface for TETSE Event Forwarding | Active | t
+utils.py | 0.1.1 | 971201 | 250703 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+websocket_averaged.py | 0.1.6 | 250513 | 250704 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS AveragedData WebSocket server on port 8004 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+websocket_control.py | 0.1.3 | 971201 | 250703 | ParcoAdmin | ParcoAdmin & TC & AI Assistant | Python script for ParcoRTLS Control WebSocket server on port 8001 - Added PortRedirect support for simulator v0.1.23 - Updated to use centralized configuration | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+websocket_historical.py | 0.2.1 | 250513 | 250704 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS HistoricalData WebSocket server on port 8003 - Updated to use database-driven configuration | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+websocket_odata.py | 0.1.0 | 250516 | 250704 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS OData WebSocket server on port 8006 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+websocket.py | 0.1.2 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS Main WebSocket server - Updated to use database-driven configuration | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+websocket_realtime.py | 0.1.68 | 250513 | 250703 | ParcoAdmin | ParcoAdmin + Claude & AI Assistant | Python script for ParcoRTLS RealTime WebSocket server on port 8002 - CLEAN RTLS ONLY with event bridge - Updated to use centralized configuration | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+websocket_sensordata.py | 0.1.1 | 250516 | 250704 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS SensorData WebSocket server on port 8007 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+websocket_subscription.py | 0.1.1 | 250516 | 250704 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS Subscription WebSocket server on port 8005 | /home/parcoadmin/parco_fastapi/app/manager | Backend | Active | t
+websocket_tetse_event.py | 0.1.23 | 250525 | 250704 | ParcoAdmin | ParcoAdmin | TETSE EventStream WebSocket Server (port 9000) | /home/parcoadmin/parco_fastapi/app/manager/websocket_tetse_event.py | WebSocket Interface for TETSE | Active | t
+websocket_tetse.py | 0.1.8 | 250526 | 250704 | ParcoAdmin | AI Assistant | WebSocket Server on port 8998 to forward events from main app to TETSE WebSocket server - Updated with centralized IP configuration | /home/parcoadmin/parco_fastapi/app/manager/websocket_tetse.py | WebSocket Interface for TETSE Event Forwarding | Active | t
 index.html | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | HTML template for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/public | Frontend | Active | t
 components.py | 0.1.4 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 device.py | 0.1.1 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
@@ -268,50 +268,50 @@ entity.py | 0.1.1 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script fo
 history.py | 0.1.1 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 input.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 llm_bridge.py | 0.2.0 | 250617 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-maps.py | 0.1.12 | 971201 | 250701 | ParcoAdmin | ParcoAdmin, TC and Nexus, Claude AI | Python script for ParcoRTLS backend with pure coordinate-based map cropping functionality - TBI-friendly | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+maps.py | 0.1.13 | 971201 | 250703 | ParcoAdmin | ParcoAdmin, TC and Nexus, Claude AI & AI Assistant | Python script for ParcoRTLS backend with pure coordinate-based map cropping functionality - TBI-friendly - Updated to use centralized configuration | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 maps_upload.py | 0.1.1 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-openai_trigger_api.py | 0.3.2 | 250617 | 250625 | ParcoAdmin | ParcoAdmin + Temporal Claude | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+openai_trigger_api.py | 0.3.3 | 250617 | 250704 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 portable_triggers.py | 0.1.4 | 250607 | 250607 | ParcoAdmin | ParcoAdmin | FastAPI routes for managing portable triggers in ParcoRTLS | /home/parcoadmin/parco_fastapi/app/routes | FastAPI | Active | t
 region.py | 0.1.1 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-subject_registry.py | 0.1.2 | 971201 | 250623 | ParcoAdmin | AI Assistant | ParcoRTLS backend script - Database-driven subject registry using TETSE device registry with direct device table support | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+subject_registry.py | 0.1.3 | 971201 | 250704 | ParcoAdmin | AI Assistant | ParcoRTLS backend script - Database-driven subject registry with centralized IP configuration | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 temporal_context.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 tetse_device.py | 0.1.3 | 250617 | 250617 | ParcoAdmin | AI Assistant | Python script for TETSE backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-tetse_device_registry.py | 0.1.9 | 250623 | 250623 | ParcoAdmin | AI Assistant | TETSE Device Registry - Maps physical tags to virtual subjects with database persistence | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-tetse_event_dispatcher.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-tetse_output_handler.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+tetse_device_registry.py | 0.1.10 | 250623 | 250704 | ParcoAdmin | ParcoAdmin | TETSE Device Registry - Maps physical tags to virtual subjects with database persistence | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+tetse_event_dispatcher.py | 0.1.1 | 971201 | 250704 | ParcoAdmin | AI Assistant | ParcoRTLS backend script - Updated with centralized IP configuration | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+tetse_output_handler.py | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 tetse_reload.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 tetse_rule_adapter.py | 0.2.17 | 971201 | 250625 | ParcoAdmin | ClaudeAI | Adapts RuleBuilder rules to TETSE format, including semantic zone mapping | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 tetse_rule_engine.py | 0.1.4 | 971201 | 250623 | ParcoAdmin | Claude AI Assistant | Complete TETSE rule evaluation engine with virtual zone support for coordinate-based evaluation | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 tetse_rule_enricher.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-tetse_rule_enrich_ingest.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-tetse_rule_ingest.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+tetse_rule_enrich_ingest.py | 0.1.0 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+tetse_rule_ingest.py | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 tetse_rule_interpreter.py | 0.5.8 | 971201 | 250625 | ParcoAdmin | ParcoAdmin + Temporal Claude | Parses natural language rules for TETSE in ParcoRTLS with layered trigger and proximity support | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-tetse_rule_loader.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+tetse_rule_loader.py | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 tetse_rule_parser.py | 0.3.0 | 971201 | 250621 | ParcoAdmin | ParcoAdmin + Claude | Enhanced TETSE rule parser supporting all v0.1.92+ rule types | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 tetse_zone_map.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 tetse_zone.py | 0.1.9 | 250615 | 250618 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend to manage zones and zone types | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-tetse_zone_utils.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+tetse_zone_utils.py | 0.1.1 | 971201 | 250704 | ParcoAdmin | AI Assistant | ParcoRTLS backend script - Updated with centralized IP configuration | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 text.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 trigger.py | 0.1.63 | 971201 | 250626 | ParcoAdmin | ParcoAdmin & Temporal Claude | FastAPI routes for managing triggers in ParcoRTLS | /home/parcoadmin/parco_fastapi/app/routes | FastAPI | Active | t
 vertex.py | 0.1.1 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 zone_builder.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 zonebuilder_routes.py | 0.1.1 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 zone.py | 0.1.1 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
-zoneviewer_routes.py | 0.1.1 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
+zoneviewer_routes.py | 0.1.2 | 971201 | 250703 | ParcoAdmin | ParcoAdmin & AI Assistant | Python script for ParcoRTLS backend - Updated to use centralized configuration | /home/parcoadmin/parco_fastapi/app/routes | Backend | Active | t
 event.py | 0.1.11 | 250525 | 250528 | ParcoAdmin | ParcoAdmin | Event Engine for Backend (TETSE - Temporal Entity Trigger State Engine) | /home/parcoadmin/parco_fastapi/app/routes/event.py | Backend | Active | t
 llm_bridge.py | 0.1.0 | 250531 | 250531 | ParcoAdmin | ParcoAdmin | TETSE Reusable Library | /home/parcoadmin/parco_fastapi/app/routes/llm_bridge.py | Backend | Active | t
-mqtt_actions.py | 0.1.0 | 250601 | 250601 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes/mqtt_actions.py | MQTT Integration for TETSE Actions | Active | t
+mqtt_actions.py | 0.1.1 | 250601 | 250704 | ParcoAdmin | ParcoAdmin | ParcoRTLS backend script | /home/parcoadmin/parco_fastapi/app/routes/mqtt_actions.py | MQTT Integration for TETSE Actions | Active | t
 temporal_context.py | 0.1.2 | 250601 | 250601 | ParcoAdmin | ParcoAdmin | TETSE helper to fetch the last N events, determine the current zone, calculate time in zone, and assign symbolic status (indoors/outdoors) based on zone hierarchy | /home/parcoadmin/parco_fastapi/app/routes/temporal_context.py | Backend | Active | t
 websocket_event.py | 0.1.1 | 250525 | 250525 | ParcoAdmin | ParcoAdmin | Real-time WebSocket stream for Parco Event Engine | /home/parcoadmin/parco_fastapi/app/routes/websocket_event.py | WebSocket Interface for TETSE | Active | t
 detect_ports.py | 0.1.1 | 971201 | 250702 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend - Updated to use database-driven configuration | /home/parcoadmin/parco_fastapi/app/scripts | Backend | Active | t
 get_service_name.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/scripts | Backend | Active | t
 process_mapper.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/scripts | Backend | Active | t
-zone_mapper.py | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Python script for ParcoRTLS backend | /home/parcoadmin/parco_fastapi/app/scripts | Backend | Active | t
-zone_resolver_service.py | 0.1.0 | 250623 | 250623 | ParcoAdmin + Claude | ParcoAdmin | Zone resolution service for converting coordinates to zones | /home/parcoadmin/parco_fastapi/app/services/ | Service | Active | t
-campusMapLoader.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src | Frontend | Active | t
-campusMapLoader_pac.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src | Frontend | Active | t
+zone_mapper.py | 0.1.1 | 971201 | 250703 | ParcoAdmin | ParcoAdmin & AI Assistant | Python script for ParcoRTLS backend - Updated to use database-driven configuration | /home/parcoadmin/parco_fastapi/app/scripts | Backend | Active | t
+zone_resolver_service.py | 0.1.1 | 250623 | 250703 | ParcoAdmin + Claude | ParcoAdmin | Zone resolution service for converting coordinates to zones - Updated to use centralized configuration | /home/parcoadmin/parco_fastapi/app/services/ | Service | Active | t
+campusMapLoader.js | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src | Frontend | Active | t
+campusMapLoader_pac.js | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src | Frontend | Active | t
 index.js | 0.1.3 | 971201 | 250629 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src | Frontend | Active | t
-SupportAccess.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src | Frontend | Active | t
+SupportAccess.js | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src | Frontend | Active | t
 TriggerDemo.css | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Stylesheet for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src | Frontend | Active | t
 TriggerDemo.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src | Frontend | Active | t
 BuildOutMapCal.js | 0.1.56 | 971201 | 250701 | ParcoAdmin | ParcoAdmin, TC and Nexus, Claude AI | Pure map cropping tool - using maps API | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
@@ -319,7 +319,7 @@ BuildOutTool.js | 0.1.1 | 971201 | 250613 | ParcoAdmin | ParcoAdmin | JavaScript
 CreateTrigger.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 EntityMap.css | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Stylesheet for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 EntityMap.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
-EntityMergeDemo.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
+EntityMergeDemo.js | 0.1.1 | 971201 | 250703 | ParcoAdmin | AI Assistant | JavaScript file for ParcoRTLS frontend - Updated to use centralized configuration | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 MapBuildOut.js | 0.1.2 | 971201 | 250613 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 Map.css | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Stylesheet for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 Map.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
@@ -327,18 +327,32 @@ MapList.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file
 MapPreview.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 MapUpload.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 MapZoneBuilder.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
-MapZoneViewer.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
+MapZoneViewer.js | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 NewTriggerDemo.bak.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 NewTriggerDemo.js | 0.1.18 | 971201 | 250703 | ParcoAdmin | ParcoAdmin + TC | JavaScript file for ParcoRTLS frontend to manage triggers - Fixed PortRedirect handling | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
-NewTriggerViewer.js | 0.1.2 | 971201 | 250526 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
-PortableTriggerAdd.js | 0.1.3 | 250607 | 250607 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend to add portable triggers | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
+NewTriggerViewer.js | 0.1.4 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend - Updated with IP centralization | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
+PortableTriggerAdd.js | 0.1.4 | 250607 | 250704 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend to add portable triggers | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 TriggerUX2025.jsx | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 ZoneBuilder.css | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | Stylesheet for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
 ZoneBuilder.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
-ZoneViewer.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
-RuleBuilder.js | 0.2.7.1 | 250609 | 250625 | ParcoAdmin | ClaudeAI | React component for TETSE rule construction and code generation, using backend API parsing only | /home/parcoadmin/parco_fastapi/app/src/components/RuleBuilder.js | Frontend | Active | t
-bomc_useCropMode.js | 0.1.1 | 250701 | 250701 | Claude AI | Claude AI | Pure map cropping with coordinate correction | /home/parcoadmin/parco_fastapi/app/src/hooks | Frontend | Active | t
-bomc_useMapData.js | 0.1.1 | 250701 | 250701 | Claude AI | Claude AI | Simple map selection using maps API | /home/parcoadmin/parco_fastapi/app/src/hooks | Frontend | Active | t
+ZoneViewer.js | 0.1.1 | 971201 | 250704 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/components | Frontend | Active | t
+TetseConversionTab.js | 0.1.0 | 250625 | 250625 | ParcoAdmin | ParcoAdmin + Claude | TETSE to Triggers conversion tab component for NewTriggerDemo | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components | Frontend | Active | t
+TriggerDeleteTab.js | 0.1.0 | 250625 | 250625 | ParcoAdmin | ParcoAdmin + Claude | Delete Triggers tab component for NewTriggerDemo | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components | Frontend | Active | t
+TriggerEventsTab.js | 0.1.0 | 250625 | 250625 | ParcoAdmin | ParcoAdmin + Claude | System Events tab component for NewTriggerDemo | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components | Frontend | Active | t
+TriggerMapTab.js | 0.1.2 | 250625 | 250704 | ParcoAdmin | ParcoAdmin + Claude | Map & Trigger tab component for NewTriggerDemo - Fixed to use single NewTriggerViewer.js file | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components | Frontend | Active | t
+useTagTracking.js | 0.1.0 | 250625 | 250625 | ParcoAdmin | ParcoAdmin + Claude | Tag tracking hook for NewTriggerDemo (placeholder for future enhancements) | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/hooks | Frontend | Active | t
+useTriggerContainment.js | 0.1.0 | 250625 | 250625 | ParcoAdmin | ParcoAdmin + Claude | Trigger containment checking hook for NewTriggerDemo | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/hooks | Frontend | Active | t
+useWebSocket.js | 0.1.1 | 250625 | 250703 | ParcoAdmin | ParcoAdmin + Claude | WebSocket connection hook for NewTriggerDemo - updated with centralized IP configuration | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/hooks | Frontend | Active | t
+NTD_index.js | 0.1.0 | 250625 | 250625 | ParcoAdmin | ParcoAdmin + Claude | Main component for NewTriggerDemo - orchestrates all subcomponents | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/NTD_index.js | Frontend | Active | t
+tetseApi.js | 0.1.1 | 250625 | 250704 | ParcoAdmin | ParcoAdmin + Claude | API service for TETSE rule operations | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/services | Frontend | Active | t
+triggerApi.js | 0.1.1 | 250625 | 250704 | ParcoAdmin | ParcoAdmin + Claude | API service for trigger operations | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/services | Frontend | Active | t
+zoneApi.js | 0.1.2 | 250625 | 250704 | ParcoAdmin | ParcoAdmin + Claude | API service for zone operations | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/services | Frontend | Active | t
+NewTriggerDemo.css | 0.1.0 | 250625 | 250625 | ParcoAdmin | ParcoAdmin + Claude | Styles for NewTriggerDemo components | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/styles | Frontend | Active | t
+formatters.js | 0.1.0 | 250625 | 250625 | ParcoAdmin | ParcoAdmin + Claude | Formatting utilities for NewTriggerDemo | /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/utils | Frontend | Active | t
+RuleBuilder.js | 0.2.8 | 250609 | 250704 | ParcoAdmin | ClaudeAI | React component for TETSE rule construction and code generation, using backend API parsing only | /home/parcoadmin/parco_fastapi/app/src/components/RuleBuilder.js | Frontend | Active | t
+config.js | 0.1.0 | 250703 | 250703 | AI Assistant | AI Assistant | Centralized configuration for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/config.js | Frontend Configuration | Active | f
+bomc_useCropMode.js | 0.1.2 | 250701 | 250704 | Claude AI | Claude AI | Pure map cropping with coordinate correction | /home/parcoadmin/parco_fastapi/app/src/hooks | Frontend | Active | t
+bomc_useMapData.js | 0.1.2 | 250701 | 250704 | Claude AI | Claude AI | Simple map selection using maps API | /home/parcoadmin/parco_fastapi/app/src/hooks | Frontend | Active | t
 useFetchData.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/src/hooks | Frontend | Active | t
 campusMapLoader.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/static | Frontend | Active | t
 campusMapLoader_pac.js | 0.1.0 | 971201 | 250502 | ParcoAdmin | ParcoAdmin | JavaScript file for ParcoRTLS frontend | /home/parcoadmin/parco_fastapi/app/static | Frontend | Active | t

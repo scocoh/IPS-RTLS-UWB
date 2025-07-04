@@ -1,5 +1,5 @@
 # Name: 09-update.sh
-# Version: 0.1.0
+# Version: 0.2.1
 # Created: 971201
 # Modified: 250502
 # Creator: ParcoAdmin
@@ -16,7 +16,7 @@
 
 PROJECT_DIR="/home/parcoadmin/parco_fastapi/app"
 GIT_REPO="https://github.com/scocoh/IPS-RTLS-UWB.git"
-BRANCH="main"
+BRANCH="master"
 AUTO_UPDATE_FILE="$PROJECT_DIR/.auto_update"
 LOG_FILE="$HOME/parco_fastapi/logs/update_$(date +%Y%m%d_%H%M%S).log"
 

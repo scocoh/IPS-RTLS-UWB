@@ -1,17 +1,18 @@
 /* Name: EntityMergeDemo.js */
-/* Version: 0.1.1 */
+/* Version: 0.1.2 */
 /* Created: 971201 */
-/* Modified: 250703 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
-/* Modified By: AI Assistant */
-/* Description: JavaScript file for ParcoRTLS frontend - Updated to use centralized configuration */
+/* Modified By: ParcoAdmin */
+/* Description: JavaScript file for ParcoRTLS frontend - Fixed EntityMap props */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/EntityMergeDemo.js
-// Version: v0.1.0 - Updated to use centralized configuration instead of hardcoded IP
+// Version: v0.1.2 - Fixed EntityMap props to include entityAssignments and entityHierarchy
+// Version: v0.1.1 - Updated to use centralized configuration instead of hardcoded IP
 // Version: v0.0.9 - Refactored to use EntityMap component for Leaflet map rendering
 // Version: v0.0.8 - Fixed marker creation timing, added static marker for testing, improved logging
 // Version: v0.0.7 - Added default coordinates for devices and entities with missing locations
@@ -247,6 +248,44 @@ const EntityMergeDemo = memo(() => {
     );
   };
 
+  // Handle device assignment to entity
+  const handleAssign = async (deviceId, entityId, parentEntityId) => {
+    try {
+      if (!selectedReasonId) {
+        alert("Please select an assignment reason.");
+        return;
+      }
+
+      await assignDeviceToEntity(deviceId, entityId, parentEntityId);
+      
+      // Refresh data after assignment
+      const entitiesResponse = await fetch(getApiUrl("/api/list_all_entities"));
+      if (!entitiesResponse.ok) throw new Error(`HTTP error! Status: ${entitiesResponse.status}`);
+      const entitiesData = await entitiesResponse.json();
+      setEntities(entitiesData);
+
+      const assignments = {};
+      for (const entity of entitiesData) {
+        const response = await fetch(getApiUrl(`/api/list_device_assignments_by_entity/${entity.x_id_ent}`));
+        if (!response.ok) {
+          if (response.status === 404) {
+            assignments[entity.x_id_ent] = [];
+            continue;
+          }
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        assignments[entity.x_id_ent] = data;
+      }
+      setEntityAssignments(assignments);
+
+      console.log(`✅ Device ${deviceId} assigned to entity ${entityId}`);
+    } catch (error) {
+      console.error("❌ Error assigning device:", error);
+      setError(`Error assigning device: ${error.message}`);
+    }
+  };
+
   // Determine map devices and entities (includes error handling)
   const mapDevices = devices
     .filter(device => !mergedDevicesRef.current.has(device.x_id_dev))
@@ -327,10 +366,11 @@ const EntityMergeDemo = memo(() => {
             <EntityMap
               devices={mapDevices}
               entities={mapEntities}
+              entityAssignments={entityAssignments}
+              entityHierarchy={entityHierarchyRef.current}
               onMerge={handleMerge}
-              selectedEntityType={selectedEntityType}
-              selectedReasonId={selectedReasonId}
-            />I
+              onAssign={handleAssign}
+            />
           </div>
         </Col>
         <Col md={4}>
