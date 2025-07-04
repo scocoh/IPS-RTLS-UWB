@@ -51,3 +51,6 @@ file_list.txt
 test_map_*.png
 tree.md
 fastapi_openapi.json
+uploaded_maps/
+db/
+*.sql
