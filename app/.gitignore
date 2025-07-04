@@ -49,3 +49,5 @@ node_modules/.cache/
 
 file_list.txt
 test_map_*.png
+tree.md
+fastapi_openapi.json
