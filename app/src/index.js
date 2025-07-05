@@ -1,7 +1,7 @@
 /* Name: index.js */
-/* Version: 0.1.3 */
+/* Version: 0.1.4 */
 /* Created: 971201 */
-/* Modified: 250629 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -11,9 +11,10 @@
 /* Dependent: TRUE */
 
 //
-// # VERSION 250629 /home/parcoadmin/parco_fastapi/app/src/index.js 0.1.3
-// # CHANGED: Added BuildOutMapCal import and button for map calibration testing
-// # CHANGED: Bumped version from 0.1.2 to 0.1.3
+// # VERSION 250704 /home/parcoadmin/parco_fastapi/app/src/index.js 0.1.4
+// # CHANGED: Added ZoneViewerModular import and button for testing modular version alongside original
+// # CHANGED: Bumped version from 0.1.3 to 0.1.4
+// # Previous: Added BuildOutMapCal import and button for map calibration testing, bumped from 0.1.2
 // # Previous: Added RuleBuilder view for TETSE rule construction and code generation, bumped from 0.1.1
 // # Previous: Added Portable Trigger Add button and view, bumped from 0.1.0
 // # Previous: Added EntityMergeDemo button and view, bumped to 0.0.2
@@ -36,6 +37,7 @@ import SupportAccess from "./SupportAccess";
 import TriggerUX2025 from "./components/TriggerUX2025";
 import ZoneBuilder from "./components/ZoneBuilder";
 import ZoneViewer from "./components/ZoneViewer";
+import ZoneViewerModular from "./components/ZoneViewer/ZV_index";
 import BuildOutTool from "./components/BuildOutTool";
 import BuildOutMapCal from "./components/BuildOutMapCal";
 import NewTriggerDemo from "./components/NewTriggerDemo/NTD_index";
@@ -48,7 +50,7 @@ const App = () => {
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>ParcoRTLS Management 0.1.3</h1>
+      <h1>ParcoRTLS Management 0.1.4</h1>
 
       <div style={{ marginBottom: "20px" }}>
         <button onClick={() => setView("triggers")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Trigger Management</button>
@@ -56,6 +58,7 @@ const App = () => {
         <button onClick={() => setView("maps")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Map Upload</button>
         <button onClick={() => setView("mapList")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>View Maps</button>
         <button onClick={() => setView("zoneviewer")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Zone Viewer & Editor</button>
+        <button onClick={() => setView("zoneviewermodular")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px", backgroundColor: "#007bff", color: "white" }}>Zone Viewer (Modular)</button>
         <button onClick={() => setView("buildout")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Build Out Tool</button>
         <button onClick={() => setView("buildoutcal")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Map Calibration</button>
         <button onClick={() => setView("newTriggerDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Alpha New Trigger Demo</button>
@@ -72,6 +75,7 @@ const App = () => {
       {view === "maps" && <MapUpload />}
       {view === "mapList" && <MapList />}
       {view === "zoneviewer" && <ZoneViewer />}
+      {view === "zoneviewermodular" && <ZoneViewerModular />}
       {view === "buildout" && <BuildOutTool />}
       {view === "buildoutcal" && <BuildOutMapCal />}
       {view === "newTriggerDemo" && <NewTriggerDemo />}

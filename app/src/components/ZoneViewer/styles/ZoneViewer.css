@@ -1,0 +1,394 @@
+/* Name: ZoneViewer.css */
+/* Version: 0.1.0 */
+/* Created: 250704 */
+/* Modified: 250704 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin + Claude */
+/* Description: Styles for ZoneViewer components */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components/ZoneViewer/styles */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
+/* Zone Viewer Container */
+.zone-viewer {
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Zone Selection Styles */
+.zone-selection-container {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+}
+
+.zone-selection-row {
+  display: flex;
+  gap: 15px;
+  align-items: end;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.zone-selection-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.zone-selection-field label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.zone-selection-field select {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+.zone-selection-field select:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Zone Hierarchy Styles */
+.zone-hierarchy-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  background-color: white;
+  border-radius: 4px;
+}
+
+.zone-hierarchy-item {
+  margin-bottom: 5px;
+  padding: 4px;
+  border-radius: 3px;
+}
+
+.zone-hierarchy-item:hover {
+  background-color: #f8f9fa;
+}
+
+.zone-hierarchy-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zone-hierarchy-controls input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+.zone-delete-button {
+  margin-left: 10px;
+  color: #dc3545;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.zone-delete-button:hover {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Tab Styles */
+.zone-viewer-tabs .nav-tabs {
+  border-bottom: 2px solid #dee2e6;
+  margin-bottom: 20px;
+}
+
+.zone-viewer-tabs .nav-link {
+  border: 1px solid transparent;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.zone-viewer-tabs .nav-link:hover {
+  border-color: #e9ecef #e9ecef #dee2e6;
+  color: #007bff;
+}
+
+.zone-viewer-tabs .nav-link.active {
+  color: #007bff;
+  background-color: #fff;
+  border-color: #dee2e6 #dee2e6 #fff;
+  border-bottom-color: transparent;
+}
+
+/* Map Tab Styles */
+.map-info-bar {
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.map-renderer-indicator {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.map-renderer-leaflet {
+  color: #28a745;
+  background-color: #d4edda;
+}
+
+.map-renderer-canvas {
+  color: #6c757d;
+  background-color: #e2e3e4;
+}
+
+.map-help-text {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Vertex Edit Styles */
+.vertex-operations-bar {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+}
+
+.vertex-operations-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.vertex-operations-buttons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.vertex-operations-buttons button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.vertex-operations-buttons button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.vertex-stats-bar {
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #e9ecef;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+/* Vertex Table Styles */
+.vertex-table-container {
+  overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.vertex-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background-color: white;
+}
+
+.vertex-table thead {
+  background-color: #f8f9fa;
+}
+
+.vertex-table th,
+.vertex-table td {
+  border: 1px solid #dee2e6;
+  padding: 8px;
+  text-align: left;
+}
+
+.vertex-table th {
+  font-weight: 600;
+  color: #495057;
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 10;
+}
+
+.vertex-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.vertex-table tbody tr.selected {
+  background-color: #e3f2fd;
+}
+
+.vertex-table tbody tr.target {
+  background-color: #fff3cd;
+}
+
+.vertex-table input[type="text"] {
+  width: 100px;
+  padding: 4px;
+  border: 1px solid #ced4da;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.vertex-table input[type="text"]:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25);
+}
+
+.vertex-table input[type="text"].edited {
+  background-color: #fff2cc;
+  border-color: #ffc107;
+}
+
+.vertex-table .action-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.vertex-table .action-buttons button {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.vertex-table .action-buttons button:hover {
+  transform: translateY(-1px);
+}
+
+.vertex-table .btn-add-before {
+  background-color: #28a745;
+  color: white;
+}
+
+.vertex-table .btn-add-after {
+  background-color: #007bff;
+  color: white;
+}
+
+.vertex-table .btn-delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.vertex-help-text {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Empty State Styles */
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.empty-state h4 {
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.empty-state p {
+  margin-bottom: 0;
+  font-size: 14px;
+}
+
+/* Loading Styles */
+.loading-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 16px;
+}
+
+/* Error Styles */
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .zone-selection-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .zone-selection-field {
+    width: 100%;
+  }
+  
+  .zone-selection-field select {
+    min-width: 100%;
+  }
+  
+  .vertex-operations-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .vertex-operations-buttons button {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  
+  .map-info-bar {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+}
