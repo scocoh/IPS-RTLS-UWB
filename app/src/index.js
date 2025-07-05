@@ -1,7 +1,7 @@
 /* Name: index.js */
-/* Version: 0.1.3 */
+/* Version: 0.1.5 */
 /* Created: 971201 */
-/* Modified: 250629 */
+/* Modified: 250704 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -11,9 +11,11 @@
 /* Dependent: TRUE */
 
 //
-// # VERSION 250629 /home/parcoadmin/parco_fastapi/app/src/index.js 0.1.3
-// # CHANGED: Added BuildOutMapCal import and button for map calibration testing
-// # CHANGED: Bumped version from 0.1.2 to 0.1.3
+// # VERSION 250704 /home/parcoadmin/parco_fastapi/app/src/index.js 0.1.5
+// # CHANGED: Added EntityGridDemo import and button for structured grid interface
+// # CHANGED: Bumped version from 0.1.4 to 0.1.5
+// # Previous: Updated EntityMergeDemo import to use new Entities directory structure
+// # Previous: Added BuildOutMapCal import and button for map calibration testing
 // # Previous: Added RuleBuilder view for TETSE rule construction and code generation, bumped from 0.1.1
 // # Previous: Added Portable Trigger Add button and view, bumped from 0.1.0
 // # Previous: Added EntityMergeDemo button and view, bumped to 0.0.2
@@ -40,6 +42,7 @@ import BuildOutTool from "./components/BuildOutTool";
 import BuildOutMapCal from "./components/BuildOutMapCal";
 import NewTriggerDemo from "./components/NewTriggerDemo/NTD_index";
 import EntityMergeDemo from "./components/EntityMergeDemo";
+import EntityGridDemo from "./components/Entities/EntityGridDemo";
 import PortableTriggerAdd from "./components/PortableTriggerAdd";
 import RuleBuilder from "./components/RuleBuilder";
 
@@ -48,7 +51,7 @@ const App = () => {
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>ParcoRTLS Management 0.1.3</h1>
+      <h1>ParcoRTLS Management 0.1.5</h1>
 
       <div style={{ marginBottom: "20px" }}>
         <button onClick={() => setView("triggers")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Trigger Management</button>
@@ -60,6 +63,7 @@ const App = () => {
         <button onClick={() => setView("buildoutcal")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Map Calibration</button>
         <button onClick={() => setView("newTriggerDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Alpha New Trigger Demo</button>
         <button onClick={() => setView("entityMergeDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Entity Merge Demo</button>
+        <button onClick={() => setView("entityGridDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Entity Grid Demo</button>
         <button onClick={() => setView("portableTriggerAdd")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Portable Trigger Add</button>
         <button onClick={() => setView("ruleBuilder")} style={{ padding: "10px", fontSize: "16px" }}>Rule Builder</button>
       </div>
@@ -76,6 +80,7 @@ const App = () => {
       {view === "buildoutcal" && <BuildOutMapCal />}
       {view === "newTriggerDemo" && <NewTriggerDemo />}
       {view === "entityMergeDemo" && <EntityMergeDemo />}
+      {view === "entityGridDemo" && <EntityGridDemo />}
       {view === "portableTriggerAdd" && <PortableTriggerAdd />}
       {view === "ruleBuilder" && <RuleBuilder />}
     </div>
