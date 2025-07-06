@@ -1,10 +1,10 @@
 /* Name: TriggerDisplayTab.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 250705 */
 /* Modified: 250705 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Trigger display tab for NewTriggerDemo - shows existing triggers and events */
+/* Description: Trigger display tab for NewTriggerDemo - Fixed map conflicts with unique key prop */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -348,6 +348,7 @@ const TriggerDisplayTab = ({
           
           {selectedZone.i_map ? (
             <NewTriggerViewer
+              key={`display-${selectedZone.i_map}-${selectedZone.i_zn}`}
               mapId={selectedZone.i_map}
               zones={[selectedZone]}
               checkedZones={[selectedZone.i_zn]}

@@ -1,498 +1,367 @@
 /* Name: TriggerMapTab.js */
-/* Version: 0.1.3 */
+/* Version: 0.1.4 */
 /* Created: 250625 */
-/* Modified: 250705 */
+/* Modified: 250706 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Map & Trigger tab component for NewTriggerDemo - Step 1: Add basic styling state */
+/* Description: Enhanced Map & Trigger tab component with full NewTriggerViewer integration */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Form, Button, FormCheck, InputGroup, FormControl } from "react-bootstrap";
-// Fixed import to use single NewTriggerViewer.js file instead of modular directory
+import React, { useState, useEffect, useMemo } from "react";
+import { Container, Row, Col, Form, Button, Card, Alert, Badge } from "react-bootstrap";
 import NewTriggerViewer from "../../NewTriggerViewer";
-import { triggerApi } from "../services/triggerApi";
-import { zoneApi } from "../services/zoneApi";
-import { getFormattedTimestamp, formatTagInfo } from "../utils/formatters";
 
 const TriggerMapTab = ({
   zones,
-  zoneHierarchy,
   selectedZone,
   triggers,
-  triggerDirections,
-  tagIdsInput,
-  setTagIdsInput,
-  isConnected,
   tagsData,
-  sequenceNumbers,
-  tagCount,
-  tagRate,
+  isConnected,
   triggerEvents,
   showTriggerEvents,
   setShowTriggerEvents,
-  eventList,
-  setEventList,
   portableTriggerContainment,
-  connectWebSocket,
-  disconnectWebSocket,
-  handleZoneChange,
-  fetchTriggers,
-  activeTab
+  // NEW: Enhanced props from NTD_index
+  mapSettings = {},
+  highlightedTrigger = null,
+  enhancedTriggerPolygons = [],
+  enableResponsive = true,
+  enableControls = true,
+  height = "600px",
+  width = "100%"
 }) => {
-  // Local state for trigger creation
-  const [zoneVertices, setZoneVertices] = useState([]);
-  const [zMin, setZMin] = useState(null);
-  const [zMax, setZMax] = useState(null);
-  const [customZMax, setCustomZMax] = useState(null);
-  const [triggerName, setTriggerName] = useState("");
-  const [triggerDirection, setTriggerDirection] = useState("");
-  const [coordinates, setCoordinates] = useState([]);
-  const [showMapForDrawing, setShowMapForDrawing] = useState(false);
+  // Local state for map-specific controls
   const [showExistingTriggers, setShowExistingTriggers] = useState(true);
-  const [existingTriggerPolygons, setExistingTriggerPolygons] = useState([]);
-  const retryIntervalRef = useRef(null);
+  const [selectedTriggerTypes, setSelectedTriggerTypes] = useState(new Set(['portable', 'zone']));
+  const [mapMode, setMapMode] = useState('view'); // 'view', 'analyze', 'debug'
+  const [showMapStats, setShowMapStats] = useState(false);
+  
+  // Map configuration
+  const mapId = selectedZone?.map_id || zones[0]?.map_id;
+  const checkedZones = selectedZone ? [selectedZone.i_zn] : [];
 
-  // NEW: Basic trigger styling state (Step 1)
-  const [triggerStyle, setTriggerStyle] = useState({
-    staticFillOpacity: 25,        // Static trigger fill transparency (0-100%)
-    portableFillOpacity: 40,      // Portable trigger fill transparency (0-100%)
-    staticColor: '#ff0000',       // Static trigger color
-    portableColor: '#00ff00'      // Portable trigger color
-  });
-
-  // NEW: Update trigger styling function (Step 1)
-  const updateTriggerStyle = useCallback((property, value) => {
-    setTriggerStyle(prev => ({
-      ...prev,
-      [property]: value
-    }));
-  }, []);
-
-  // Fetch zone vertices when zone changes
-  const fetchZoneVertices = useCallback(async (zoneId) => {
-    try {
-      const { vertices, minZ, maxZ } = await zoneApi.fetchZoneVertices(zoneId);
-      setZoneVertices(vertices);
-      setZMin(minZ);
-      setZMax(maxZ);
-      setCustomZMax(maxZ);
-    } catch (e) {
-      console.error("Error fetching zone vertices:", e);
-    }
-  }, []);
-
-  // Handle zone change with vertex fetch
-  const handleLocalZoneChange = useCallback((zoneId) => {
-    handleZoneChange(zoneId);
-    setCoordinates([]);
-    setShowMapForDrawing(false);
-    setZMin(null);
-    setZMax(null);
-    setCustomZMax(null);
-  }, [handleZoneChange]);
-
-  // Fetch zone vertices when selected zone changes
-  useEffect(() => {
-    if (selectedZone) {
-      fetchZoneVertices(selectedZone.i_zn);
-    }
-  }, [selectedZone, fetchZoneVertices]);
-
-  // Fetch trigger polygons
-  useEffect(() => {
-    if (!selectedZone) return;
+  // Enhanced trigger polygons with filtering and highlighting
+  const processedTriggerPolygons = useMemo(() => {
+    if (!enhancedTriggerPolygons || enhancedTriggerPolygons.length === 0) return [];
     
-    console.log("useEffect triggered with selectedZone:", selectedZone.i_zn, "isConnected:", isConnected);
-    const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
-    console.log("Zone triggers for zone", selectedZone.i_zn, ":", zoneTriggers);
-
-    const fetchPolygons = async () => {
-      console.log("Fetching polygons for triggers:", zoneTriggers);
-      if (zoneTriggers.length === 0) {
-        console.log("No triggers found for zone", selectedZone.i_zn);
-        setExistingTriggerPolygons([]);
-        return;
-      }
-      
-      try {
-        const polygons = await Promise.all(
-          zoneTriggers.map(async (t) => {
-            try {
-              console.log(`Fetching details for trigger ID ${t.i_trg}`);
-              if (t.is_portable) {
-                return { 
-                  id: t.i_trg, 
-                  name: t.x_nm_trg, 
-                  isPortable: true, 
-                  pending: true, 
-                  assigned_tag_id: t.assigned_tag_id, 
-                  radius_ft: t.radius_ft 
-                };
-              } else {
-                const data = await triggerApi.getTriggerDetails(t.i_trg);
-                console.log(`Trigger ${t.i_trg} response from get_trigger_details:`, data);
-                if (Array.isArray(data.vertices)) {
-                  const latLngs = data.vertices.map(v => [v.y, v.x]);
-                  return { id: t.i_trg, name: t.x_nm_trg, latLngs, isPortable: false };
-                }
-                console.log(`No vertices for trigger ${t.i_trg}`);
-                return null;
-              }
-            } catch (e) {
-              console.error(`Failed to fetch details for trigger ${t.i_trg}:`, e);
-              return null;
-            }
-          })
-        );
+    return enhancedTriggerPolygons
+      .filter(trigger => {
+        // Filter by selected types
+        const triggerType = trigger.isPortable ? 'portable' : 'zone';
+        if (!selectedTriggerTypes.has(triggerType)) return false;
         
-        const validPolygons = polygons.filter(p => p);
-        console.log("Fetched polygons:", validPolygons);
-        setExistingTriggerPolygons(validPolygons);
-      } catch (e) {
-        console.error("Failed to fetch polygons:", e);
-      }
-    };
+        // Filter by zone if applicable
+        if (selectedZone && trigger.zone_id && trigger.zone_id !== selectedZone.i_zn) return false;
+        
+        return true;
+      })
+      .map(trigger => ({
+        ...trigger,
+        // Enhanced styling based on state
+        color: trigger.isHighlighted ? '#ff6b35' : 
+               trigger.isContained ? '#e74c3c' : 
+               trigger.isPortable ? '#9b59b6' : '#3498db',
+        fillOpacity: trigger.isHighlighted ? 0.8 : 
+                     trigger.isContained ? 0.6 : 0.4,
+        weight: trigger.isHighlighted ? 4 : 2,
+        // Add pulsing effect for highlighted triggers
+        className: trigger.isHighlighted ? 'highlighted-trigger' : ''
+      }));
+  }, [enhancedTriggerPolygons, selectedTriggerTypes, selectedZone, highlightedTrigger]);
 
-    fetchPolygons();
-  }, [selectedZone, triggers, isConnected]);
-
-  // Update portable trigger polygons
-  useEffect(() => {
-    if (!selectedZone || !triggers || !isConnected) return;
-
-    console.log("Updating portable polygons after WebSocket connection");
-    const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
-    const portableTriggers = zoneTriggers.filter(t => t.is_portable);
-    if (portableTriggers.length === 0) return;
-
-    const updatePortablePolygons = async () => {
-      const updatedPolygons = portableTriggers.map(t => {
-        const tagId = t.assigned_tag_id;
-        const tagData = tagsData[tagId];
-        if (!tagData) {
-          console.log(`No live position data for tag ${tagId} assigned to portable trigger ${t.i_trg}`);
-          return null;
-        }
-        const radius = t.radius_ft;
-        console.log(`Updating portable trigger ${t.i_trg} with center ${[tagData.y, tagData.x]} and radius ${radius}`);
-        return {
-          id: t.i_trg,
-          name: t.x_nm_trg,
-          center: [tagData.y, tagData.x],
-          radius: radius,
-          isPortable: true,
-          assigned_tag_id: t.assigned_tag_id,
-          radius_ft: t.radius_ft
-        };
-      });
-
-      const validPortable = updatedPolygons.filter(p => p);
-      if (validPortable.length === portableTriggers.length) {
-        setExistingTriggerPolygons(prev => {
-          const nonPortable = prev.filter(p => !p.isPortable || p.pending);
-          console.log("Updated existingTriggerPolygons:", [...nonPortable, ...validPortable]);
-          return [...nonPortable, ...validPortable];
-        });
-        if (retryIntervalRef.current) {
-          clearInterval(retryIntervalRef.current);
-          retryIntervalRef.current = null;
-        }
-      }
-    };
-
-    updatePortablePolygons();
-
-    if (!retryIntervalRef.current) {
-      retryIntervalRef.current = setInterval(updatePortablePolygons, 1000);
-    }
-
-    return () => {
-      if (retryIntervalRef.current) {
-        clearInterval(retryIntervalRef.current);
-        retryIntervalRef.current = null;
-      }
-    };
-  }, [tagsData, selectedZone, triggers, isConnected]);
-
-  // Handle drawing complete
-  const handleDrawComplete = useCallback((coords) => {
-    try {
-      const parsed = Array.isArray(coords) ? coords : JSON.parse(coords);
-      if (Array.isArray(parsed) && parsed.length >= 3) {
-        const effectiveZMax = zMin === zMax && customZMax !== null ? Number(customZMax) : zMax;
-        const formattedCoords = parsed.map((coord, index) => {
-          const x = Number(coord.lng);
-          const y = Number(coord.lat);
-          if (isNaN(x) || isNaN(y)) throw new Error(`Invalid coordinates at index ${index}`);
-          let n_z = index === 0 ? zMin : (index === 1 ? effectiveZMax : zMin);
-          return { n_x: x.toFixed(6), n_y: y.toFixed(6), n_z: n_z };
-        });
-        console.log("Formatted coordinates:", formattedCoords);
-        setCoordinates(formattedCoords);
-      }
-    } catch (e) {
-      console.error("Error parsing draw coords:", e);
-      alert("Failed to process drawn coordinates.");
-    }
-  }, [zMin, zMax, customZMax]);
-
-  // Handle trigger creation
-  const handleCreateTrigger = async () => {
-    if (!triggerName || !selectedZone || !triggerDirection) {
-      alert("Please complete all fields.");
-      return;
-    }
-
-    if (!showMapForDrawing) {
-      setShowMapForDrawing(true);
-      return;
-    }
-
-    if (coordinates.length < 3) {
-      alert("Please draw a polygon with at least 3 points.");
-      return;
-    }
-
-    const dir = triggerDirections.find(d => d.x_dir === triggerDirection);
-    if (!dir) {
-      alert("Invalid direction.");
-      return;
-    }
-
-    const payload = {
-      name: triggerName,
-      direction: dir.i_dir,
-      zone_id: parseInt(selectedZone.i_zn),
-      ignore: false,
-      vertices: coordinates.map(({ n_x, n_y, n_z }) => ({
-        x: Number(n_x),
-        y: Number(n_y),
-        z: Number(n_z)
-      }))
-    };
+  // Calculate map statistics
+  const mapStats = useMemo(() => {
+    const activeTags = Object.keys(tagsData).length;
+    const visibleTriggers = processedTriggerPolygons.length;
+    const portableTriggers = processedTriggerPolygons.filter(t => t.isPortable).length;
+    const zoneTriggers = processedTriggerPolygons.filter(t => !t.isPortable).length;
+    const containedTriggers = processedTriggerPolygons.filter(t => t.isContained).length;
     
-    console.log("Creating trigger in zone:", selectedZone.i_zn);
-    console.log("Payload after conversion:", JSON.stringify(payload, null, 2));
+    return {
+      activeTags,
+      visibleTriggers,
+      portableTriggers,
+      zoneTriggers,
+      containedTriggers,
+      connectionStatus: isConnected ? 'Connected' : 'Disconnected'
+    };
+  }, [tagsData, processedTriggerPolygons, isConnected]);
 
-    try {
-      const result = await triggerApi.createTrigger(payload);
-      alert(`Trigger ID: ${result.trigger_id}`);
-      setEventList(prev => [...prev, `Trigger ${triggerName} created on ${getFormattedTimestamp()}`]);
-      setCoordinates([]);
-      setShowMapForDrawing(false);
-
-      const reloadSuccess = await triggerApi.retryReloadTriggers(3, 1000);
-      if (!reloadSuccess) {
-        alert("Trigger created, but failed to reload triggers on the server. Please restart the WebSocket server or try again.");
-      }
-
-      await fetchTriggers();
-    } catch (e) {
-      console.error("Trigger create error:", e);
-      alert("Failed to create trigger.");
+  // Handle trigger type filter changes
+  const handleTriggerTypeChange = (type, checked) => {
+    const newTypes = new Set(selectedTriggerTypes);
+    if (checked) {
+      newTypes.add(type);
+    } else {
+      newTypes.delete(type);
     }
+    setSelectedTriggerTypes(newTypes);
   };
 
-  // Render zone options
-  const renderZoneOptions = (zoneList, indentLevel = 0) => {
-    return zoneList.map(zone => (
-      <React.Fragment key={zone.i_zn}>
-        <option value={zone.i_zn}>
-          {`${"  ".repeat(indentLevel)}${indentLevel > 0 ? "- " : ""}${zone.i_zn} - ${zone.x_nm_zn} (Level ${zone.i_typ_zn})`}
-        </option>
-        {zone.children && zone.children.length > 0 && renderZoneOptions(zone.children, indentLevel + 1)}
-      </React.Fragment>
-    ));
+  // Handle map mode changes
+  const handleMapModeChange = (mode) => {
+    setMapMode(mode);
+    // Could trigger different behaviors based on mode
+    console.log(`Map mode changed to: ${mode}`);
   };
 
-  const infoLines = formatTagInfo(tagsData, selectedZone, zones, tagCount, tagRate);
+  // Recent trigger events for quick reference
+  const recentTriggerEvents = useMemo(() => {
+    return triggerEvents.slice(-5).reverse(); // Last 5 events, newest first
+  }, [triggerEvents]);
 
   return (
-    <>
-      <Form.Group>
-        <Form.Label>Tag IDs to Subscribe (comma-separated, e.g., SIM1,SIM2)</Form.Label>
-        <InputGroup>
-          <FormControl
-            type="text"
-            value={tagIdsInput}
-            onChange={(e) => setTagIdsInput(e.target.value)}
-            placeholder="Enter Tag IDs (e.g., SIM1,SIM2)"
-            disabled={isConnected}
-          />
-          <Button
-            variant={isConnected ? "danger" : "primary"}
-            onClick={() => {
-              if (isConnected) {
-                disconnectWebSocket();
-              } else {
-                connectWebSocket();
-              }
-            }}
-            disabled={!tagIdsInput}
-          >
-            {isConnected ? "Disconnect" : "Connect"}
-          </Button>
-        </InputGroup>
-      </Form.Group>
+    <Container fluid className="trigger-map-tab">
+      <Row>
+        {/* Left sidebar - Controls */}
+        <Col md={3}>
+          <Card className="mb-3">
+            <Card.Header>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Map Controls</span>
+                <Badge variant={isConnected ? 'success' : 'danger'}>
+                  {isConnected ? '●' : '○'} {mapStats.connectionStatus}
+                </Badge>
+              </div>
+            </Card.Header>
+            <Card.Body>
+              {/* Map Mode Selection */}
+              <Form.Group className="mb-3">
+                <Form.Label>Map Mode</Form.Label>
+                <Form.Select 
+                  value={mapMode} 
+                  onChange={(e) => handleMapModeChange(e.target.value)}
+                  size="sm"
+                >
+                  <option value="view">View Mode</option>
+                  <option value="analyze">Analyze Mode</option>
+                  <option value="debug">Debug Mode</option>
+                </Form.Select>
+              </Form.Group>
 
-      {Object.values(tagsData).length > 0 && (
-        <div style={{ marginTop: "10px", whiteSpace: "pre-wrap" }}>
-          <p>{infoLines}</p>
-        </div>
-      )}
+              {/* Trigger Visibility Controls */}
+              <Form.Group className="mb-3">
+                <Form.Label>Show Triggers</Form.Label>
+                <div>
+                  <Form.Check
+                    type="switch"
+                    id="show-triggers"
+                    label="Show All Triggers"
+                    checked={showExistingTriggers}
+                    onChange={(e) => setShowExistingTriggers(e.target.checked)}
+                  />
+                </div>
+              </Form.Group>
 
-      {/* NEW: Basic Trigger Styling Controls (Step 1) */}
-      <div style={{ 
-        marginTop: "15px", 
-        marginBottom: "15px", 
-        padding: "10px", 
-        backgroundColor: "#f8f9fa", 
-        borderRadius: "5px",
-        border: "1px solid #dee2e6"
-      }}>
-        <h6>🎨 Trigger Styling</h6>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-          <div>
-            <Form.Label style={{ fontSize: "12px" }}>Static Trigger Transparency:</Form.Label>
-            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={triggerStyle.staticFillOpacity}
-                onChange={(e) => updateTriggerStyle('staticFillOpacity', parseInt(e.target.value))}
-                style={{ flex: 1 }}
-              />
-              <span style={{ fontSize: "11px", minWidth: "30px" }}>
-                {triggerStyle.staticFillOpacity}%
-              </span>
-            </div>
-          </div>
-          <div>
-            <Form.Label style={{ fontSize: "12px" }}>Portable Trigger Transparency:</Form.Label>
-            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={triggerStyle.portableFillOpacity}
-                onChange={(e) => updateTriggerStyle('portableFillOpacity', parseInt(e.target.value))}
-                style={{ flex: 1 }}
-              />
-              <span style={{ fontSize: "11px", minWidth: "30px" }}>
-                {triggerStyle.portableFillOpacity}%
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+              {/* Trigger Type Filters */}
+              {showExistingTriggers && (
+                <Form.Group className="mb-3">
+                  <Form.Label>Trigger Types</Form.Label>
+                  <div>
+                    <Form.Check
+                      type="checkbox"
+                      id="portable-triggers"
+                      label={`Portable (${mapStats.portableTriggers})`}
+                      checked={selectedTriggerTypes.has('portable')}
+                      onChange={(e) => handleTriggerTypeChange('portable', e.target.checked)}
+                    />
+                    <Form.Check
+                      type="checkbox"
+                      id="zone-triggers"
+                      label={`Zone-based (${mapStats.zoneTriggers})`}
+                      checked={selectedTriggerTypes.has('zone')}
+                      onChange={(e) => handleTriggerTypeChange('zone', e.target.checked)}
+                    />
+                  </div>
+                </Form.Group>
+              )}
 
-      <div style={{ marginTop: "10px" }}>
-        <h3>Trigger Events</h3>
-        <FormCheck
-          type="checkbox"
-          label="Show Trigger Events"
-          checked={showTriggerEvents}
-          onChange={(e) => setShowTriggerEvents(e.target.checked)}
-          style={{ marginBottom: "10px" }}
-        />
-        {triggerEvents.length === 0 ? (
-          <p>No trigger events recorded.</p>
-        ) : (
-          <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #ccc", padding: "10px" }}>
-            <ul style={{ margin: 0, padding: 0, listStyleType: "none" }}>
-              {triggerEvents.map((event, index) => (
-                <li key={index}>{event}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+              {/* Trigger Events Control */}
+              <Form.Group className="mb-3">
+                <Form.Check
+                  type="switch"
+                  id="show-trigger-events"
+                  label="Show Trigger Events"
+                  checked={showTriggerEvents}
+                  onChange={(e) => setShowTriggerEvents(e.target.checked)}
+                />
+              </Form.Group>
 
-      <Form.Group>
-        <Form.Label>Trigger Name</Form.Label>
-        <Form.Control type="text" value={triggerName} onChange={e => setTriggerName(e.target.value)} />
-      </Form.Group>
+              {/* Map Statistics Toggle */}
+              <Form.Group className="mb-3">
+                <Form.Check
+                  type="switch"
+                  id="show-map-stats"
+                  label="Show Statistics"
+                  checked={showMapStats}
+                  onChange={(e) => setShowMapStats(e.target.checked)}
+                />
+              </Form.Group>
+            </Card.Body>
+          </Card>
 
-      <Form.Group>
-        <Form.Label>Select Zone</Form.Label>
-        <Form.Control as="select" value={selectedZone?.i_zn || ""} onChange={e => handleLocalZoneChange(e.target.value)}>
-          <option value="">-- Choose Zone --</option>
-          {renderZoneOptions(zoneHierarchy)}
-        </Form.Control>
-      </Form.Group>
-
-      <Form.Group>
-        <Form.Label>Z Min: {zMin !== null ? zMin : 'N/A'}</Form.Label>
-      </Form.Group>
-
-      <Form.Group>
-        <Form.Label>Z Max: {zMax !== null ? zMax : 'N/A'}</Form.Label>
-        {zMin !== null && zMax !== null && zMin === zMax && (
-          <InputGroup className="mt-2">
-            <InputGroup.Text>Modify Z Max</InputGroup.Text>
-            <FormControl
-              type="number"
-              value={customZMax || ''}
-              onChange={e => setCustomZMax(e.target.value)}
-              placeholder="Enter new Z Max"
-            />
-          </InputGroup>
-        )}
-      </Form.Group>
-
-      <Form.Group>
-        <Form.Label>Direction</Form.Label>
-        <Form.Control as="select" value={triggerDirection} onChange={e => setTriggerDirection(e.target.value)}>
-          <option value="">Select Direction</option>
-          {triggerDirections.map(d => (
-            <option key={d.i_dir} value={d.x_dir}>{d.x_dir}</option>
-          ))}
-        </Form.Control>
-      </Form.Group>
-
-      <Button onClick={handleCreateTrigger}>{showMapForDrawing ? "Save Trigger" : "Create Trigger"}</Button>
-
-      <FormCheck
-        type="checkbox"
-        label="Show Existing Triggers"
-        checked={showExistingTriggers}
-        onChange={e => setShowExistingTriggers(e.target.checked)}
-        style={{ marginTop: "10px" }}
-      />
-
-      {selectedZone && activeTab === "mapAndTrigger" && (
-        <div style={{ marginTop: "15px" }}>
-          <strong>Zone Preview:</strong>
-          {selectedZone.i_map ? (
-            <NewTriggerViewer
-              mapId={selectedZone.i_map}
-              zones={[selectedZone]}
-              checkedZones={[selectedZone.i_zn]}
-              vertices={zoneVertices}
-              useLeaflet={true}
-              enableDrawing={showMapForDrawing}
-              onDrawComplete={handleDrawComplete}
-              showExistingTriggers={showExistingTriggers}
-              existingTriggerPolygons={existingTriggerPolygons.map(p => ({
-                ...p,
-                isContained: p.isPortable ? Object.keys(portableTriggerContainment[p.id] || {}).some(tagId => portableTriggerContainment[p.id][tagId]) : false
-              }))}
-              tagsData={tagsData}
-              isConnected={isConnected}
-              triggers={triggers}
-              triggerStyle={triggerStyle}
-            />
-          ) : (
-            <div style={{ color: "red" }}>No map ID available for this zone.</div>
+          {/* Map Statistics */}
+          {showMapStats && (
+            <Card className="mb-3">
+              <Card.Header>Map Statistics</Card.Header>
+              <Card.Body>
+                <div style={{ fontSize: '14px' }}>
+                  <div className="mb-2">
+                    <strong>Active Tags:</strong> <Badge variant="primary">{mapStats.activeTags}</Badge>
+                  </div>
+                  <div className="mb-2">
+                    <strong>Visible Triggers:</strong> <Badge variant="info">{mapStats.visibleTriggers}</Badge>
+                  </div>
+                  <div className="mb-2">
+                    <strong>Contained:</strong> <Badge variant="warning">{mapStats.containedTriggers}</Badge>
+                  </div>
+                  <div className="mb-2">
+                    <strong>Zone:</strong> {selectedZone?.x_nm_zn || 'None selected'}
+                  </div>
+                  {mapMode === 'debug' && (
+                    <div style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+                      <div>Map ID: {mapId}</div>
+                      <div>Checked Zones: {checkedZones.join(', ')}</div>
+                      <div>Highlighted: {highlightedTrigger || 'None'}</div>
+                    </div>
+                  )}
+                </div>
+              </Card.Body>
+            </Card>
           )}
-        </div>
-      )}
-    </>
+
+          {/* Recent Trigger Events */}
+          {showTriggerEvents && recentTriggerEvents.length > 0 && (
+            <Card className="mb-3">
+              <Card.Header>Recent Events</Card.Header>
+              <Card.Body style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                {recentTriggerEvents.map((event, index) => (
+                  <div 
+                    key={index} 
+                    style={{ 
+                      fontSize: '12px', 
+                      marginBottom: '8px',
+                      padding: '4px 8px',
+                      backgroundColor: event.trigger_id === highlightedTrigger ? '#fff3cd' : '#f8f9fa',
+                      border: '1px solid #dee2e6',
+                      borderRadius: '3px'
+                    }}
+                  >
+                    <div>
+                      <strong>T{event.trigger_id}</strong> - {event.event_type}
+                    </div>
+                    <div style={{ color: '#666' }}>
+                      Tag: {event.tag_id} at {new Date(event.timestamp).toLocaleTimeString()}
+                    </div>
+                  </div>
+                ))}
+              </Card.Body>
+            </Card>
+          )}
+        </Col>
+
+        {/* Main map area */}
+        <Col md={9}>
+          {!selectedZone && (
+            <Alert variant="warning" className="mb-3">
+              Please select a zone to view the map and triggers.
+            </Alert>
+          )}
+          
+          {selectedZone && (
+            <div>
+              {/* Map header with zone info */}
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: '15px',
+                padding: '10px',
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #dee2e6',
+                borderRadius: '4px'
+              }}>
+                <div>
+                  <h5 style={{ margin: 0 }}>
+                    Zone {selectedZone.i_zn} - {selectedZone.x_nm_zn}
+                  </h5>
+                  <small style={{ color: '#666' }}>
+                    Map ID: {mapId} | Mode: {mapMode.charAt(0).toUpperCase() + mapMode.slice(1)}
+                  </small>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  {highlightedTrigger && (
+                    <Badge variant="warning" style={{ animation: 'pulse 1s infinite' }}>
+                      Trigger {highlightedTrigger} highlighted
+                    </Badge>
+                  )}
+                  <Badge variant={isConnected ? 'success' : 'danger'}>
+                    {mapStats.activeTags} tags active
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Enhanced NewTriggerViewer with all new features */}
+              <NewTriggerViewer
+                key={`map-${selectedZone.i_zn}-${mapMode}`} // Force re-render on zone/mode change
+                mapId={mapId}
+                zones={[selectedZone]}
+                checkedZones={checkedZones}
+                useLeaflet={true}
+                enableDrawing={false}
+                showExistingTriggers={showExistingTriggers}
+                existingTriggerPolygons={processedTriggerPolygons}
+                tagsData={tagsData}
+                triggers={triggers}
+                // NEW: Enhanced responsive and control props
+                enableResponsive={enableResponsive}
+                enableControls={enableControls}
+                height={height}
+                width={width}
+                // NEW: Map settings integration
+                {...mapSettings}
+              />
+
+              {/* Debug information (only in debug mode) */}
+              {mapMode === 'debug' && (
+                <div style={{
+                  marginTop: '15px',
+                  padding: '10px',
+                  backgroundColor: '#f1f3f4',
+                  border: '1px solid #dadce0',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace'
+                }}>
+                  <strong>Debug Info:</strong><br/>
+                  Tags Data: {JSON.stringify(Object.keys(tagsData))}<br/>
+                  Processed Triggers: {processedTriggerPolygons.length}<br/>
+                  Map Settings: {JSON.stringify(mapSettings)}<br/>
+                  Highlighted Trigger: {highlightedTrigger || 'None'}<br/>
+                  Selected Types: {Array.from(selectedTriggerTypes).join(', ')}
+                </div>
+              )}
+            </div>
+          )}
+        </Col>
+      </Row>
+
+      {/* CSS for highlight animation */}
+      <style jsx>{`
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+        
+        .highlighted-trigger {
+          animation: pulse 2s ease-in-out infinite;
+        }
+      `}</style>
+    </Container>
   );
 };
 

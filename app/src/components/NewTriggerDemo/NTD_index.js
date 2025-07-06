@@ -1,17 +1,17 @@
 /* Name: NTD_index.js */
-/* Version: 0.2.0 */
+/* Version: 0.2.2 */
 /* Created: 250625 */
-/* Modified: 250705 */
+/* Modified: 250706 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Main component for NewTriggerDemo - orchestrates all subcomponents with new tab structure */
+/* Description: Main component for NewTriggerDemo - Enhanced with responsive map controls and better UI integration */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/NTD_index.js */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Tabs, Tab, Button } from "react-bootstrap";
+import { Tabs, Tab, Button, Form, Alert } from "react-bootstrap";
 
 // Import styles
 import "./styles/NewTriggerDemo.css";
@@ -60,6 +60,17 @@ const NewTriggerDemo = () => {
   const [activeTab, setActiveTab] = useState("dataSubscription");
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
+  
+  // NEW: Enhanced UI settings
+  const [mapSettings, setMapSettings] = useState({
+    responsive: true,
+    enableControls: true,
+    showLegend: true,
+    height: "600px",
+    width: "100%"
+  });
+  const [highlightedTrigger, setHighlightedTrigger] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
   
   // Tag tracking state
   const [tagIdsInput, setTagIdsInput] = useState("SIM1,SIM2");
@@ -111,6 +122,36 @@ const NewTriggerDemo = () => {
     console.log("showTriggerEvents state updated:", showTriggerEvents);
     showTriggerEventsRef.current = showTriggerEvents;
   }, [showTriggerEvents]);
+
+  // NEW: Save map settings to localStorage
+  useEffect(() => {
+    localStorage.setItem("mapSettings", JSON.stringify(mapSettings));
+  }, [mapSettings]);
+
+  // NEW: Load map settings from localStorage
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("mapSettings");
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setMapSettings(prev => ({ ...prev, ...parsed }));
+      } catch (e) {
+        console.warn("Failed to load map settings:", e);
+      }
+    }
+  }, []);
+
+  // NEW: Handle trigger event highlighting
+  useEffect(() => {
+    if (triggerEvents.length > 0) {
+      const latestEvent = triggerEvents[triggerEvents.length - 1];
+      if (latestEvent.trigger_id) {
+        setHighlightedTrigger(latestEvent.trigger_id);
+        // Clear highlight after 3 seconds
+        setTimeout(() => setHighlightedTrigger(null), 3000);
+      }
+    }
+  }, [triggerEvents]);
 
   // Fetch triggers from API
   const fetchTriggers = async () => {
@@ -207,84 +248,268 @@ const NewTriggerDemo = () => {
     localStorage.setItem("eventList", JSON.stringify([]));
   };
 
+  // NEW: Update map settings
+  const updateMapSettings = (newSettings) => {
+    setMapSettings(prev => ({ ...prev, ...newSettings }));
+  };
+
+  // NEW: Connection status component
+  const ConnectionStatus = () => (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      padding: '8px 12px',
+      backgroundColor: isConnected ? '#d4edda' : '#f8d7da',
+      color: isConnected ? '#155724' : '#721c24',
+      border: `1px solid ${isConnected ? '#c3e6cb' : '#f5c6cb'}`,
+      borderRadius: '4px',
+      fontSize: '14px',
+      marginBottom: '10px'
+    }}>
+      <span style={{ 
+        width: '8px', 
+        height: '8px', 
+        borderRadius: '50%', 
+        backgroundColor: isConnected ? '#28a745' : '#dc3545' 
+      }}></span>
+      <span>
+        {isConnected ? 'Connected to WebSocket' : 'Disconnected from WebSocket'}
+      </span>
+      {isConnected && (
+        <span style={{ marginLeft: 'auto', fontSize: '12px', opacity: 0.8 }}>
+          Tags: {tagCount} | Rate: {tagRate.toFixed(1)}/s
+        </span>
+      )}
+    </div>
+  );
+
+  // NEW: Map settings panel
+  const MapSettingsPanel = () => (
+    <div style={{
+      backgroundColor: '#f8f9fa',
+      border: '1px solid #dee2e6',
+      borderRadius: '4px',
+      padding: '12px',
+      marginBottom: '10px'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <h6 style={{ margin: 0 }}>Map Settings</h6>
+        <Button 
+          variant="outline-secondary" 
+          size="sm"
+          onClick={() => setShowSettings(!showSettings)}
+        >
+          {showSettings ? 'Hide' : 'Show'}
+        </Button>
+      </div>
+      
+      {showSettings && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px' }}>
+          <Form.Check
+            type="checkbox"
+            label="Responsive sizing"
+            checked={mapSettings.responsive}
+            onChange={(e) => updateMapSettings({ responsive: e.target.checked })}
+          />
+          <Form.Check
+            type="checkbox"
+            label="Show controls"
+            checked={mapSettings.enableControls}
+            onChange={(e) => updateMapSettings({ enableControls: e.target.checked })}
+          />
+          <Form.Check
+            type="checkbox"
+            label="Show legend"
+            checked={mapSettings.showLegend}
+            onChange={(e) => updateMapSettings({ showLegend: e.target.checked })}
+          />
+          <div>
+            <Form.Label style={{ fontSize: '12px', marginBottom: '2px' }}>Map Height</Form.Label>
+            <Form.Select
+              size="sm"
+              value={mapSettings.height}
+              onChange={(e) => updateMapSettings({ height: e.target.value })}
+            >
+              <option value="400px">400px</option>
+              <option value="500px">500px</option>
+              <option value="600px">600px</option>
+              <option value="700px">700px</option>
+              <option value="800px">800px</option>
+            </Form.Select>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // NEW: Enhanced trigger display polygons with highlighting
+  const getEnhancedTriggerPolygons = () => {
+    if (!triggers || triggers.length === 0) return [];
+    
+    return triggers.map(trigger => ({
+      ...trigger,
+      id: trigger.i_trg,
+      isPortable: trigger.is_portable,
+      isContained: portableTriggerContainment[trigger.i_trg] || false,
+      isHighlighted: highlightedTrigger === trigger.i_trg,
+      center: trigger.is_portable && trigger.assigned_tag_id ? 
+        (tagsData[trigger.assigned_tag_id] ? 
+          [tagsData[trigger.assigned_tag_id].y, tagsData[trigger.assigned_tag_id].x] : null) : null,
+      radius: trigger.radius_ft || 10,
+      latLngs: !trigger.is_portable && trigger.vertices ? 
+        trigger.vertices.map(v => [v.y, v.x]) : null
+    }));
+  };
+
   return (
     <div className="new-trigger-demo">
-      <h2>New Trigger Demo</h2>
-      <Button variant="secondary" onClick={clearSystemEvents}>
-        Clear System Events
-      </Button>
-      {fetchError && <div className="fetch-error">{fetchError}</div>}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <h2 style={{ margin: 0 }}>New Trigger Demo</h2>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Button variant="secondary" onClick={clearSystemEvents}>
+            Clear System Events
+          </Button>
+          <Button 
+            variant="info" 
+            size="sm"
+            onClick={() => setShowSettings(!showSettings)}
+          >
+            ⚙️ Settings
+          </Button>
+        </div>
+      </div>
+
+      <ConnectionStatus />
+      
+      {showSettings && <MapSettingsPanel />}
+      
+      {fetchError && (
+        <Alert variant="danger" style={{ marginBottom: '15px' }}>
+          {fetchError}
+        </Alert>
+      )}
+      
       {loading && <p className="loading-indicator">Loading...</p>}
       
       <Tabs 
         defaultActiveKey="dataSubscription" 
         onSelect={(key) => setActiveTab(key)}
+        className="mb-3"
       >
         <Tab eventKey="dataSubscription" title="📡 Data Subscription">
-          <TriggerDataTab
-            zones={zones}
-            zoneHierarchy={zoneHierarchy}
-            selectedZone={selectedZone}
-            tagIdsInput={tagIdsInput}
-            setTagIdsInput={setTagIdsInput}
-            isConnected={isConnected}
-            tagsData={tagsData}
-            sequenceNumbers={sequenceNumbers}
-            tagCount={tagCount}
-            tagRate={tagRate}
-            connectWebSocket={connectWebSocket}
-            disconnectWebSocket={disconnectWebSocket}
-            handleZoneChange={handleZoneChange}
-          />
+          {activeTab === "dataSubscription" && (
+            <TriggerDataTab
+              zones={zones}
+              zoneHierarchy={zoneHierarchy}
+              selectedZone={selectedZone}
+              tagIdsInput={tagIdsInput}
+              setTagIdsInput={setTagIdsInput}
+              isConnected={isConnected}
+              tagsData={tagsData}
+              sequenceNumbers={sequenceNumbers}
+              tagCount={tagCount}
+              tagRate={tagRate}
+              connectWebSocket={connectWebSocket}
+              disconnectWebSocket={disconnectWebSocket}
+              handleZoneChange={handleZoneChange}
+              // NEW: Enhanced props
+              mapSettings={mapSettings}
+              updateMapSettings={updateMapSettings}
+            />
+          )}
         </Tab>
 
         <Tab eventKey="createTrigger" title="➕ Create Trigger">
-          <TriggerCreateTab
-            zones={zones}
-            zoneHierarchy={zoneHierarchy}
-            selectedZone={selectedZone}
-            triggerDirections={triggerDirections}
-            setEventList={setEventList}
-            fetchTriggers={fetchTriggers}
-            handleZoneChange={handleZoneChange}
-          />
+          {activeTab === "createTrigger" && (
+            <TriggerCreateTab
+              zones={zones}
+              zoneHierarchy={zoneHierarchy}
+              selectedZone={selectedZone}
+              triggerDirections={triggerDirections}
+              setEventList={setEventList}
+              fetchTriggers={fetchTriggers}
+              handleZoneChange={handleZoneChange}
+              // NEW: Enhanced map settings
+              mapSettings={mapSettings}
+              enableResponsive={mapSettings.responsive}
+              enableControls={mapSettings.enableControls}
+              height={mapSettings.height}
+              width={mapSettings.width}
+            />
+          )}
         </Tab>
 
         <Tab eventKey="displayTriggers" title="👁️ View Triggers">
-          <TriggerDisplayTab
-            zones={zones}
-            selectedZone={selectedZone}
-            triggers={triggers}
-            tagsData={tagsData}
-            isConnected={isConnected}
-            triggerEvents={triggerEvents}
-            showTriggerEvents={showTriggerEvents}
-            setShowTriggerEvents={setShowTriggerEvents}
-            portableTriggerContainment={portableTriggerContainment}
-          />
+          {activeTab === "displayTriggers" && (
+            <TriggerDisplayTab
+              zones={zones}
+              selectedZone={selectedZone}
+              triggers={triggers}
+              tagsData={tagsData}
+              isConnected={isConnected}
+              triggerEvents={triggerEvents}
+              showTriggerEvents={showTriggerEvents}
+              setShowTriggerEvents={setShowTriggerEvents}
+              portableTriggerContainment={portableTriggerContainment}
+              // NEW: Enhanced map integration
+              mapSettings={mapSettings}
+              highlightedTrigger={highlightedTrigger}
+              enhancedTriggerPolygons={getEnhancedTriggerPolygons()}
+              enableResponsive={mapSettings.responsive}
+              enableControls={mapSettings.enableControls}
+              height={mapSettings.height}
+              width={mapSettings.width}
+            />
+          )}
         </Tab>
 
         <Tab eventKey="deleteTriggers" title="🗑️ Delete Triggers">
-          <TriggerDeleteTab
-            triggers={triggers}
-            triggerDirections={triggerDirections}
-            fetchTriggers={fetchTriggers}
-            setEventList={setEventList}
-          />
+          {activeTab === "deleteTriggers" && (
+            <TriggerDeleteTab
+              triggers={triggers}
+              triggerDirections={triggerDirections}
+              fetchTriggers={fetchTriggers}
+              setEventList={setEventList}
+            />
+          )}
         </Tab>
 
         <Tab eventKey="events" title="📋 System Events">
-          <TriggerEventsTab eventList={eventList} />
+          {activeTab === "events" && (
+            <TriggerEventsTab 
+              eventList={eventList}
+              triggerEvents={triggerEvents}
+              onTriggerHighlight={setHighlightedTrigger}
+            />
+          )}
         </Tab>
 
         <Tab eventKey="tetseToTriggers" title="🔄 TETSE to Triggers">
-          <TetseConversionTab
-            eventList={eventList}
-            setEventList={setEventList}
-            fetchTriggers={fetchTriggers}
-          />
+          {activeTab === "tetseToTriggers" && (
+            <TetseConversionTab
+              eventList={eventList}
+              setEventList={setEventList}
+              fetchTriggers={fetchTriggers}
+            />
+          )}
         </Tab>
       </Tabs>
+
+      {/* NEW: Global keyboard shortcuts info */}
+      <div style={{
+        position: 'fixed',
+        bottom: '10px',
+        left: '10px',
+        fontSize: '11px',
+        color: '#666',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        padding: '4px 8px',
+        borderRadius: '3px',
+        border: '1px solid #ddd'
+      }}>
+        💡 Map shortcuts: Home (🏠), Fit Data (📏), Scale bar enabled
+      </div>
     </div>
   );
 };
