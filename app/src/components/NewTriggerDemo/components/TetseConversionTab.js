@@ -1,17 +1,17 @@
 /* Name: TetseConversionTab.js */
-/* Version: 0.1.0 */
+/* Version: 0.2.0 */
 /* Created: 250625 */
-/* Modified: 250625 */
+/* Modified: 250705 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: TETSE to Triggers conversion tab component for NewTriggerDemo */
+/* Description: Enhanced TETSE to Triggers conversion tab with delete functionality */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 
 import React, { useState } from "react";
-import { Table, Button, FormCheck } from "react-bootstrap";
+import { Table, Button, FormCheck, ButtonGroup } from "react-bootstrap";
 import { tetseApi } from "../services/tetseApi";
 import { triggerApi } from "../services/triggerApi";
 
@@ -24,6 +24,9 @@ const TetseConversionTab = ({
   const [loadingTetseRules, setLoadingTetseRules] = useState(false);
   const [tetseRulesError, setTetseRulesError] = useState(null);
   const [conversionStatus, setConversionStatus] = useState({});
+  const [deleteStatus, setDeleteStatus] = useState({});
+  const [selectedRules, setSelectedRules] = useState(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Fetch TETSE rules
   const fetchTetseRules = async () => {
@@ -143,19 +146,185 @@ const TetseConversionTab = ({
     }
   };
 
+  // Handle single rule deletion
+  const handleDeleteRule = async (ruleId) => {
+    if (!window.confirm(`Are you sure you want to delete TETSE rule ${ruleId}? This cannot be undone.`)) {
+      return;
+    }
+
+    setDeleteStatus({
+      ...deleteStatus,
+      [ruleId]: { status: 'deleting', message: 'Deleting rule...' }
+    });
+
+    try {
+      console.log(`Deleting TETSE rule ${ruleId}...`);
+      await tetseApi.deleteTetseRule(ruleId);
+      
+      // Remove from local state
+      setTetseRules(prev => prev.filter(rule => rule.id !== ruleId));
+      
+      // Update status
+      setDeleteStatus({
+        ...deleteStatus,
+        [ruleId]: { status: 'success', message: 'Deleted successfully' }
+      });
+      
+      // Add to event list
+      setEventList([...eventList, `TETSE rule ${ruleId} deleted from database`]);
+      
+      // Clean up status after a delay
+      setTimeout(() => {
+        setDeleteStatus(prev => {
+          const updated = { ...prev };
+          delete updated[ruleId];
+          return updated;
+        });
+      }, 3000);
+
+    } catch (error) {
+      console.error(`Error deleting rule ${ruleId}:`, error);
+      
+      setDeleteStatus({
+        ...deleteStatus,
+        [ruleId]: { 
+          status: 'error', 
+          message: `Failed to delete: ${error.message}` 
+        }
+      });
+    }
+  };
+
+  // Handle bulk rule deletion
+  const handleDeleteSelectedRules = async () => {
+    if (selectedRules.size === 0) {
+      alert("Please select rules to delete.");
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to delete ${selectedRules.size} selected TETSE rules? This cannot be undone.`)) {
+      return;
+    }
+
+    const ruleIds = Array.from(selectedRules);
+    console.log(`Deleting ${ruleIds.length} TETSE rules:`, ruleIds);
+
+    try {
+      // Delete all selected rules
+      const deletePromises = ruleIds.map(async (ruleId) => {
+        setDeleteStatus(prev => ({
+          ...prev,
+          [ruleId]: { status: 'deleting', message: 'Deleting...' }
+        }));
+        
+        try {
+          await tetseApi.deleteTetseRule(ruleId);
+          return { ruleId, success: true };
+        } catch (error) {
+          console.error(`Failed to delete rule ${ruleId}:`, error);
+          return { ruleId, success: false, error: error.message };
+        }
+      });
+
+      const results = await Promise.all(deletePromises);
+      
+      // Process results
+      const successful = results.filter(r => r.success);
+      const failed = results.filter(r => !r.success);
+      
+      // Update local state - remove successful deletions
+      if (successful.length > 0) {
+        const successfulIds = successful.map(r => r.ruleId);
+        setTetseRules(prev => prev.filter(rule => !successfulIds.includes(rule.id)));
+        setSelectedRules(new Set());
+      }
+      
+      // Update status
+      results.forEach(({ ruleId, success, error }) => {
+        setDeleteStatus(prev => ({
+          ...prev,
+          [ruleId]: {
+            status: success ? 'success' : 'error',
+            message: success ? 'Deleted' : `Failed: ${error}`
+          }
+        }));
+      });
+      
+      // Add to event list
+      if (successful.length > 0) {
+        setEventList(prev => [...prev, `Bulk deleted ${successful.length} TETSE rules from database`]);
+      }
+      if (failed.length > 0) {
+        setEventList(prev => [...prev, `Failed to delete ${failed.length} TETSE rules`]);
+      }
+      
+      // Clean up status after delay
+      setTimeout(() => {
+        setDeleteStatus({});
+      }, 5000);
+
+    } catch (error) {
+      console.error("Error in bulk delete:", error);
+      alert(`Bulk delete failed: ${error.message}`);
+    }
+  };
+
+  // Handle select all / deselect all
+  const handleSelectAll = () => {
+    if (selectedRules.size === tetseRules.length) {
+      setSelectedRules(new Set());
+    } else {
+      setSelectedRules(new Set(tetseRules.map(rule => rule.id)));
+    }
+  };
+
+  // Handle individual rule selection
+  const handleRuleSelection = (ruleId, checked) => {
+    const newSelected = new Set(selectedRules);
+    if (checked) {
+      newSelected.add(ruleId);
+    } else {
+      newSelected.delete(ruleId);
+    }
+    setSelectedRules(newSelected);
+  };
+
   return (
     <div>
       <h3>Convert TETSE Rules to Portable Triggers</h3>
       <p>Convert proximity and transition rules from TETSE (tlk_rules table) into working portable triggers (triggers table).</p>
       
-      <Button 
-        variant="primary" 
-        onClick={fetchTetseRules}
-        disabled={loadingTetseRules}
-        className="mb-3"
-      >
-        {loadingTetseRules ? 'Loading TETSE Rules...' : 'Load TETSE Rules'}
-      </Button>
+      {/* Control Buttons */}
+      <div style={{ marginBottom: "15px", display: "flex", gap: "10px", alignItems: "center" }}>
+        <Button 
+          variant="primary" 
+          onClick={fetchTetseRules}
+          disabled={loadingTetseRules}
+        >
+          {loadingTetseRules ? 'Loading TETSE Rules...' : 'Load TETSE Rules'}
+        </Button>
+
+        {tetseRules.length > 0 && (
+          <>
+            <Button
+              variant="secondary"
+              onClick={handleSelectAll}
+              size="sm"
+            >
+              {selectedRules.size === tetseRules.length ? 'Deselect All' : 'Select All'}
+            </Button>
+
+            <Button
+              variant="danger"
+              onClick={handleDeleteSelectedRules}
+              disabled={selectedRules.size === 0}
+              size="sm"
+            >
+              Delete Selected ({selectedRules.size})
+            </Button>
+          </>
+        )}
+      </div>
 
       {tetseRulesError && (
         <div className="alert alert-danger" role="alert">
@@ -169,7 +338,14 @@ const TetseConversionTab = ({
         <Table striped bordered hover>
           <thead>
             <tr>
-              <th>Select</th>
+              <th style={{ width: "50px" }}>
+                <FormCheck 
+                  type="checkbox"
+                  checked={selectedRules.size === tetseRules.length && tetseRules.length > 0}
+                  onChange={handleSelectAll}
+                  title="Select/Deselect All"
+                />
+              </th>
               <th>Rule ID</th>
               <th>Name</th>
               <th>Type</th>
@@ -184,8 +360,8 @@ const TetseConversionTab = ({
                 <td>
                   <FormCheck 
                     type="checkbox"
-                    id={`rule-${rule.id}`}
-                    defaultChecked={false}
+                    checked={selectedRules.has(rule.id)}
+                    onChange={(e) => handleRuleSelection(rule.id, e.target.checked)}
                   />
                 </td>
                 <td>{rule.id}</td>
@@ -201,32 +377,74 @@ const TetseConversionTab = ({
                 </td>
                 <td>{rule.subject_id || 'N/A'}</td>
                 <td>
-                  {conversionStatus[rule.id] ? (
+                  {/* Conversion Status */}
+                  {conversionStatus[rule.id] && (
                     <span className={`badge bg-${
                       conversionStatus[rule.id].status === 'success' ? 'success' : 
                       conversionStatus[rule.id].status === 'error' ? 'danger' : 'warning'
+                    }`} style={{ marginRight: "5px" }}>
+                      Convert: {conversionStatus[rule.id].message}
+                    </span>
+                  )}
+                  
+                  {/* Delete Status */}
+                  {deleteStatus[rule.id] ? (
+                    <span className={`badge bg-${
+                      deleteStatus[rule.id].status === 'success' ? 'success' : 
+                      deleteStatus[rule.id].status === 'error' ? 'danger' : 'warning'
                     }`}>
-                      {conversionStatus[rule.id].message}
+                      Delete: {deleteStatus[rule.id].message}
                     </span>
                   ) : (
-                    <span className="badge bg-secondary">Ready</span>
+                    !conversionStatus[rule.id] && (
+                      <span className="badge bg-secondary">Ready</span>
+                    )
                   )}
                 </td>
                 <td>
-                  <Button
-                    variant="success"
-                    size="sm"
-                    onClick={() => handleConvertRule(rule.id)}
-                    disabled={conversionStatus[rule.id]?.status === 'converting'}
-                  >
-                    {conversionStatus[rule.id]?.status === 'converting' ? 'Converting...' : 'Convert to Trigger'}
-                  </Button>
+                  <ButtonGroup size="sm">
+                    <Button
+                      variant="success"
+                      onClick={() => handleConvertRule(rule.id)}
+                      disabled={conversionStatus[rule.id]?.status === 'converting' || deleteStatus[rule.id]?.status === 'deleting'}
+                      title="Convert to Trigger"
+                    >
+                      {conversionStatus[rule.id]?.status === 'converting' ? 'Converting...' : '🔄 Convert'}
+                    </Button>
+                    
+                    <Button
+                      variant="danger"
+                      onClick={() => handleDeleteRule(rule.id)}
+                      disabled={deleteStatus[rule.id]?.status === 'deleting' || conversionStatus[rule.id]?.status === 'converting'}
+                      title="Delete Rule"
+                    >
+                      {deleteStatus[rule.id]?.status === 'deleting' ? 'Deleting...' : '🗑️ Delete'}
+                    </Button>
+                  </ButtonGroup>
                 </td>
               </tr>
             ))}
           </tbody>
         </Table>
       )}
+
+      {/* Help Section */}
+      <div style={{ 
+        marginTop: "20px", 
+        padding: "15px", 
+        backgroundColor: "#e7f3ff", 
+        borderRadius: "5px",
+        border: "1px solid #b3d9ff"
+      }}>
+        <h6 style={{ color: "#0066cc" }}>💡 TETSE Rule Management</h6>
+        <ul style={{ fontSize: "13px", color: "#333", marginBottom: 0 }}>
+          <li><strong>Load TETSE Rules:</strong> Fetch all rules from the tlk_rules database table</li>
+          <li><strong>Convert:</strong> Transform TETSE rules into working triggers in the triggers table</li>
+          <li><strong>Delete:</strong> Permanently remove TETSE rules from the database (cannot be undone)</li>
+          <li><strong>Bulk Operations:</strong> Select multiple rules for bulk deletion</li>
+          <li><strong>Status Tracking:</strong> Monitor conversion and deletion progress in real-time</li>
+        </ul>
+      </div>
     </div>
   );
 };

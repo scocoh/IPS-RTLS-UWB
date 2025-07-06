@@ -1,10 +1,10 @@
 /* Name: NTD_index.js */
-/* Version: 0.1.0 */
+/* Version: 0.2.0 */
 /* Created: 250625 */
-/* Modified: 250625 */
+/* Modified: 250705 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Main component for NewTriggerDemo - orchestrates all subcomponents */
+/* Description: Main component for NewTriggerDemo - orchestrates all subcomponents with new tab structure */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/NTD_index.js */
 /* Role: Frontend */
 /* Status: Active */
@@ -16,8 +16,11 @@ import { Tabs, Tab, Button } from "react-bootstrap";
 // Import styles
 import "./styles/NewTriggerDemo.css";
 
-// Import components
-import TriggerMapTab from "./components/TriggerMapTab";
+// Import NEW tab components
+import TriggerDataTab from "./components/TriggerDataTab";
+import TriggerCreateTab from "./components/TriggerCreateTab";
+import TriggerDisplayTab from "./components/TriggerDisplayTab";
+// Import existing components
 import TriggerDeleteTab from "./components/TriggerDeleteTab";
 import TriggerEventsTab from "./components/TriggerEventsTab";
 import TetseConversionTab from "./components/TetseConversionTab";
@@ -54,7 +57,7 @@ const NewTriggerDemo = () => {
   const showTriggerEventsRef = useRef(true);
   
   // UI state
-  const [activeTab, setActiveTab] = useState("mapAndTrigger");
+  const [activeTab, setActiveTab] = useState("dataSubscription");
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(null);
   
@@ -214,16 +217,14 @@ const NewTriggerDemo = () => {
       {loading && <p className="loading-indicator">Loading...</p>}
       
       <Tabs 
-        defaultActiveKey="mapAndTrigger" 
+        defaultActiveKey="dataSubscription" 
         onSelect={(key) => setActiveTab(key)}
       >
-        <Tab eventKey="mapAndTrigger" title="Map & Trigger">
-          <TriggerMapTab
+        <Tab eventKey="dataSubscription" title="📡 Data Subscription">
+          <TriggerDataTab
             zones={zones}
             zoneHierarchy={zoneHierarchy}
             selectedZone={selectedZone}
-            triggers={triggers}
-            triggerDirections={triggerDirections}
             tagIdsInput={tagIdsInput}
             setTagIdsInput={setTagIdsInput}
             isConnected={isConnected}
@@ -231,21 +232,39 @@ const NewTriggerDemo = () => {
             sequenceNumbers={sequenceNumbers}
             tagCount={tagCount}
             tagRate={tagRate}
-            triggerEvents={triggerEvents}
-            showTriggerEvents={showTriggerEvents}
-            setShowTriggerEvents={setShowTriggerEvents}
-            eventList={eventList}
-            setEventList={setEventList}
-            portableTriggerContainment={portableTriggerContainment}
             connectWebSocket={connectWebSocket}
             disconnectWebSocket={disconnectWebSocket}
             handleZoneChange={handleZoneChange}
-            fetchTriggers={fetchTriggers}
-            activeTab={activeTab}
           />
         </Tab>
 
-        <Tab eventKey="deleteTriggers" title="Delete Triggers">
+        <Tab eventKey="createTrigger" title="➕ Create Trigger">
+          <TriggerCreateTab
+            zones={zones}
+            zoneHierarchy={zoneHierarchy}
+            selectedZone={selectedZone}
+            triggerDirections={triggerDirections}
+            setEventList={setEventList}
+            fetchTriggers={fetchTriggers}
+            handleZoneChange={handleZoneChange}
+          />
+        </Tab>
+
+        <Tab eventKey="displayTriggers" title="👁️ View Triggers">
+          <TriggerDisplayTab
+            zones={zones}
+            selectedZone={selectedZone}
+            triggers={triggers}
+            tagsData={tagsData}
+            isConnected={isConnected}
+            triggerEvents={triggerEvents}
+            showTriggerEvents={showTriggerEvents}
+            setShowTriggerEvents={setShowTriggerEvents}
+            portableTriggerContainment={portableTriggerContainment}
+          />
+        </Tab>
+
+        <Tab eventKey="deleteTriggers" title="🗑️ Delete Triggers">
           <TriggerDeleteTab
             triggers={triggers}
             triggerDirections={triggerDirections}
@@ -254,11 +273,11 @@ const NewTriggerDemo = () => {
           />
         </Tab>
 
-        <Tab eventKey="events" title="System Events">
+        <Tab eventKey="events" title="📋 System Events">
           <TriggerEventsTab eventList={eventList} />
         </Tab>
 
-        <Tab eventKey="tetseToTriggers" title="TETSE to Triggers">
+        <Tab eventKey="tetseToTriggers" title="🔄 TETSE to Triggers">
           <TetseConversionTab
             eventList={eventList}
             setEventList={setEventList}

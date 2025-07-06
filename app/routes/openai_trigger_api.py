@@ -1,21 +1,24 @@
 # Name: openai_trigger_api.py
-# Version: 0.3.3
+# Version: 0.4.0
 # Created: 250617
-# Modified: 250704
+# Modified: 250705
 # Author: ParcoAdmin + QuantumSage AI
-# Modified By: ParcoAdmin
-# Purpose: Enhanced TETSE Rule Creation with proximity conditions, layered triggers, and zone transitions
+# Modified By: ParcoAdmin + Claude
+# Purpose: Enhanced TETSE Rule Management with delete functionality, proximity conditions, layered triggers, and zone transitions
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
+# Version: 0.4.0 - Added delete_tetse_rule and delete_tetse_rules endpoints for rule deletion, bumped from 0.3.3
+# Version: 0.3.3 - Added get_tetse_rules endpoint for TETSE to Triggers tab
 # Version: 0.3.1 - Added get_tetse_rules endpoint for TETSE to Triggers tab
 
 
 """
 /home/parcoadmin/parco_fastapi/app/routes/openai_trigger_api.py
-# Version: 0.3.0 - Enhanced rule creation with proximity conditions, layered triggers, zone transitions, and backward compatibility
+# Version: 0.4.0 - Enhanced TETSE rule management with delete functionality and improved error handling
+# Previous: 0.3.0 - Enhanced rule creation with proximity conditions, layered triggers, zone transitions, and backward compatibility
 # Previous: 0.2.7 - Fixed database pool routing: data_pool for tlk_rules (ParcoRTLSData), maint_pool for zones (ParcoRTLSMaint)
 # Previous: 0.2.6 - Pass maint_pool to adapt_rulebuilder_to_tetse
 # Previous: 0.2.5 - Fixed zone validation to use 'zones' in ParcoRTLSMaint
@@ -45,6 +48,7 @@ import time
 from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel, ValidationError
 from datetime import datetime, timezone
+from typing import List
 from database.db import get_async_db_pool
 from .tetse_rule_interpreter import parse_natural_language
 from .tetse_rule_adapter import adapt_rulebuilder_to_tetse
@@ -86,6 +90,9 @@ class RuleInput(BaseModel):
     duration_sec: int | None = None
     action: str | None = None
     verbose: bool = True
+
+class DeleteRulesInput(BaseModel):
+    rule_ids: List[int]
 
 async def get_maint_db_pool():
     """
@@ -257,6 +264,140 @@ async def get_tetse_rules(data_pool: asyncpg.Pool = Depends(get_data_db_pool)):
     except Exception as e:
         logger.error(f"Error fetching TETSE rules: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch TETSE rules: {str(e)}")
+
+@router.delete("/delete_tetse_rule/{rule_id}")
+async def delete_tetse_rule(rule_id: int, data_pool: asyncpg.Pool = Depends(get_data_db_pool)):
+    """
+    Delete a single TETSE rule from tlk_rules table by ID.
+    
+    Args:
+        rule_id: The ID of the rule to delete
+        
+    Returns:
+        dict: Success message with deleted rule information
+        
+    Raises:
+        HTTPException: If rule not found or deletion fails
+    """
+    try:
+        logger.info(f"Attempting to delete TETSE rule {rule_id}")
+        
+        async with data_pool.acquire() as conn:
+            # First check if rule exists and get its info
+            rule_info = await conn.fetchrow(
+                "SELECT id, name, rule_type FROM tlk_rules WHERE id = $1",
+                rule_id
+            )
+            
+            if not rule_info:
+                logger.warning(f"TETSE rule {rule_id} not found")
+                raise HTTPException(status_code=404, detail=f"TETSE rule {rule_id} not found")
+            
+            # Delete the rule
+            deleted_count = await conn.execute(
+                "DELETE FROM tlk_rules WHERE id = $1",
+                rule_id
+            )
+            
+            # Check if deletion was successful
+            if deleted_count == "DELETE 0":
+                logger.error(f"Failed to delete TETSE rule {rule_id} - no rows affected")
+                raise HTTPException(status_code=500, detail=f"Failed to delete TETSE rule {rule_id}")
+            
+        logger.info(f"Successfully deleted TETSE rule {rule_id}: {rule_info['name']}")
+        
+        return {
+            "success": True,
+            "message": f"TETSE rule {rule_id} deleted successfully",
+            "deleted_rule": {
+                "id": rule_info["id"],
+                "name": rule_info["name"],
+                "rule_type": rule_info["rule_type"]
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting TETSE rule {rule_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete TETSE rule {rule_id}: {str(e)}")
+
+@router.delete("/delete_tetse_rules")
+async def delete_tetse_rules(input_data: DeleteRulesInput, data_pool: asyncpg.Pool = Depends(get_data_db_pool)):
+    """
+    Delete multiple TETSE rules from tlk_rules table by IDs.
+    
+    Args:
+        input_data: Object containing list of rule IDs to delete
+        
+    Returns:
+        dict: Summary of deletion results with success/failure details
+        
+    Raises:
+        HTTPException: If deletion process fails
+    """
+    try:
+        rule_ids = input_data.rule_ids
+        logger.info(f"Attempting to delete {len(rule_ids)} TETSE rules: {rule_ids}")
+        
+        if not rule_ids:
+            raise HTTPException(status_code=400, detail="No rule IDs provided")
+        
+        # Validate rule IDs are positive integers
+        invalid_ids = [rid for rid in rule_ids if not isinstance(rid, int) or rid <= 0]
+        if invalid_ids:
+            raise HTTPException(status_code=400, detail=f"Invalid rule IDs: {invalid_ids}")
+        
+        async with data_pool.acquire() as conn:
+            # Get information about rules that exist
+            existing_rules = await conn.fetch(
+                "SELECT id, name, rule_type FROM tlk_rules WHERE id = ANY($1)",
+                rule_ids
+            )
+            
+            existing_ids = {rule["id"] for rule in existing_rules}
+            missing_ids = [rid for rid in rule_ids if rid not in existing_ids]
+            
+            if missing_ids:
+                logger.warning(f"Some TETSE rules not found: {missing_ids}")
+            
+            # Delete existing rules
+            if existing_ids:
+                deleted_count_result = await conn.execute(
+                    "DELETE FROM tlk_rules WHERE id = ANY($1)",
+                    list(existing_ids)
+                )
+                
+                # Parse the result to get actual count
+                deleted_count = int(deleted_count_result.split()[-1]) if deleted_count_result.startswith("DELETE") else 0
+            else:
+                deleted_count = 0
+        
+        # Prepare results
+        successful_deletions = [
+            {"id": rule["id"], "name": rule["name"], "rule_type": rule["rule_type"]}
+            for rule in existing_rules
+        ]
+        
+        logger.info(f"Successfully deleted {deleted_count} TETSE rules")
+        
+        return {
+            "success": True,
+            "message": f"Bulk deletion completed: {deleted_count} rules deleted",
+            "summary": {
+                "requested": len(rule_ids),
+                "deleted": deleted_count,
+                "not_found": len(missing_ids)
+            },
+            "deleted_rules": successful_deletions,
+            "missing_rule_ids": missing_ids
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in bulk delete TETSE rules: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete TETSE rules: {str(e)}")
 
 # Also add this helper endpoint to test database connection
 @router.get("/test_tetse_db")

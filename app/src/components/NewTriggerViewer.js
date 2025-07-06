@@ -1,17 +1,19 @@
 /* Name: NewTriggerViewer.js */
-/* Version: 0.1.4 */
+/* Version: 0.1.6 */
 /* Created: 971201 */
-/* Modified: 250704 */
+/* Modified: 250706 */
 /* Creator: ParcoAdmin */
-/* Modified By: ParcoAdmin */
-/* Description: JavaScript file for ParcoRTLS frontend - Updated with IP centralization */
+/* Modified By: ParcoAdmin + Claude */
+/* Description: JavaScript file for ParcoRTLS frontend - Fixed zoom reset issue and reduced map update frequency */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerViewer.js
-// Version: v0.1.4-250704 - Fixed imageUrl in API response to use correct server host instead of 127.0.0.1, bumped from v0.1.3
+// Version: v0.1.6-250706 - Fixed zoom reset issue: removed aggressive auto-zoom, reduced update frequency, bumped from v0.1.5
+// Previous: Enhanced tag marker management: gray markers for 30s before removal, bumped from v0.1.4
+// Previous: Fixed imageUrl in API response to use correct server host instead of 127.0.0.1, bumped from v0.1.3
 // Previous: Fixed triggers undefined error with default prop and optional chaining, retained WebSocket heartbeat logic, bumped from v0.1.1
 // Previous: Added WebSocket connection for heartbeat handling, bumped from v0.1.0
 // Previous: Removed division scaling for portable trigger radii to match map scale, bumped from v0.0.33
@@ -62,6 +64,10 @@ const NewTriggerViewer = memo(({
   const updateTimeout = useRef(null);
   const firstTagAppearance = useRef(true);
   const wsRef = useRef(null);
+  
+  // Enhanced tag marker management refs
+  const tagLastSeenRef = useRef({}); // Track when each tag was last seen
+  const tagTimeoutRef = useRef({}); // Track timeout handlers for each tag
 
   // Dynamic server host configuration
   const server_host = window.location.hostname || 'localhost';
@@ -517,16 +523,24 @@ const NewTriggerViewer = memo(({
         }
       });
       if (mapInstance.current) {
-        mapInstance.current.invalidateSize();
-        console.log("Map size invalidated to force refresh");
+        // mapInstance.current.invalidateSize();
+        // console.log("Map size invalidated to force refresh");
       }
     } else {
       console.log("No triggers to render or showExistingTriggers is false", { showExistingTriggers, memoizedTriggerPolygons });
     }
   }, [useLeaflet, mapData, zoneVertices, checkedZones, memoizedTriggerPolygons, mapInitialized]);
 
+  // FIXED: Tag marker useEffect with zoom preservation
   useEffect(() => {
-    console.log("Tag marker useEffect triggered", { tagsData, isConnected, mapInstance: !!mapInstance.current, mapInitialized, triggers });
+    console.log("=== TAG MARKER DEBUG ===");
+    console.log("tagsData:", tagsData);
+    console.log("selectedZone:", zones[0]);
+    console.log("selectedZoneId:", zones[0]?.i_zn);
+    console.log("isConnected:", isConnected);
+    console.log("mapInstance:", !!mapInstance.current);
+    console.log("mapInitialized:", mapInitialized);
+    
     if (!useLeaflet || !mapInstance.current || !mapData || !mapInitialized) return;
 
     if (updateTimeout.current) {
@@ -535,31 +549,31 @@ const NewTriggerViewer = memo(({
 
     updateTimeout.current = setTimeout(() => {
       const selectedZoneId = zones[0]?.i_zn || "N/A";
+      const now = Date.now();
 
-      Object.keys(tagMarkersRef.current).forEach(tagId => {
-        const tagData = tagsData[tagId];
-        const tagZoneId = tagData?.zone_id || selectedZoneId;
-        if (!tagData || tagZoneId !== selectedZoneId) {
-          const marker = tagMarkersRef.current[tagId];
-          if (marker && mapInstance.current.hasLayer(marker)) {
-            mapInstance.current.removeLayer(marker);
-            console.log(`Tag marker for ${tagId} removed due to zone mismatch or no tag data`, { tagZoneId, selectedZoneId });
-          }
-          delete tagMarkersRef.current[tagId];
-        }
-      });
-
-      if (!isConnected) {
-        Object.values(tagMarkersRef.current).forEach(marker => {
-          marker.setStyle({ color: "gray", fillColor: "gray" });
-          console.log("Tag marker turned gray due to disconnect");
-        });
-        return;
-      }
-
+      // Process existing tags that have new data
       Object.entries(tagsData).forEach(([tagId, tagData]) => {
         const tagZoneId = tagData.zone_id || selectedZoneId;
-        if (tagZoneId !== selectedZoneId) return;
+        console.log(`Tag ${tagId} processing:`, {
+          tagZoneId,
+          selectedZoneId,
+          zoneMatch: tagZoneId === selectedZoneId,
+          tagData
+        });
+        
+        if (tagZoneId !== selectedZoneId) {
+          console.log(`Tag ${tagId} filtered out due to zone mismatch: ${tagZoneId} !== ${selectedZoneId}`);
+          return;
+        }
+
+        // Update last seen time for active tags
+        tagLastSeenRef.current[tagId] = now;
+        
+        // Clear any existing timeout for this tag
+        if (tagTimeoutRef.current[tagId]) {
+          clearTimeout(tagTimeoutRef.current[tagId]);
+          delete tagTimeoutRef.current[tagId];
+        }
 
         const { x, y } = tagData;
         const latLng = [y, x];
@@ -579,37 +593,106 @@ const NewTriggerViewer = memo(({
 
         let marker = tagMarkersRef.current[tagId];
         if (!marker) {
+          // Create new marker - green/active
           marker = L.marker(latLng, {
             icon: L.divIcon({
               className: "tag-marker",
-              html: `<div style="background-color: red; width: ${markerSize}px; height: ${markerSize}px; border-radius: 50%;"></div>`,
-              iconSize: [markerSize, markerSize],
-              iconAnchor: [markerSize / 2, markerSize / 2]
+              html: `<div style="background-color: green; width: ${markerSize}px; height: ${markerSize}px; border-radius: 50%; border: 2px solid white;"></div>`,
+              iconSize: [markerSize + 4, markerSize + 4],
+              iconAnchor: [(markerSize + 4) / 2, (markerSize + 4) / 2]
             }),
             zIndexOffset: 1000
           }).addTo(mapInstance.current);
+          
           marker.bindTooltip(`Tag ${tagId}`, { permanent: false, direction: "top" });
           tagMarkersRef.current[tagId] = marker;
           console.log(`Tag marker created for ${tagId} at:`, latLng);
+          
+          // FIXED: Only auto-zoom on very first tag appearance if user hasn't interacted and only 1 tag exists
+          if (firstTagAppearance.current && !userInteracted.current && Object.keys(tagMarkersRef.current).length === 1) {
+            mapInstance.current.setView(latLng, 2, { animate: false }); // Reduced zoom level from 7 to 2
+            console.log(`Initial map view set to tag ${tagId} at:`, latLng);
+            firstTagAppearance.current = false;
+          }
         } else {
+          // Update existing marker - ensure it's green/active
           marker.setLatLng(latLng);
           marker.setIcon(L.divIcon({
             className: "tag-marker",
-            html: `<div style="background-color: red; width: ${markerSize}px; height: ${markerSize}px; border-radius: 50%;"></div>`,
-            iconSize: [markerSize, markerSize],
-            iconAnchor: [markerSize / 2, markerSize / 2]
+            html: `<div style="background-color: green; width: ${markerSize}px; height: ${markerSize}px; border-radius: 50%; border: 2px solid white;"></div>`,
+            iconSize: [markerSize + 4, markerSize + 4],
+            iconAnchor: [(markerSize + 4) / 2, (markerSize + 4) / 2]
           }));
           console.log(`Tag marker updated for ${tagId} to:`, latLng);
-        }
-
-        if (firstTagAppearance.current && !userInteracted.current) {
-          const tagBounds = L.latLngBounds(latLng, latLng);
-          mapInstance.current.setView(latLng, 7, { animate: false });
-          console.log(`Map zoomed to tag ${tagId} at:`, latLng);
-          firstTagAppearance.current = false;
+          // REMOVED: Auto-zoom logic that was causing zoom reset on every update
         }
       });
-    }, 100);
+
+      // Check for stale tags that haven't sent data recently
+      Object.keys(tagMarkersRef.current).forEach(tagId => {
+        const lastSeen = tagLastSeenRef.current[tagId];
+        const timeSinceLastSeen = now - (lastSeen || 0);
+        
+        if (!tagsData[tagId]) {
+          // Tag not in current data - check how long it's been missing
+          if (timeSinceLastSeen > 30000) { // 30 seconds
+            // Remove marker completely after 30 seconds
+            const marker = tagMarkersRef.current[tagId];
+            if (marker && mapInstance.current.hasLayer(marker)) {
+              mapInstance.current.removeLayer(marker);
+              console.log(`Tag marker for ${tagId} removed after 30 seconds of no data`);
+            }
+            delete tagMarkersRef.current[tagId];
+            delete tagLastSeenRef.current[tagId];
+            if (tagTimeoutRef.current[tagId]) {
+              clearTimeout(tagTimeoutRef.current[tagId]);
+              delete tagTimeoutRef.current[tagId];
+            }
+          } else if (timeSinceLastSeen > 5000) { // 5 seconds - turn gray
+            // Turn marker gray if data stopped coming for 5+ seconds
+            const marker = tagMarkersRef.current[tagId];
+            if (marker) {
+              const markerSize = 10; // Default size for gray markers
+              marker.setIcon(L.divIcon({
+                className: "tag-marker-stale",
+                html: `<div style="background-color: gray; width: ${markerSize}px; height: ${markerSize}px; border-radius: 50%; border: 2px solid white; opacity: 0.7;"></div>`,
+                iconSize: [markerSize + 4, markerSize + 4],
+                iconAnchor: [(markerSize + 4) / 2, (markerSize + 4) / 2]
+              }));
+              console.log(`Tag marker for ${tagId} turned gray (no data for ${(timeSinceLastSeen/1000).toFixed(1)}s)`);
+              
+              // Set timeout to remove after 30 seconds total
+              if (!tagTimeoutRef.current[tagId]) {
+                tagTimeoutRef.current[tagId] = setTimeout(() => {
+                  const marker = tagMarkersRef.current[tagId];
+                  if (marker && mapInstance.current.hasLayer(marker)) {
+                    mapInstance.current.removeLayer(marker);
+                    console.log(`Tag marker for ${tagId} removed after timeout`);
+                  }
+                  delete tagMarkersRef.current[tagId];
+                  delete tagLastSeenRef.current[tagId];
+                  delete tagTimeoutRef.current[tagId];
+                }, 30000 - timeSinceLastSeen);
+              }
+            }
+          }
+        }
+      });
+
+      // Handle disconnection state
+      if (!isConnected) {
+        Object.values(tagMarkersRef.current).forEach(marker => {
+          const markerSize = 10;
+          marker.setIcon(L.divIcon({
+            className: "tag-marker-disconnected",
+            html: `<div style="background-color: red; width: ${markerSize}px; height: ${markerSize}px; border-radius: 50%; border: 2px solid white; opacity: 0.5;"></div>`,
+            iconSize: [markerSize + 4, markerSize + 4],
+            iconAnchor: [(markerSize + 4) / 2, (markerSize + 4) / 2]
+          }));
+        });
+        console.log("All tag markers turned red due to disconnection");
+      }
+    }, 500); // CHANGED: Increased from 100ms to 500ms to reduce update frequency
 
     return () => {
       if (updateTimeout.current) {
@@ -617,6 +700,18 @@ const NewTriggerViewer = memo(({
       }
     };
   }, [useLeaflet, tagsData, isConnected, mapData, zones, mapInitialized, triggers]);
+
+  // Cleanup function for component unmount
+  useEffect(() => {
+    return () => {
+      // Clear all timeouts on unmount
+      Object.values(tagTimeoutRef.current).forEach(timeout => {
+        clearTimeout(timeout);
+      });
+      tagTimeoutRef.current = {};
+      tagLastSeenRef.current = {};
+    };
+  }, []);
 
   return (
     <div>

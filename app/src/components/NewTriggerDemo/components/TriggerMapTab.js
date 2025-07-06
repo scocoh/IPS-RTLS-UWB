@@ -1,10 +1,10 @@
 /* Name: TriggerMapTab.js */
-/* Version: 0.1.2 */
+/* Version: 0.1.3 */
 /* Created: 250625 */
-/* Modified: 250704 */
+/* Modified: 250705 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Map & Trigger tab component for NewTriggerDemo - Fixed to use single NewTriggerViewer.js file */
+/* Description: Map & Trigger tab component for NewTriggerDemo - Step 1: Add basic styling state */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -55,6 +55,22 @@ const TriggerMapTab = ({
   const [showExistingTriggers, setShowExistingTriggers] = useState(true);
   const [existingTriggerPolygons, setExistingTriggerPolygons] = useState([]);
   const retryIntervalRef = useRef(null);
+
+  // NEW: Basic trigger styling state (Step 1)
+  const [triggerStyle, setTriggerStyle] = useState({
+    staticFillOpacity: 25,        // Static trigger fill transparency (0-100%)
+    portableFillOpacity: 40,      // Portable trigger fill transparency (0-100%)
+    staticColor: '#ff0000',       // Static trigger color
+    portableColor: '#00ff00'      // Portable trigger color
+  });
+
+  // NEW: Update trigger styling function (Step 1)
+  const updateTriggerStyle = useCallback((property, value) => {
+    setTriggerStyle(prev => ({
+      ...prev,
+      [property]: value
+    }));
+  }, []);
 
   // Fetch zone vertices when zone changes
   const fetchZoneVertices = useCallback(async (zoneId) => {
@@ -329,6 +345,52 @@ const TriggerMapTab = ({
         </div>
       )}
 
+      {/* NEW: Basic Trigger Styling Controls (Step 1) */}
+      <div style={{ 
+        marginTop: "15px", 
+        marginBottom: "15px", 
+        padding: "10px", 
+        backgroundColor: "#f8f9fa", 
+        borderRadius: "5px",
+        border: "1px solid #dee2e6"
+      }}>
+        <h6>🎨 Trigger Styling</h6>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+          <div>
+            <Form.Label style={{ fontSize: "12px" }}>Static Trigger Transparency:</Form.Label>
+            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={triggerStyle.staticFillOpacity}
+                onChange={(e) => updateTriggerStyle('staticFillOpacity', parseInt(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <span style={{ fontSize: "11px", minWidth: "30px" }}>
+                {triggerStyle.staticFillOpacity}%
+              </span>
+            </div>
+          </div>
+          <div>
+            <Form.Label style={{ fontSize: "12px" }}>Portable Trigger Transparency:</Form.Label>
+            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={triggerStyle.portableFillOpacity}
+                onChange={(e) => updateTriggerStyle('portableFillOpacity', parseInt(e.target.value))}
+                style={{ flex: 1 }}
+              />
+              <span style={{ fontSize: "11px", minWidth: "30px" }}>
+                {triggerStyle.portableFillOpacity}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div style={{ marginTop: "10px" }}>
         <h3>Trigger Events</h3>
         <FormCheck
@@ -423,6 +485,7 @@ const TriggerMapTab = ({
               tagsData={tagsData}
               isConnected={isConnected}
               triggers={triggers}
+              triggerStyle={triggerStyle}
             />
           ) : (
             <div style={{ color: "red" }}>No map ID available for this zone.</div>

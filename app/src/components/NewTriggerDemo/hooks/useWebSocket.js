@@ -1,10 +1,10 @@
 /* Name: useWebSocket.js */
-/* Version: 0.1.1 */
+/* Version: 0.1.2 */
 /* Created: 250625 */
-/* Modified: 250703 */
+/* Modified: 250705 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: WebSocket connection hook for NewTriggerDemo - updated with centralized IP configuration */
+/* Description: WebSocket connection hook for NewTriggerDemo - Fixed sequence number debugging in trigger events */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/hooks */
 /* Role: Frontend */
 /* Status: Active */
@@ -120,10 +120,14 @@ export const useWebSocket = ({
           return updated;
         });
 
-        setSequenceNumbers(prev => ({
-          ...prev,
-          [data.ID]: data.Sequence || "N/A"
-        }));
+        setSequenceNumbers(prev => {
+          const updated = {
+            ...prev,
+            [data.ID]: data.Sequence || "N/A"
+          };
+          console.log(`Updated sequence for tag ${data.ID}: ${data.Sequence}, available keys:`, Object.keys(updated));
+          return updated;
+        });
 
         setTagCount(prev => {
           const newCount = prev + 1;
@@ -178,7 +182,20 @@ export const useWebSocket = ({
     }
 
     const zoneName = zones.find(z => z.i_zn === trigger.i_zn)?.x_nm_zn || "Unknown";
-    const sequenceNumber = sequenceNumbers[data.tag_id] || (tagsData[data.tag_id]?.sequence || "N/A");
+    
+    // Enhanced sequence number lookup with debugging
+    const tagId = data.tag_id;
+    const sequenceFromNumbers = sequenceNumbers[tagId];
+    const sequenceFromTagsData = tagsData[tagId]?.sequence;
+    
+    console.log(`Sequence lookup for tag ${tagId}:`, {
+      sequenceFromNumbers,
+      sequenceFromTagsData,
+      availableKeys: Object.keys(sequenceNumbers)
+    });
+    
+    const sequenceNumber = sequenceFromNumbers !== undefined ? sequenceFromNumbers : 
+                          (sequenceFromTagsData !== undefined ? sequenceFromTagsData : "N/A");
     
     let eventMsg;
     if (data.assigned_tag_id && data.tag_id !== data.assigned_tag_id) {

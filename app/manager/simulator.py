@@ -1,10 +1,10 @@
 # Name: simulator.py
-# Version: 0.1.27
+# Version: 0.1.29
 # Created: 971201
-# Modified: 250704
+# Modified: 250705
 # Creator: ParcoAdmin
-# Modified By: AI Assistant
-# Description: Python script for ParcoRTLS simulator with centralized IP configuration
+# Modified By: ParcoAdmin + Claude
+# Description: Python script for ParcoRTLS simulator - Fixed smooth movement interpolation
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Simulator
 # Status: Active
@@ -13,12 +13,9 @@
 #!/usr/bin/env python3
 """
 ParcoRTLS Simulator - Generates test position data for RTLS development
+Version: 0.1.29 - Fixed smooth movement interpolation for moving tags, bumped from 0.1.28
+Version: 0.1.28 - Restored proper sequence number management from v0.1.21, bumped from 0.1.27
 Version: 0.1.27 - Updated to use centralized IP configuration system, bumped from 0.1.26
-Version: 0.1.26 - Fixed mode 6 to use multiple tags with different roles, fixed mode prompt, bumped from 0.1.25
-Version: 0.1.25 - Restored all simulation modes from v0.1.22 while keeping v0.1.24 PortRedirect fix, bumped from 0.1.24
-Version: 0.1.24 - Fixed PortRedirect handling from Control WebSocket, bumped from 0.1.23
-Version: 0.1.23 - Added PortRedirect and EndStream support, improved zone handling
-Version: 0.1.22 - Enhanced heartbeat response for HeartbeatManager, added configurable WebSocket URI
 """
 
 import asyncio
@@ -79,12 +76,17 @@ class TagConfig:
     positions: List[Tuple[float, float, float]]
     ping_rate: float = 0.25  # Hz
     move_interval: float = 10.0  # seconds
-    current_position_index: int = 0
-    last_move_time: float = 0.0
     sleep_interval: float = 1.0
+    sequence_number: int = 1  # Proper sequence number management
     
     def __post_init__(self):
         self.sleep_interval = 1.0 / self.ping_rate
+
+    def increment_sequence(self):
+        """Proper sequence number increment with rollover"""
+        self.sequence_number += 1
+        if self.sequence_number > 200:
+            self.sequence_number = 1
 
 def interpolate_positions(pos1: Tuple[float, float, float], 
                          pos2: Tuple[float, float, float], 
@@ -236,57 +238,76 @@ async def receive_stream_messages(websocket, running):
 
 async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], 
                        duration: float, zone_id: int, start_time: float):
-    """Send position data for a single tag"""
+    """Send position data for a single tag with smooth interpolation"""
     global stream_websocket, should_stop
-    sequence = 0
     
     while (asyncio.get_event_loop().time() - start_time) < duration and running[0] and not should_stop:
         current_time = asyncio.get_event_loop().time()
         elapsed_time = current_time - start_time
         
-        # Update position for moving tags
-        if len(tag_config.positions) > 1:
-            if current_time - tag_config.last_move_time >= tag_config.move_interval:
-                tag_config.current_position_index = (tag_config.current_position_index + 1) % len(tag_config.positions)
-                tag_config.last_move_time = current_time
-                logger.info(f"Tag {tag_config.tag_id} moved to position index {tag_config.current_position_index}")
+        # FIXED: Restored smooth movement interpolation from v0.1.21
+        if len(tag_config.positions) > 1 and tag_config.move_interval > 0:
+            # Calculate cycle time for back-and-forth movement
+            cycle_time = elapsed_time % (2 * tag_config.move_interval)
+            logger.debug(f"Cycle time for {tag_config.tag_id}: {cycle_time:.2f}, move_interval: {tag_config.move_interval}")
             
-            # Interpolate between positions
-            pos1_idx = tag_config.current_position_index
-            pos2_idx = (tag_config.current_position_index + 1) % len(tag_config.positions)
-            progress = (current_time - tag_config.last_move_time) / tag_config.move_interval
-            progress = min(1.0, progress)
+            if cycle_time < tag_config.move_interval:
+                # Moving from position 0 to position 1
+                t = cycle_time / tag_config.move_interval
+                start_pos = tag_config.positions[0]
+                end_pos = tag_config.positions[1]
+                logger.debug(f"Moving from {start_pos} to {end_pos}, t={t:.2f}")
+            else:
+                # Moving from position 1 back to position 0
+                t = (cycle_time - tag_config.move_interval) / tag_config.move_interval
+                start_pos = tag_config.positions[1]
+                end_pos = tag_config.positions[0]
+                logger.debug(f"Moving from {start_pos} to {end_pos}, t={t:.2f}")
             
-            position = interpolate_positions(
-                tag_config.positions[pos1_idx],
-                tag_config.positions[pos2_idx],
-                progress
-            )
+            # Smooth interpolation between positions
+            x = start_pos[0] + t * (end_pos[0] - start_pos[0])
+            y = start_pos[1] + t * (end_pos[1] - start_pos[1])
+            z = start_pos[2] + t * (end_pos[2] - start_pos[2])
+            
+            # Round to 2 decimal places for smoother movement
+            x = round(x, 2)
+            y = round(y, 2)
+            z = round(z, 2)
+            
+            logger.debug(f"Interpolated position for {tag_config.tag_id}: t={t:.2f}, pos=({x:.2f}, {y:.2f}, {z:.2f})")
+            position = (x, y, z)
         else:
+            # Stationary tag
             position = tag_config.positions[0]
+            x, y, z = position
+            x = round(x, 2)
+            y = round(y, 2)
+            z = round(z, 2)
+            logger.debug(f"Stationary position for {tag_config.tag_id}: pos=({x:.2f}, {y:.2f}, {z:.2f})")
         
-        sequence += 1
+        # Send GISData message with correct format
         message = {
             "type": "GISData",
             "ID": tag_config.tag_id,
-            "zone_id": zone_id,
-            "sequence": sequence,
-            "X": round(position[0], 6),
-            "Y": round(position[1], 6),
-            "Z": round(position[2], 6),
-            "cnf": 95,
-            "ts": datetime.now().isoformat(),
-            "gwid": "SIM_GW",
-            "bat": 100,
-            "type_msg": "Sim POTTER"
+            "Type": "Sim",
+            "TS": datetime.now().isoformat(),
+            "X": x,
+            "Y": y,
+            "Z": z,
+            "Bat": 100,
+            "CNF": 95.0,
+            "GWID": "SIM-GW",
+            "Sequence": tag_config.sequence_number,  # Proper sequence field name
+            "zone_id": zone_id
         }
         
         target_websocket = stream_websocket if stream_websocket else websocket
         if target_websocket and target_websocket.state == websockets.State.OPEN:
             try:
                 await target_websocket.send(json.dumps(message))
+                tag_config.increment_sequence()  # Proper sequence increment
                 target_type = "stream" if stream_websocket else "control"
-                logger.info(f"Tag {tag_config.tag_id}: Sent position ({position[0]:.2f}, {position[1]:.2f}, {position[2]:.2f}) to {target_type} WebSocket at {datetime.now()}")
+                logger.info(f"Sending GISData with zone_id {zone_id} for {tag_config.tag_id}: pos=({x:.2f}, {y:.2f}, {z:.2f})")
             except Exception as e:
                 logger.error(f"Failed to send data for tag {tag_config.tag_id}: {str(e)}")
                 break
@@ -344,7 +365,7 @@ async def simulator():
     global stream_receive_task
     global should_stop
     uri = f"ws://{WEBSOCKET_HOST}:{CONTROL_PORT}/ws/ControlManager"
-    print("Select simulation mode (v0.1.27):")
+    print("Select simulation mode (v0.1.29):")
     print("1. Single tag at a fixed point")
     print("2. Single tag moving between two points (with linear interpolation)")
     print("3. Multiple tags at fixed points")
