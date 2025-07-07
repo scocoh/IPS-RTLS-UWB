@@ -1,10 +1,10 @@
 /* Name: TriggerDisplayTab.js */
-/* Version: 0.1.1 */
+/* Version: 0.1.9 */
 /* Created: 250705 */
-/* Modified: 250705 */
+/* Modified: 250707 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Trigger display tab for NewTriggerDemo - Fixed map conflicts with unique key prop */
+/* Description: Trigger display tab – Refactored with separate static and portable renderers */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -12,9 +12,12 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { FormCheck, ButtonGroup, Button } from "react-bootstrap";
-import NewTriggerViewer from "../../NewTriggerViewer";
-import { triggerApi } from "../services/triggerApi";
+// FIXED: Import path (adjust if needed based on your actual structure)
+import NewTriggerViewer from "../../NewTriggerViewer/NTV_index";
 import { zoneApi } from "../services/zoneApi";
+// NEW: Import renderer components
+import PortableTriggerRenderer from "./PortableTriggerRenderer";
+import StaticTriggerRenderer from "./StaticTriggerRenderer";
 
 const TriggerDisplayTab = ({
   zones,
@@ -30,9 +33,15 @@ const TriggerDisplayTab = ({
   // Local state for display
   const [zoneVertices, setZoneVertices] = useState([]);
   const [showExistingTriggers, setShowExistingTriggers] = useState(true);
-  const [existingTriggerPolygons, setExistingTriggerPolygons] = useState([]);
+  const [showTriggerLabels, setShowTriggerLabels] = useState(true);
+  
+  // NEW: Separate state for static and portable triggers
+  const [staticTriggerPolygons, setStaticTriggerPolygons] = useState([]);
+  const [portableTriggerPolygons, setPortableTriggerPolygons] = useState([]);
+  const [combinedTriggerPolygons, setCombinedTriggerPolygons] = useState([]);
+  // REMOVED: mapUpdateKey - was causing infinite re-renders
+  
   const [eventFilter, setEventFilter] = useState('all');
-  const retryIntervalRef = useRef(null);
 
   // Trigger styling for display
   const [triggerStyle, setTriggerStyle] = useState({
@@ -43,6 +52,18 @@ const TriggerDisplayTab = ({
     staticColor: '#ff0000',
     portableColor: '#00ff00',
     vertexColor: '#0000ff'
+  });
+
+  // ENHANCED: Debug logging with refactored components
+  console.log("TriggerDisplayTab DEBUG:", {
+    selectedZone: selectedZone?.i_zn,
+    triggersCount: triggers?.length,
+    zoneTriggers: triggers?.filter(t => t.zone_id === parseInt(selectedZone?.i_zn) || t.zone_id == null)?.length,
+    staticPolygons: staticTriggerPolygons.length,
+    portablePolygons: portableTriggerPolygons.length,
+    combinedPolygons: combinedTriggerPolygons.length,
+    showExistingTriggers,
+    showTriggerLabels
   });
 
   // Update trigger styling
@@ -59,123 +80,36 @@ const TriggerDisplayTab = ({
       const fetchZoneVertices = async () => {
         try {
           const { vertices } = await zoneApi.fetchZoneVertices(selectedZone.i_zn);
+          console.log("✅ Zone vertices fetched:", vertices.length);
           setZoneVertices(vertices);
         } catch (e) {
-          console.error("Error fetching zone vertices:", e);
+          console.error("❌ Error fetching zone vertices:", e);
         }
       };
       fetchZoneVertices();
     }
   }, [selectedZone]);
 
-  // Fetch trigger polygons
+  // NEW: Callback handlers for renderer components
+  const handleStaticTriggersUpdate = (staticPolygons) => {
+    console.log("📨 Received static triggers update:", staticPolygons.length);
+    setStaticTriggerPolygons(staticPolygons);
+  };
+
+  const handlePortableTriggersUpdate = (portablePolygons) => {
+    console.log("📨 Received portable triggers update:", portablePolygons.length);
+    setPortableTriggerPolygons(portablePolygons);
+    // REMOVED: Forced map re-render - causing infinite loops
+  };
+
+  // NEW: Combine static and portable triggers for map display
   useEffect(() => {
-    if (!selectedZone) return;
+    const combined = [...staticTriggerPolygons, ...portableTriggerPolygons];
+    console.log(`🔄 Combining triggers: ${staticTriggerPolygons.length} static + ${portableTriggerPolygons.length} portable = ${combined.length} total`);
     
-    const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
-    
-    const fetchPolygons = async () => {
-      if (zoneTriggers.length === 0) {
-        setExistingTriggerPolygons([]);
-        return;
-      }
-      
-      try {
-        const polygons = await Promise.all(
-          zoneTriggers.map(async (t) => {
-            try {
-              if (t.is_portable) {
-                return { 
-                  id: t.i_trg, 
-                  name: t.x_nm_trg, 
-                  isPortable: true, 
-                  pending: true, 
-                  assigned_tag_id: t.assigned_tag_id, 
-                  radius_ft: t.radius_ft,
-                  style: {
-                    fillOpacity: triggerStyle.portableFillOpacity / 100,
-                    lineOpacity: triggerStyle.portableLineOpacity / 100,
-                    color: triggerStyle.portableColor
-                  }
-                };
-              } else {
-                const data = await triggerApi.getTriggerDetails(t.i_trg);
-                if (Array.isArray(data.vertices)) {
-                  const latLngs = data.vertices.map(v => [v.y, v.x]);
-                  return { 
-                    id: t.i_trg, 
-                    name: t.x_nm_trg, 
-                    latLngs, 
-                    isPortable: false,
-                    style: {
-                      fillOpacity: triggerStyle.staticFillOpacity / 100,
-                      lineOpacity: triggerStyle.staticLineOpacity / 100,
-                      color: triggerStyle.staticColor
-                    }
-                  };
-                }
-                return null;
-              }
-            } catch (e) {
-              console.error(`Failed to fetch details for trigger ${t.i_trg}:`, e);
-              return null;
-            }
-          })
-        );
-        
-        const validPolygons = polygons.filter(p => p);
-        setExistingTriggerPolygons(validPolygons);
-      } catch (e) {
-        console.error("Failed to fetch polygons:", e);
-      }
-    };
-
-    fetchPolygons();
-  }, [selectedZone, triggers, triggerStyle]);
-
-  // Update portable trigger polygons with live data
-  useEffect(() => {
-    if (!selectedZone || !triggers || !isConnected) return;
-
-    const zoneTriggers = triggers.filter(t => t.zone_id === parseInt(selectedZone.i_zn) || t.zone_id == null);
-    const portableTriggers = zoneTriggers.filter(t => t.is_portable);
-    if (portableTriggers.length === 0) return;
-
-    const updatePortablePolygons = () => {
-      const updatedPolygons = portableTriggers.map(t => {
-        const tagId = t.assigned_tag_id;
-        const tagData = tagsData[tagId];
-        if (!tagData) return null;
-        
-        return {
-          id: t.i_trg,
-          name: t.x_nm_trg,
-          center: [tagData.y, tagData.x],
-          radius: t.radius_ft,
-          isPortable: true,
-          assigned_tag_id: t.assigned_tag_id,
-          radius_ft: t.radius_ft,
-          style: {
-            fillOpacity: triggerStyle.portableFillOpacity / 100,
-            lineOpacity: triggerStyle.portableLineOpacity / 100,
-            color: triggerStyle.portableColor
-          }
-        };
-      });
-
-      const validPortable = updatedPolygons.filter(p => p);
-      if (validPortable.length > 0) {
-        setExistingTriggerPolygons(prev => {
-          const nonPortable = prev.filter(p => !p.isPortable || p.pending);
-          return [...nonPortable, ...validPortable];
-        });
-      }
-    };
-
-    updatePortablePolygons();
-    const interval = setInterval(updatePortablePolygons, 1000);
-    return () => clearInterval(interval);
-  }, [tagsData, selectedZone, triggers, isConnected, triggerStyle]);
+    // Force new array reference to trigger NewTriggerViewer re-render
+    setCombinedTriggerPolygons([...combined]);
+  }, [staticTriggerPolygons, portableTriggerPolygons]);
 
   // Filter events based on selected filter
   const filteredEvents = triggerEvents.filter(event => {
@@ -190,6 +124,43 @@ const TriggerDisplayTab = ({
     <div>
       <h3>View Triggers & Events</h3>
       <p>View existing triggers on the map and monitor real-time trigger events.</p>
+
+      {/* NEW: Renderer Components (invisible) */}
+      <StaticTriggerRenderer
+        selectedZone={selectedZone}
+        triggers={triggers}
+        triggerStyle={triggerStyle}
+        onStaticTriggersUpdate={handleStaticTriggersUpdate}
+      />
+      
+      <PortableTriggerRenderer
+        selectedZone={selectedZone}
+        triggers={triggers}
+        tagsData={tagsData}
+        isConnected={isConnected}
+        triggerStyle={triggerStyle}
+        portableTriggerContainment={portableTriggerContainment}
+        onPortableTriggersUpdate={handlePortableTriggersUpdate}
+      />
+
+      {/* ENHANCED: Debug Info Panel with refactored data */}
+      <div style={{ 
+        marginBottom: "15px", 
+        padding: "10px", 
+        backgroundColor: "#fff3cd", 
+        borderRadius: "5px",
+        border: "1px solid #ffeaa7",
+        fontSize: "12px"
+      }}>
+        <h6>🐛 Debug Info (Refactored)</h6>
+        <div>Zone: {selectedZone?.i_zn} | Map ID: {selectedZone?.i_map}</div>
+        <div>Total Triggers: {triggers?.length || 0}</div>
+        <div>Zone Triggers: {triggers?.filter(t => t.zone_id === parseInt(selectedZone?.i_zn) || t.zone_id == null)?.length || 0}</div>
+        <div>Portable Polygons: {portableTriggerPolygons.length} (Keys: {portableTriggerPolygons.map(p => p.uniqueKey).join(', ')})</div>
+        <div>Combined Polygons: {combinedTriggerPolygons.length}</div>
+        <div>Show Triggers: {showExistingTriggers ? 'YES' : 'NO'} | Show Labels: {showTriggerLabels ? 'YES' : 'NO'}</div>
+        <div>Tag Data Keys: {Object.keys(tagsData || {}).join(', ')}</div>
+      </div>
 
       {/* Trigger Styling Controls */}
       <div style={{ 
@@ -241,12 +212,20 @@ const TriggerDisplayTab = ({
           </div>
         </div>
 
-        <FormCheck
-          type="checkbox"
-          label="Show Existing Triggers"
-          checked={showExistingTriggers}
-          onChange={e => setShowExistingTriggers(e.target.checked)}
-        />
+        <div style={{ display: "flex", gap: "15px" }}>
+          <FormCheck
+            type="checkbox"
+            label="Show Existing Triggers"
+            checked={showExistingTriggers}
+            onChange={e => setShowExistingTriggers(e.target.checked)}
+          />
+          <FormCheck
+            type="checkbox"
+            label="Show Trigger ID Numbers"
+            checked={showTriggerLabels}
+            onChange={e => setShowTriggerLabels(e.target.checked)}
+          />
+        </div>
       </div>
 
       {/* Trigger Events Display */}
@@ -357,14 +336,18 @@ const TriggerDisplayTab = ({
               enableDrawing={false}
               onDrawComplete={() => {}}
               showExistingTriggers={showExistingTriggers}
-              existingTriggerPolygons={existingTriggerPolygons.map(p => ({
-                ...p,
-                isContained: p.isPortable ? Object.keys(portableTriggerContainment[p.id] || {}).some(tagId => portableTriggerContainment[p.id][tagId]) : false
-              }))}
+              showTriggerLabels={showTriggerLabels}
+              existingTriggerPolygons={combinedTriggerPolygons}
+              // REMOVED: triggerPolygonKey prop - not accepted by NewTriggerViewer
               tagsData={tagsData}
               isConnected={isConnected}
               triggers={triggers}
               triggerStyle={triggerStyle}
+              // ADDED: Debug props
+              enableResponsive={true}
+              enableControls={true}
+              height="600px"
+              width="100%"
             />
           ) : (
             <div style={{ 
@@ -393,9 +376,12 @@ const TriggerDisplayTab = ({
         <ul style={{ fontSize: "13px", color: "#333", marginBottom: 0 }}>
           <li>Use transparency sliders to adjust trigger visibility</li>
           <li>Toggle "Show Existing Triggers" to hide/show triggers on map</li>
+          <li><strong>Toggle "Show Trigger ID Numbers" to display trigger IDs at trigger centers</strong></li>
           <li>Filter events by type (Enter, Exit, Portable)</li>
           <li>Events are color-coded: green (enter), red (exit), yellow (portable)</li>
-          <li>Portable triggers move with their assigned tags</li>
+          <li><strong>Portable triggers now update in real-time with separate rendering logic</strong></li>
+          <li>Trigger ID labels are color-matched to their trigger type</li>
+          <li><strong>Static and portable triggers are handled by separate components for better performance</strong></li>
         </ul>
       </div>
     </div>

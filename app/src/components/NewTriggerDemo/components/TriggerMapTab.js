@@ -1,10 +1,10 @@
 /* Name: TriggerMapTab.js */
-/* Version: 0.1.4 */
+/* Version: 0.1.5 */
 /* Created: 250625 */
 /* Modified: 250706 */
 /* Creator: ParcoAdmin */
-/* Modified By: ParcoAdmin + Claude */
-/* Description: Enhanced Map & Trigger tab component with full NewTriggerViewer integration */
+/* Modified By: ParcoAdmin + OpenAI o3 */
+/* Description: Map & Trigger tab – updated import for modular NewTriggerViewer */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -12,7 +12,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Container, Row, Col, Form, Button, Card, Alert, Badge } from "react-bootstrap";
-import NewTriggerViewer from "../../NewTriggerViewer";
+import NewTriggerViewer from "../../NewTriggerViewer/NTV_index";          // ← updated
 
 const TriggerMapTab = ({
   zones,

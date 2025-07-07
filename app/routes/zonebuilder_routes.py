@@ -1,10 +1,10 @@
 # Name: zonebuilder_routes.py
-# Version: 0.1.1
+# Version: 0.1.2
 # Created: 971201
 # Modified: 250502
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
-# Version 0.1.1 Converted to external descriptions using load_description()
+# Version 0.1.2 Fixed Pylance syntax errors - null checks, image access, psycopg2 connection
 # Description: Python script for ParcoRTLS backend
 # Location: /home/parcoadmin/parco_fastapi/app/routes
 # Role: Backend
@@ -273,10 +273,15 @@ async def get_zone_vertices(zone_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/internal-metadata", include_in_schema=False)
-async def get_internal_metadata(format: str = None):
+async def get_internal_metadata(format: str | None = None):
     try:
         with Image.open("static/default_grid_box.png") as img:
-            concealed_text = img.text.get("concealed_text")
+            # Fix: Use getattr with default to safely access text attribute
+            concealed_text = None
+            img_text = getattr(img, 'text', None)
+            if img_text:
+                concealed_text = img_text.get("concealed_text")
+            
             if not concealed_text:
                 raise HTTPException(status_code=404, detail="Concealed metadata not found")
             
@@ -320,10 +325,13 @@ async def create_zone(data: dict):
         if not all([zone_name, map_id, zone_level]):
             raise HTTPException(status_code=400, detail="Missing required fields (zone_name, map_id, zone_level)")
 
+        # Fix: Add proper null checking before int conversion
         try:
-            map_id = int(map_id)
-            zone_level = int(zone_level)
-        except ValueError:
+            map_id = int(map_id) if map_id is not None else None
+            zone_level = int(zone_level) if zone_level is not None else None
+            if map_id is None or zone_level is None:
+                raise ValueError("map_id and zone_level cannot be None")
+        except (ValueError, TypeError):
             raise HTTPException(status_code=400, detail="Invalid map_id or zone_level. Expected integers.")
 
         logger.info(f"Creating zone with data: {data}")
@@ -546,7 +554,15 @@ async def edit_device(
 ):
     try:
         logger.info(f"Received edit_device request: device_id={device_id}, device_name={device_name}, n_moe_x={n_moe_x}, n_moe_y={n_moe_y}, n_moe_z={n_moe_z}, zone_id={zone_id}, type(zone_id)={type(zone_id)}")
-        conn = psycopg2.connect(**DB_CONFIG)
+        
+        # Fix: Use correct psycopg2.connect syntax
+        conn = psycopg2.connect(
+            dbname=DB_CONFIG["dbname"],
+            user=DB_CONFIG["user"],
+            password=DB_CONFIG["password"],
+            host=DB_CONFIG["host"],
+            port=DB_CONFIG["port"]
+        )
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         query = """
             UPDATE devices
@@ -607,3 +623,19 @@ async def validate_support_access(payload: dict = Body(...)):
         return {"status": "ok"}
     else:
         raise HTTPException(status_code=403, detail="Invalid password")
+    
+@router.get("/proxy_map/{map_id}", response_class=Response, include_in_schema=False)
+async def proxy_map(map_id: int):
+    """
+    Proxy the binary map image through the /api prefix so the frontend
+    can fetch it via the same origin & port 3000 proxy.
+    """
+    from fastapi.responses import StreamingResponse
+    import httpx
+
+    backend_url = f"http://localhost:8000/zonebuilder/get_map/{map_id}"
+    async with httpx.AsyncClient() as client:
+        r = await client.get(backend_url)
+        r.raise_for_status()
+        return StreamingResponse(r.aiter_bytes(),
+                                 media_type=r.headers["content-type"])

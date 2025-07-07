@@ -1,5 +1,5 @@
 # Name: zone_builder.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
 # Modified: 250502
 # Creator: ParcoAdmin
@@ -11,7 +11,7 @@
 # Dependent: TRUE
 
 # VERSION 250316 /home/parcoadmin/parco_fastapi/app/routes/zone_builder.py 0P.10B.01
-#  
+#  
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
 # Invented by Scott Cohen & Bertrand Dugal.
@@ -40,6 +40,9 @@ class ZoneCreate(BaseModel):
 @router.get("/get_zone_types")
 async def get_zone_types():
     pool = await get_async_db_pool("data")
+    if not pool:
+        raise HTTPException(status_code=503, detail="Database connection unavailable")
+    
     async with pool.acquire() as conn:
         rows = await conn.fetch("SELECT i_typ_zn, x_dsc_zn FROM tlkzonetypes ORDER BY i_typ_zn;")
     
@@ -54,6 +57,9 @@ async def get_zone_types():
 @router.post("/create_zone")
 async def create_zone(data: ZoneCreate):
     pool = await get_async_db_pool("data")
+    if not pool:
+        raise HTTPException(status_code=503, detail="Database connection unavailable")
+    
     async with pool.acquire() as conn:
         async with conn.transaction():
             zone_id = await conn.fetchval(

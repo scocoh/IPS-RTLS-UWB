@@ -1,10 +1,10 @@
 /* Name: TriggerCreateTab.js */
-/* Version: 0.1.1 */
+/* Version: 0.1.2 */
 /* Created: 250705 */
-/* Modified: 250705 */
+/* Modified: 250706 */
 /* Creator: ParcoAdmin */
-/* Modified By: ParcoAdmin + Claude */
-/* Description: Trigger creation tab for NewTriggerDemo - Fixed map conflicts with unique key prop */
+/* Modified By: ParcoAdmin + OpenAI o3 */
+/* Description: Trigger creation tab – updated import for modular NewTriggerViewer */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -12,7 +12,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Form, Button, InputGroup, FormControl } from "react-bootstrap";
-import NewTriggerViewer from "../../NewTriggerViewer";
+import NewTriggerViewer from "../../NewTriggerViewer/NTV_index";          // ← updated
 import { triggerApi } from "../services/triggerApi";
 import { zoneApi } from "../services/zoneApi";
 import { getFormattedTimestamp } from "../utils/formatters";
