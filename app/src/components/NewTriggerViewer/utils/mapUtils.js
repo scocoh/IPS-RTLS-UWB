@@ -1,3 +1,15 @@
+/* Name: mapUtils.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: ParcoRTLS frontend script */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerViewer/utils */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // utils/mapUtils.js  • ParcoRTLS v0.1.8
 // -----------------------------------------------------------------------------
 // Canvas drawing helpers and coordinate converters used by NewTriggerViewer.

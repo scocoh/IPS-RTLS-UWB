@@ -1,10 +1,10 @@
 /* Name: ZoneMapTab.js */
-/* Version: 0.1.6 */
+/* Version: 0.1.7 */
 /* Created: 250704 */
-/* Modified: 250704 */
+/* Modified: 250707 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Map display tab component for ZoneViewer with advanced zone styling */
+/* Description: Map display tab component for ZoneViewer with point editing support */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/ZoneViewer/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -25,7 +25,8 @@ const ZoneMapTab = ({
   selectedMapId,
   availableMaps,
   zoneStyle,
-  setZoneStyle
+  setZoneStyle,
+  onVerticesRefresh
 }) => {
   
   if (!selectedZone) {
@@ -299,7 +300,7 @@ const ZoneMapTab = ({
         </div>
       </div>
 
-      {/* Enhanced ZoneViewerMap with separate styling controls */}
+      {/* Enhanced ZoneViewerMap with separate styling controls and point editing */}
       <ZoneViewerMap
         mapId={mapId}
         zones={zones}
@@ -307,6 +308,7 @@ const ZoneMapTab = ({
         vertices={vertices}
         useLeaflet={useLeaflet}
         zoneStyle={zoneStyle}
+        onVerticesRefresh={onVerticesRefresh}
       />
       
       <div style={{ marginTop: "15px", padding: "10px", backgroundColor: "#f8f9fa", borderRadius: "5px", fontSize: "12px", color: "#666" }}>
@@ -314,6 +316,12 @@ const ZoneMapTab = ({
         {useLeaflet && " Use the +/- buttons for precise zoom control."}
         <br />
         <strong>Zone Styling:</strong> Separate controls for fill vs line transparency allow you to make zone interiors subtle while keeping borders/vertices clearly visible. Try the presets for quick styling options.
+        {useLeaflet && (
+          <>
+            <br />
+            <strong>Point Editing:</strong> Click on any vertex marker (circle) to edit its X,Y coordinates. Related start/end vertices will be updated together automatically.
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,10 +1,10 @@
 /* Name: ZoneViewerMap.js */
-/* Version: 0.1.1 */
+/* Version: 0.1.2 */
 /* Created: 250704 */
-/* Modified: 250704 */
+/* Modified: 250707 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Map component for ZoneViewer with advanced styling controls */
+/* Description: Map component for ZoneViewer with point editing functionality */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/ZoneViewer/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -15,7 +15,10 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
 import "leaflet-draw";
-import { config } from "../../../config.js";
+// Use dynamic hostname detection instead of config file
+const API_BASE_URL = `http://${window.location.hostname || 'localhost'}:8000`;
+import PointEditor from "./PointEditor";
+import { vertexApi } from "../services/vertexApi";
 
 const ZoneViewerMap = memo(({ 
   mapId, 
@@ -29,7 +32,8 @@ const ZoneViewerMap = memo(({
     lineOpacity: 70,
     lineColor: '#ff0000',
     vertexColor: '#ff0000'
-  }
+  },
+  onVerticesRefresh // New prop to trigger parent refresh
 }) => {
     const mapRef = useRef(null);
     const mapInstance = useRef(null);
@@ -42,6 +46,10 @@ const ZoneViewerMap = memo(({
     const drawnItems = useRef(new L.FeatureGroup());
     const canvasBounds = useRef({ x: 0, y: 0, width: 800, height: 600 });
 
+    // Point editing state
+    const [isEditingPoint, setIsEditingPoint] = useState(false);
+    const [selectedVertex, setSelectedVertex] = useState(null);
+
     // Calculate opacity values for rendering (0.0 to 1.0)
     const fillOpacity = zoneStyle.fillOpacity / 100;
     const lineOpacity = zoneStyle.lineOpacity / 100;
@@ -53,7 +61,7 @@ const ZoneViewerMap = memo(({
         if (mapId) {
             const fetchMapData = async () => {
                 try {
-                    const response = await fetch(`${config.API_BASE_URL}/zoneviewer/get_map_data/${mapId}`);
+                    const response = await fetch(`${API_BASE_URL}/zoneviewer/get_map_data/${mapId}`);
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     const data = await response.json();
                     console.log("✅ Fetched map data:", data);
@@ -68,7 +76,30 @@ const ZoneViewerMap = memo(({
         }
     }, [mapId]);
 
-    // Canvas rendering with advanced styling
+    // Handle point click for editing
+    const handlePointClick = (vertex) => {
+        console.log("🖱️ Point clicked:", vertex);
+        setSelectedVertex(vertex);
+        setIsEditingPoint(true);
+    };
+
+    // Handle vertex updates from point editor
+    const handleUpdateVertices = async (updates) => {
+        try {
+            await vertexApi.updateVertices(updates);
+            console.log("✅ Vertices updated successfully");
+            
+            // Trigger parent refresh if callback provided
+            if (onVerticesRefresh) {
+                onVerticesRefresh();
+            }
+        } catch (error) {
+            console.error("❌ Error updating vertices:", error);
+            throw error; // Re-throw to let PointEditor handle the error display
+        }
+    };
+
+    // Canvas rendering with advanced styling (unchanged, since only Leaflet needs click detection)
     useEffect(() => {
         if (!useLeaflet && mapData && canvasRef.current && !isInitialized.current) {
             console.log("🖌 Initializing Canvas rendering with mapData:", mapData);
@@ -185,7 +216,7 @@ const ZoneViewerMap = memo(({
         }
     }, [mapData, useLeaflet, checkedZones, vertices, fillOpacity, lineOpacity, zoneStyle]);
 
-    // Leaflet rendering with advanced styling
+    // Leaflet rendering with advanced styling and click detection
     useEffect(() => {
         if (useLeaflet && mapData && mapRef.current && !mapInstance.current) {
             console.log("🗺 Initializing Leaflet with mapData:", mapData);
@@ -211,17 +242,39 @@ const ZoneViewerMap = memo(({
                         fillOpacity: fillOpacity              // Fill transparency (separate from border)
                     }).addTo(drawnItems.current);
 
-                    // Enhanced vertices with custom colors and transparency
+                    // Enhanced vertices with custom colors, transparency, and click detection
                     filteredVertices.forEach(v => {
-                        // Vertex marker
-                        L.circleMarker([Number(v.y), Number(v.x)], {
-                            radius: 5,
+                        // Clickable vertex marker
+                        const vertexMarker = L.circleMarker([Number(v.y), Number(v.x)], {
+                            radius: 8, // Slightly larger for easier clicking
                             color: zoneStyle.vertexColor,        // Vertex border color
                             fillColor: zoneStyle.vertexColor,    // Vertex fill color
                             fillOpacity: lineOpacity,             // Vertex transparency
                             opacity: lineOpacity,                 // Vertex border transparency
                             weight: 2
-                        }).addTo(drawnItems.current);
+                        });
+
+                        // Add click handler for point editing
+                        vertexMarker.on('click', () => {
+                            handlePointClick(v);
+                        });
+
+                        // Add hover effect
+                        vertexMarker.on('mouseover', function() {
+                            this.setStyle({
+                                radius: 10,
+                                weight: 3
+                            });
+                        });
+
+                        vertexMarker.on('mouseout', function() {
+                            this.setStyle({
+                                radius: 8,
+                                weight: 2
+                            });
+                        });
+
+                        vertexMarker.addTo(drawnItems.current);
                         
                         // Enhanced vertex label with better visibility
                         L.marker([Number(v.y), Number(v.x)], {
@@ -241,6 +294,7 @@ const ZoneViewerMap = memo(({
                                     padding: 1px 3px;
                                     border-radius: 3px;
                                     border: 1px solid rgba(0,0,0,0.2);
+                                    cursor: pointer;
                                 ">${v.vertex_id}</span>`,
                                 iconSize: [25, 20],
                                 iconAnchor: [0, 20]
@@ -278,6 +332,32 @@ const ZoneViewerMap = memo(({
                 <div ref={mapRef} style={{ height: "600px", width: "800px", border: "2px solid black" }} />
             ) : (
                 <canvas ref={canvasRef} style={{ border: "2px solid black" }} />
+            )}
+
+            {/* Point Editor Modal */}
+            <PointEditor
+                isOpen={isEditingPoint}
+                onClose={() => {
+                    setIsEditingPoint(false);
+                    setSelectedVertex(null);
+                }}
+                vertex={selectedVertex}
+                vertices={vertices}
+                onUpdateVertices={handleUpdateVertices}
+            />
+
+            {useLeaflet && (
+                <div style={{ 
+                    marginTop: "10px", 
+                    padding: "8px", 
+                    backgroundColor: "#e8f4fd", 
+                    borderRadius: "4px", 
+                    fontSize: "12px",
+                    border: "1px solid #bee5eb"
+                }}>
+                    <strong>✏️ Point Editing:</strong> Click on any vertex marker (circle) to edit its X,Y coordinates. 
+                    Related start/end vertices will be updated together automatically.
+                </div>
             )}
         </div>
     );

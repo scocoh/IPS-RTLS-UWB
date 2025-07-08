@@ -1,10 +1,10 @@
 /* Name: ZV_index.js */
-/* Version: 0.1.7 */
+/* Version: 0.1.8 */
 /* Created: 250704 */
-/* Modified: 250704 */
+/* Modified: 250707 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Main component for ZoneViewer - orchestrates all subcomponents */
+/* Description: Main component for ZoneViewer - orchestrates all subcomponents with point editing */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/ZoneViewer/ZV_index.js */
 /* Role: Frontend */
 /* Status: Active */
@@ -120,6 +120,24 @@ const ZoneViewer = () => {
   const memoizedGetZoneHierarchy = useCallback((zoneId, zones) => {
     return getZoneHierarchy(zoneId, zones);
   }, [getZoneHierarchy]);
+
+  // NEW: Refresh vertices function for point editing
+  const refreshVertices = useCallback(async () => {
+    if (selectedZone && allZones.length > 0) {
+      try {
+        const campusZone = memoizedFindCampusForZone(selectedZone, allZones);
+        const verticesData = await vertexApi.fetchVerticesForCampus(campusZone);
+        setVertices(verticesData);
+        setEditedVertices({});
+        setDeletedVertices([]);
+        setSelectedVertices(new Set());
+        setTargetVertex(null);
+        console.log("✅ Vertices refreshed after point edit");
+      } catch (error) {
+        console.error("❌ Error refreshing vertices:", error);
+      }
+    }
+  }, [selectedZone, allZones, memoizedFindCampusForZone]);
 
   // Vertex management hook
   const {
@@ -336,6 +354,7 @@ const ZoneViewer = () => {
             availableMaps={availableMaps}
             zoneStyle={zoneStyle}
             setZoneStyle={handleZoneStyleChange}
+            onVerticesRefresh={refreshVertices}
           />
         </Tab>
 

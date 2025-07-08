@@ -1,3 +1,15 @@
+/* Name: useMapData.js */
+/* Version: 0.1.0 */
+/* Created: 971201 */
+/* Modified: 250502 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin */
+/* Description: ParcoRTLS frontend script */
+/* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerViewer/hooks */
+/* Role: Frontend */
+/* Status: Active */
+/* Dependent: TRUE */
+
 // components/NewTriggerViewer/hooks/useMapData.js
 // Version: 0.2.9 • 2025‑07‑06
 // -----------------------------------------------------------------------------

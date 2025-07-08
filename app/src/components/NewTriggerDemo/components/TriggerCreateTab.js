@@ -1,10 +1,10 @@
 /* Name: TriggerCreateTab.js */
-/* Version: 0.1.2 */
+/* Version: 0.1.3 */
 /* Created: 250705 */
-/* Modified: 250706 */
+/* Modified: 250707 */
 /* Creator: ParcoAdmin */
-/* Modified By: ParcoAdmin + OpenAI o3 */
-/* Description: Trigger creation tab – updated import for modular NewTriggerViewer */
+/* Modified By: ParcoAdmin + Claude */
+/* Description: Trigger creation tab – Fixed coordinate parsing issue */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -66,25 +66,121 @@ const TriggerCreateTab = ({
     }
   }, [selectedZone, fetchZoneVertices]);
 
-  // Handle drawing complete
+  // FIXED: Handle drawing complete - improved coordinate parsing for Leaflet objects
   const handleDrawComplete = useCallback((coords) => {
     try {
-      const parsed = Array.isArray(coords) ? coords : JSON.parse(coords);
-      if (Array.isArray(parsed) && parsed.length >= 3) {
-        const effectiveZMax = zMin === zMax && customZMax !== null ? Number(customZMax) : zMax;
-        const formattedCoords = parsed.map((coord, index) => {
-          const x = Number(coord.lng);
-          const y = Number(coord.lat);
-          if (isNaN(x) || isNaN(y)) throw new Error(`Invalid coordinates at index ${index}`);
-          let n_z = index === 0 ? zMin : (index === 1 ? effectiveZMax : zMin);
-          return { n_x: x.toFixed(6), n_y: y.toFixed(6), n_z: n_z };
-        });
-        console.log("Formatted coordinates:", formattedCoords);
-        setCoordinates(formattedCoords);
+      console.log("🎯 Raw coords received:", coords, "Type:", typeof coords);
+      
+      let parsed;
+      
+      // Handle different coordinate formats
+      if (Array.isArray(coords)) {
+        // Already an array
+        parsed = coords;
+        console.log("✅ Coords are already an array");
+      } else if (typeof coords === 'string') {
+        // String that needs parsing
+        try {
+          parsed = JSON.parse(coords);
+          console.log("✅ Parsed coords from JSON string");
+        } catch (parseError) {
+          console.error("❌ JSON parse error:", parseError);
+          throw new Error("Invalid coordinate string format");
+        }
+      } else if (coords && typeof coords === 'object') {
+        // Handle Leaflet layer objects (most common case)
+        if (coords._latlngs && Array.isArray(coords._latlngs)) {
+          // Leaflet polygon layer object
+          parsed = coords._latlngs[0] || coords._latlngs; // First ring for polygons
+          console.log("✅ Extracted coords from Leaflet object._latlngs");
+        } else if (coords.getLatLngs && typeof coords.getLatLngs === 'function') {
+          // Leaflet layer with getLatLngs method
+          const latLngs = coords.getLatLngs();
+          parsed = Array.isArray(latLngs[0]) ? latLngs[0] : latLngs;
+          console.log("✅ Extracted coords using getLatLngs() method");
+        } else if (coords.coordinates) {
+          // Generic coordinates property
+          parsed = coords.coordinates;
+          console.log("✅ Extracted coords from object.coordinates");
+        } else if (coords.latLngs) {
+          // Generic latLngs property
+          parsed = coords.latLngs;
+          console.log("✅ Extracted coords from object.latLngs");
+        } else if (coords.lat !== undefined && coords.lng !== undefined) {
+          // Single coordinate object
+          parsed = [coords];
+          console.log("✅ Converted single coordinate object to array");
+        } else {
+          console.error("❌ Unknown coordinate object format:", coords);
+          console.log("Available properties:", Object.keys(coords));
+          throw new Error("Unknown coordinate object format");
+        }
+      } else {
+        console.error("❌ Invalid coordinate type:", typeof coords);
+        throw new Error("Invalid coordinate type");
       }
+
+      // Validate array format
+      if (!Array.isArray(parsed)) {
+        console.error("❌ Parsed coords not an array:", parsed);
+        throw new Error("Coordinates must be an array");
+      }
+
+      if (parsed.length < 3) {
+        console.warn("⚠️ Need at least 3 points, got:", parsed.length);
+        alert("Please draw a polygon with at least 3 points.");
+        return;
+      }
+
+      console.log("🔍 Processing", parsed.length, "coordinate points");
+
+      // Format coordinates with Z values
+      const effectiveZMax = zMin === zMax && customZMax !== null ? Number(customZMax) : zMax;
+      const formattedCoords = parsed.map((coord, index) => {
+        // Handle different coordinate object formats
+        let x, y;
+        
+        if (coord.lng !== undefined && coord.lat !== undefined) {
+          // Leaflet format: {lat, lng}
+          x = Number(coord.lng);
+          y = Number(coord.lat);
+        } else if (coord.x !== undefined && coord.y !== undefined) {
+          // Direct x,y format
+          x = Number(coord.x);
+          y = Number(coord.y);
+        } else if (Array.isArray(coord) && coord.length >= 2) {
+          // Array format: [lat, lng] or [x, y]
+          x = Number(coord[1]); // lng/x
+          y = Number(coord[0]); // lat/y
+        } else {
+          console.error("❌ Invalid coordinate format at index", index, ":", coord);
+          throw new Error(`Invalid coordinate format at index ${index}`);
+        }
+
+        if (isNaN(x) || isNaN(y)) {
+          console.error("❌ Invalid numeric values at index", index, "x:", x, "y:", y);
+          throw new Error(`Invalid coordinates at index ${index}: x=${x}, y=${y}`);
+        }
+
+        // Assign Z values
+        let n_z = index === 0 ? zMin : (index === 1 ? effectiveZMax : zMin);
+        
+        const formatted = { 
+          n_x: x.toFixed(6), 
+          n_y: y.toFixed(6), 
+          n_z: n_z 
+        };
+        
+        console.log(`📍 Point ${index}: (${x}, ${y}) -> (${formatted.n_x}, ${formatted.n_y}, ${formatted.n_z})`);
+        return formatted;
+      });
+      
+      console.log("✅ Formatted coordinates:", formattedCoords);
+      setCoordinates(formattedCoords);
+      
     } catch (e) {
-      console.error("Error parsing draw coords:", e);
-      alert("Failed to process drawn coordinates.");
+      console.error("❌ Error processing coordinates:", e);
+      alert(`Failed to process drawn coordinates: ${e.message}`);
     }
   }, [zMin, zMax, customZMax]);
 
@@ -163,6 +259,20 @@ const TriggerCreateTab = ({
     <div>
       <h3>Create New Trigger</h3>
       <p>Create zone-based triggers by selecting a zone and drawing a polygon on the map.</p>
+
+      {/* Debug Info */}
+      <div style={{ 
+        marginBottom: "15px", 
+        padding: "8px", 
+        backgroundColor: "#f0f8ff", 
+        borderRadius: "3px",
+        border: "1px solid #b3d9ff",
+        fontSize: "12px"
+      }}>
+        <strong>🐛 Debug:</strong> Coordinates: {coordinates.length} points | 
+        Z-range: {zMin} to {zMax} | 
+        Drawing: {showMapForDrawing ? 'ON' : 'OFF'}
+      </div>
 
       {/* Trigger Creation Form */}
       <div style={{ 
@@ -260,12 +370,17 @@ const TriggerCreateTab = ({
               border: "1px solid #ffeaa7"
             }}>
               <strong>Drawing Mode:</strong> Click on the map to draw a polygon. You need at least 3 points.
+              {coordinates.length > 0 && (
+                <span style={{ marginLeft: "10px", color: "#28a745" }}>
+                  ✅ {coordinates.length} points drawn
+                </span>
+              )}
             </div>
           )}
           
           {selectedZone.i_map ? (
             <NewTriggerViewer
-              key={`create-${selectedZone.i_map}-${selectedZone.i_zn}`}
+              key={`create-${selectedZone.i_map}-${selectedZone.i_zn}-${showMapForDrawing}`}
               mapId={selectedZone.i_map}
               zones={[selectedZone]}
               checkedZones={[selectedZone.i_zn]}
@@ -309,6 +424,7 @@ const TriggerCreateTab = ({
           <li>Click "Start Drawing" to enable map drawing</li>
           <li>Draw a polygon on the map (minimum 3 points)</li>
           <li>Click "Save Trigger" to create the trigger</li>
+          <li><strong>Fixed: Coordinate parsing now handles multiple formats</strong></li>
         </ul>
       </div>
     </div>
