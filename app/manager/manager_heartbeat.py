@@ -1,14 +1,15 @@
-# Name: manager_heartbeat.py
-# Version: 0.1.0
+""" # Name: manager_heartbeat.py
+# Version: 0.1.2
 # Created: 250703
-# Modified: 250703
+# Modified: 250709
 # Creator: ParcoAdmin
 # Modified By: AI Assistant
-# Description: Heartbeat handler module for ParcoRTLS Manager - Extracted from manager.py v0.1.22
+# Description: Heartbeat handler module for ParcoRTLS Manager - Excludes tag (GISData) messages from heartbeat rate-limiting logic
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
+"""
 
 """
 Heartbeat Handler Module for ParcoRTLS Manager
@@ -37,15 +38,15 @@ logger = logging.getLogger(__name__)
 class ManagerHeartbeat:
     """
     Handles all heartbeat operations for the Manager class.
-    
+
     This class encapsulates heartbeat loop management, rate limiting,
     and client cleanup operations that were previously part of the main Manager class.
     """
-    
+
     def __init__(self, manager_name: str):
         """
         Initialize the heartbeat handler.
-        
+
         Args:
             manager_name: Name of the manager instance for logging
         """
@@ -53,24 +54,24 @@ class ManagerHeartbeat:
         self.send_sdk_heartbeat = True
         self.last_heartbeat = 0
         self._heartbeat_task = None
-        
+
         # Rate-limiting configuration
         self.HEARTBEAT_INTERVAL = 30.0  # Heartbeat every 30 seconds
         self.HEARTBEAT_RATE_LIMIT = 1   # Max 1 heartbeat per 30s
-        
+
         # Rate-limiting storage
         self.ws_heartbeat_timestamps: Dict[str, deque] = {}  # For WebSocket clients
         self.sdk_heartbeat_timestamps: Dict[str, deque] = {}  # For SDK clients
-        
+
         logger.debug(f"Initialized ManagerHeartbeat for manager: {manager_name}")
 
     async def start(self, manager_instance=None) -> bool:
         """
         Compatibility method for existing websocket servers.
-        
+
         Args:
             manager_instance: Optional manager instance reference
-            
+
         Returns:
             bool: True if started successfully
         """
@@ -83,10 +84,10 @@ class ManagerHeartbeat:
     async def start_heartbeat_loop(self, manager_instance) -> bool:
         """
         Start the heartbeat loop task.
-        
+
         Args:
             manager_instance: Reference to the main manager instance
-            
+
         Returns:
             bool: True if started successfully, False otherwise
         """
@@ -106,7 +107,7 @@ class ManagerHeartbeat:
     async def stop_heartbeat_loop(self) -> bool:
         """
         Stop the heartbeat loop task.
-        
+
         Returns:
             bool: True if stopped successfully, False otherwise
         """
@@ -128,21 +129,19 @@ class ManagerHeartbeat:
     async def heartbeat_loop(self, manager_instance):
         """
         Main heartbeat loop that manages SDK and WebSocket client heartbeats.
-        
+
         Args:
             manager_instance: Reference to the main manager instance
         """
         logger.debug("Entering heartbeat_loop")
-        
+
         while manager_instance.run_state in [manager_instance.run_state.__class__.Started, manager_instance.run_state.__class__.Starting]:
             try:
-                logger.debug(f"Heartbeat loop iteration, run_state: {manager_instance.run_state}, clients: {len(manager_instance.sdk_clients)}")
-                
                 if not self.send_sdk_heartbeat:
                     logger.debug("Heartbeats disabled, exiting loop")
                     return
 
-                # Process heartbeats
+                # Heartbeat tracking
                 to_kill = []
                 current_time = asyncio.get_event_loop().time()
                 hb = HeartBeat(ticks=int(current_time * 1000))
@@ -151,26 +150,19 @@ class ManagerHeartbeat:
                     "ts": hb.ticks,
                     "heartbeat_id": str(int(datetime.now().timestamp() * 1000))
                 })
-                
+
                 logger.info(f"Manager sending heartbeat to {len(manager_instance.sdk_clients)} SDK clients and {sum(len(clients) for clients in manager_instance.clients.values())} WebSocket clients, ts: {hb.ticks}, message: {json_message}")
 
-                # Initialize rate-limiting for WebSocket and SDK clients
                 self._initialize_rate_limiting(manager_instance)
 
-                # Process SDK clients with strict rate-limiting
                 to_kill.extend(await self._process_sdk_clients(manager_instance, current_time, json_message))
-
-                # Process WebSocket clients with strict rate-limiting
                 await self._process_websocket_clients(manager_instance, current_time, json_message)
 
                 self.last_heartbeat = hb.ticks
-                logger.debug(f"Updated last_heartbeat to {self.last_heartbeat}")
 
-                # Send EndStream response to SDK clients marked for killing
                 if to_kill:
                     await self._send_endstream_responses(to_kill)
 
-                # Clean up SDK clients marked for killing
                 await self._cleanup_sdk_clients(manager_instance, to_kill)
 
                 # Sleep for HEARTBEAT_INTERVAL
@@ -179,11 +171,11 @@ class ManagerHeartbeat:
                 logger.debug(f"Sleeping for {sleep_time:.2f} seconds")
                 await asyncio.sleep(sleep_time)
                 logger.debug("Finished sleeping")
-                
+
             except Exception as e:
                 logger.error(f"Heartbeat loop error: {str(e)}")
                 await asyncio.sleep(self.HEARTBEAT_INTERVAL)
-                
+
         logger.debug("Exiting heartbeat_loop")
 
     def _initialize_rate_limiting(self, manager_instance):
@@ -198,32 +190,32 @@ class ManagerHeartbeat:
     async def _process_sdk_clients(self, manager_instance, current_time: float, json_message: str) -> List[SDKClient]:
         """
         Process SDK clients for heartbeats.
-        
+
         Returns:
             List of SDK clients to be killed
         """
         to_kill = []
         clients_to_process = list(manager_instance.sdk_clients.items())
-        
+
         for client_id, client in clients_to_process:
             if client.is_closing:
-                logger.debug(f"Skipping SDK client {client_id}: already closing")
                 continue
-                
+
+            # Missed heartbeat
             if client.heartbeat < self.last_heartbeat and client.heartbeat != 0:
-                logger.debug(f"SDK client {client_id} failed heartbeat check, marking to kill")
                 client.is_closing = True
                 to_kill.append(client)
                 continue
 
-            # Rate-limit SDK client heartbeats
-            timestamps = self.sdk_heartbeat_timestamps[client_id]
-            timestamps.append(current_time)
-            if len(timestamps) == self.HEARTBEAT_RATE_LIMIT:
-                time_window = current_time - timestamps[0]
-                if time_window < self.HEARTBEAT_INTERVAL:
-                    logger.warning(f"Heartbeat rate exceeded {self.HEARTBEAT_RATE_LIMIT} messages per {self.HEARTBEAT_INTERVAL}s for SDK client {client_id}")
-                    continue
+            # Only rate-limit if last message was a heartbeat
+            if getattr(client, 'last_message_type', '') == "HeartBeat":
+                timestamps = self.sdk_heartbeat_timestamps[client_id]
+                timestamps.append(current_time)
+                if len(timestamps) == self.HEARTBEAT_RATE_LIMIT:
+                    time_window = current_time - timestamps[0]
+                    if time_window < self.HEARTBEAT_INTERVAL:
+                        logger.warning(f"Heartbeat rate exceeded {self.HEARTBEAT_RATE_LIMIT} messages per {self.HEARTBEAT_INTERVAL}s for SDK client {client_id}")
+                        continue
 
             try:
                 if client.heartbeat == 0:
@@ -236,20 +228,12 @@ class ManagerHeartbeat:
                 client.failed_heartbeat = True
                 client.is_closing = True
                 to_kill.append(client)
-                
+
         return to_kill
 
     async def _process_websocket_clients(self, manager_instance, current_time: float, json_message: str):
         """Process WebSocket clients for heartbeats."""
         for reqid, clients in list(manager_instance.clients.items()):
-            timestamps = self.ws_heartbeat_timestamps[reqid]
-            timestamps.append(current_time)
-            if len(timestamps) == self.HEARTBEAT_RATE_LIMIT:
-                time_window = current_time - timestamps[0]
-                if time_window < self.HEARTBEAT_INTERVAL:
-                    logger.warning(f"Heartbeat rate exceeded {self.HEARTBEAT_RATE_LIMIT} messages per {self.HEARTBEAT_INTERVAL}s for WebSocket clients with reqid {reqid}")
-                    continue
-
             for client in clients:
                 try:
                     await client.send_json(json.loads(json_message))
@@ -259,7 +243,8 @@ class ManagerHeartbeat:
                     clients.remove(client)
                     if not clients:
                         del manager_instance.clients[reqid]
-                        del self.ws_heartbeat_timestamps[reqid]
+                        if reqid in self.ws_heartbeat_timestamps:
+                            del self.ws_heartbeat_timestamps[reqid]
 
     async def _send_endstream_responses(self, to_kill: List[SDKClient]):
         """Send EndStream responses to clients marked for killing."""
@@ -278,14 +263,12 @@ class ManagerHeartbeat:
 
     async def _cleanup_sdk_clients(self, manager_instance, to_kill: List[SDKClient]):
         """Clean up SDK clients marked for killing."""
-        # Clean up SDK clients marked for killing
         for client in manager_instance.kill_list:
             if client in manager_instance.sdk_clients.values():
                 await self._close_client(manager_instance, client)
 
         manager_instance.kill_list = to_kill
 
-        # Clean up stale SDK clients
         for client_id, client in list(manager_instance.sdk_clients.items()):
             if client.is_closing or client.failed_heartbeat:
                 await self._close_client(manager_instance, client)

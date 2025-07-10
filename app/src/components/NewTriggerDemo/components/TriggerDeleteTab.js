@@ -1,10 +1,10 @@
 /* Name: TriggerDeleteTab.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 250625 */
-/* Modified: 250625 */
+/* Modified: 250709 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Delete Triggers tab component for NewTriggerDemo */
+/* Description: Delete Triggers tab component for NewTriggerDemo - Enhanced with WebSocket refresh after trigger operations */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -19,11 +19,36 @@ const TriggerDeleteTab = ({
   triggers,
   triggerDirections,
   fetchTriggers,
-  setEventList
+  setEventList,
+  // Add WebSocket controls
+  connectWebSocket,
+  disconnectWebSocket,
+  isConnected
 }) => {
   // Get direction name by ID
   const getDirectionName = (id) => {
     return triggerDirections.find(d => d.i_dir === id)?.x_dir || `ID ${id}`;
+  };
+
+  // WebSocket refresh function
+  const refreshWebSocketConnection = async () => {
+    try {
+      console.log("Refreshing WebSocket connection after trigger operation...");
+      setEventList(prev => [...prev, `Refreshing WebSocket connection at ${getFormattedTimestamp()}`]);
+      
+      if (isConnected) {
+        await disconnectWebSocket();
+        // Wait a moment for clean disconnection
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
+      // Reconnect
+      connectWebSocket();
+      setEventList(prev => [...prev, `WebSocket reconnection initiated at ${getFormattedTimestamp()}`]);
+    } catch (e) {
+      console.error("Error refreshing WebSocket connection:", e);
+      setEventList(prev => [...prev, `WebSocket refresh error: ${e.message} at ${getFormattedTimestamp()}`]);
+    }
   };
 
   // Handle trigger deletion
@@ -34,11 +59,20 @@ const TriggerDeleteTab = ({
       await triggerApi.deleteTrigger(id);
       alert(`Deleted trigger ${id}`);
       setEventList(prev => [...prev, `Trigger ID ${id} deleted on ${getFormattedTimestamp()}`]);
+      
+      // Refresh triggers first
       await fetchTriggers();
 
+      // Try to reload triggers on server
       const reloadSuccess = await triggerApi.retryReloadTriggers(3, 1000);
       if (!reloadSuccess) {
-        alert("Trigger deleted, but failed to reload triggers on the server. Please restart the WebSocket server or try again.");
+        console.log("Server reload failed, refreshing WebSocket connection instead");
+        setEventList(prev => [...prev, `Server reload failed, refreshing WebSocket at ${getFormattedTimestamp()}`]);
+        await refreshWebSocketConnection();
+      } else {
+        console.log("Server reload successful, but refreshing WebSocket for good measure");
+        setEventList(prev => [...prev, `Server reload successful, refreshing WebSocket at ${getFormattedTimestamp()}`]);
+        await refreshWebSocketConnection();
       }
     } catch (e) {
       console.error("Delete error:", e);
@@ -57,7 +91,12 @@ const TriggerDeleteTab = ({
         await triggerApi.movePortableTrigger(triggerId, Number(x), Number(y), Number(z));
         setEventList(prev => [...prev, `Moved trigger ${triggerId} to (${x}, ${y}, ${z}) on ${getFormattedTimestamp()}`]);
         console.log(`Moved trigger ${triggerId}`);
+        
+        // Refresh triggers first
         await fetchTriggers();
+        
+        // Refresh WebSocket connection after move
+        await refreshWebSocketConnection();
       } catch (e) {
         console.error(`Error moving trigger ${triggerId}:`, e);
         alert(`Error moving trigger: ${e.message}`);

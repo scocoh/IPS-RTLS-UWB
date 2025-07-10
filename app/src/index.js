@@ -44,6 +44,7 @@ import NewTriggerDemo from "./components/NewTriggerDemo/NTD_index";
 import EntityMergeDemo from "./components/EntityMergeDemo";
 import PortableTriggerAdd from "./components/PortableTriggerAdd";
 import RuleBuilder from "./components/RuleBuilder";
+import SimulatorDemo from "./components/SimulatorDemo/sim_index";
 
 const App = () => {
   const [view, setView] = useState("triggers");
@@ -62,6 +63,7 @@ const App = () => {
         <button onClick={() => setView("buildout")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Build Out Tool</button>
         <button onClick={() => setView("buildoutcal")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Map Calibration</button>
         <button onClick={() => setView("newTriggerDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Alpha New Trigger Demo</button>
+        <button onClick={() => setView("simulatorDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Simulator Demo</button>
         <button onClick={() => setView("entityMergeDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Entity Merge Demo</button>
         <button onClick={() => setView("portableTriggerAdd")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Portable Trigger Add</button>
         <button onClick={() => setView("ruleBuilder")} style={{ padding: "10px", fontSize: "16px" }}>Rule Builder</button>
@@ -79,6 +81,7 @@ const App = () => {
       {view === "buildout" && <BuildOutTool />}
       {view === "buildoutcal" && <BuildOutMapCal />}
       {view === "newTriggerDemo" && <NewTriggerDemo />}
+      {view === "simulatorDemo" && <SimulatorDemo />}
       {view === "entityMergeDemo" && <EntityMergeDemo />}
       {view === "portableTriggerAdd" && <PortableTriggerAdd />}
       {view === "ruleBuilder" && <RuleBuilder />}

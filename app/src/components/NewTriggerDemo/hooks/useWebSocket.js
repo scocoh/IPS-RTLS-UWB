@@ -1,10 +1,10 @@
 /* Name: useWebSocket.js */
-/* Version: 0.1.2 */
+/* Version: 0.1.3 */
 /* Created: 250625 */
-/* Modified: 250705 */
+/* Modified: 250709 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: WebSocket connection hook for NewTriggerDemo - Fixed sequence number debugging in trigger events */
+/* Description: WebSocket connection hook for NewTriggerDemo - Added trigger name (x_nm_trg) to triggerEvents display */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/hooks */
 /* Role: Frontend */
 /* Status: Active */
@@ -199,9 +199,9 @@ export const useWebSocket = ({
     
     let eventMsg;
     if (data.assigned_tag_id && data.tag_id !== data.assigned_tag_id) {
-      eventMsg = `${data.tag_id} within ${data.assigned_tag_id} Trigger ${trigger.i_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+      eventMsg = `${data.tag_id} within ${data.assigned_tag_id} Trigger ${trigger.i_trg} - ${trigger.x_nm_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
     } else {
-      eventMsg = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.i_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
+      eventMsg = `Tag ${data.tag_id} ${data.direction} trigger ${trigger.i_trg} - ${trigger.x_nm_trg} (Zone ${trigger.i_zn} - ${zoneName}, Seq ${sequenceNumber}) at ${data.timestamp}`;
     }
     
     if (showTriggerEventsRef.current) {

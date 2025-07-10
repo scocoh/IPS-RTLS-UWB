@@ -1,16 +1,17 @@
 # Name: websocket_realtime.py
-# Version: 0.1.68
+# Version: 0.1.69
 # Created: 250512
-# Modified: 250703
+# Modified: 250709
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin + Claude & AI Assistant
-# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 - CLEAN RTLS ONLY with event bridge - Updated to use centralized configuration
+# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 - CLEAN RTLS ONLY with event bridge - Updated to use centralized configuration - Added message type tracking for heartbeat filtering
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_realtime.py
+# Version: 0.1.69 - Added message type tracking for heartbeat filtering, bumped from 0.1.68
 # Version: 0.1.68 - Updated to use centralized configuration instead of hardcoded IP addresses, bumped from 0.1.67
 # Version: 0.1.67 - ROLLBACK: Removed TETSE contamination, added clean event bridge, bumped from 0.1.66
 # Version: 0.1.66 - FIXED: Added current_zone_id parameter to evaluate_rule() call, bumped from 0.1.65
@@ -250,6 +251,7 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                 file_handler.flush()
                 json_data = json.loads(data)
                 msg_type = json_data.get("type", "")
+                sdk_client.last_message_type = msg_type  # Track last received message type for heartbeat filtering
 
                 if msg_type == "HeartBeat":
                     # Validate heartbeat with HeartbeatManager

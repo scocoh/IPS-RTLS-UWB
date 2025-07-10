@@ -46,6 +46,7 @@ export const useTagManager = ({
   isZoomingRef,              // ref<boolean> – true while user is zooming
   pendingUpdateRef,          // ref<boolean> – flag a postponed update
 }) => {
+  console.log("🏷️ useTagManager called with tagsData:", Object.keys(tagsData), "mapInitialized:", mapInitialized);
   // -------------------------------------------------------------------------
   // Refs that must persist across re‑renders – identical semantics to the
   // originals inside NewTriggerViewer.
@@ -111,19 +112,30 @@ export const useTagManager = ({
 
     const selectedZoneId = zones[0]?.i_zn ?? "N/A";
     const now = Date.now();
+    console.log("🕐 executeMarkerUpdate running, checking", Object.keys(tagsData).length, "tags at", new Date(now).toLocaleTimeString());
+
 
     // === 1. Process incoming tag data ======================================
     Object.entries(tagsData).forEach(([tagId, tagData]) => {
+        console.log(`🏷️ Processing tag ${tagId}, last seen:`, tagLastSeenRef.current[tagId] ? new Date(tagLastSeenRef.current[tagId]).toLocaleTimeString() : "never");
+
       // Zone filter – identical to old behaviour
       const tagZoneId = tagData.zone_id ?? selectedZoneId;
       if (tagZoneId !== selectedZoneId) return;
       if (hiddenTags.has(tagId)) return; // user‑hidden
 
-      // Last‑seen bookkeeping
-      tagLastSeenRef.current[tagId] = now;
-      if (tagTimeoutRef.current[tagId]) {
-        clearTimeout(tagTimeoutRef.current[tagId]);
-        delete tagTimeoutRef.current[tagId];
+      // Last‑seen bookkeeping - only update if data is actually new
+      const dataTimestamp = tagData.timestamp || now;
+      if (!tagLastSeenRef.current[tagId] || dataTimestamp > tagLastSeenRef.current[tagId]) {
+        tagLastSeenRef.current[tagId] = dataTimestamp;
+        console.log(`📡 NEW data for ${tagId} at ${new Date(dataTimestamp).toLocaleTimeString()}`);
+        // Clear timeout since we have fresh data
+        if (tagTimeoutRef.current[tagId]) {
+          clearTimeout(tagTimeoutRef.current[tagId]);
+          delete tagTimeoutRef.current[tagId];
+        }
+      } else {
+        console.log(`♻️ OLD data for ${tagId}, last fresh: ${new Date(tagLastSeenRef.current[tagId]).toLocaleTimeString()}`);
       }
 
       // Ignore out‑of‑bounds positions to match map bounds
@@ -145,6 +157,18 @@ export const useTagManager = ({
       )}, ${y.toFixed(2)})`;
       upsertMarker(tagId, tagData, markerSize, tooltip);
 
+      // ENSURE marker is red (unstale) when we have fresh data
+      const marker = tagMarkersRef.current[tagId];
+      if (marker) {
+        marker.setIcon(L.divIcon({
+          className: "tag-marker",
+          html: `<div style="background-color: red; width: ${markerSize}px; height: ${markerSize}px; border-radius: 50%;"></div>`,
+          iconSize: [markerSize, markerSize],
+          iconAnchor: [markerSize / 2, markerSize / 2],
+        }));
+        console.log(`🔴 Restored red color for ${tagId} with fresh data`);
+      }
+
       // Auto‑zoom on very first tag appearance
       if (
         firstTagAppearance.current &&
@@ -156,12 +180,13 @@ export const useTagManager = ({
     });
 
     // === 2. Grey‑out or remove stale markers ===============================
+    console.log("🔍 Checking for stale markers, total markers:", Object.keys(tagMarkersRef.current).length);
     Object.keys(tagMarkersRef.current).forEach((tagId) => {
       const lastSeen = tagLastSeenRef.current[tagId];
       const timeSince = now - (lastSeen ?? 0);
 
       // Tag disappeared from live feed
-      if (!tagsData[tagId]) {
+      if (!tagsData[tagId] || timeSince > 10_000) {
         if (timeSince > 300_000) {
           // remove after 5 min
           const m = tagMarkersRef.current[tagId];

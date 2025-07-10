@@ -197,3 +197,20 @@ class DatabaseConfigHelper:
 
 # Global instance
 config_helper = DatabaseConfigHelper()
+
+def get_connection(db_name: str):
+    """Helper to get psycopg2 connection for the given database"""
+    cfg = config_helper.get_database_configs().get(db_name.lower())
+    if not cfg:
+        raise ValueError(f"No database config found for '{db_name}'")
+    
+    import psycopg2
+    return psycopg2.connect(
+        dbname=cfg["database"],
+        user=cfg["user"],
+        password=cfg["password"],
+        host=cfg["host"],
+        port=cfg["port"]
+    )
+
+__all__ = ["get_connection"]

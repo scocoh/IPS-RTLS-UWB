@@ -1,10 +1,10 @@
 # Name: websocket.py
-# Version: 0.1.2
+# Version: 0.1.3
 # Created: 250513
-# Modified: 250704
+# Modified: 250709
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS Main WebSocket server - Updated to use database-driven configuration
+# Description: Python script for ParcoRTLS Main WebSocket server - Updated to use database-driven configuration - Added message type tracking for heartbeat filtering
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
@@ -316,6 +316,7 @@ async def websocket_endpoint_main(websocket: WebSocket, manager_name: str):
                 
                 json_data = json.loads(data)
                 msg_type = json_data.get("type", "")
+                sdk_client.last_message_type = msg_type  # Track last received message type for heartbeat filtering
 
                 if msg_type == "HeartBeat":
                     hb = HeartBeat(ticks=json_data["ts"])

@@ -1,10 +1,10 @@
 /* Name: NTD_index.js */
-/* Version: 0.2.2 */
+/* Version: 0.2.3 */
 /* Created: 250625 */
-/* Modified: 250706 */
+/* Modified: 250709 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Main component for NewTriggerDemo - Enhanced with responsive map controls and better UI integration */
+/* Description: Main component for NewTriggerDemo - Enhanced with WebSocket controls for TriggerDeleteTab to fix deleted trigger issues */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/NTD_index.js */
 /* Role: Frontend */
 /* Status: Active */
@@ -471,6 +471,10 @@ const NewTriggerDemo = () => {
               triggerDirections={triggerDirections}
               fetchTriggers={fetchTriggers}
               setEventList={setEventList}
+              // ENHANCED: Add WebSocket controls for refresh after trigger operations
+              connectWebSocket={connectWebSocket}
+              disconnectWebSocket={disconnectWebSocket}
+              isConnected={isConnected}
             />
           )}
         </Tab>

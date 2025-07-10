@@ -1,29 +1,15 @@
-# Name: sdk_client.py
-# Version: 0.1.1
+""" # Name: sdk_client.py
+# Version: 0.1.2
 # Created: 971201
-# Modified: 250703
+# Modified: 250709
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin & AI Assistant
-# Description: Python script for ParcoRTLS backend - Fixed type annotations
+# Modified By: AI Assistant
+# Description: Python script for ParcoRTLS backend - Added last_message_type tracking for heartbeat filtering
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
-
-# /home/parcoadmin/parco_fastapi/app/manager/sdk_client.py
-# Version: 0.1.1 - Fixed type annotations for zone_id parameter, bumped from 0.1.0
-# Version: 1.0.8 - Added logging and validation for zone_id, bumped from 1.0.7
-# Previous: Added zone_id attribute to SDKClient to track client subscription zone (1.0.7)
-#
-# SDK Client Module for Manager
-#
-# ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
-# Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
-# Invented by Scott Cohen & Bertrand Dugal.
-# Coded by Jesse Chunn O.B.M.'24 and Michael Farnsworth and Others
-# Published at GitHub https://github.com/scocoh/IPS-RTLS-UWB
-#
-# Licensed under AGPL-3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
+"""
 
 from queue import Queue
 import asyncio
@@ -58,6 +44,8 @@ class SDKClient:
         self.last_sent_message = None
         self.q_timer_task = None
         self._is_closed = False
+
+        self.last_message_type: Optional[str] = None  # Tracks last message type received from client (e.g., HeartBeat, GISData)
 
     @property
     def zone_id(self) -> Optional[int]:

@@ -1,10 +1,10 @@
 # Name: websocket_control.py
-# Version: 0.1.3
+# Version: 0.1.4
 # Created: 250513
-# Modified: 250703
+# Modified: 250709
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin & TC & AI Assistant
-# Description: Python script for ParcoRTLS Control WebSocket server on port 8001 - Added PortRedirect support for simulator v0.1.23 - Updated to use centralized configuration
+# Description: Python script for ParcoRTLS Control WebSocket server on port 8001 - Added PortRedirect support for simulator v0.1.23 - Updated to use centralized configuration - Added message type tracking for heartbeat filtering
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
@@ -241,6 +241,7 @@ async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
                 
                 json_data = json.loads(data)
                 msg_type = json_data.get("type", "")
+                sdk_client.last_message_type = msg_type  # Track last received message type for heartbeat filtering
 
                 if msg_type == "HeartBeat":
                     hb = HeartBeat(ticks=json_data["ts"])

@@ -1,6 +1,6 @@
 # /home/parcoadmin/parco_fastapi/app/routes/trigger.py
 # Name: trigger.py
-# Version: 0.1.63
+# Version: 0.1.66
 # Created: 971201
 # Modified: 250626
 # Creator: ParcoAdmin
@@ -15,6 +15,9 @@
 # Status: Active
 # Dependent: TRUE
 #
+# Version: 0.1.66 - Uses dynamic bounding box calculation from vertices (like get_zone_bounding_box)
+# Version: 0.1.65 - changed vertices to tuples
+# Version: 0.1.64 - Added hybrid polygon containment while preserving bounding box logic, bumped from 0.1.63
 # Version 0.1.62 Fixed zone 425 trigger creation by auto-correcting Z-coordinates to fit within zone boundaries, bumped from 0.1.61
 # Version 0.1.61 - Added explicit type casting for usp_region_add to fix zone 425 trigger creation bug
 # Version 0.1.61 Added in endpoint for add_trigger_from_zone data
@@ -620,7 +623,7 @@ async def get_triggers_by_zone_with_id(zone_id: int):
 # Endpoint to check if a point is within a trigger's region
 @router.get(
     "/trigger_contains_point/{trigger_id}",
-    summary="Check if a point is within a trigger’s region (2D or 3D)",
+    summary="Check if a point is within a trigger's region (2D or 3D) with hybrid containment",
     description=load_description("trigger_contains_point"),
     tags=["triggers"]
 )
@@ -645,7 +648,7 @@ async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float =
         logger.debug(f"Trigger details: {trigger}")
         
         if trigger["is_portable"]:
-            # Portable trigger: Use radius and z bounds
+            # Portable trigger: Use radius and z bounds (existing logic preserved)
             if not all([trigger["radius_ft"], trigger["z_min"] is not None, trigger["z_max"] is not None]):
                 logger.error(f"Portable trigger {trigger_id} missing radius or z bounds: {trigger}")
                 raise HTTPException(status_code=400, detail="Portable trigger missing radius or z bounds")
@@ -655,13 +658,13 @@ async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float =
                 logger.error(f"Portable trigger {trigger_id} missing assigned tag ID")
                 raise HTTPException(status_code=400, detail="Portable trigger missing assigned tag ID")
             
-            # The WebSocket server provides x, y, z as the tag’s position (e.g., SIM1’s position)
+            # The WebSocket server provides x, y, z as the tag's position (e.g., SIM1's position)
             # For portable triggers, this position is the center of the trigger
             center_x, center_y, center_z = x, y, z if z is not None else 0
             radius = trigger["radius_ft"]
             
-            # Fetch the zone’s vertices to determine a reference point to check against
-            # We’ll use the centroid of the zone as the point to check
+            # Fetch the zone's vertices to determine a reference point to check against
+            # We'll use the centroid of the zone as the point to check
             zone_id = trigger["zone_id"]
             if not zone_id:
                 logger.error(f"Portable trigger {trigger_id} missing zone ID")
@@ -684,7 +687,7 @@ async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float =
             avg_y = sum(v["y"] for v in zone_vertices) / len(zone_vertices)
             avg_z = sum(v["z"] for v in zone_vertices) / len(zone_vertices)
             
-            # Check if the zone centroid is within the trigger’s radius centered at the tag’s position
+            # Check if the zone centroid is within the trigger's radius centered at the tag's position
             distance = ((avg_x - center_x) ** 2 + (avg_y - center_y) ** 2) ** 0.5
             logger.debug(f"Portable trigger {trigger_id}: distance from zone centroid [{avg_x}, {avg_y}] to tag position [{center_x}, {center_y}] = {distance}, radius = {radius}")
             if z is not None:
@@ -695,7 +698,7 @@ async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float =
             logger.debug(f"Portable trigger {trigger_id}: contains = {contains}")
             return {"contains": contains}
         else:
-            # Non-portable trigger: Fetch region vertices
+            # Non-portable trigger: Enhanced hybrid containment check
             region_query = """
                 SELECT i_rgn FROM regions WHERE i_trg = $1
             """
@@ -716,26 +719,42 @@ async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float =
                 logger.error(f"Region for trigger {trigger_id} has insufficient vertices: {len(vertices)}")
                 raise HTTPException(status_code=400, detail="Region has insufficient vertices")
             
+            # NEW: Create region with vertices for hybrid containment
             regions = Region3DCollection()
             x_coords = [v["x"] for v in vertices]
             y_coords = [v["y"] for v in vertices]
             z_coords = [v["z"] for v in vertices]
-            regions.add(Region3D(
+            
+            # Create Region3D with vertices for polygon containment
+            region_3d = Region3D(
                 min_x=min(x_coords),
                 max_x=max(x_coords),
                 min_y=min(y_coords),
                 max_y=max(y_coords),
                 min_z=min(z_coords),
-                max_z=max(z_coords)
-            ))
+                max_z=max(z_coords),
+                vertices=[(v["x"], v["y"], v["z"]) for v in vertices]  # NEW: Pass vertices as tuples for polygon containment
+            )
+            regions.add(region_3d)
             
-            # Check containment
+            # NEW: Use hybrid containment (bounding box + polygon)
             if z is None:
-                contains = any(region.contains_point_in_2d(x, y) for region in regions.regions)
+                contains = any(region.contains_point_hybrid(x, y) for region in regions.regions)
+                logger.debug(f"Non-portable trigger {trigger_id}: 2D hybrid containment = {contains}")
             else:
-                contains = any(region.contains_point(x, y, z) for region in regions.regions)
-            logger.debug(f"Non-portable trigger {trigger_id}: contains = {contains}")
+                contains = any(region.contains_point_hybrid(x, y, z) for region in regions.regions)
+                logger.debug(f"Non-portable trigger {trigger_id}: 3D hybrid containment = {contains}")
+            
+            # OPTIONAL: For debugging, also show original bounding box result
+            if z is None:
+                bbox_contains = any(region.contains_point_in_2d(x, y) for region in regions.regions)
+            else:
+                bbox_contains = any(region.contains_point(x, y, z) for region in regions.regions)
+            
+            logger.debug(f"Trigger {trigger_id}: Bounding box result: {bbox_contains}, Hybrid result: {contains}")
+            
             return {"contains": contains}
+            
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -751,46 +770,83 @@ async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float =
 )
 async def zones_by_point(x: float, y: float, z: float, zone_type: int = 0):
     try:
-        query = """
-            SELECT z.i_zn, z.x_nm_zn, r.n_min_x, r.n_max_x, r.n_min_y, r.n_max_y, r.n_min_z, r.n_max_z
-            FROM zones z
-            JOIN regions r ON z.i_zn = r.i_zn
-            WHERE r.i_trg IS NULL
-              AND $1 BETWEEN r.n_min_x AND r.n_max_x
-              AND $2 BETWEEN r.n_min_y AND r.n_max_y
-              AND $3 BETWEEN r.n_min_z AND r.n_max_z
-        """
+        # Get all zones (with optional type filter)
+        zone_query = "SELECT i_zn, x_nm_zn FROM zones"
         if zone_type > 0:
-            query += " AND z.i_typ_zn = $4"
-            args = (x, y, z, zone_type)
+            zone_query += " WHERE i_typ_zn = $1"
+            zones = await execute_raw_query("maint", zone_query, zone_type)
         else:
-            args = (x, y, z)
+            zones = await execute_raw_query("maint", zone_query)
         
-        zones = await execute_raw_query("maint", query, *args)
-        result = [
-            {
-                "zone_id": zone["i_zn"],
-                "zone_name": zone["x_nm_zn"],
-                "contains": (
-                    x >= zone["n_min_x"] and x <= zone["n_max_x"] and
-                    y >= zone["n_min_y"] and y <= zone["n_max_y"] and
-                    z >= zone["n_min_z"] and z <= zone["n_max_z"]
+        result = []
+        for zone in zones:
+            zone_id = zone["i_zn"]
+            zone_name = zone["x_nm_zn"]
+            
+            try:
+                # Use the same dynamic bounding box logic as get_zone_bounding_box
+                bbox_query = """
+                    SELECT r.i_rgn
+                    FROM regions r
+                    WHERE r.i_zn = $1 AND r.i_trg IS NULL
+                """
+                region_result = await execute_raw_query("maint", bbox_query, zone_id)
+                if not region_result:
+                    continue  # Skip zones without regions
+                
+                region_id = region_result[0]["i_rgn"]
+                
+                # Fetch vertices and calculate dynamic bounding box
+                vertices_query = """
+                    SELECT n_x AS x, n_y AS y, COALESCE(n_z, 0.0) AS z
+                    FROM vertices
+                    WHERE i_rgn = $1
+                """
+                vertices = await execute_raw_query("maint", vertices_query, region_id)
+                if not vertices or len(vertices) < 3:
+                    continue  # Skip zones with insufficient vertices
+                
+                # Calculate dynamic bounding box
+                min_x = min(v["x"] for v in vertices)
+                max_x = max(v["x"] for v in vertices)
+                min_y = min(v["y"] for v in vertices)
+                max_y = max(v["y"] for v in vertices)
+                min_z = min(v["z"] for v in vertices)
+                max_z = max(v["z"] for v in vertices)
+                
+                # Check if point is within calculated bounding box
+                contains = (
+                    min_x <= x <= max_x and
+                    min_y <= y <= max_y and
+                    min_z <= z <= max_z
                 )
-            }
-            for zone in zones
-        ]
+                
+                # Only include zones that actually contain the point
+                if contains:
+                    result.append({
+                        "zone_id": zone_id,
+                        "zone_name": zone_name,
+                        "contains": True
+                    })
+                    
+            except Exception as zone_error:
+                # Skip zones with errors (missing regions, etc.)
+                logger.debug(f"Skipping zone {zone_id} due to error: {zone_error}")
+                continue
+        
         return result
+        
     except DatabaseError as e:
         logger.error(f"Database error fetching zones by point: {e.message}")
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
         logger.error(f"Error fetching zones by point: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 # Endpoint to fetch triggers that may contain a point
 @router.get(
     "/triggers_by_point",
-    summary="Fetch triggers whose regions may contain a given point (x, y, z)",
+    summary="Fetch triggers whose regions may contain a given point (x, y, z) with hybrid containment",
     description=load_description("triggers_by_point"),
     tags=["triggers"]
 )
@@ -848,15 +904,19 @@ async def triggers_by_point(x: float, y: float, z: float):
                         x_coords = [v["x"] for v in vertices]
                         y_coords = [v["y"] for v in vertices]
                         z_coords = [v["z"] for v in vertices]
-                        regions.add(Region3D(
+                        # NEW: Create Region3D with vertices for hybrid containment
+                        region_3d = Region3D(
                             min_x=min(x_coords),
                             max_x=max(x_coords),
                             min_y=min(y_coords),
                             max_y=max(y_coords),
                             min_z=min(z_coords),
-                            max_z=max(z_coords)
-                        ))
-                        contains = any(region.contains_point(x, y, z) for region in regions.regions)
+                            max_z=max(z_coords),
+                            vertices=vertices  # NEW: Pass vertices for polygon containment
+                        )
+                        regions.add(region_3d)
+                        # NEW: Use hybrid containment instead of basic bounding box
+                        contains = any(region.contains_point_hybrid(x, y, z) for region in regions.regions)
                     else:
                         contains = False
                 else:
@@ -875,7 +935,7 @@ async def triggers_by_point(x: float, y: float, z: float):
     except Exception as e:
         logger.error(f"Error fetching triggers by point: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 # Endpoint to fetch vertices for a zone (excluding trigger-related regions)
 @router.get(
     "/get_zone_vertices/{zone_id}",

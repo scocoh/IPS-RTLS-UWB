@@ -67,6 +67,7 @@ from manager.websocket_realtime import app as realtime_app
 from routes.websocket_event import router as websocket_event_router
 from routes import openai_trigger_api
 from contextlib import asynccontextmanager
+from routes.simulator import router as simulator_router
 import uvicorn
 import multiprocessing
 import os
@@ -229,6 +230,7 @@ app.include_router(event_router, prefix="/api", tags=["event"])
 app.include_router(portable_triggers_router, prefix="/api")
 app.include_router(websocket_event_router)
 app.include_router(openai_trigger_api.router, prefix="/api/openai")
+app.include_router(simulator_router)
 
 async def get_async_db_pool(db_type: str = "maint"):
     """Creates an asyncpg connection pool with explicit parameters."""

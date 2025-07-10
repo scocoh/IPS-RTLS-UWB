@@ -23,3 +23,13 @@ DB_PASSWORD = "parcoMCSE04106!"
 
 # MQTT Configuration
 MQTT_BROKER_LOCAL = "127.0.0.1"
+
+def load_description(group: str) -> dict:
+    """Dummy fallback description loader for FastAPI route metadata"""
+    return {
+        "save_path": f"Save a simulation path to the path_simulations table for group '{group}'",
+        "list_paths": "List all simulation paths by zone",
+        "get_path": "Fetch one simulation path by i_path ID"
+    }
+
+__all__ = ["load_description"]
