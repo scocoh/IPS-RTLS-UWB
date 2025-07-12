@@ -101,7 +101,8 @@ class DataStream:
                                 min_x=detail["n_min_x"],
                                 max_x=detail["n_max_x"],
                                 min_y=detail["n_min_y"],
-                                max_y=detail["n_max Calc"],
+                                # Corrected typo in key name id by QS confirmed bt TC 250711 change from n_max Calc
+                                max_y=detail["n_max_y"],
                                 min_z=detail["n_min_z"],
                                 max_z=detail["n_max_z"]
                             ))

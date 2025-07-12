@@ -1,3 +1,15 @@
+# Name: sdk_client.py
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS backend script
+# Location: /home/parcoadmin/parco_fastapi/app/manager
+# Role: Backend
+# Status: Active
+# Dependent: TRUE
+
 """ # Name: sdk_client.py
 # Version: 0.1.2
 # Created: 971201

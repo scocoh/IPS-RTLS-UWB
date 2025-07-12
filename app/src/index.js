@@ -1,7 +1,7 @@
 /* Name: index.js */
-/* Version: 0.1.4 */
+/* Version: 0.1.5 */
 /* Created: 971201 */
-/* Modified: 250704 */
+/* Modified: 250711 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
 /* Description: JavaScript file for ParcoRTLS frontend */
@@ -11,9 +11,9 @@
 /* Dependent: TRUE */
 
 //
-// # VERSION 250704 /home/parcoadmin/parco_fastapi/app/src/index.js 0.1.4
-// # CHANGED: Added ZoneViewerModular import and button for testing modular version alongside original
-// # CHANGED: Bumped version from 0.1.3 to 0.1.4
+// # VERSION 250711 /home/parcoadmin/parco_fastapi/app/src/index.js 0.1.5
+// # CHANGED: Added DashboardDemo button and view for dashboard testing, bumped from 0.1.4
+// # Previous: Added ZoneViewerModular import and button for testing modular version alongside original
 // # Previous: Added BuildOutMapCal import and button for map calibration testing, bumped from 0.1.2
 // # Previous: Added RuleBuilder view for TETSE rule construction and code generation, bumped from 0.1.1
 // # Previous: Added Portable Trigger Add button and view, bumped from 0.1.0
@@ -45,13 +45,14 @@ import EntityMergeDemo from "./components/EntityMergeDemo";
 import PortableTriggerAdd from "./components/PortableTriggerAdd";
 import RuleBuilder from "./components/RuleBuilder";
 import SimulatorDemo from "./components/SimulatorDemo/sim_index";
+import DashboardDemo from './components/DashboardDemo/DashboardDemo';
 
 const App = () => {
   const [view, setView] = useState("triggers");
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>ParcoRTLS Management 0.1.4</h1>
+      <h1>ParcoRTLS Management 0.1.5</h1>
 
       <div style={{ marginBottom: "20px" }}>
         <button onClick={() => setView("triggers")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Trigger Management</button>
@@ -66,7 +67,8 @@ const App = () => {
         <button onClick={() => setView("simulatorDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Simulator Demo</button>
         <button onClick={() => setView("entityMergeDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Entity Merge Demo</button>
         <button onClick={() => setView("portableTriggerAdd")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Portable Trigger Add</button>
-        <button onClick={() => setView("ruleBuilder")} style={{ padding: "10px", fontSize: "16px" }}>Rule Builder</button>
+        <button onClick={() => setView("ruleBuilder")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Rule Builder</button>
+        <button onClick={() => setView("dashboardDemo")} style={{ padding: "10px", fontSize: "16px", backgroundColor: "#667eea", color: "white" }}>Dashboard Demo</button>
       </div>
 
       <hr />
@@ -85,6 +87,7 @@ const App = () => {
       {view === "entityMergeDemo" && <EntityMergeDemo />}
       {view === "portableTriggerAdd" && <PortableTriggerAdd />}
       {view === "ruleBuilder" && <RuleBuilder />}
+      {view === "dashboardDemo" && <DashboardDemo />}
     </div>
   );
 };

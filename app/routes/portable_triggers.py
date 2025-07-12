@@ -1,8 +1,8 @@
 # /home/parcoadmin/parco_fastapi/app/routes/portable_triggers.py
 # Name: portable_triggers.py
-# Version: 0.1.4
+# Version: 0.1.5
 # Created: 250607
-# Modified: 250607
+# Modified: 250711
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: FastAPI routes for managing portable triggers in ParcoRTLS
@@ -11,6 +11,7 @@
 # Status: Active
 # Dependent: TRUE
 #
+# Version 0.1.5 - Added edit endpoints for portable trigger name, radius, and zone, bumped from 0.1.4
 # Version 0.1.4 - Simplified /api/reload_triggers endpoint, bumped from 0.1.3
 # Version 0.1.3 - Added /api/reload_triggers endpoint, bumped from 0.1.2
 # Version 0.1.2 - Removed prefix=/api from router to fix 404, bumped from 0.1.1
@@ -27,6 +28,7 @@
 
 from fastapi import APIRouter, HTTPException
 from models import TriggerAddRequest
+from pydantic import BaseModel
 import asyncpg
 import logging
 from database.db import execute_raw_query
@@ -34,6 +36,16 @@ from database.db import execute_raw_query
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["portable_triggers"])
 logger.info("Portable triggers router initialized")
+
+# Pydantic models for edit requests
+class TriggerNameEditRequest(BaseModel):
+    name: str
+
+class TriggerRadiusEditRequest(BaseModel):
+    radius_ft: float
+
+class TriggerZoneEditRequest(BaseModel):
+    zone_id: int
 
 @router.post("/add_portable_trigger")
 async def add_portable_trigger(request: TriggerAddRequest):
@@ -131,6 +143,205 @@ async def add_portable_trigger(request: TriggerAddRequest):
         raise HTTPException(status_code=400, detail=f"Trigger name '{request.name}' already exists")
     except Exception as e:
         logger.error(f"Error adding portable trigger: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/edit_trigger_name/{trigger_id}")
+async def edit_trigger_name(trigger_id: int, request: TriggerNameEditRequest):
+    """
+    Edit the name of a portable trigger.
+
+    This endpoint updates the name of an existing portable trigger in the ParcoRTLS system.
+
+    Args:
+        trigger_id (int): The ID of the trigger to edit (path parameter, required).
+        request (TriggerNameEditRequest): A Pydantic model containing:
+            - name (str): New trigger name (required, unique).
+
+    Returns:
+        dict: JSON response containing:
+            - message (str): Success message.
+
+    Raises:
+        HTTPException:
+            - 400: If validation fails (e.g., name already exists, trigger not portable).
+            - 404: If trigger not found.
+            - 500: For database or unexpected errors.
+
+    Example:
+        ```bash
+        curl -X PUT http://192.168.210.226:8000/api/edit_trigger_name/143 \
+             -H "Content-Type: application/json" \
+             -d '{"name":"NewTriggerName"}'
+        ```
+        Response:
+        ```json
+        {
+            "message": "Trigger name updated successfully"
+        }
+        ```
+
+    Use Case:
+        Rename portable triggers for better identification or organization.
+
+    Hint:
+        - Only works on portable triggers (is_portable = true).
+        - Trigger name must be unique across all triggers.
+    """
+    logger.debug(f"Received edit_trigger_name request for trigger {trigger_id}: {request.dict()}")
+    try:
+        # Check if trigger exists and is portable
+        check_query = "SELECT is_portable FROM triggers WHERE i_trg = $1"
+        trigger_check = await execute_raw_query("maint", check_query, trigger_id)
+        if not trigger_check:
+            raise HTTPException(status_code=404, detail=f"Trigger {trigger_id} not found")
+        if not trigger_check[0]["is_portable"]:
+            raise HTTPException(status_code=400, detail="Only portable triggers can be edited")
+
+        # Update trigger name
+        update_query = "UPDATE triggers SET x_nm_trg = $1 WHERE i_trg = $2"
+        await execute_raw_query("maint", update_query, request.name, trigger_id)
+        
+        logger.info(f"Trigger {trigger_id} name updated to: {request.name}")
+        return {"message": "Trigger name updated successfully"}
+    except asyncpg.exceptions.UniqueViolationError:
+        logger.error(f"Trigger name '{request.name}' already exists")
+        raise HTTPException(status_code=400, detail=f"Trigger name '{request.name}' already exists")
+    except Exception as e:
+        logger.error(f"Error updating trigger name: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/edit_trigger_radius/{trigger_id}")
+async def edit_trigger_radius(trigger_id: int, request: TriggerRadiusEditRequest):
+    """
+    Edit the radius of a portable trigger.
+
+    This endpoint updates the radius of an existing portable trigger in the ParcoRTLS system.
+
+    Args:
+        trigger_id (int): The ID of the trigger to edit (path parameter, required).
+        request (TriggerRadiusEditRequest): A Pydantic model containing:
+            - radius_ft (float): New radius in feet (required, > 0).
+
+    Returns:
+        dict: JSON response containing:
+            - message (str): Success message.
+
+    Raises:
+        HTTPException:
+            - 400: If validation fails (e.g., invalid radius, trigger not portable).
+            - 404: If trigger not found.
+            - 500: For database or unexpected errors.
+
+    Example:
+        ```bash
+        curl -X PUT http://192.168.210.226:8000/api/edit_trigger_radius/143 \
+             -H "Content-Type: application/json" \
+             -d '{"radius_ft":2.5}'
+        ```
+        Response:
+        ```json
+        {
+            "message": "Trigger radius updated successfully"
+        }
+        ```
+
+    Use Case:
+        Adjust the detection area of portable triggers based on operational requirements.
+
+    Hint:
+        - Only works on portable triggers (is_portable = true).
+        - Radius must be positive.
+    """
+    logger.debug(f"Received edit_trigger_radius request for trigger {trigger_id}: {request.dict()}")
+    try:
+        # Validate radius
+        if request.radius_ft <= 0:
+            raise HTTPException(status_code=400, detail="radius_ft must be positive")
+
+        # Check if trigger exists and is portable
+        check_query = "SELECT is_portable FROM triggers WHERE i_trg = $1"
+        trigger_check = await execute_raw_query("maint", check_query, trigger_id)
+        if not trigger_check:
+            raise HTTPException(status_code=404, detail=f"Trigger {trigger_id} not found")
+        if not trigger_check[0]["is_portable"]:
+            raise HTTPException(status_code=400, detail="Only portable triggers can be edited")
+
+        # Update trigger radius
+        update_query = "UPDATE triggers SET radius_ft = $1 WHERE i_trg = $2"
+        await execute_raw_query("maint", update_query, request.radius_ft, trigger_id)
+        
+        logger.info(f"Trigger {trigger_id} radius updated to: {request.radius_ft}ft")
+        return {"message": "Trigger radius updated successfully"}
+    except Exception as e:
+        logger.error(f"Error updating trigger radius: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/edit_trigger_zone/{trigger_id}")
+async def edit_trigger_zone(trigger_id: int, request: TriggerZoneEditRequest):
+    """
+    Edit the zone assignment of a portable trigger.
+
+    This endpoint updates the zone assignment of an existing portable trigger in the ParcoRTLS system.
+
+    Args:
+        trigger_id (int): The ID of the trigger to edit (path parameter, required).
+        request (TriggerZoneEditRequest): A Pydantic model containing:
+            - zone_id (int): New zone ID (required, must exist).
+
+    Returns:
+        dict: JSON response containing:
+            - message (str): Success message.
+
+    Raises:
+        HTTPException:
+            - 400: If validation fails (e.g., invalid zone_id, trigger not portable).
+            - 404: If trigger or zone not found.
+            - 500: For database or unexpected errors.
+
+    Example:
+        ```bash
+        curl -X PUT http://192.168.210.226:8000/api/edit_trigger_zone/143 \
+             -H "Content-Type: application/json" \
+             -d '{"zone_id":425}'
+        ```
+        Response:
+        ```json
+        {
+            "message": "Trigger zone updated successfully"
+        }
+        ```
+
+    Use Case:
+        Move portable triggers between zones for better operational organization.
+
+    Hint:
+        - Only works on portable triggers (is_portable = true).
+        - Zone must exist in the zones table.
+    """
+    logger.debug(f"Received edit_trigger_zone request for trigger {trigger_id}: {request.dict()}")
+    try:
+        # Check if trigger exists and is portable
+        check_query = "SELECT is_portable FROM triggers WHERE i_trg = $1"
+        trigger_check = await execute_raw_query("maint", check_query, trigger_id)
+        if not trigger_check:
+            raise HTTPException(status_code=404, detail=f"Trigger {trigger_id} not found")
+        if not trigger_check[0]["is_portable"]:
+            raise HTTPException(status_code=400, detail="Only portable triggers can be edited")
+
+        # Validate zone
+        zone_query = "SELECT COUNT(*) FROM zones WHERE i_zn = $1"
+        zone_count = await execute_raw_query("maint", zone_query, request.zone_id)
+        if zone_count[0]["count"] == 0:
+            raise HTTPException(status_code=404, detail=f"Zone {request.zone_id} not found")
+
+        # Update trigger zone
+        update_query = "UPDATE triggers SET i_zn = $1 WHERE i_trg = $2"
+        await execute_raw_query("maint", update_query, request.zone_id, trigger_id)
+        
+        logger.info(f"Trigger {trigger_id} zone updated to: {request.zone_id}")
+        return {"message": "Trigger zone updated successfully"}
+    except Exception as e:
+        logger.error(f"Error updating trigger zone: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/reload_triggers")

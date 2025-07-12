@@ -1,18 +1,20 @@
 /* Name: PortableTriggerAdd.js */
-/* Version: 0.1.4 */
+/* Version: 0.1.8 */
 /* Created: 250607 */
-/* Modified: 250704 */
+/* Modified: 250711 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin */
-/* Description: JavaScript file for ParcoRTLS frontend to add portable triggers */
+/* Description: JavaScript file for ParcoRTLS frontend to add and edit portable triggers */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 /* Changelog: */
+/* - 0.1.5 (250711): Added Portable Trigger Edit tab with rename, diameter change, zone change, and delete functionality */
 /* - 0.1.4 (250704): Replaced hardcoded IP with dynamic hostname detection */
 
 // /home/parcoadmin/parco_fastapi/app/src/components/PortableTriggerAdd.js
+// Version: 0.1.5 - Added Portable Trigger Edit tab with rename, diameter change, zone change, and delete functionality
 // Version: 0.1.4 - Replaced hardcoded IP with dynamic hostname detection
 // Version: 0.1.3 - Updated retryReloadTriggers to use port 8000, bumped from 0.1.2
 // Version: 0.1.2 - Updated to call /api/add_portable_trigger, added debug logging, bumped from 0.1.1
@@ -21,7 +23,7 @@
 // Features: Zone (optional), Trigger Name, Host Tag ID (real/simulated), Radius (feet), Z Min (feet), Z Max (feet), Direction
 
 import React, { useState, useEffect } from "react";
-import { Form, Tabs, Tab, Button, FormControl, InputGroup } from "react-bootstrap";
+import { Form, Tabs, Tab, Button, FormControl, InputGroup, Table } from "react-bootstrap";
 
 const PortableTriggerAdd = () => {
   const [zones, setZones] = useState([]);
@@ -43,6 +45,13 @@ const PortableTriggerAdd = () => {
   const [deviceTypes, setDeviceTypes] = useState([]);
   const [selectedDeviceType, setSelectedDeviceType] = useState("");
   const [fetchError, setFetchError] = useState(null);
+
+  // Edit tab state
+  const [portableTriggers, setPortableTriggers] = useState([]);
+  const [selectedTrigger, setSelectedTrigger] = useState(null);
+  const [editTriggerName, setEditTriggerName] = useState("");
+  const [editRadius, setEditRadius] = useState("");
+  const [editZone, setEditZone] = useState("");
 
   // Base URL - dynamic hostname detection
   const API_BASE_URL = `http://${window.location.hostname || 'localhost'}:8000`;
@@ -141,6 +150,42 @@ const PortableTriggerAdd = () => {
     }
   };
 
+  const fetchPortableTriggers = async () => {
+    console.log("Fetching portable triggers...");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/list_newtriggers`);
+      if (!res.ok) throw new Error(`Failed to fetch triggers: ${res.status}`);
+      const data = await res.json();
+      console.log("All triggers data:", data);
+      
+      const portableOnly = data.filter(t => t.is_portable);
+      console.log("Portable triggers filtered:", portableOnly);
+      setPortableTriggers(portableOnly);
+      
+      if (portableOnly.length === 0) {
+        console.log("No portable triggers found, checking if any exist in database...");
+        // Let's try a different endpoint that might have more complete data
+        try {
+          const altRes = await fetch(`${API_BASE_URL}/api/get_triggers_by_zone_with_id/417`);
+          if (altRes.ok) {
+            const altData = await altRes.json();
+            console.log("Zone 417 triggers data:", altData);
+            const portableFromZone = altData.filter(t => t.is_portable);
+            console.log("Portable triggers from zone 417:", portableFromZone);
+            if (portableFromZone.length > 0) {
+              setPortableTriggers(portableFromZone);
+            }
+          }
+        } catch (e) {
+          console.log("Alternative fetch failed:", e);
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching portable triggers:", e);
+      setFetchError(`Error fetching portable triggers: ${e.message}`);
+    }
+  };
+
   const fetchZoneVertices = async (zoneId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/zoneviewer/get_vertices_for_campus/${zoneId}`);
@@ -210,6 +255,132 @@ const PortableTriggerAdd = () => {
       setZMax("");
       setCustomZMax("");
     }
+  };
+
+  const handleTriggerSelection = (triggerId) => {
+    console.log("Selecting trigger with ID:", triggerId);
+    console.log("Available triggers:", portableTriggers);
+    
+    // Try both possible ID field names
+    const trigger = portableTriggers.find(t => 
+      (t.trigger_id && t.trigger_id === parseInt(triggerId)) || 
+      (t.i_trg && t.i_trg === parseInt(triggerId))
+    );
+    console.log("Found trigger:", trigger);
+    
+    if (trigger) {
+      setSelectedTrigger(trigger);
+      setEditTriggerName(trigger.name || trigger.x_nm_trg || "");
+      // Handle both radius_ft and potential missing field
+      const radiusValue = trigger.radius_ft || 3; // Default to 3 if missing
+      setEditRadius((radiusValue * 2).toString()); // Convert radius to diameter
+      setEditZone(trigger.zone_id || trigger.i_zn ? (trigger.zone_id || trigger.i_zn).toString() : "");
+      console.log("Set edit values - name:", trigger.name || trigger.x_nm_trg, "radius:", radiusValue, "zone:", trigger.zone_id || trigger.i_zn);
+    } else {
+      console.log("Trigger not found, clearing selection");
+      setSelectedTrigger(null);
+      setEditTriggerName("");
+      setEditRadius("");
+      setEditZone("");
+    }
+  };
+
+  const handleEditTrigger = async () => {
+    console.log("Starting edit trigger process...");
+    console.log("Selected trigger:", selectedTrigger);
+    console.log("Edit values - name:", editTriggerName, "radius:", editRadius, "zone:", editZone);
+    
+    if (!selectedTrigger || !editTriggerName || !editRadius) {
+      alert("Please complete all required fields.");
+      return;
+    }
+
+    const radiusFt = parseFloat(editRadius) / 2; // Convert diameter to radius
+    if (radiusFt <= 0) {
+      alert("Diameter must be positive.");
+      return;
+    }
+
+    const zoneId = editZone ? parseInt(editZone) : null;
+    const triggerId = selectedTrigger.trigger_id || selectedTrigger.i_trg;
+
+    console.log("Calculated values - triggerId:", triggerId, "radiusFt:", radiusFt, "zoneId:", zoneId);
+
+    try {
+      // Update trigger name
+      console.log("Updating trigger name...");
+      const nameRes = await fetch(`${API_BASE_URL}/api/edit_trigger_name/${triggerId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editTriggerName })
+      });
+      if (!nameRes.ok) throw new Error(`Failed to update name: ${nameRes.status}`);
+      console.log("Name updated successfully");
+
+      // Update radius
+      console.log("Updating trigger radius...");
+      const radiusRes = await fetch(`${API_BASE_URL}/api/edit_trigger_radius/${triggerId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ radius_ft: radiusFt })
+      });
+      if (!radiusRes.ok) throw new Error(`Failed to update radius: ${radiusRes.status}`);
+      console.log("Radius updated successfully");
+
+      // Update zone if specified
+      if (zoneId) {
+        console.log("Updating trigger zone...");
+        const zoneRes = await fetch(`${API_BASE_URL}/api/edit_trigger_zone/${triggerId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ zone_id: zoneId })
+        });
+        if (!zoneRes.ok) throw new Error(`Failed to update zone: ${zoneRes.status}`);
+        console.log("Zone updated successfully");
+      }
+
+      alert("Trigger updated successfully");
+      await fetchPortableTriggers(); // Refresh the list
+      await retryReloadTriggers(3, 1000);
+    } catch (e) {
+      console.error("Error updating trigger:", e);
+      alert(`Failed to update trigger: ${e.message}`);
+    }
+  };
+
+  const handleQuickDelete = async (triggerId, triggerName) => {
+    if (!window.confirm(`Are you sure you want to delete trigger "${triggerName}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/delete_trigger/${triggerId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!res.ok) throw new Error(`Failed to delete trigger: ${res.status}`);
+
+      alert("Trigger deleted successfully");
+      // Clear selection if we just deleted the selected trigger
+      if (selectedTrigger && selectedTrigger.trigger_id === triggerId) {
+        setSelectedTrigger(null);
+        setEditTriggerName("");
+        setEditRadius("");
+        setEditZone("");
+      }
+      await fetchPortableTriggers(); // Refresh the list
+      await retryReloadTriggers(3, 1000);
+    } catch (e) {
+      console.error("Error deleting trigger:", e);
+      alert(`Failed to delete trigger: ${e.message}`);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setSelectedTrigger(null);
+    setEditTriggerName("");
+    setEditRadius("");
+    setEditZone("");
   };
 
   const handleCreatePortableTrigger = async () => {
@@ -299,6 +470,7 @@ const PortableTriggerAdd = () => {
     fetchZones();
     fetchTriggerDirections();
     fetchDevices();
+    fetchPortableTriggers();
   }, []);
 
   const filteredDevices = devices
@@ -417,8 +589,90 @@ const PortableTriggerAdd = () => {
           </Form.Group>
           <Button onClick={handleCreatePortableTrigger}>Create Trigger</Button>
         </Tab>
-        <Tab eventKey="deleteTriggers" title="Delete Triggers">
-          <p>Reserved</p>
+        <Tab eventKey="editTriggers" title="Portable Trigger Edit">
+          {portableTriggers.length === 0 ? (
+            <p>No portable triggers found.</p>
+          ) : (
+            <>
+              <Table striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Tag ID</th>
+                    <th>Radius (ft)</th>
+                    <th>Zone</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {portableTriggers.map(t => (
+                    <tr key={`trigger-${t.trigger_id || t.i_trg}`}>
+                      <td>{t.trigger_id || t.i_trg}</td>
+                      <td>{t.name || t.x_nm_trg}</td>
+                      <td>{t.assigned_tag_id || "N/A"}</td>
+                      <td>{t.radius_ft || "N/A"}</td>
+                      <td>{t.zone_name || "No Zone"}</td>
+                      <td>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleTriggerSelection((t.trigger_id || t.i_trg).toString())}
+                          style={{ marginRight: "5px" }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleQuickDelete(t.trigger_id || t.i_trg, t.name || t.x_nm_trg)}
+                        >
+                          Delete
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              {selectedTrigger && (
+                <>
+                  <h5>Editing: {selectedTrigger.name || selectedTrigger.x_nm_trg}</h5>
+                  <Form.Group>
+                    <Form.Label>Trigger Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={editTriggerName}
+                      onChange={e => setEditTriggerName(e.target.value)}
+                      placeholder="Enter trigger name"
+                    />
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Label>Diameter (feet)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={editRadius}
+                      onChange={e => setEditRadius(e.target.value)}
+                      min="0.1"
+                      step="0.1"
+                      placeholder="Enter diameter in feet"
+                    />
+                    <small className="text-muted">Current radius: {selectedTrigger.radius_ft || "N/A"}ft</small>
+                  </Form.Group>
+                  <Form.Group>
+                    <Form.Label>Zone (optional)</Form.Label>
+                    <Form.Control as="select" value={editZone} onChange={e => setEditZone(e.target.value)}>
+                      <option value="">-- No Zone --</option>
+                      {renderZoneOptions(zoneHierarchy)}
+                    </Form.Control>
+                  </Form.Group>
+                  <div style={{ marginTop: "10px" }}>
+                    <Button onClick={handleEditTrigger} style={{ marginRight: "10px" }}>Update Trigger</Button>
+                    <Button variant="secondary" onClick={handleCancelEdit}>Cancel</Button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
         </Tab>
         <Tab eventKey="events" title="System Events">
           <p>Reserved</p>
