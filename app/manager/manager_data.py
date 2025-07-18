@@ -1,10 +1,10 @@
 # Name: manager_data.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 250703
-# Modified: 250703
+# Modified: 250712
 # Creator: ParcoAdmin
-# Modified By: AI Assistant
-# Description: Data processing handler module for ParcoRTLS Manager - Extracted from manager.py v0.1.22
+# Modified By: AI Assistant + ParcoAdmin + Claude
+# Description: Data processing handler module for ParcoRTLS Manager with RTLS message filtering integration
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
@@ -19,14 +19,16 @@ This module handles all data processing operations for the Manager class includi
 - Simulation message processing
 - Tag data monitoring and rate tracking
 - Data filtering and validation
+- RTLS message filtering and routing (NEW in v0.1.1)
 
 Extracted from manager.py v0.1.22 for better modularity and maintainability.
+NEW: Added protocol-agnostic RTLS message filtering integration.
 """
 
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List
+from typing import Dict, List, Optional
 from manager.models import GISData, Ave, Tag
 from manager.data_processor import DataProcessor
 
@@ -38,6 +40,8 @@ class ManagerData:
     
     This class encapsulates data parsing, averaging, simulation processing,
     and monitoring operations that were previously part of the main Manager class.
+    
+    NEW: Includes optional RTLS message filtering for protocol-agnostic message routing.
     """
     
     def __init__(self, manager_name: str, min_cnf: float = 50.0):
@@ -51,7 +55,10 @@ class ManagerData:
         self.manager_name = manager_name
         self.processor = DataProcessor(min_cnf=min_cnf)
         
-        # Averaging attributes
+        # NEW: Message filtering (optional - initialize later if needed)
+        self.message_filter = None  # RTLSFilterMiddleware instance
+
+        # Averaging attributes (existing functionality preserved)
         self.ave_hash: Dict[str, Ave] = {}
         self.tag_averages: Dict[str, List[Ave]] = {}
         self.tag_averages_2d: Dict[str, List[Ave]] = {}
@@ -60,11 +67,32 @@ class ManagerData:
         self.tag_timestamps_2d: Dict[str, List[datetime]] = {}
         self.tag_timestamps_3d: Dict[str, List[datetime]] = {}
         
-        # Rate monitoring
+        # Rate monitoring (existing functionality preserved)
         self.tag_rate: Dict[str, int] = {}
         self.last_rate_time = asyncio.get_event_loop().time()
         
         logger.debug(f"Initialized ManagerData for manager: {manager_name}")
+
+    async def initialize_filtering(self, customer_id: int = 1):
+        """
+        Initialize optional RTLS message filtering for this manager.
+        
+        Args:
+            customer_id: Customer ID for filter configuration
+            
+        Note: This is optional - manager works normally without filtering.
+        """
+        try:
+            # Import here to avoid circular imports and make filtering optional
+            from .rtls_middleware import RTLSFilterMiddleware
+            
+            self.message_filter = RTLSFilterMiddleware(customer_id)
+            await self.message_filter.router.load_routing_configuration()
+            logger.info(f"Initialized RTLS message filtering for manager: {self.manager_name}, customer: {customer_id}")
+        except ImportError:
+            logger.warning("RTLS message filtering not available - rtls_middleware module not found")
+        except Exception as e:
+            logger.error(f"Failed to initialize RTLS message filtering: {e}")
 
     async def process_gis_data(self, sm: dict, zone_id: int) -> GISData:
         """
@@ -79,10 +107,14 @@ class ManagerData:
             
         Raises:
             ValueError: If data validation fails
+            
+        Note: All existing functionality preserved. Optional message filtering
+              applied at the end if enabled.
         """
         logger.debug(f"Processing GIS data: {sm}")
         
         try:
+            # Create GISData object (existing functionality - preserved exactly)
             msg = GISData(
                 id=sm['ID'],
                 type=sm['Type'],
@@ -93,26 +125,195 @@ class ManagerData:
                 bat=sm['Bat'],
                 cnf=sm['CNF'],
                 gwid=sm['GWID'],
-                data="",
+                data=sm.get('data', ""),  # Extract sensor payload if present
                 sequence=sm.get('Sequence')
             )
             msg.zone_id = zone_id
             logger.debug(f"Set msg.zone_id to {msg.zone_id}")
             
+            # Existing validation (preserved exactly)
             if not msg.validate():
                 raise ValueError(f"Invalid tag data: missing field for ID:{msg.id}")
             
             if not self.processor.filter_data(msg):
                 raise ValueError(f"Filtered tag ID:{msg.id}, duplicate or low CNF")
             
+            # Existing averaging computation (preserved exactly)
             self.processor.compute_raw_average(msg)
             logger.debug(f"Raw average computed for tag ID:{msg.id} over 5 positions (2D)")
+            
+            # NEW: Apply optional RTLS message filtering
+            if self.message_filter:
+                try:
+                    # Extract sensor payload for filtering
+                    sensor_payload = self._extract_sensor_payload(sm, msg)
+                    
+                    # Apply message filtering
+                    routed_message = await self.message_filter.filter_message(msg, sensor_payload or "")
+                    
+                    if routed_message:
+                        logger.debug(f"Message routed for tag {msg.id} with actions: {[a.value for a in routed_message.actions]}")
+                        
+                        # Store routing information for later use by WebSocket handlers
+                        # This allows WebSocket servers to check routing decisions
+                        setattr(msg, '_routing_info', routed_message)  # type: ignore
+                    else:
+                        logger.debug(f"Message filtered out for tag {msg.id}")
+                        # Note: We still return the message for backward compatibility
+                        # WebSocket handlers can check for _routing_info to see if filtered
+                        
+                except Exception as filter_error:
+                    logger.warning(f"Message filtering failed for tag {msg.id}: {filter_error}")
+                    # Continue processing - filtering is optional
             
             return msg
             
         except Exception as e:
             logger.error(f"Failed to process GIS data: {str(e)}")
             raise
+
+    def _extract_sensor_payload(self, sm: dict, msg: GISData) -> Optional[str]:
+        """
+        Extract sensor payload from raw message or GISData.
+        
+        Args:
+            sm: Raw message dictionary
+            msg: Processed GISData object
+            
+        Returns:
+            Sensor payload string or None
+        """
+        # Check for sensor payload in various locations
+        sensor_payload = None
+        
+        # Priority 1: Explicit sensor_payload field in raw message
+        if 'sensor_payload' in sm:
+            sensor_payload = str(sm['sensor_payload'])
+        
+        # Priority 2: Data field in raw message
+        elif 'data' in sm and sm['data']:
+            sensor_payload = str(sm['data'])
+        
+        # Priority 3: Data field in processed message
+        elif msg.data:
+            sensor_payload = msg.data
+        
+        # Priority 4: Combine non-RTLS fields from raw message
+        else:
+            non_rtls_fields = {}
+            rtls_fields = {'ID', 'Type', 'TS', 'X', 'Y', 'Z', 'Bat', 'CNF', 'GWID', 'Sequence', 'zone_id'}
+            
+            for key, value in sm.items():
+                if key not in rtls_fields and value is not None:
+                    non_rtls_fields[key] = value
+            
+            if non_rtls_fields:
+                import json
+                sensor_payload = json.dumps(non_rtls_fields)
+        
+        return sensor_payload if sensor_payload else None
+
+    def get_message_routing_info(self, msg: GISData) -> Optional[dict]:
+        """
+        Get routing information for a processed message.
+        
+        Args:
+            msg: Processed GISData object
+            
+        Returns:
+            Routing information dictionary or None
+            
+        Note: This allows WebSocket handlers to check filtering decisions.
+        """
+        routing_info = getattr(msg, '_routing_info', None)
+        if routing_info:
+            return {
+                'customer_id': routing_info.customer_id,
+                'actions': [action.value for action in routing_info.actions],
+                'priority': routing_info.priority,
+                'categories': [cat.value for cat in routing_info.rtls_message.message_categories],
+                'route_timestamp': routing_info.route_timestamp.isoformat()
+            }
+        return None
+
+    def should_send_to_dashboard(self, msg: GISData) -> bool:
+        """
+        Check if message should be sent to dashboard clients.
+        
+        Args:
+            msg: Processed GISData object
+            
+        Returns:
+            True if message should go to dashboard, False otherwise
+            
+        Note: Returns True by default if filtering not enabled (backward compatibility).
+        """
+        if not self.message_filter:
+            return True  # Default behavior - send all messages
+        
+        routing_info = getattr(msg, '_routing_info', None)
+        if routing_info:
+            from .rtls_middleware import RouteAction
+            return RouteAction.DASHBOARD in routing_info.actions
+        
+        return False  # Message was filtered out
+
+    def should_log_message(self, msg: GISData) -> bool:
+        """
+        Check if message should be logged to database.
+        
+        Args:
+            msg: Processed GISData object
+            
+        Returns:
+            True if message should be logged, False otherwise
+            
+        Note: Returns True by default if filtering not enabled (backward compatibility).
+        """
+        if not self.message_filter:
+            return True  # Default behavior - log all messages
+        
+        routing_info = getattr(msg, '_routing_info', None)
+        if routing_info:
+            from .rtls_middleware import RouteAction
+            return RouteAction.LOGGING in routing_info.actions
+        
+        return False  # Message was filtered out
+
+    def should_send_realtime(self, msg: GISData) -> bool:
+        """
+        Check if message should be sent via real-time WebSocket.
+        
+        Args:
+            msg: Processed GISData object
+            
+        Returns:
+            True if message should go to real-time stream, False otherwise
+            
+        Note: Returns True by default if filtering not enabled (backward compatibility).
+        """
+        if not self.message_filter:
+            return True  # Default behavior - send all messages
+        
+        routing_info = getattr(msg, '_routing_info', None)
+        if routing_info:
+            from .rtls_middleware import RouteAction
+            return RouteAction.REALTIME in routing_info.actions
+        
+        return False  # Message was filtered out
+
+    def get_filter_statistics(self) -> Optional[dict]:
+        """
+        Get message filtering statistics.
+        
+        Returns:
+            Filter statistics dictionary or None if filtering not enabled
+        """
+        if self.message_filter:
+            return self.message_filter.get_filter_summary()
+        return None
+
+    # ===== EXISTING FUNCTIONALITY BELOW - PRESERVED EXACTLY =====
 
     async def process_sim_message(self, sm: dict) -> dict:
         """
@@ -315,7 +516,7 @@ class ManagerData:
         Returns:
             dict: Statistics about data processing
         """
-        return {
+        stats = {
             'tags_with_averages': len(self.ave_hash),
             'tags_2d_tracking': len(self.tag_averages_2d),
             'tags_3d_tracking': len(self.tag_averages_3d),
@@ -323,6 +524,13 @@ class ManagerData:
             'last_rate_update': self.last_rate_time,
             'total_tags_tracked': len(self.tag_timestamps)
         }
+        
+        # Add filtering statistics if available
+        filter_stats = self.get_filter_statistics()
+        if filter_stats:
+            stats['message_filtering'] = filter_stats
+        
+        return stats
 
     def clear_tag_data(self, tag_id: str | None = None):
         """

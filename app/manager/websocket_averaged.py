@@ -1,16 +1,17 @@
 # Name: websocket_averaged.py
-# Version: 0.1.6
+# Version: 0.1.7
 # Created: 250513
-# Modified: 250704
+# Modified: 250716
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS AveragedData WebSocket server on port 8004
+# Modified By: ParcoAdmin & AI Assistant
+# Description: Python script for ParcoRTLS AveragedData WebSocket server on port 8004 - Added heartbeat integration for port monitoring
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_averaged.py
+# Version: 0.1.7 - Added heartbeat integration for port monitoring, bumped from 0.1.6
 # Version: 0.1.6 - IP centralization and syntax fixes, bumped from 0.1.5
 # Previous: Moved manager.start() to lifespan to enable heartbeat loop, bumped from 0.1.4
 # Previous: Updated logging to YYMMDD HHMMSS, bumped from 0.1.3
@@ -31,6 +32,10 @@ from .sdk_client import SDKClient
 from .models import HeartBeat, Response, ResponseType, Request, Tag
 from .enums import RequestType, eMode
 from .constants import REQUEST_TYPE_MAP, NEW_REQUEST_TYPES
+from .heartbeat_manager import HeartbeatManager
+
+# Import heartbeat integration
+from .heartbeat_integration import heartbeat_integration
 
 # Import centralized configuration
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -51,6 +56,9 @@ ENABLE_MULTI_PORT = True
 # Stream type for this server
 STREAM_TYPE = "AveragedData"
 RESOURCE_TYPE = 13  # Averaged Data FS
+
+# Heartbeat configuration
+HEARTBEAT_INTERVAL = 30
 
 # Database connection string
 db_configs = get_db_configs_sync()
@@ -75,6 +83,11 @@ async def lifespan(app: FastAPI):
                         logger.debug(f"Starting manager {manager_name}")
                         await manager_instance.start()
                         logger.debug(f"Manager {manager_name} started successfully")
+                        
+                        # Register manager with heartbeat integration
+                        heartbeat_integration.register_manager(manager_name, manager_instance)
+                        logger.debug(f"Registered manager {manager_name} with heartbeat integration")
+                        
         yield
     except Exception as e:
         logger.error(f"Lifespan error: {str(e)}")
@@ -102,7 +115,12 @@ _WEBSOCKET_CLIENTS = {}
 async def websocket_endpoint_averaged(websocket: WebSocket, manager_name: str):
     client_host = websocket.client.host if websocket.client else "unknown"
     client_port = websocket.client.port if websocket.client else 0
-    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {client_host}:{client_port}")
+    client_id = f"{client_host}:{client_port}"
+    logger.info(f"WebSocket connection attempt for /ws/{manager_name} from {client_id}")
+    
+    # Initialize HeartbeatManager
+    heartbeat_manager = HeartbeatManager(websocket, client_id=client_id, interval=HEARTBEAT_INTERVAL, timeout=5)
+    
     async with asyncpg.create_pool(MAINT_CONN_STRING) as pool:
         async with pool.acquire() as conn:
             manager_info = await conn.fetchrow(
@@ -112,18 +130,26 @@ async def websocket_endpoint_averaged(websocket: WebSocket, manager_name: str):
                 logger.error(f"Manager {manager_name} not found or invalid type")
                 await websocket.close(code=1008, reason="Manager not found")
                 return
+    
     sdk_client = None
-    client_id = None
     is_disconnected = False
+    manager = None
+    heartbeat_task = None
+    
     try:
         await websocket.accept()
-        logger.info(f"WebSocket connection accepted for /ws/{manager_name}")
+        logger.info(f"WebSocket connection accepted for /ws/{manager_name} from {client_id}")
+        
         if manager_name not in _MANAGER_INSTANCES:
             manager = Manager(manager_name, zone_id=0)
             _MANAGER_INSTANCES[manager_name] = manager
+            
+            # Register fallback manager with heartbeat integration
+            heartbeat_integration.register_manager(manager_name, manager)
+            logger.debug(f"Registered fallback manager {manager_name} with heartbeat integration")
         else:
             manager = _MANAGER_INSTANCES[manager_name]
-        client_id = f"{client_host}:{client_port}"
+            
         sdk_client = SDKClient(websocket, client_id)
         # Type: ignore needed due to parent attribute typing
         sdk_client.parent = manager  # type: ignore
@@ -134,18 +160,44 @@ async def websocket_endpoint_averaged(websocket: WebSocket, manager_name: str):
             _WEBSOCKET_CLIENTS[manager_name] = []
         _WEBSOCKET_CLIENTS[manager_name].append(sdk_client)
 
+        # Log client connection for outbound port monitoring
+        logger.info(f"SCALING: AveragedData port 8004 client count: {len(_WEBSOCKET_CLIENTS[manager_name])} (outbound client {client_id} connected)")
+
+        # Start heartbeat loop
+        heartbeat_task = asyncio.create_task(heartbeat_loop(heartbeat_manager))
+
         while True:
             try:
-                data = await websocket.receive_text()
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=HEARTBEAT_INTERVAL)
                 logger.debug(f"Received WebSocket message from client {client_id}: {data}")
                 json_data = json.loads(data)
                 msg_type = json_data.get("type", "")
+                sdk_client.last_message_type = msg_type
 
                 if msg_type == "HeartBeat":
-                    hb = HeartBeat(ticks=json_data["ts"])
-                    sdk_client.heartbeat = hb.ticks
-                    await websocket.send_text(json.dumps({"type": "HeartBeat", "ts": hb.ticks}))
-                    logger.debug(f"Processed HeartBeat for client {client_id}, ts: {hb.ticks}")
+                    # Validate heartbeat with HeartbeatManager
+                    heartbeat_result = heartbeat_manager.validate_response(json_data)
+                    if heartbeat_result is False:
+                        await websocket.send_json({
+                            "type": "EndStream",
+                            "reason": "Too many invalid heartbeats"
+                        })
+                        logger.info(f"Sent EndStream to AveragedData client {client_id}: Too many invalid heartbeats")
+                        sdk_client.is_closing = True
+                        break
+                    elif heartbeat_result is True:
+                        if heartbeat_manager.too_frequent():
+                            await websocket.send_json({
+                                "type": "Warning",
+                                "reason": "Heartbeat too frequent"
+                            })
+                            logger.debug(f"Sent warning to AveragedData client {client_id}: Heartbeat too frequent")
+                    # Handle legacy heartbeats
+                    elif heartbeat_result is None:
+                        hb = HeartBeat(ticks=json_data["ts"])
+                        sdk_client.heartbeat = hb.ticks
+                        await websocket.send_text(json.dumps({"type": "HeartBeat", "ts": hb.ticks}))
+                        logger.debug(f"Processed legacy HeartBeat for client {client_id}, ts: {hb.ticks}")
                     continue
 
                 elif msg_type == "request":
@@ -181,24 +233,31 @@ async def websocket_endpoint_averaged(websocket: WebSocket, manager_name: str):
                         sdk_client.sent_begin_msg = True
                         sdk_client.sent_req = True
                         await websocket.send_text(resp.to_json())
+                        logger.info(f"AveragedData client {client_id} subscribed to tags: {[t.id for t in req.tags]}")
                         if resp.message:
                             await manager.close_client(sdk_client)
                             break
                     elif req.req_type == RequestType.EndStream:
                         await websocket.send_text(resp.to_json())
+                        logger.info(f"Sent EndStream response to AveragedData client {client_id}")
                         await manager.close_client(sdk_client)
                         break
                     else:
                         resp.message = "Request not supported in AveragedData stream."
                         await websocket.send_text(resp.to_json())
+                        logger.debug(f"Sent error response to client {client_id}: {resp.to_json()}")
 
                 else:
                     logger.warning(f"Unknown message type from client {client_id}: {msg_type}")
 
+            except asyncio.TimeoutError:
+                # Timeout allows periodic heartbeat checks
+                continue
             except WebSocketDisconnect:
                 logger.info(f"WebSocket disconnected for /ws/{manager_name}")
                 is_disconnected = True
-                await sdk_client.close()
+                if sdk_client:
+                    await sdk_client.close()
                 break
             except Exception as e:
                 logger.error(f"Error in WebSocket handler: {str(e)}")
@@ -206,7 +265,22 @@ async def websocket_endpoint_averaged(websocket: WebSocket, manager_name: str):
     finally:
         if sdk_client and not is_disconnected:
             await sdk_client.close()
-        if client_id and manager.sdk_clients and client_id in manager.sdk_clients:
+        if manager and hasattr(manager, 'sdk_clients') and client_id in manager.sdk_clients:
             del manager.sdk_clients[client_id]
-        if manager_name in _WEBSOCKET_CLIENTS and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
+        if manager_name in _WEBSOCKET_CLIENTS and sdk_client and sdk_client in _WEBSOCKET_CLIENTS[manager_name]:
             _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
+        if heartbeat_task:
+            heartbeat_task.cancel()
+            
+        # Log client disconnection for outbound port monitoring
+        remaining_clients = len(_WEBSOCKET_CLIENTS.get(manager_name, []))
+        logger.info(f"SCALING: AveragedData port 8004 client count: {remaining_clients} (outbound client {client_id} disconnected)")
+        
+        logger.info(f"Cleaned up AveragedData client {client_id} for /ws/{manager_name}")
+
+async def heartbeat_loop(heartbeat_manager: HeartbeatManager):
+    """Heartbeat loop for AveragedData clients"""
+    while heartbeat_manager.is_connected():
+        await heartbeat_manager.send_heartbeat()
+        await heartbeat_manager.check_timeout()
+        await asyncio.sleep(HEARTBEAT_INTERVAL)

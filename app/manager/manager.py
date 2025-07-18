@@ -1,16 +1,17 @@
 # Name: manager.py
-# Version: 0.1.23
+# Version: 0.1.24
 # Created: 971201
-# Modified: 250703
+# Modified: 250716
 # Creator: ParcoAdmin
-# Modified By: AI Assistant
-# Description: Streamlined Python script for ParcoRTLS backend + Event Engine (TETSE) WebSocket support
+# Modified By: AI Assistant + Claude
+# Description: Streamlined Python script for ParcoRTLS backend + Event Engine (TETSE) WebSocket support with RTLS message filtering
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/manager.py
+# Version: 0.1.24 - Added RTLS message filtering integration for database-driven routing, bumped from 0.1.23
 # Version: 0.1.23 - Fully modularized manager with all components extracted, bumped from 0.1.22
 # Version: 0.1.22 - Modularized database operations into manager_database.py, bumped from 0.1.21
 # Version: 0.1.21 - Added database-driven configuration support, bumped from 0.1.20
@@ -22,12 +23,15 @@ Streamlined Manager Class for ParcoRTLS Backend
 This is the main orchestrator class that coordinates all modular components:
 - Database operations (ManagerDatabase)
 - Heartbeat management (ManagerHeartbeat)  
-- Data processing (ManagerData)
+- Data processing (ManagerData) with optional RTLS message filtering
 - Trigger engine (ManagerTriggers)
 - Client management (ManagerClients)
 
 All heavy lifting has been extracted to dedicated modules for better maintainability,
 testing, and debugging. This manager now serves as a clean coordinator.
+
+NEW in v0.1.24: Integrated RTLS message filtering for protocol-agnostic routing
+based on database configuration (inbound_message_routing table).
 """
 
 import asyncio
@@ -81,9 +85,11 @@ class Manager:
     This streamlined manager coordinates modular components for:
     - Database operations and configuration
     - Heartbeat management and client health
-    - Data processing and averaging
+    - Data processing and averaging with optional RTLS message filtering
     - Trigger loading and evaluation
     - Client management and event broadcasting
+    
+    NEW: Supports database-driven RTLS message routing for protocol-agnostic filtering.
     """
     
     # Static clients for backward compatibility
@@ -192,6 +198,14 @@ class Manager:
             logger.debug("Data monitoring started")
             file_handler.flush()
             
+            # 5.5. Initialize RTLS message filtering for database-driven routing
+            try:
+                await self.data.initialize_filtering(customer_id=1)
+                logger.info(f"RTLS message filtering initialized for manager {self.name}")
+            except Exception as e:
+                logger.warning(f"RTLS message filtering not available for manager {self.name}: {str(e)}")
+            file_handler.flush()
+            
             # 6. Set run state to started
             self.run_state = eRunState.Started
             logger.debug(f"Run state set to {self.run_state}")
@@ -239,13 +253,16 @@ class Manager:
 
     async def parser_data_arrived(self, sm: dict) -> bool:
         """
-        Main entry point for processing incoming data.
+        Main entry point for processing incoming data with optional RTLS filtering.
         
         Args:
             sm: Raw message dictionary
             
         Returns:
             bool: True if processed successfully
+            
+        NEW: Now supports RTLS message filtering for selective routing to 
+        Dashboard, RealTime, and Logging based on database configuration.
         """
         logger.debug(f"Parser data arrived: {sm}")
         file_handler.flush()
@@ -254,8 +271,15 @@ class Manager:
             zone_id = sm.get('zone_id', self.zone_id)
             logger.debug(f"Extracted zone_id from sm: {zone_id}, manager zone_id: {self.zone_id}")
             
-            # Process GIS data
+            # Process GIS data (now includes optional RTLS filtering)
             msg = await self.data.process_gis_data(sm, zone_id)
+            
+            # Check RTLS filtering decisions for routing
+            should_log = self.data.should_log_message(msg)
+            should_dashboard = self.data.should_send_to_dashboard(msg)
+            should_realtime = self.data.should_send_realtime(msg)
+            
+            logger.debug(f"RTLS filtering for tag {msg.id}: log={should_log}, dashboard={should_dashboard}, realtime={should_realtime}")
             
             # Load triggers if needed for this zone
             if not any(t.zone_id == zone_id for t in self.triggers.triggers):
@@ -267,27 +291,37 @@ class Manager:
             if self.is_ave:
                 await self.data.compute_tag_averaging(msg, self.is_ave)
             
-            # Store position data (skip for simulation data)
-            if msg.type != "Sim POTTER" and self.database.is_database_ready():
+            # Store position data (skip for simulation data AND respect RTLS filtering)
+            if msg.type != "Sim POTTER" and self.database.is_database_ready() and should_log:
                 msg_data = {
                     'id': msg.id, 'ts': msg.ts, 'x': msg.x, 'y': msg.y, 
                     'z': msg.z, 'cnf': msg.cnf, 'gwid': msg.gwid, 'bat': msg.bat
                 }
                 await self.database.store_position_history(msg_data)
+                logger.debug(f"Position logged for tag {msg.id} (RTLS filtering: log={should_log})")
+            elif not should_log:
+                logger.debug(f"Position not logged for tag {msg.id} (filtered by RTLS routing rules)")
             
             # Create tag object and evaluate triggers
             tag = self.data.create_tag_object(msg)
             events = await self.triggers.evaluate_triggers(tag, zone_id, self.database)
             
-            # Broadcast trigger events
+            # Broadcast trigger events (respect RTLS filtering for dashboard/realtime)
             for event in events:
-                await self.client_manager.broadcast_trigger_event(event, msg.id)
+                if should_dashboard or should_realtime:
+                    await self.client_manager.broadcast_trigger_event(event, msg.id)
+                    logger.debug(f"Trigger event broadcast for tag {msg.id} (RTLS filtering: dashboard={should_dashboard}, realtime={should_realtime})")
+                else:
+                    logger.debug(f"Trigger event not broadcast for tag {msg.id} (filtered by RTLS routing rules)")
             
-            # Broadcast averaged data if available
-            if self.is_ave:
+            # Broadcast averaged data if available (respect RTLS filtering)
+            if self.is_ave and (should_dashboard or should_realtime):
                 ave_data = await self.data.get_averaged_data(msg.id, zone_id, msg.sequence or 0)
                 if ave_data:
                     await self.client_manager.broadcast_averaged_data(msg.id, ave_data)
+                    logger.debug(f"Averaged data broadcast for tag {msg.id} (RTLS filtering enabled)")
+            elif self.is_ave and not (should_dashboard or should_realtime):
+                logger.debug(f"Averaged data not broadcast for tag {msg.id} (filtered by RTLS routing rules)")
             
             return True
             
@@ -382,15 +416,57 @@ class Manager:
         """Get the client handler component."""
         return self.client_manager
 
+    # NEW: RTLS Filtering Methods
+    def get_rtls_filter_stats(self) -> dict:
+        """
+        Get RTLS message filtering statistics.
+        
+        Returns:
+            dict: Filter statistics or empty dict if filtering not enabled
+        """
+        filter_stats = self.data.get_filter_statistics()
+        return filter_stats if filter_stats else {}
+
+    def is_rtls_filtering_enabled(self) -> bool:
+        """
+        Check if RTLS message filtering is enabled and active.
+        
+        Returns:
+            bool: True if filtering is enabled, False otherwise
+        """
+        return hasattr(self.data, 'message_filter') and self.data.message_filter is not None
+
+    async def reload_rtls_filter_config(self) -> bool:
+        """
+        Reload RTLS message filtering configuration from database.
+        
+        Returns:
+            bool: True if reload successful, False otherwise
+        """
+        try:
+            if self.is_rtls_filtering_enabled() and self.data.message_filter is not None:
+                await self.data.message_filter.reload_configuration()
+                logger.info(f"RTLS filter configuration reloaded for manager {self.name}")
+                return True
+            else:
+                logger.warning(f"RTLS filtering not enabled for manager {self.name}")
+                return False
+        except AttributeError:
+            logger.warning(f"RTLS filter reload method not available for manager {self.name}")
+            return False
+        except Exception as e:
+            logger.error(f"Failed to reload RTLS filter config for manager {self.name}: {str(e)}")
+            return False
+
     # Statistics and Status Methods
     def get_manager_stats(self) -> dict:
         """
-        Get comprehensive manager statistics.
+        Get comprehensive manager statistics including RTLS filtering.
         
         Returns:
             dict: Complete manager statistics
         """
-        return {
+        stats = {
             'manager_info': {
                 'name': self.name,
                 'zone_id': self.zone_id,
@@ -399,7 +475,8 @@ class Manager:
                 'mode': self.mode.name if self.mode else 'Unknown',
                 'sdk_ip': self.sdk_ip,
                 'sdk_port': self.sdk_port,
-                'start_date': self.start_date.isoformat() if self.start_date else None
+                'start_date': self.start_date.isoformat() if self.start_date else None,
+                'rtls_filtering_enabled': self.is_rtls_filtering_enabled()
             },
             'database': {
                 'ready': self.database.is_database_ready(),
@@ -410,6 +487,13 @@ class Manager:
             'triggers': self.triggers.get_trigger_stats(),
             'clients': self.client_manager.get_client_stats()
         }
+        
+        # Add RTLS filtering statistics if available
+        rtls_filter_stats = self.get_rtls_filter_stats()
+        if rtls_filter_stats:
+            stats['rtls_filtering'] = rtls_filter_stats
+        
+        return stats
 
     def is_healthy(self) -> bool:
         """
@@ -433,12 +517,14 @@ class Manager:
 
     def __str__(self) -> str:
         """String representation of the manager."""
-        return f"Manager(name={self.name}, zone_id={self.zone_id}, state={self.run_state.name})"
+        rtls_status = " +RTLS" if self.is_rtls_filtering_enabled() else ""
+        return f"Manager(name={self.name}, zone_id={self.zone_id}, state={self.run_state.name}{rtls_status})"
 
     def __repr__(self) -> str:
         """Detailed representation of the manager."""
+        rtls_status = ", rtls_filtering=True" if self.is_rtls_filtering_enabled() else ", rtls_filtering=False"
         return (f"Manager(name='{self.name}', zone_id={self.zone_id}, "
-                f"state={self.run_state.name}, healthy={self.is_healthy()})")
+                f"state={self.run_state.name}, healthy={self.is_healthy()}{rtls_status})")
 
 # Legacy compatibility - expose manager components as separate imports
 # This allows existing code to continue working while migration happens

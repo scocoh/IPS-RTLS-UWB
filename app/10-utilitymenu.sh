@@ -1,18 +1,19 @@
 #!/bin/bash
 # Name: 10-utilitymenu.sh
-# Version: 0.1.64
+# Version: 0.1.65
 # Created: 971201
-# Modified: 250607
+# Modified: 250716
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
+# Modified By: ParcoAdmin + Claude
 # Description: Shell script for ParcoRTLS utilities
 # Location: /home/parcoadmin/parco_fastapi/app
 # Role: Utility
 # Status: Active
 # Dependent: TRUE
 # DESC: Displays an interactive menu of available .sh scripts with options to run or edit them, plus a Components submenu
-# VERSION 0P.3B.15
+# VERSION 0P.3B.16
 # Changelog:
+# - 0P.3B.16 (250716): Added dashboard-dev session support to Log Manager; updated session handling for all three sessions
 # - 0P.3B.15 (250607): Fixed syntax error in script_path assignment; corrected select loop syntax; added debug logging to check_session_exists
 # - 0P.3B.14 (250607): Added session existence check in log_manager_menu
 # - 0P.3B.13 (250604): Fixed parameter passing to 24-logpane_tmux.sh
@@ -201,7 +202,8 @@ log_manager_menu() {
     echo "Available tmux sessions:"
     echo " [1] parco-dev (06-devsession)"
     echo " [2] tetse-dev (25-devsession)"
-    echo " [3] Both"
+    echo " [3] dashboard-dev (26-devsession)"
+    echo " [4] All Sessions"
     echo " [R] Return to Main Menu"
     echo
     read -p "Select a tmux session to manage logs: " session_choice
@@ -209,13 +211,14 @@ log_manager_menu() {
     case "$session_choice" in
       1) SESSION_NAME="parco-dev" ;;
       2) SESSION_NAME="tetse-dev" ;;
-      3) SESSION_NAME="both" ;;
+      3) SESSION_NAME="dashboard-dev" ;;
+      4) SESSION_NAME="all" ;;
       [Rr]) return ;;
       *) echo "❗ Invalid session choice. Press ENTER to retry..."; read; continue ;;
     esac
 
     # Check session existence
-    if [[ "$SESSION_NAME" != "both" ]]; then
+    if [[ "$SESSION_NAME" != "all" ]]; then
       if ! check_session_exists "$SESSION_NAME"; then
         echo "❗ Session $SESSION_NAME does not exist. Start it using the appropriate devsession script."
         echo "Press ENTER to retry..."
@@ -223,8 +226,14 @@ log_manager_menu() {
         continue
       fi
     else
-      if ! check_session_exists "parco-dev" || ! check_session_exists "tetse-dev"; then
-        echo "❗ One or both sessions (parco-dev, tetse-dev) do not exist. Start the missing session(s)."
+      local missing_sessions=()
+      for session in "parco-dev" "tetse-dev" "dashboard-dev"; do
+        if ! check_session_exists "$session"; then
+          missing_sessions+=("$session")
+        fi
+      done
+      if [ ${#missing_sessions[@]} -gt 0 ]; then
+        echo "❗ Missing session(s): ${missing_sessions[*]}. Start the missing session(s)."
         echo "Press ENTER to retry..."
         read
         continue
@@ -236,12 +245,15 @@ log_manager_menu() {
       echo -e "📝 Log Manager - $SESSION_NAME"
       echo "=============================="
 
-      if [[ "$SESSION_NAME" == "both" ]]; then
+      if [[ "$SESSION_NAME" == "all" ]]; then
         echo "Status for parco-dev:"
         "$SCRIPT_DIR/24-logpane_tmux.sh" status "" parco-dev 2>/dev/null | head -20
         echo
         echo "Status for tetse-dev:"
         "$SCRIPT_DIR/24-logpane_tmux.sh" status "" tetse-dev 2>/dev/null | head -20
+        echo
+        echo "Status for dashboard-dev:"
+        "$SCRIPT_DIR/24-logpane_tmux.sh" status "" dashboard-dev 2>/dev/null | head -20
       else
         "$SCRIPT_DIR/24-logpane_tmux.sh" status "" "$SESSION_NAME" 2>/dev/null | head -20
       fi
@@ -266,9 +278,10 @@ log_manager_menu() {
           echo "================================="
           read -p "Enter pane number (0-6): " pane_num
           if [[ "$pane_num" =~ ^[0-6]$ ]]; then
-            if [[ "$SESSION_NAME" == "both" ]]; then
+            if [[ "$SESSION_NAME" == "all" ]]; then
               "$SCRIPT_DIR/24-logpane_tmux.sh" start "$pane_num" parco-dev
               "$SCRIPT_DIR/24-logpane_tmux.sh" start "$pane_num" tetse-dev
+              "$SCRIPT_DIR/24-logpane_tmux.sh" start "$pane_num" dashboard-dev
             else
               "$SCRIPT_DIR/24-logpane_tmux.sh" start "$pane_num" "$SESSION_NAME"
             fi
@@ -283,9 +296,10 @@ log_manager_menu() {
           echo "================================"
           read -p "Enter pane number (0-6): " pane_num
           if [[ "$pane_num" =~ ^[0-6]$ ]]; then
-            if [[ "$SESSION_NAME" == "both" ]]; then
+            if [[ "$SESSION_NAME" == "all" ]]; then
               "$SCRIPT_DIR/24-logpane_tmux.sh" stop "$pane_num" parco-dev
               "$SCRIPT_DIR/24-logpane_tmux.sh" stop "$pane_num" tetse-dev
+              "$SCRIPT_DIR/24-logpane_tmux.sh" stop "$pane_num" dashboard-dev
             else
               "$SCRIPT_DIR/24-logpane_tmux.sh" stop "$pane_num" "$SESSION_NAME"
             fi
@@ -298,9 +312,10 @@ log_manager_menu() {
         3)
           echo -e "\n🚀 Starting Logging for All Active Panes"
           echo "========================================"
-          if [[ "$SESSION_NAME" == "both" ]]; then
+          if [[ "$SESSION_NAME" == "all" ]]; then
             "$SCRIPT_DIR/24-logpane_tmux.sh" start-all "" parco-dev
             "$SCRIPT_DIR/24-logpane_tmux.sh" start-all "" tetse-dev
+            "$SCRIPT_DIR/24-logpane_tmux.sh" start-all "" dashboard-dev
           else
             "$SCRIPT_DIR/24-logpane_tmux.sh" start-all "" "$SESSION_NAME"
           fi
@@ -312,9 +327,10 @@ log_manager_menu() {
           echo "=================================="
           read -p "⚠️  Stop logging for ALL panes? (y/N): " confirm
           if [[ "$confirm" =~ ^[Yy]$ ]]; then
-            if [[ "$SESSION_NAME" == "both" ]]; then
+            if [[ "$SESSION_NAME" == "all" ]]; then
               "$SCRIPT_DIR/24-logpane_tmux.sh" stop-all "" parco-dev
               "$SCRIPT_DIR/24-logpane_tmux.sh" stop-all "" tetse-dev
+              "$SCRIPT_DIR/24-logpane_tmux.sh" stop-all "" dashboard-dev
             else
               "$SCRIPT_DIR/24-logpane_tmux.sh" stop-all "" "$SESSION_NAME"
             fi
@@ -327,12 +343,15 @@ log_manager_menu() {
         5)
           echo -e "\n📋 Active Logging Sessions"
           echo "=========================="
-          if [[ "$SESSION_NAME" == "both" ]]; then
+          if [[ "$SESSION_NAME" == "all" ]]; then
             echo "Active logs for parco-dev:"
             "$SCRIPT_DIR/24-logpane_tmux.sh" list "" parco-dev
             echo
             echo "Active logs for tetse-dev:"
             "$SCRIPT_DIR/24-logpane_tmux.sh" list "" tetse-dev
+            echo
+            echo "Active logs for dashboard-dev:"
+            "$SCRIPT_DIR/24-logpane_tmux.sh" list "" dashboard-dev
           else
             "$SCRIPT_DIR/24-logpane_tmux.sh" list "" "$SESSION_NAME"
           fi
@@ -342,12 +361,15 @@ log_manager_menu() {
         6)
           echo -e "\n📖 Tail Log File"
           echo "================"
-          if [[ "$SESSION_NAME" == "both" ]]; then
+          if [[ "$SESSION_NAME" == "all" ]]; then
             echo "Tailing logs for parco-dev:"
             "$SCRIPT_DIR/24-logpane_tmux.sh" tail "" parco-dev
             echo
             echo "Tailing logs for tetse-dev:"
             "$SCRIPT_DIR/24-logpane_tmux.sh" tail "" tetse-dev
+            echo
+            echo "Tailing logs for dashboard-dev:"
+            "$SCRIPT_DIR/24-logpane_tmux.sh" tail "" dashboard-dev
           else
             "$SCRIPT_DIR/24-logpane_tmux.sh" tail "" "$SESSION_NAME"
           fi
@@ -356,9 +378,10 @@ log_manager_menu() {
         7)
           echo -e "\n🧹 Cleanup Old Logs"
           echo "==================="
-          if [[ "$SESSION_NAME" == "both" ]]; then
+          if [[ "$SESSION_NAME" == "all" ]]; then
             "$SCRIPT_DIR/24-logpane_tmux.sh" cleanup "" parco-dev
             "$SCRIPT_DIR/24-logpane_tmux.sh" cleanup "" tetse-dev
+            "$SCRIPT_DIR/24-logpane_tmux.sh" cleanup "" dashboard-dev
           else
             "$SCRIPT_DIR/24-logpane_tmux.sh" cleanup "" "$SESSION_NAME"
           fi
@@ -368,12 +391,15 @@ log_manager_menu() {
         8)
           echo -e "\n🔍 Full Logging Status"
           echo "======================"
-          if [[ "$SESSION_NAME" == "both" ]]; then
+          if [[ "$SESSION_NAME" == "all" ]]; then
             echo "Full status for parco-dev:"
             "$SCRIPT_DIR/24-logpane_tmux.sh" status "" parco-dev
             echo
             echo "Full status for tetse-dev:"
             "$SCRIPT_DIR/24-logpane_tmux.sh" status "" tetse-dev
+            echo
+            echo "Full status for dashboard-dev:"
+            "$SCRIPT_DIR/24-logpane_tmux.sh" status "" dashboard-dev
           else
             "$SCRIPT_DIR/24-logpane_tmux.sh" status "" "$SESSION_NAME"
           fi
@@ -409,7 +435,6 @@ while true; do
     log_manager_menu
   elif [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#scripts[@]} )); then
     script_name=$(basename "${scripts[choice-1]}")
-    # Original (0.1.64): script_path="${scripts[choice-1]}")
     script_path="${scripts[choice-1]}"
     echo -e "\n📄 Selected: $script_name"
     echo "What would you like to do?"

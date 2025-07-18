@@ -1,16 +1,17 @@
 # Name: websocket_realtime.py
-# Version: 0.1.69
+# Version: 0.1.70
 # Created: 250512
-# Modified: 250709
+# Modified: 250716
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin + Claude & AI Assistant
-# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 - CLEAN RTLS ONLY with event bridge - Updated to use centralized configuration - Added message type tracking for heartbeat filtering
+# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 - Added heartbeat integration for port monitoring and scaling - CLEAN RTLS ONLY with event bridge - Updated to use centralized configuration - Added message type tracking for heartbeat filtering
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_realtime.py
+# Version: 0.1.70 - Added heartbeat integration for port monitoring and scaling, bumped from 0.1.69
 # Version: 0.1.69 - Added message type tracking for heartbeat filtering, bumped from 0.1.68
 # Version: 0.1.68 - Updated to use centralized configuration instead of hardcoded IP addresses, bumped from 0.1.67
 # Version: 0.1.67 - ROLLBACK: Removed TETSE contamination, added clean event bridge, bumped from 0.1.66
@@ -35,6 +36,9 @@ from .heartbeat_manager import HeartbeatManager
 import os
 from logging.handlers import RotatingFileHandler
 import httpx
+
+# Import heartbeat integration
+from .heartbeat_integration import heartbeat_integration
 
 # Import centralized configuration
 import sys
@@ -62,7 +66,7 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelnam
 logger.handlers = [console_handler, file_handler]
 logger.propagate = False
 
-logger.info("Starting WebSocket RealTime server on port 8002 - CLEAN RTLS ONLY")
+logger.info("Starting WebSocket RealTime server on port 8002 - CLEAN RTLS ONLY with heartbeat integration")
 file_handler.flush()
 
 ENABLE_MULTI_PORT = True
@@ -149,6 +153,12 @@ async def lifespan(app: FastAPI):
                         await manager_instance.start()
                         logger.debug(f"Manager {manager_name} started successfully")
                         file_handler.flush()
+                        
+                        # Register manager with heartbeat integration
+                        heartbeat_integration.register_manager(manager_name, manager_instance)
+                        logger.debug(f"Registered manager {manager_name} with heartbeat integration")
+                        file_handler.flush()
+                        
         yield
     except Exception as e:
         logger.error(f"Lifespan error: {str(e)}")
@@ -209,6 +219,11 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                         manager = Manager(manager_name, zone_id=1)  # Default zone_id
                         _MANAGER_INSTANCES[manager_name] = manager
                         await manager.start()
+                        
+                        # Register manager with heartbeat integration
+                        heartbeat_integration.register_manager(manager_name, manager)
+                        logger.debug(f"Registered fallback manager {manager_name} with heartbeat integration")
+                        file_handler.flush()
     except Exception as e:
         logger.error(f"Database query failed for manager {manager_name}: {str(e)}")
         file_handler.flush()
@@ -239,6 +254,10 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
             _WEBSOCKET_CLIENTS[manager_name] = []
         _WEBSOCKET_CLIENTS[manager_name].append(sdk_client)
         logger.debug(f"Added client {client_id} ({client_type}) to _WEBSOCKET_CLIENTS for {manager_name}. Total clients: {len(_WEBSOCKET_CLIENTS[manager_name])}")
+        file_handler.flush()
+
+        # Log client connection for scaling monitoring
+        logger.info(f"SCALING: RealTime port 8002 client count: {len(_WEBSOCKET_CLIENTS[manager_name])} (client {client_id} connected)")
         file_handler.flush()
 
         # Start heartbeat loop
@@ -306,6 +325,7 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                         asyncio.create_task(publish_position_event(tag_id, zone_id, x, y, z))
                     
                     # Forward to other RTLS clients (existing logic)
+                    forwarded_count = 0
                     for ws_client in _WEBSOCKET_CLIENTS.get(manager_name, []):
                         if ws_client != sdk_client and hasattr(ws_client, 'request_msg') and ws_client.request_msg:
                             for tag in ws_client.request_msg.tags:
@@ -313,11 +333,18 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                                 message_zone_id = str(zone_id) if zone_id is not None else None
                                 if tag.id == tag_id and client_zone_id == message_zone_id:
                                     await ws_client.websocket.send_text(data)
+                                    forwarded_count += 1
                                     logger.debug(f"Forwarded GISData to client {ws_client.client_id} for tag {tag.id}, zone {message_zone_id}")
                                     file_handler.flush()
                                 else:
                                     logger.debug(f"Skipped forwarding GISData to client {ws_client.client_id}: tag {tag.id} vs {tag_id}, zone {client_zone_id} vs {message_zone_id}")
                                     file_handler.flush()
+                    
+                    # Log data forwarding metrics for scaling monitoring
+                    if forwarded_count > 0:
+                        logger.debug(f"SCALING: Forwarded GISData to {forwarded_count} clients from port 8002")
+                        file_handler.flush()
+                    
                     continue
 
                 elif msg_type == "request":
@@ -405,6 +432,12 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
             _WEBSOCKET_CLIENTS[manager_name].remove(sdk_client)
         if heartbeat_task:
             heartbeat_task.cancel()
+            
+        # Log client disconnection for scaling monitoring
+        remaining_clients = len(_WEBSOCKET_CLIENTS.get(manager_name, []))
+        logger.info(f"SCALING: RealTime port 8002 client count: {remaining_clients} (client {client_id} disconnected)")
+        file_handler.flush()
+        
         logger.info(f"Cleaned up client {client_id} ({client_type}) for /ws/{manager_name}")
         file_handler.flush()
 

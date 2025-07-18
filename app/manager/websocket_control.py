@@ -1,10 +1,10 @@
 # Name: websocket_control.py
-# Version: 0.1.4
+# Version: 0.1.6
 # Created: 250513
-# Modified: 250709
+# Modified: 250717
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin & TC & AI Assistant
-# Description: Python script for ParcoRTLS Control WebSocket server on port 8001 - Added PortRedirect support for simulator v0.1.23 - Updated to use centralized configuration - Added message type tracking for heartbeat filtering
+# Description: Python script for ParcoRTLS Control WebSocket server on port 8001 - Added GISData forwarding to RealTime Manager - Added heartbeat integration for port monitoring and scaling - Added PortRedirect support for simulator v0.1.23 - Updated to use centralized configuration - Added message type tracking for heartbeat filtering
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
@@ -15,6 +15,7 @@ import logging
 import os
 import stat
 import sys
+import websockets
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -35,6 +36,9 @@ from .enums import RequestType, eMode
 from .constants import REQUEST_TYPE_MAP, NEW_REQUEST_TYPES
 from .line_limited_logging import LineLimitedFileHandler
 from .heartbeat_manager import HeartbeatManager
+
+# Import heartbeat integration
+from .heartbeat_integration import heartbeat_integration
 
 # Log directory and file
 LOG_DIR = "/home/parcoadmin/parco_fastapi/app/logs"
@@ -88,6 +92,10 @@ DEFAULT_REALTIME_PORT = 8002
 _cached_connection_string: Optional[str] = None
 _cached_cors_origins: Optional[list] = None
 
+# NEW: GIS Data forwarding connection
+_realtime_manager_ws: Optional[object] = None  # websockets client connection
+_realtime_connected = False
+
 async def get_connection_string() -> str:
     """Get maintenance database connection string from config helper"""
     global _cached_connection_string
@@ -123,6 +131,107 @@ async def get_cors_origins() -> list:
     
     return _cached_cors_origins
 
+# NEW: RealTime Manager connection functions
+async def connect_to_realtime_manager() -> bool:
+    """
+    Connect to RealTime Manager on Port 8002 for GIS data forwarding.
+    
+    Returns:
+        bool: True if connected successfully
+    """
+    global _realtime_manager_ws, _realtime_connected
+    
+    try:
+        server_host = get_server_host()
+        realtime_url = f"ws://{server_host}:{DEFAULT_REALTIME_PORT}/ws/RealTimeManager"
+        
+        logger.info(f"🔗 Connecting to RealTime Manager at {realtime_url}")
+        file_handler.flush()
+        
+        _realtime_manager_ws = await websockets.connect(realtime_url)
+        
+        logger.info("✅ Connected to RealTime Manager, sending BeginStream handshake")
+        file_handler.flush()
+        
+        # Send BeginStream for GIS data forwarding
+        begin_stream_msg = {
+            "type": "request",
+            "request": "BeginStream", 
+            "reqid": "ControlManagerBridge",
+            "params": [
+                {"id": "26102", "data": "true"},
+                {"id": "26099", "data": "true"},
+                {"id": "13351", "data": "true"}
+            ],
+            "zone_id": 451
+        }
+        
+        await _realtime_manager_ws.send(json.dumps(begin_stream_msg))  # type: ignore
+        logger.info(f"📤 Sent BeginStream to RealTime Manager: {begin_stream_msg}")
+        file_handler.flush()
+        
+        # Wait for response
+        try:
+            response_data = await asyncio.wait_for(_realtime_manager_ws.recv(), timeout=5.0)  # type: ignore
+            response = json.loads(response_data)
+            
+            logger.info(f"📥 Received response from RealTime Manager: {response}")
+            file_handler.flush()
+            
+            if response.get("type") == "response" and response.get("request") == "BgnStrm":
+                if not response.get("message"):  # Empty message means success
+                    logger.info("✅ BeginStream handshake successful with RealTime Manager")
+                    _realtime_connected = True
+                    return True
+                else:
+                    logger.error(f"❌ BeginStream failed: {response.get('message')}")
+                    return False
+            else:
+                logger.error(f"❌ Unexpected response format: {response}")
+                return False
+        except asyncio.TimeoutError:
+            logger.error("❌ Timeout waiting for BeginStream response from RealTime Manager")
+            return False
+            
+    except Exception as e:
+        logger.error(f"❌ Failed to connect to RealTime Manager: {str(e)}")
+        file_handler.flush()
+        _realtime_manager_ws = None
+        _realtime_connected = False
+        return False
+
+async def forward_gis_data_to_realtime(gis_data: dict):
+    """
+    Forward GIS data to RealTime Manager on port 8002.
+    
+    Args:
+        gis_data: GIS data message to forward
+    """
+    global _realtime_manager_ws, _realtime_connected
+    
+    if not _realtime_connected or _realtime_manager_ws is None:
+        logger.warning("⚠️ RealTime Manager not connected, attempting reconnection")
+        file_handler.flush()
+        
+        if not await connect_to_realtime_manager():
+            logger.error("❌ Failed to connect to RealTime Manager, dropping GIS data")
+            file_handler.flush()
+            return
+    
+    try:
+        # Forward the GIS data to RealTime Manager
+        await _realtime_manager_ws.send(json.dumps(gis_data))  # type: ignore
+        logger.info(f"✅ Forwarded GIS data to RealTime Manager for tag {gis_data.get('ID')}")
+        file_handler.flush()
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to forward GIS data to RealTime Manager: {str(e)}")
+        file_handler.flush()
+        
+        # Reset connection on error
+        _realtime_manager_ws = None
+        _realtime_connected = False
+
 # Heartbeat configuration
 HEARTBEAT_INTERVAL = 30.0  # Heartbeat every 30 seconds
 
@@ -154,11 +263,28 @@ async def lifespan(app: FastAPI):
                         await manager_instance.start()
                         logger.debug(f"Manager {manager_name} started successfully")
                         file_handler.flush()
+                        
+                        # Register manager with heartbeat integration
+                        heartbeat_integration.register_manager(manager_name, manager_instance)
+                        logger.debug(f"Registered manager {manager_name} with heartbeat integration")
+                        file_handler.flush()
+        
+        # NEW: Initialize connection to RealTime Manager
+        logger.info("🔗 Initializing connection to RealTime Manager for GIS data forwarding")
+        file_handler.flush()
+        await connect_to_realtime_manager()
+                        
         yield
     except Exception as e:
         logger.error(f"Lifespan error: {str(e)}")
         file_handler.flush()
         raise
+    finally:
+        # NEW: Cleanup RealTime Manager connection
+        if _realtime_manager_ws is not None:
+            await _realtime_manager_ws.close()  # type: ignore
+            logger.info("🔌 Disconnected from RealTime Manager")
+            file_handler.flush()
     logger.info("Application shutdown")
     file_handler.flush()
 
@@ -251,6 +377,24 @@ async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
                     file_handler.flush()
                     continue
 
+                # NEW: GISData forwarding logic
+                elif msg_type == "GISData":
+                    tag_id = json_data.get("ID")
+                    zone_id = json_data.get("zone_id")
+                    x = json_data.get("X", 0.0)
+                    y = json_data.get("Y", 0.0)
+                    z = json_data.get("Z", 0.0)
+                    
+                    logger.info(f"🔄 Processing GISData for tag {tag_id} in zone {zone_id} from client {client_id}")
+                    file_handler.flush()
+                    
+                    # Forward GIS data to RealTime Manager
+                    await forward_gis_data_to_realtime(json_data)
+                    
+                    logger.info(f"✅ GIS data processing complete for tag {tag_id}")
+                    file_handler.flush()
+                    continue
+
                 elif msg_type == "request":
                     request_type = json_data.get("request", "")
                     req_id = json_data.get("reqid", "")
@@ -303,7 +447,9 @@ async def websocket_endpoint_control(websocket: WebSocket, manager_name: str):
                             # Send PortRedirect message to inform simulator of RealTime stream port
                             port_redirect_msg = {
                                 "type": "PortRedirect",
-                                "port": DEFAULT_REALTIME_PORT
+                                "port": DEFAULT_REALTIME_PORT,
+                                "stream_type": "RealTime",
+                                "manager_name": "RealTimeManager"
                             }
                             await websocket.send_text(json.dumps(port_redirect_msg))
                             logger.info(f"Sent PortRedirect to client {client_id}, redirecting to port {DEFAULT_REALTIME_PORT}")

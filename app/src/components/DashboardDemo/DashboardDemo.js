@@ -1,10 +1,10 @@
 /* Name: DashboardDemo.js */
-/* Version: 0.1.1 */
+/* Version: 0.1.2 */
 /* Created: 250711 */
-/* Modified: 250712 */
+/* Modified: 250714 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Main dashboard component for ParcoRTLS with dynamic device categories */
+/* Description: Main dashboard component for ParcoRTLS with dynamic device categories and external data source integration */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components */
 /* Role: Frontend */
 /* Status: Active */
@@ -23,6 +23,7 @@ import SensorReadings from './components/SensorReadings';
 
 // Import hooks
 import useDashboardData from './hooks/useDashboardData';
+import useExternalDataSource from './hooks/useExternalDataSource';
 
 // Import services
 import { dashboardApi } from './services/dashboardApi';
@@ -40,6 +41,14 @@ const DashboardDemo = () => {
     error,
     refreshData
   } = useDashboardData(refreshInterval, isAutoRefresh, customerId);
+
+  // External data source integration (vendor-neutral)
+  const {
+    tagPositions: externalPositions,
+    connectionStatus: externalConnectionStatus,
+    messageCount: externalMessageCount,
+    activeDataSource
+  } = useExternalDataSource('AllTraqAppAPI', customerId);
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
@@ -113,6 +122,23 @@ const DashboardDemo = () => {
         </div>
       </div>
 
+      {/* External Data Source Status */}
+      {activeDataSource && (
+        <div className="external-data-status">
+          <span className="external-data-label">
+            External Data Source ({activeDataSource}):
+          </span>
+          <span className={`connection-status ${externalConnectionStatus}`}>
+            {externalConnectionStatus}
+          </span>
+          {externalMessageCount > 0 && (
+            <span className="message-count">
+              ({externalMessageCount} messages)
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Top Metrics Row */}
       <MetricsCards metrics={dashboardData?.metrics || []} />
 
@@ -153,6 +179,7 @@ const DashboardDemo = () => {
               <div className="activity-left">
                 <ActivityFeed 
                   activity={dashboardData?.recent_activity || []} 
+                  externalData={externalPositions}
                   isLoading={isLoading}
                 />
               </div>
@@ -169,6 +196,7 @@ const DashboardDemo = () => {
               locations={dashboardData?.locations || []}
               metrics={dashboardData?.metrics || []}
               deviceCategories={dashboardData?.device_categories || []}
+              externalPositions={externalPositions}
               customerId={customerId}
             />
           )}
@@ -191,11 +219,17 @@ const DashboardDemo = () => {
 
       {/* Dashboard Footer */}
       <div className="dashboard-footer">
-        <span>ParcoRTLS Dashboard v0.1.1</span>
+        <span>ParcoRTLS Dashboard v0.1.2</span>
         <span>•</span>
         <span>{dashboardData?.metrics?.length || 0} metrics tracked</span>
         <span>•</span>
         <span>{dashboardData?.locations?.length || 0} locations monitored</span>
+        {externalPositions.length > 0 && (
+          <>
+            <span>•</span>
+            <span>{externalPositions.length} external devices active</span>
+          </>
+        )}
       </div>
     </div>
   );

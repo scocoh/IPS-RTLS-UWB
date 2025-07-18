@@ -1,0 +1,19 @@
+# Name: requirements.txt
+# Version: 0.1.0
+# Created: 971201
+# Modified: 250502
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/DataSources/AllTraqAppAPI
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+# AllTraq is a registered trademark of ABG Tag and Traq Inc (Oklahoma) Serial Num 87037989 for Goods & Service IC 009
+
+# AllTraq DataSource Dependencies
+aiohttp>=3.8.0
+websockets>=10.0
+asyncio
+configparser

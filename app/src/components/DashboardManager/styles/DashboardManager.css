@@ -1,0 +1,921 @@
+/* File: /home/parcoadmin/parco_fastapi/app/src/components/DashboardManager/styles/DashboardManager.css */
+/* Name: DashboardManager.css */
+/* Version: 0.1.3 */
+/* Created: 250713 */
+/* Modified: 250713 */
+/* Creator: ParcoAdmin */
+/* Modified By: ParcoAdmin + Claude */
+/* Description: Styles for Dashboard Manager UI component - Added data source component styles */
+
+.dashboard-manager-container {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.dashboard-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.dashboard-manager-header h2 {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.manager-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.manager-actions .btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.manager-actions .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.manager-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.dashboard-manager-tabs {
+  margin-bottom: 20px;
+}
+
+.nav.nav-tabs {
+  border-bottom: 2px solid #dee2e6;
+  background: white;
+  border-radius: 8px 8px 0 0;
+  padding: 0 15px;
+}
+
+.nav-link {
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  color: #6c757d;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+}
+
+.nav-link:hover {
+  color: #007bff;
+  background-color: #f8f9fa;
+}
+
+.nav-link.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+  background-color: white;
+}
+
+.dashboard-manager-content {
+  background: white;
+  border-radius: 0 0 8px 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  min-height: 600px;
+}
+
+.dashboard-manager-footer {
+  margin-top: 20px;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-align: center;
+  color: #6c757d;
+  line-height: 1.5;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.footer-item {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-separator {
+  color: #6c757d;
+  font-weight: normal;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.status-indicator {
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  margin: 0 2px;
+}
+
+.status-indicator.started {
+  color: #155724;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+}
+
+.status-indicator.starting {
+  color: #856404;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+}
+
+.status-indicator.stopped {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+.status-indicator.stopping {
+  color: #8a4a00;
+  background-color: #ffeaa7;
+  border: 1px solid #ffdd57;
+}
+
+.status-indicator.unknown {
+  color: #495057;
+  background-color: #e2e3e5;
+  border: 1px solid #d6d8db;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 18px;
+  color: #6c757d;
+}
+
+.error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #dc3545;
+  font-size: 16px;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.retry-button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Manager Status Specific Styles */
+.manager-status-container .card {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.manager-status-container .card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+}
+
+.manager-status-container .card-header h5 {
+  margin: 0;
+  color: #495057;
+}
+
+.manager-status-container .table {
+  margin: 0;
+}
+
+.manager-status-container .table td {
+  padding: 8px 0;
+  border: none;
+}
+
+.health-indicators {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.health-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.health-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.badge-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.badge-warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.badge-info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.badge-secondary {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+/* ===== NEW: DATA SOURCE COMPONENT STYLES ===== */
+
+/* Data Source Manager Container */
+.data-source-manager-container {
+  padding: 0;
+}
+
+.data-source-manager-container h5 {
+  margin: 0;
+  color: #495057;
+  font-weight: 600;
+}
+
+/* Data Source Cards */
+.data-source-card {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  height: 100%;
+}
+
+.data-source-card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.data-source-card .card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+  padding: 12px 15px;
+}
+
+.data-source-card .card-header h6 {
+  margin: 0;
+  color: #495057;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.data-source-card .card-body {
+  padding: 15px;
+}
+
+.data-source-card .table {
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.data-source-card .table td {
+  padding: 4px 0;
+  border: none;
+  vertical-align: middle;
+}
+
+.data-source-card .table td:first-child {
+  font-weight: 500;
+  color: #6c757d;
+  width: 35%;
+}
+
+/* Configuration Status Indicators */
+.config-status {
+  margin-bottom: 15px;
+}
+
+.config-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.config-indicators .badge {
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  font-weight: 500;
+}
+
+/* Data Source Action Buttons */
+.data-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.data-source-actions .btn {
+  flex: 1;
+  min-width: 80px;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.data-source-actions .btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.data-source-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.data-source-actions .btn-sm {
+  font-size: 0.8rem;
+  padding: 6px 10px;
+}
+
+/* Status Badges for Data Sources */
+.data-source-card .badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.data-source-card .badge-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.data-source-card .badge-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.data-source-card .badge-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.data-source-card .badge-secondary {
+  background-color: #e2e3e5;
+  color: #383d41;
+  border: 1px solid #d6d8db;
+}
+
+/* Statistics Cards for Data Sources */
+.data-source-manager-container .stat-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.data-source-manager-container .stat-card:hover {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.data-source-manager-container .stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 5px;
+  line-height: 1;
+}
+
+.data-source-manager-container .stat-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Error and Alert Styling for Data Sources */
+.data-source-card .alert {
+  margin-bottom: 0;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  border-radius: 4px;
+}
+
+.data-source-card .alert-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+/* No Data Sources State */
+.data-source-manager-container .alert-info {
+  background-color: #d1ecf1;
+  border: 1px solid #bee5eb;
+  color: #0c5460;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+}
+
+.data-source-manager-container .alert-info h5 {
+  color: #0c5460;
+  margin-bottom: 10px;
+}
+
+.data-source-manager-container .alert-info p {
+  margin-bottom: 15px;
+  color: #0c5460;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-manager-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .manager-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nav.nav-tabs {
+    flex-direction: column;
+  }
+
+  .nav-link {
+    text-align: center;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 0;
+  }
+
+  .nav-link.active {
+    border-bottom-color: #007bff;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .footer-separator {
+    display: none;
+  }
+
+  /* Data Source Mobile Responsiveness */
+  .data-source-actions {
+    flex-direction: column;
+  }
+
+  .data-source-actions .btn {
+    flex: none;
+    width: 100%;
+  }
+
+  .config-indicators {
+    justify-content: center;
+  }
+
+  .data-source-manager-container .stat-value {
+    font-size: 1.5rem;
+  }
+}
+
+/* Animation for smooth transitions */
+.dashboard-manager-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== ADDITIONAL COMPONENT STYLES ===== */
+
+/* Customer Config Component */
+.customer-config-container .category-badges {
+  margin-top: 5px;
+}
+
+.customer-config-container .form-actions {
+  margin-top: 15px;
+}
+
+/* Message Flow Component */
+.message-flow-container .pipeline-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.flow-stage {
+  display: flex;
+  align-items: center;
+}
+
+.stage-box {
+  background: #f8f9fa;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+  min-width: 120px;
+}
+
+.stage-box h6 {
+  margin: 0 0 5px 0;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.stage-metric {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #007bff;
+  margin: 5px 0;
+}
+
+.flow-arrow {
+  font-size: 1.5rem;
+  color: #6c757d;
+  margin: 0 15px;
+}
+
+.pipeline-stats .stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+}
+
+.stat-label {
+  font-weight: 500;
+}
+
+.metric-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.metric-item:last-child {
+  border-bottom: none;
+}
+
+.metric-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.metric-value {
+  font-weight: 600;
+  color: #007bff;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.category-item {
+  padding: 10px;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+}
+
+.category-name {
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.category-count {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.category-bar {
+  height: 4px;
+  background: #e9ecef;
+  border-radius: 2px;
+  margin-top: 5px;
+}
+
+.category-bar-fill {
+  height: 100%;
+  background: #007bff;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.error-list .error-item {
+  padding: 10px;
+  border-left: 4px solid #dc3545;
+  background: #f8f9fa;
+  margin-bottom: 10px;
+}
+
+.error-time {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.error-message {
+  font-weight: 500;
+  color: #dc3545;
+}
+
+.error-details {
+  margin-top: 5px;
+}
+
+/* Performance Metrics Component */
+.performance-card {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 15px;
+}
+
+.card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  margin-right: 15px;
+}
+
+.card-content h6 {
+  margin: 0 0 5px 0;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.card-content .metric-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.grade {
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.grade-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.grade-info {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.grade-warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.grade-danger {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.status.high {
+  background: #dc3545;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.status.medium {
+  background: #ffc107;
+  color: #212529;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.status.low {
+  background: #28a745;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.resource-metrics .resource-item {
+  margin-bottom: 15px;
+}
+
+.resource-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.resource-value {
+  font-weight: 600;
+  color: #495057;
+}
+
+.progress {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Client Connections Component */
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.client-id {
+  background: #f8f9fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.table-responsive {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+/* Flow Controls */
+.flow-controls {
+  display: flex;
+  align-items: center;
+}
+
+.metric-controls {
+  display: flex;
+  align-items: center;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .pipeline-flow {
+    flex-direction: column;
+  }
+  
+  .flow-arrow {
+    transform: rotate(90deg);
+    margin: 10px 0;
+  }
+  
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .performance-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .card-icon {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+}
