@@ -1,8 +1,8 @@
 #!/bin/bash
 # Name: 25-devsession.sh
-# Version: 0.1.2
+# Version: 0.1.3
 # Created: 250526
-# Modified: 250607
+# Modified: 250719
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: TETSE tmux dev session: websocket_tetse + psql + wscat clients
@@ -11,6 +11,7 @@
 # Status: Active
 # Note: Added wscat commands for panes 2-5 with delays for ports 8998, 9000; port 8002 not checked as managed by parco-dev
 # Changelog:
+# - 0.1.3 (250719): Removed --log-level debug from uvicorn commands; bumped version
 # - 0.1.2 (250607): Added wait_for_port to delay wscat in panes 3-5 until ports 8998, 9000 are ready; bumped version
 # - 0.1.1 (250607): Updated panes 2-5 with wscat commands; reverted port check to 8998, 9000
 # - 0.1.0 (250526): Initial version with websocket_tetse and psql
@@ -64,13 +65,13 @@ tmux kill-session -t $SESSION 2>/dev/null
 tmux new-session -d -s $SESSION -c ~/parco_fastapi/app
 tmux send-keys -t $SESSION.0 'source ~/parco_fastapi/venv/bin/activate' C-m
 tmux send-keys -t $SESSION.0 'export PS1="\[\033[1;35m\][TETSE-EVENT:9000]\[\033[0m\] \w $ "' C-m
-tmux send-keys -t $SESSION.0 'uvicorn manager.websocket_tetse_event:app --host 0.0.0.0 --port 9000 --log-level debug' C-m
+tmux send-keys -t $SESSION.0 'uvicorn manager.websocket_tetse_event:app --host 0.0.0.0 --port 9000' C-m
 
 # Pane 1: websocket_tetse.py (port 8998)
 tmux split-window -h -t $SESSION:0.0 -c ~/parco_fastapi/app
 tmux send-keys -t $SESSION.1 'source ~/parco_fastapi/venv/bin/activate' C-m
 tmux send-keys -t $SESSION.1 'export PS1="\[\033[1;34m\][TETSE:8998]\[\033[0m\] \w $ "' C-m
-tmux send-keys -t $SESSION.1 'uvicorn manager.websocket_tetse:app --host 0.0.0.0 --port 8998 --log-level debug' C-m
+tmux send-keys -t $SESSION.1 'uvicorn manager.websocket_tetse:app --host 0.0.0.0 --port 8998' C-m
 
 # Pane 2: wscat to RealTimeManager (port 8002)
 # Original:

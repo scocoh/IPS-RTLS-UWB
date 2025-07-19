@@ -1,8 +1,8 @@
 #!/bin/bash
 # Name: 06-devsession.sh
-# Version: 0.1.3
+# Version: 0.1.4
 # Created: 971201
-# Modified: 250515
+# Modified: 250719
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Shell script for ParcoRTLS utilities
@@ -50,31 +50,31 @@ tmux kill-session -t $SESSION 2>/dev/null
 tmux new-session -d -s $SESSION -c ~/parco_fastapi/app
 tmux send-keys -t $SESSION.0 'source ~/parco_fastapi/venv/bin/activate' C-m
 tmux send-keys -t $SESSION.0 'export PS1="\[\033[1;32m\][Backend:8000]\[\033[0m\] \w $ "' C-m
-tmux send-keys -t $SESSION.0 'uvicorn app:app --host 0.0.0.0 --port 8000 --reload --log-level debug' C-m
+tmux send-keys -t $SESSION.0 'uvicorn app:app --host 0.0.0.0 --port 8000 --reload' C-m
 
 # Split horizontally from Pane 0 → Pane 1 (WebSocket Control)
 tmux split-window -h -t $SESSION:0.0 -c ~/parco_fastapi/app
 tmux send-keys -t $SESSION.1 'source ~/parco_fastapi/venv/bin/activate' C-m
 tmux send-keys -t $SESSION.1 'export PS1="\[\033[1;34m\][WebSocket:8001]\[\033[0m\] \w $ "' C-m
-tmux send-keys -t $SESSION.1 'uvicorn manager.websocket_control:app --host 0.0.0.0 --port 8001 --reload --log-level debug' C-m
+tmux send-keys -t $SESSION.1 'uvicorn manager.websocket_control:app --host 0.0.0.0 --port 8001 --reload' C-m
 
 # Split horizontally from Pane 1 → Pane 2 (WebSocket RealTimeData)
 tmux split-window -h -t $SESSION:0.1 -c ~/parco_fastapi/app
 tmux send-keys -t $SESSION.2 'source ~/parco_fastapi/venv/bin/activate' C-m
 tmux send-keys -t $SESSION.2 'export PS1="\[\033[1;35m\][WebSocket:8002]\[\033[0m\] \w $ "' C-m
-tmux send-keys -t $SESSION.2 'uvicorn manager.websocket_realtime:app --host 0.0.0.0 --port 8002 --reload --log-level debug' C-m
+tmux send-keys -t $SESSION.2 'uvicorn manager.websocket_realtime:app --host 0.0.0.0 --port 8002 --reload' C-m
 
 # Split horizontally from Pane 2 → Pane 3 (WebSocket HistoricalData)
 tmux split-window -h -t $SESSION:0.2 -c ~/parco_fastapi/app
 tmux send-keys -t $SESSION.3 'source ~/parco_fastapi/venv/bin/activate' C-m
 tmux send-keys -t $SESSION.3 'export PS1="\[\033[1;31m\][WebSocket:8003]\[\033[0m\] \w $ "' C-m
-tmux send-keys -t $SESSION.3 'uvicorn manager.websocket_historical:app --host 0.0.0.0 --port 8003 --reload --log-level debug' C-m
+tmux send-keys -t $SESSION.3 'uvicorn manager.websocket_historical:app --host 0.0.0.0 --port 8003 --reload' C-m
 
 # Split horizontally from Pane 3 → Pane 4 (WebSocket AveragedData)
 tmux split-window -h -t $SESSION:0.3 -c ~/parco_fastapi/app
 tmux send-keys -t $SESSION.4 'source ~/parco_fastapi/venv/bin/activate' C-m
 tmux send-keys -t $SESSION.4 'export PS1="\[\033[1;33m\][WebSocket:8004]\[\033[0m\] \w $ "' C-m
-tmux send-keys -t $SESSION.4 'uvicorn manager.websocket_averaged:app --host 0.0.0.0 --port 8004 --reload --log-level debug' C-m
+tmux send-keys -t $SESSION.4 'uvicorn manager.websocket_averaged:app --host 0.0.0.0 --port 8004 --reload' C-m
 
 # Split vertically from Pane 4 → Pane 5 (Frontend React app)
 tmux split-window -v -t $SESSION:0.4 -c ~/parco_fastapi/app

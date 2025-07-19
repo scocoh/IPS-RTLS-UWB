@@ -1,17 +1,17 @@
 /* Name: TriggerCreateTab.js */
-/* Version: 0.1.3 */
+/* Version: 0.1.4 */
 /* Created: 250705 */
-/* Modified: 250707 */
+/* Modified: 250718 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Trigger creation tab – Fixed coordinate parsing issue */
+/* Description: Trigger creation tab – Added zone boundary visualization for better user guidance */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/components */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Form, Button, InputGroup, FormControl } from "react-bootstrap";
+import { Form, Button, InputGroup, FormControl, Alert } from "react-bootstrap";
 import NewTriggerViewer from "../../NewTriggerViewer/NTV_index";          // ← updated
 import { triggerApi } from "../services/triggerApi";
 import { zoneApi } from "../services/zoneApi";
@@ -36,6 +36,11 @@ const TriggerCreateTab = ({
   const [coordinates, setCoordinates] = useState([]);
   const [showMapForDrawing, setShowMapForDrawing] = useState(false);
 
+  // NEW: Zone boundary visualization state
+  const [showZoneBoundaries, setShowZoneBoundaries] = useState(true);
+  const [zoneBoundaries, setZoneBoundaries] = useState(null);
+  const [boundaryError, setBoundaryError] = useState(null);
+
   // Fetch zone vertices when zone changes
   const fetchZoneVertices = useCallback(async (zoneId) => {
     try {
@@ -49,7 +54,31 @@ const TriggerCreateTab = ({
     }
   }, []);
 
-  // Handle zone change with vertex fetch
+  // NEW: Fetch zone boundaries for visualization
+  const fetchZoneBoundaries = useCallback(async (zoneId) => {
+    try {
+      console.log(`🎯 Fetching zone boundaries for zone ${zoneId}`);
+      setBoundaryError(null);
+      
+      const boundaries = await zoneApi.getZoneBoundaries(zoneId);
+      console.log(`📊 Zone ${zoneId} boundaries:`, boundaries);
+      
+      setZoneBoundaries(boundaries);
+      
+      // Show coordinate ranges to user
+      setEventList(prev => [...prev, 
+        `Zone ${zoneId} boundaries loaded: X: ${boundaries.min_x.toFixed(2)} to ${boundaries.max_x.toFixed(2)}, ` +
+        `Y: ${boundaries.min_y.toFixed(2)} to ${boundaries.max_y.toFixed(2)} on ${getFormattedTimestamp()}`
+      ]);
+      
+    } catch (e) {
+      console.error("Error fetching zone boundaries:", e);
+      setBoundaryError(`Failed to load zone boundaries: ${e.message}`);
+      setZoneBoundaries(null);
+    }
+  }, [setEventList]);
+
+  // Handle zone change with vertex and boundary fetch
   const handleLocalZoneChange = useCallback((zoneId) => {
     handleZoneChange(zoneId);
     setCoordinates([]);
@@ -57,14 +86,34 @@ const TriggerCreateTab = ({
     setZMin(null);
     setZMax(null);
     setCustomZMax(null);
+    // NEW: Reset boundary state
+    setZoneBoundaries(null);
+    setBoundaryError(null);
   }, [handleZoneChange]);
 
-  // Fetch zone vertices when selected zone changes
+  // Fetch zone data when selected zone changes
   useEffect(() => {
     if (selectedZone) {
       fetchZoneVertices(selectedZone.i_zn);
+      // NEW: Fetch boundaries if visualization is enabled
+      if (showZoneBoundaries) {
+        fetchZoneBoundaries(selectedZone.i_zn);
+      }
     }
-  }, [selectedZone, fetchZoneVertices]);
+  }, [selectedZone, fetchZoneVertices, fetchZoneBoundaries, showZoneBoundaries]);
+
+  // NEW: Handle boundary toggle change
+  const handleBoundaryToggle = useCallback((enabled) => {
+    setShowZoneBoundaries(enabled);
+    
+    if (enabled && selectedZone && !zoneBoundaries) {
+      // Fetch boundaries if not already loaded
+      fetchZoneBoundaries(selectedZone.i_zn);
+    } else if (!enabled) {
+      // Clear any boundary errors when disabled
+      setBoundaryError(null);
+    }
+  }, [selectedZone, zoneBoundaries, fetchZoneBoundaries]);
 
   // FIXED: Handle drawing complete - improved coordinate parsing for Leaflet objects
   const handleDrawComplete = useCallback((coords) => {
@@ -134,6 +183,54 @@ const TriggerCreateTab = ({
 
       console.log("🔍 Processing", parsed.length, "coordinate points");
 
+      // NEW: Validate coordinates against zone boundaries if available
+      if (zoneBoundaries && showZoneBoundaries) {
+        console.log("🎯 Validating coordinates against zone boundaries");
+        
+        let allWithinBounds = true;
+        let boundaryWarnings = [];
+        
+        for (let i = 0; i < parsed.length; i++) {
+          const coord = parsed[i];
+          let x, y;
+          
+          if (coord.lng !== undefined && coord.lat !== undefined) {
+            x = Number(coord.lng);
+            y = Number(coord.lat);
+          } else if (coord.x !== undefined && coord.y !== undefined) {
+            x = Number(coord.x);
+            y = Number(coord.y);
+          } else if (Array.isArray(coord) && coord.length >= 2) {
+            x = Number(coord[1]); // lng/x
+            y = Number(coord[0]); // lat/y
+          }
+          
+          // Check if coordinate is within zone boundaries
+          if (x < zoneBoundaries.min_x || x > zoneBoundaries.max_x ||
+              y < zoneBoundaries.min_y || y > zoneBoundaries.max_y) {
+            
+            allWithinBounds = false;
+            boundaryWarnings.push(`Point ${i + 1}: (${x.toFixed(2)}, ${y.toFixed(2)})`);
+          }
+        }
+        
+        if (!allWithinBounds) {
+          const warning = `⚠️ Some coordinates are outside zone boundaries!\n\n` +
+                        `Out of bounds points:\n${boundaryWarnings.join('\n')}\n\n` +
+                        `Valid area:\n` +
+                        `X: ${zoneBoundaries.min_x.toFixed(2)} to ${zoneBoundaries.max_x.toFixed(2)}\n` +
+                        `Y: ${zoneBoundaries.min_y.toFixed(2)} to ${zoneBoundaries.max_y.toFixed(2)}\n\n` +
+                        `Z coordinates will be auto-corrected during creation.`;
+          
+          alert(warning);
+        } else {
+          // Show positive feedback when all coordinates are within bounds
+          setEventList(prev => [...prev, 
+            `✅ All coordinates are within zone ${selectedZone.i_zn} boundaries on ${getFormattedTimestamp()}`
+          ]);
+        }
+      }
+
       // Format coordinates with Z values
       const effectiveZMax = zMin === zMax && customZMax !== null ? Number(customZMax) : zMax;
       const formattedCoords = parsed.map((coord, index) => {
@@ -182,7 +279,7 @@ const TriggerCreateTab = ({
       console.error("❌ Error processing coordinates:", e);
       alert(`Failed to process drawn coordinates: ${e.message}`);
     }
-  }, [zMin, zMax, customZMax]);
+  }, [zMin, zMax, customZMax, zoneBoundaries, showZoneBoundaries]);
 
   // Handle trigger creation
   const handleCreateTrigger = async () => {
@@ -224,7 +321,26 @@ const TriggerCreateTab = ({
 
     try {
       const result = await triggerApi.createTrigger(payload);
-      alert(`Trigger ID: ${result.trigger_id}`);
+      
+      // NEW: Enhanced success message with corrections info
+      let successMessage = `✅ Trigger Created Successfully!\n\nTrigger ID: ${result.trigger_id}`;
+      
+      if (result.corrections_applied && result.corrections_applied.length > 0) {
+        successMessage += `\n\n🔧 Auto-corrections applied:\n${result.corrections_applied.join('\n')}`;
+      } else {
+        successMessage += `\n\n✅ All coordinates were within zone boundaries.`;
+      }
+      
+      if (result.message && result.message.includes('Auto-corrections')) {
+        // Extract corrections from message if not in separate field
+        const correctionMatch = result.message.match(/Auto-corrections applied: (.+)/);
+        if (correctionMatch) {
+          successMessage += `\n\n🔧 Auto-corrections applied:\n${correctionMatch[1]}`;
+        }
+      }
+      
+      alert(successMessage);
+      
       setEventList(prev => [...prev, `Trigger ${triggerName} created on ${getFormattedTimestamp()}`]);
       setCoordinates([]);
       setShowMapForDrawing(false);
@@ -239,7 +355,7 @@ const TriggerCreateTab = ({
       await fetchTriggers();
     } catch (e) {
       console.error("Trigger create error:", e);
-      alert("Failed to create trigger.");
+      alert(`Failed to create trigger: ${e.message}`);
     }
   };
 
@@ -271,8 +387,39 @@ const TriggerCreateTab = ({
       }}>
         <strong>🐛 Debug:</strong> Coordinates: {coordinates.length} points | 
         Z-range: {zMin} to {zMax} | 
-        Drawing: {showMapForDrawing ? 'ON' : 'OFF'}
+        Drawing: {showMapForDrawing ? 'ON' : 'OFF'} | 
+        Boundaries: {zoneBoundaries ? 'LOADED' : 'NOT LOADED'}
       </div>
+
+      {/* NEW: Zone Boundary Information */}
+      {zoneBoundaries && showZoneBoundaries && (
+        <div style={{ 
+          marginBottom: "15px", 
+          padding: "10px", 
+          backgroundColor: "#e8f5e8", 
+          borderRadius: "5px",
+          border: "1px solid #c3e6c3"
+        }}>
+          <h6 style={{ color: "#155724", marginBottom: "8px" }}>📐 Zone {selectedZone.i_zn} Valid Drawing Area</h6>
+          <div style={{ fontSize: "14px", color: "#155724" }}>
+            <div><strong>X Range:</strong> {zoneBoundaries.min_x.toFixed(2)} to {zoneBoundaries.max_x.toFixed(2)}</div>
+            <div><strong>Y Range:</strong> {zoneBoundaries.min_y.toFixed(2)} to {zoneBoundaries.max_y.toFixed(2)}</div>
+            <div><strong>Z Range:</strong> {zoneBoundaries.min_z.toFixed(2)} to {zoneBoundaries.max_z.toFixed(2)} (auto-corrected)</div>
+            {coordinates.length > 0 && (
+              <div style={{ marginTop: "8px", padding: "6px", backgroundColor: "#d4edda", borderRadius: "3px" }}>
+                <strong>✅ Drawing Status:</strong> {coordinates.length} points drawn within boundaries
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* NEW: Boundary Error Display */}
+      {boundaryError && (
+        <Alert variant="warning" style={{ marginBottom: "15px" }}>
+          {boundaryError}
+        </Alert>
+      )}
 
       {/* Trigger Creation Form */}
       <div style={{ 
@@ -341,6 +488,19 @@ const TriggerCreateTab = ({
           </Form.Control>
         </Form.Group>
 
+        {/* NEW: Zone Boundary Visualization Toggle */}
+        <Form.Group style={{ marginBottom: "10px" }}>
+          <Form.Check
+            type="checkbox"
+            label="☑️ Show Zone Boundaries on Map"
+            checked={showZoneBoundaries}
+            onChange={e => handleBoundaryToggle(e.target.checked)}
+          />
+          <small style={{ color: "#6c757d" }}>
+            Display valid coordinate area to guide trigger placement
+          </small>
+        </Form.Group>
+
         <Button 
           onClick={handleCreateTrigger}
           variant={showMapForDrawing ? "success" : "primary"}
@@ -380,7 +540,7 @@ const TriggerCreateTab = ({
           
           {selectedZone.i_map ? (
             <NewTriggerViewer
-              key={`create-${selectedZone.i_map}-${selectedZone.i_zn}-${showMapForDrawing}`}
+              key={`create-${selectedZone.i_map}-${selectedZone.i_zn}-${showMapForDrawing}-${showZoneBoundaries}`}
               mapId={selectedZone.i_map}
               zones={[selectedZone]}
               checkedZones={[selectedZone.i_zn]}
@@ -393,6 +553,9 @@ const TriggerCreateTab = ({
               tagsData={{}}
               isConnected={false}
               triggers={[]}
+              // NEW: Zone boundary props
+              showZoneBoundaries={showZoneBoundaries}
+              zoneBoundaries={zoneBoundaries}
             />
           ) : (
             <div style={{ 
@@ -421,10 +584,12 @@ const TriggerCreateTab = ({
         <ul style={{ fontSize: "13px", color: "#333", marginBottom: 0 }}>
           <li>Enter trigger name and select zone</li>
           <li>Choose trigger direction (OnEnter, OnExit, etc.)</li>
+          <li><strong>NEW: Toggle "Show Zone Boundaries" to see valid drawing area</strong></li>
           <li>Click "Start Drawing" to enable map drawing</li>
           <li>Draw a polygon on the map (minimum 3 points)</li>
           <li>Click "Save Trigger" to create the trigger</li>
-          <li><strong>Fixed: Coordinate parsing now handles multiple formats</strong></li>
+          <li><strong>Zone boundaries help prevent coordinate violations</strong></li>
+          <li><strong>Z coordinates are auto-corrected to fit zone limits</strong></li>
         </ul>
       </div>
     </div>

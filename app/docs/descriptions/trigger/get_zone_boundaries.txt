@@ -1,0 +1,65 @@
+# Name: get_zone_boundaries.txt
+# Version: 0.1.0
+# Created: 250718
+# Modified: 250718
+# Creator: ParcoAdmin
+# Modified By: ParcoAdmin + Claude
+# Description: ParcoRTLS config text file
+# Location: /home/parcoadmin/parco_fastapi/app/docs/descriptions/trigger
+# Role: Utility
+# Status: Active
+# Dependent: TRUE
+
+Get zone boundaries directly from the regions table for reliable boundary data during trigger creation.
+
+This endpoint fetches the actual min/max coordinates stored in the regions table for a given zone, providing the authoritative source for zone boundary information. Unlike calculating boundaries from vertices (which may all have z=0), this endpoint returns the proper Z boundaries stored in the database regions table.
+
+This is specifically designed to fix zone trigger creation issues where vertices have Z=0 but regions have proper Z boundaries (e.g., zone 451: n_min_z=0, n_max_z=160).
+
+Parameters:
+    zone_id (int): Path parameter specifying the ID of the zone to fetch boundaries for. Required.
+
+Returns:
+    dict: A JSON response containing:
+        - zone_id (int): The requested zone ID.
+        - min_x (float): Minimum x-coordinate from regions.n_min_x.
+        - max_x (float): Maximum x-coordinate from regions.n_max_x.
+        - min_y (float): Minimum y-coordinate from regions.n_min_y.
+        - max_y (float): Maximum y-coordinate from regions.n_max_y.
+        - min_z (float): Minimum z-coordinate from regions.n_min_z.
+        - max_z (float): Maximum z-coordinate from regions.n_max_z.
+        - region_id (int): The region ID used for the boundaries.
+        - region_name (str): The name of the region.
+
+Raises:
+    HTTPException:
+        - 404: If no region is found for the specified zone_id.
+        - 500: If the database query fails or an unexpected error occurs.
+
+Example:
+    ```bash
+    curl -X GET "http://192.168.210.226:8000/api/get_zone_boundaries/451"
+    ```
+    Response:
+    ```json
+    {
+      "zone_id": 451,
+      "min_x": 0.0,
+      "max_x": 500.0,
+      "min_y": 0.0,
+      "max_y": 300.0,
+      "min_z": 0.0,
+      "max_z": 160.0,
+      "region_id": 1001,
+      "region_name": "Campus Boundary"
+    }
+    ```
+
+Use Case:
+    - **Scenario**: Frontend needs reliable zone boundary data for trigger creation validation, especially Z boundaries.
+    - **Example**: Zone 451 vertices all have n_z=0.0, but the region has proper boundaries n_min_z=0, n_max_z=160. This endpoint provides the correct boundaries.
+
+Hint:
+    - Use this endpoint instead of calculating boundaries from vertices when you need authoritative boundary data.
+    - This is the recommended approach for trigger creation validation in the frontend.
+    - Replaces zone-specific hardcoded workarounds with a consistent solution.

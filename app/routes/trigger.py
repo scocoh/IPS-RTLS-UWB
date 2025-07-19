@@ -1,20 +1,12 @@
 # /home/parcoadmin/parco_fastapi/app/routes/trigger.py
 # Name: trigger.py
-# Version: 0.1.66
+# Version: 0.1.68
 # Created: 971201
-# Modified: 250626
+# Modified: 250718
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin & Temporal Claude
-# Version 0.1.63 Converted to external descriptions using load_description()
-# Description: FastAPI routes for managing triggers in ParcoRTLS
-# External Documentation: docs/endpoints/trigger/
-# This file maintains full docstrings for FastAPI/Swagger UI integration.
-# External markdown documentation available in docs/endpoints/trigger/README.md
-# Location: /home/parcoadmin/parco_fastapi/app/routes
-# Role: FastAPI
-# Status: Active
-# Dependent: TRUE
-#
+# Version 0.1.68 Enhanced error messages for boundary violations with detailed coordinate information
+# Version 0.1.67 updated add_trigger endpoint for z coordinate bug on 250718
 # Version: 0.1.66 - Uses dynamic bounding box calculation from vertices (like get_zone_bounding_box)
 # Version: 0.1.65 - changed vertices to tuples
 # Version: 0.1.64 - Added hybrid polygon containment while preserving bounding box logic, bumped from 0.1.63
@@ -165,6 +157,29 @@ async def get_zone_bounding_box(zone_id: int):
         logger.error(f"Error fetching bounding box for zone {zone_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error fetching zone bounding box: {str(e)}")
 
+# Enhanced helper function to create detailed boundary violation error messages
+def create_boundary_error_message(coordinate_type: str, trigger_min: float, trigger_max: float, 
+                                 zone_min: float, zone_max: float) -> str:
+    """
+    Create a detailed, user-friendly error message for coordinate boundary violations.
+    
+    Args:
+        coordinate_type (str): Type of coordinate (X, Y, or Z)
+        trigger_min (float): Minimum trigger coordinate
+        trigger_max (float): Maximum trigger coordinate
+        zone_min (float): Minimum zone boundary
+        zone_max (float): Maximum zone boundary
+    
+    Returns:
+        str: Formatted error message with specific guidance
+    """
+    return (
+        f"Trigger {coordinate_type} coordinates (min: {trigger_min:.1f}, max: {trigger_max:.1f}) "
+        f"exceed zone boundaries (min: {zone_min:.1f}, max: {zone_max:.1f}). "
+        f"Please adjust trigger placement to fit within the zone {coordinate_type} range "
+        f"{zone_min:.1f} to {zone_max:.1f}."
+    )
+
 # Endpoint to add a new trigger
 @router.post(
     "/add_trigger",
@@ -193,8 +208,22 @@ async def add_trigger(request: TriggerAddRequest):
         zone_id = request.zone_id
         region_id = None
         if zone_id:
-            # Step 3: Fetch zone bounding box for validation
-            zone_bbox = await get_zone_bounding_box(zone_id)
+            # Step 3: Fetch zone boundaries for validation (FIXED - use region boundaries not vertices)
+            try:
+                zone_boundaries = await get_zone_boundaries(zone_id)
+                zone_bbox = {
+                    "min_x": zone_boundaries["min_x"],
+                    "max_x": zone_boundaries["max_x"], 
+                    "min_y": zone_boundaries["min_y"],
+                    "max_y": zone_boundaries["max_y"],
+                    "min_z": zone_boundaries["min_z"], 
+                    "max_z": zone_boundaries["max_z"]
+                }
+                logger.debug(f"Using region boundaries for zone {zone_id}: {zone_bbox}")
+            except HTTPException as e:
+                # Fallback to vertex-based calculation if region boundaries not available
+                logger.warning(f"Could not get region boundaries for zone {zone_id}, falling back to vertex calculation")
+                zone_bbox = await get_zone_bounding_box(zone_id)
 
             # Step 4: Calculate trigger bounding box from vertices
             logger.debug(f"Received vertices: {request.vertices}")
@@ -217,31 +246,29 @@ async def add_trigger(request: TriggerAddRequest):
                 min_x, min_y, min_z = 0.0, 0.0, 0.0
                 max_x, max_y, max_z = 10.0, 10.0, 10.0
 
-            # Step 5: Validate and auto-correct trigger coordinates to fit within zone boundaries
+            # Step 5: Enhanced coordinate validation with detailed error messages
             corrections_made = []
             
-            # Check X coordinates
+            # Check X coordinates with detailed error message
             if min_x < zone_bbox["min_x"] or max_x > zone_bbox["max_x"]:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Trigger X coordinates (min: {min_x}, max: {max_x}) exceed zone boundaries "
-                           f"(min: {zone_bbox['min_x']}, max: {zone_bbox['max_x']}). Please adjust trigger placement."
+                error_message = create_boundary_error_message(
+                    "X", min_x, max_x, zone_bbox["min_x"], zone_bbox["max_x"]
                 )
+                raise HTTPException(status_code=400, detail=error_message)
             
-            # Check Y coordinates  
+            # Check Y coordinates with detailed error message
             if min_y < zone_bbox["min_y"] or max_y > zone_bbox["max_y"]:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Trigger Y coordinates (min: {min_y}, max: {max_y}) exceed zone boundaries "
-                           f"(min: {zone_bbox['min_y']}, max: {zone_bbox['max_y']}). Please adjust trigger placement."
+                error_message = create_boundary_error_message(
+                    "Y", min_y, max_y, zone_bbox["min_y"], zone_bbox["max_y"]
                 )
+                raise HTTPException(status_code=400, detail=error_message)
             
             # Auto-correct Z coordinates to fit within zone boundaries
             original_min_z, original_max_z = min_z, max_z
             
             if min_z < zone_bbox["min_z"]:
                 min_z = zone_bbox["min_z"]
-                corrections_made.append(f"min_z corrected from {original_min_z} to {min_z}")
+                corrections_made.append(f"min_z corrected from {original_min_z:.2f} to {min_z:.2f}")
                 # Update vertices with corrected Z
                 for vertex in vertices:
                     if vertex.get("z", 0.0) < zone_bbox["min_z"]:
@@ -249,7 +276,7 @@ async def add_trigger(request: TriggerAddRequest):
                         
             if max_z > zone_bbox["max_z"]:
                 max_z = zone_bbox["max_z"]
-                corrections_made.append(f"max_z corrected from {original_max_z} to {max_z}")
+                corrections_made.append(f"max_z corrected from {original_max_z:.2f} to {max_z:.2f}")
                 # Update vertices with corrected Z
                 for vertex in vertices:
                     if vertex.get("z", 0.0) > zone_bbox["max_z"]:
@@ -291,7 +318,7 @@ async def add_trigger(request: TriggerAddRequest):
                     "region_id": region_id
                 }
 
-        # Return response
+        # Return enhanced response with detailed correction information
         base_message = "Trigger added successfully and assigned to a region"
         if corrections_made:
             correction_details = "; ".join(corrections_made)
@@ -303,17 +330,24 @@ async def add_trigger(request: TriggerAddRequest):
             "message": message,
             "trigger_id": trigger_id,
             "region_id": region_id,
-            "corrections_applied": corrections_made
+            "corrections_applied": corrections_made,
+            "zone_boundaries": {
+                "x_range": f"{zone_bbox['min_x']:.1f} to {zone_bbox['max_x']:.1f}",
+                "y_range": f"{zone_bbox['min_y']:.1f} to {zone_bbox['max_y']:.1f}",
+                "z_range": f"{zone_bbox['min_z']:.1f} to {zone_bbox['max_z']:.1f}"
+            } if zone_id else None
         }
 
     except DatabaseError as e:
         logger.error(f"Database error adding trigger: {e.message}")
         if "already exists" in e.message:
-            raise HTTPException(status_code=400, detail=f"Trigger name '{request.name}' already exists")
+            raise HTTPException(status_code=400, detail=f"Trigger name '{request.name}' already exists. Please choose a different name.")
         raise HTTPException(status_code=500, detail=f"Database error: {e.message}")
     except Exception as e:
         logger.error(f"Error adding trigger: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# ... (rest of the endpoints remain unchanged) ...
 
 # Endpoint to delete a trigger by ID
 @router.delete(
@@ -733,7 +767,7 @@ async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float =
                 max_y=max(y_coords),
                 min_z=min(z_coords),
                 max_z=max(z_coords),
-                vertices=[(v["x"], v["y"], v["z"]) for v in vertices]  # NEW: Pass vertices as tuples for polygon containment
+                vertices=[(float(v["x"]), float(v["y"]), float(v["z"])) for v in vertices]  # NEW: Pass vertices as tuples for polygon containment
             )
             regions.add(region_3d)
             
@@ -912,7 +946,7 @@ async def triggers_by_point(x: float, y: float, z: float):
                             max_y=max(y_coords),
                             min_z=min(z_coords),
                             max_z=max(z_coords),
-                            vertices=vertices  # NEW: Pass vertices for polygon containment
+                           vertices=[(float(v["x"]), float(v["y"]), float(v["z"])) for v in vertices]  # This passes tuples  # NEW: Pass vertices for polygon containment
                         )
                         regions.add(region_3d)
                         # NEW: Use hybrid containment instead of basic bounding box
@@ -1024,8 +1058,85 @@ async def add_trigger_from_zone(
     except DatabaseError as e:
         logger.error(f"Database error creating trigger from zone {zone_id}: {e.message}")
         if "already exists" in e.message.lower():
-            raise HTTPException(status_code=400, detail=f"Trigger name '{name}' already exists")
+            raise HTTPException(status_code=400, detail=f"Trigger name '{name}' already exists. Please choose a different name.")
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except Exception as e:
         logger.error(f"Unexpected error creating trigger from zone {zone_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to create trigger from zone: {str(e)}")
+    
+# Endpoint to fetch zone boundaries directly from regions table
+@router.get(
+    "/get_zone_boundaries/{zone_id}",
+    summary="Get zone boundaries directly from the regions table for reliable boundary data",
+    description=load_description("get_zone_boundaries"),
+    tags=["triggers"]
+)
+async def get_zone_boundaries(zone_id: int):
+    """
+    Fetch zone boundaries directly from the regions table instead of calculating from vertices.
+
+    This endpoint retrieves the actual min/max coordinates stored in the regions table,
+    which contain the proper Z boundaries (unlike vertices which may all have z=0).
+    This is the authoritative source for zone boundary validation during trigger creation.
+
+    Args:
+        zone_id (int): The ID of the zone to fetch boundaries for.
+
+    Returns:
+        dict: A dictionary containing:
+            - zone_id (int): The requested zone ID.
+            - min_x (float): Minimum x-coordinate from regions table.
+            - max_x (float): Maximum x-coordinate from regions table.
+            - min_y (float): Minimum y-coordinate from regions table.
+            - max_y (float): Maximum y-coordinate from regions table.
+            - min_z (float): Minimum z-coordinate from regions table.
+            - max_z (float): Maximum z-coordinate from regions table.
+            - region_id (int): The region ID used for the boundaries.
+            - region_name (str): The name of the region.
+
+    Raises:
+        HTTPException:
+            - 404: If no region is found for the zone.
+            - 500: For database or unexpected errors.
+    """
+    try:
+        # Fetch the zone's region (excluding trigger regions)
+        query = """
+            SELECT r.i_rgn, r.x_nm_rgn, r.n_min_x, r.n_max_x, 
+                   r.n_min_y, r.n_max_y, r.n_min_z, r.n_max_z
+            FROM regions r
+            WHERE r.i_zn = $1 AND r.i_trg IS NULL
+            LIMIT 1
+        """
+        region_result = await execute_raw_query("maint", query, zone_id)
+        
+        if not region_result:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"No region found for zone ID {zone_id}"
+            )
+
+        region = region_result[0]
+        
+        # Return the boundaries directly from the regions table
+        return {
+            "zone_id": zone_id,
+            "min_x": float(region["n_min_x"]),
+            "max_x": float(region["n_max_x"]),
+            "min_y": float(region["n_min_y"]),
+            "max_y": float(region["n_max_y"]),
+            "min_z": float(region["n_min_z"]),
+            "max_z": float(region["n_max_z"]),
+            "region_id": region["i_rgn"],
+            "region_name": region["x_nm_rgn"]
+        }
+        
+    except HTTPException as e:
+        # Re-raise HTTP exceptions as-is
+        raise e
+    except Exception as e:
+        logger.error(f"Error fetching zone boundaries for zone {zone_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error fetching zone boundaries: {str(e)}"
+        )

@@ -1,8 +1,8 @@
 #!/bin/bash
 # Name: 26-devsession.sh
-# Version: 0.1.1
+# Version: 0.1.2
 # Created: 250712
-# Modified: 250713
+# Modified: 250719
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin + Claude
 # Description: Dashboard tmux dev session: websocket_dashboard + websocket_realtime + AllTraq + wscat clients for dashboard testing
@@ -12,6 +12,7 @@
 # Dependent: TRUE
 # Note: Dashboard development session with port 8008 for dashboard WebSocket, port 18002 for AllTraq, and test clients
 # Changelog:
+# - 0.1.2 (250719): Removed --log-level debug from uvicorn commands; bumped version
 # - 0.1.1 (250713): Added AllTraq service on port 18002 in pane 1, fixed to work properly
 # - 0.1.0 (250712): Initial version based on 25-devsession.sh for dashboard development
 
@@ -66,13 +67,13 @@ tmux kill-session -t $SESSION 2>/dev/null
 tmux new-session -d -s $SESSION -c ~/parco_fastapi/app
 tmux send-keys -t $SESSION.0 'source ~/parco_fastapi/venv/bin/activate' C-m
 tmux send-keys -t $SESSION.0 'export PS1="\[\033[1;35m\][DASHBOARD:8008]\[\033[0m\] \w $ "' C-m
-tmux send-keys -t $SESSION.0 'uvicorn manager.websocket_dashboard:app --host 0.0.0.0 --port 8008 --reload --log-level debug' C-m
+tmux send-keys -t $SESSION.0 'uvicorn manager.websocket_dashboard:app --host 0.0.0.0 --port 8008 --reload' C-m
 
 # Pane 1: AllTraq WebSocket (port 18002)
 tmux split-window -h -t $SESSION:0.0 -c ~/parco_fastapi/app
 tmux send-keys -t $SESSION.1 'source ~/parco_fastapi/venv/bin/activate' C-m
 tmux send-keys -t $SESSION.1 'export PS1="\[\033[1;32m\][ALLTRAQ:18002]\[\033[0m\] \w $ "' C-m
-tmux send-keys -t $SESSION.1 'uvicorn manager.websocket_alltraq:app --host 0.0.0.0 --port 18002 --reload --log-level debug' C-m
+tmux send-keys -t $SESSION.1 'uvicorn manager.websocket_alltraq:app --host 0.0.0.0 --port 18002 --reload' C-m
 
 # Pane 2: AllTraq Service Control
 tmux split-window -h -t $SESSION:0.1 -c ~/parco_fastapi/app/DataSources/AllTraqAppAPI

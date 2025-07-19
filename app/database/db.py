@@ -1,16 +1,17 @@
 # Name: db.py
-# Version: 0.1.0
+# Version: 0.1.1
 # Created: 971201
-# Modified: 250502
+# Modified: 250718
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin
-# Description: Python script for ParcoRTLS backend
+# Modified By: ParcoAdmin + Claude
+# Description: Python script for ParcoRTLS backend - Fixed usp_region_add type casting
 # Location: /home/parcoadmin/parco_fastapi/app/database
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/database/db.py
+# Version: 0.1.1 - Fixed usp_region_add type casting for zone 451/425 trigger creation
 # Version: 0.1.7 - Fixed circular import by moving app import inside functions
 import asyncpg
 import asyncio
@@ -85,9 +86,25 @@ async def call_stored_procedure(db_type: str, procedure_name: str, *args, pool: 
 
     async with pool.acquire() as connection:
         try:
-            placeholders = ", ".join([f"${i+1}" for i in range(len(args))])
-            query = f"SELECT * FROM {procedure_name}({placeholders})"
-            logger.debug(f"Executing query: {query} with args: {args}")
+            # FIXED: Special handling for usp_region_add with explicit type casting
+            if procedure_name == "usp_region_add":
+                # usp_region_add(p_i_rgn integer, p_i_zn integer, p_x_nm_rgn character varying, 
+                #                p_n_max_x real, p_n_max_y real, p_n_max_z real, 
+                #                p_n_min_x real, p_n_min_y real, p_n_min_z real, p_i_trg integer)
+                query = """
+                    SELECT * FROM usp_region_add(
+                        $1::integer, $2::integer, $3::character varying, 
+                        $4::real, $5::real, $6::real, 
+                        $7::real, $8::real, $9::real, $10::integer
+                    )
+                """
+                logger.debug(f"Executing usp_region_add with explicit type casting: {query} with args: {args}")
+            else:
+                # Default behavior for other functions
+                placeholders = ", ".join([f"${i+1}" for i in range(len(args))])
+                query = f"SELECT * FROM {procedure_name}({placeholders})"
+                logger.debug(f"Executing query: {query} with args: {args}")
+            
             rows = await connection.fetch(query, *args)
             logger.debug(f"Query result: {rows}")
             if rows:
@@ -153,6 +170,6 @@ async def close_db_pools():
     from app import app  # Moved import inside function to avoid circular import
     if hasattr(app.state, "async_db_pools"):
         for db_type, pool in app.state.async_db_pools.items():
-            if pool:
+            if db_type:
                 await pool.close()
                 logger.info(f"Closed connection pool for {db_type}")

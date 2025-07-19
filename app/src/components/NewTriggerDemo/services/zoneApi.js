@@ -1,15 +1,18 @@
 /* Name: zoneApi.js */
-/* Version: 0.1.2 */
+/* Version: 0.1.5 */
 /* Created: 250625 */
-/* Modified: 250704 */
+/* Modified: 250718 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: API service for zone operations */
+/* Description: API service for zone operations - Added getZoneBoundaries method for boundary visualization */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerDemo/services */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 /* Changelog: */
+/* - 0.1.5 (250718): Added getZoneBoundaries method for zone boundary visualization */
+/* - 0.1.4 (250718): Updated to use new /api/get_zone_boundaries endpoint for authoritative Z boundaries */
+/* - 0.1.3 (250718): Fixed fetchZoneVertices to use correct /api/get_zone_vertices endpoint */
 /* - 0.1.2 (250704): Replaced hardcoded IP with dynamic hostname detection */
 
 // Base URL - dynamic hostname detection
@@ -47,22 +50,52 @@ const fetchZones = async () => {
 };
 
 const fetchZoneVertices = async (zoneId) => {
-  const response = await fetch(`${API_BASE_URL}/zoneviewer/get_vertices_for_campus/${zoneId}`);
-  if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-  const data = await response.json();
+  console.log(`🔍 Fetching vertices and boundaries for zone ${zoneId}`);
   
-  const vertices = data.vertices.map(vertex => ({
-    i_vtx: vertex.vertex_id,
-    zone_id: vertex.zone_id,
-    n_x: Number(vertex.x).toFixed(6),
-    n_y: Number(vertex.y).toFixed(6),
-    n_z: Number(vertex.z).toFixed(6),
-    n_ord: vertex.order,
+  // Fetch vertices for display/drawing purposes
+  const verticesResponse = await fetch(`${API_BASE_URL}/api/get_zone_vertices/${zoneId}`);
+  console.log(`📡 Zone vertices API response status: ${verticesResponse.status}`);
+  
+  if (!verticesResponse.ok) throw new Error(`HTTP error fetching vertices! Status: ${verticesResponse.status}`);
+  const verticesData = await verticesResponse.json();
+  console.log(`📊 Zone vertices response data:`, verticesData);
+  
+  // Process vertices for display/drawing
+  const vertices = verticesData.vertices.map((vertex, index) => ({
+    i_vtx: vertex.i_vtx || index + 1,
+    zone_id: zoneId,
+    n_x: Number(vertex.n_x || vertex.x).toFixed(6),
+    n_y: Number(vertex.n_y || vertex.y).toFixed(6),
+    n_z: Number(vertex.n_z || vertex.z || 0).toFixed(6),
+    n_ord: vertex.n_ord || index + 1,
   }));
   
-  const zValues = vertices.map(v => Number(v.n_z));
-  const minZ = Math.min(...zValues);
-  const maxZ = Math.max(...zValues);
+  console.log(`📍 Processed vertices for zone ${zoneId}:`, vertices);
+  
+  // FIXED: Use new zone boundaries API for authoritative Z Min/Max
+  console.log(`🎯 Fetching authoritative boundaries from regions table for zone ${zoneId}`);
+  const boundariesResponse = await fetch(`${API_BASE_URL}/api/get_zone_boundaries/${zoneId}`);
+  console.log(`📡 Zone boundaries API response status: ${boundariesResponse.status}`);
+  
+  let minZ = 0;
+  let maxZ = 0;
+  
+  if (boundariesResponse.ok) {
+    const boundariesData = await boundariesResponse.json();
+    console.log(`📊 Zone boundaries response data:`, boundariesData);
+    
+    minZ = Number(boundariesData.min_z || 0);
+    maxZ = Number(boundariesData.max_z || 0);
+    console.log(`✅ Using authoritative boundaries for zone ${zoneId}: min_z=${minZ}, max_z=${maxZ}`);
+  } else {
+    console.warn(`⚠️ Failed to fetch boundaries for zone ${zoneId}, falling back to vertex calculation`);
+    const zValues = vertices.map(v => Number(v.n_z));
+    minZ = zValues.length > 0 ? Math.min(...zValues) : 0;
+    maxZ = zValues.length > 0 ? Math.max(...zValues) : 0;
+    console.log(`📊 Calculated from vertices: min_z=${minZ}, max_z=${maxZ}`);
+  }
+  
+  console.log(`⬆️ Final zone ${zoneId} Z boundaries: min=${minZ}, max=${maxZ}`);
   
   return {
     vertices,
@@ -71,10 +104,42 @@ const fetchZoneVertices = async (zoneId) => {
   };
 };
 
+// NEW: Helper function to fetch zone boundaries for visualization
+const getZoneBoundaries = async (zoneId) => {
+  console.log(`📐 Fetching zone boundaries for visualization: zone ${zoneId}`);
+  
+  const response = await fetch(`${API_BASE_URL}/api/get_zone_boundaries/${zoneId}`);
+  console.log(`📡 Zone boundaries API response status: ${response.status}`);
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error fetching zone boundaries! Status: ${response.status}`);
+  }
+  
+  const boundariesData = await response.json();
+  console.log(`📊 Zone ${zoneId} boundary data:`, boundariesData);
+  
+  // Ensure all values are properly typed
+  const boundaries = {
+    zone_id: parseInt(boundariesData.zone_id),
+    min_x: Number(boundariesData.min_x),
+    max_x: Number(boundariesData.max_x),
+    min_y: Number(boundariesData.min_y),
+    max_y: Number(boundariesData.max_y),
+    min_z: Number(boundariesData.min_z),
+    max_z: Number(boundariesData.max_z)
+  };
+  
+  console.log(`✅ Processed zone ${zoneId} boundaries:`, boundaries);
+  return boundaries;
+};
+
 export const zoneApi = {
   // Export the helper functions as methods
   fetchZones,
   fetchZoneVertices,
+  
+  // NEW: Export zone boundaries method for visualization
+  getZoneBoundaries,
   
   // Check which zones contain a point
   getZonesByPoint: async (x, y, z) => {
@@ -134,10 +199,17 @@ export const zoneApi = {
     
     if (selectedZone) {
       console.log("Selected initial zone:", selectedZone);
-      const { vertices, minZ, maxZ } = await fetchZoneVertices(selectedZone.i_zn);
-      selectedZone.vertices = vertices;
-      selectedZone.minZ = minZ;
-      selectedZone.maxZ = maxZ;
+      try {
+        const { vertices, minZ, maxZ } = await fetchZoneVertices(selectedZone.i_zn);
+        selectedZone.vertices = vertices;
+        selectedZone.minZ = minZ;
+        selectedZone.maxZ = maxZ;
+      } catch (e) {
+        console.error(`Failed to fetch vertices for initial zone ${selectedZone.i_zn}:`, e);
+        selectedZone.vertices = [];
+        selectedZone.minZ = 0;
+        selectedZone.maxZ = 0;
+      }
     }
 
     return {

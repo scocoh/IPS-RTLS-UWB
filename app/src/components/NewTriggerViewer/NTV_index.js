@@ -1,16 +1,16 @@
 /* Name: NTV_index.js */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 971201 */
-/* Modified: 250502 */
+/* Modified: 250718 */
 /* Creator: ParcoAdmin */
-/* Modified By: ParcoAdmin */
-/* Description: ParcoRTLS frontend script */
+/* Modified By: ParcoAdmin + Claude */
+/* Description: ParcoRTLS frontend script with zone boundary visualization */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/NewTriggerViewer */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 
-// components/NewTriggerViewer/NTV_index.js  • v0.2.9 - FIXED PORTABLE TRIGGER PERSISTENCE - NO MORE FLASHING
+// components/NewTriggerViewer/NTV_index.js  • v0.1.1 - ADDED ZONE BOUNDARY VISUALIZATION
 import React, { useRef, useState, useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -43,6 +43,9 @@ const NTV_index = ({
   height = "600px",
   width = "100%",
   enableKeyboardShortcuts = true,
+  // NEW: Zone boundary visualization props
+  showZoneBoundaries = false,
+  zoneBoundaries = null,
 }) => {
   /* ─────────── refs / state ─────────── */
   const mapRef         = useRef(null);
@@ -50,7 +53,10 @@ const NTV_index = ({
   const isZoomingRef     = useRef(false);
   const pendingUpdateRef = useRef(false);
   
-  // NEW: Portable trigger circle references (like tagMarkersRef)
+  // NEW: Zone boundary rectangle reference
+  const zoneBoundaryRectRef = useRef(null);
+  
+  // Portable trigger circle references (like tagMarkersRef)
   const portableTriggerCirclesRef = useRef({});
   const portableTriggerLabelsRef = useRef({});
 
@@ -97,6 +103,106 @@ const NTV_index = ({
     isZoomingRef,
     pendingUpdateRef,
   });
+
+  /* ─────────── NEW: Zone boundary visualization ─────────── */
+  useEffect(() => {
+    console.log("🎯 Zone boundary useEffect triggered", {
+      mapInitialized,
+      hasMapInstance: !!mapInstanceRef.current,
+      showZoneBoundaries,
+      hasZoneBoundaries: !!zoneBoundaries
+    });
+
+    if (!useLeaflet || !mapInstanceRef.current || !mapInitialized) {
+      console.log("🎯 Zone boundary rendering skipped - map not ready");
+      return;
+    }
+
+    // Remove existing boundary rectangle
+    if (zoneBoundaryRectRef.current) {
+      console.log("🗑️ Removing existing zone boundary rectangle");
+      if (mapInstanceRef.current.hasLayer(zoneBoundaryRectRef.current)) {
+        mapInstanceRef.current.removeLayer(zoneBoundaryRectRef.current);
+      }
+      zoneBoundaryRectRef.current = null;
+    }
+
+    // Add new boundary rectangle if enabled and data available
+    if (showZoneBoundaries && zoneBoundaries) {
+      try {
+        console.log("🎯 Creating zone boundary rectangle:", zoneBoundaries);
+        
+        // Create rectangle bounds from zone boundaries
+        const bounds = [
+          [zoneBoundaries.min_y, zoneBoundaries.min_x], // Southwest corner [lat, lng]
+          [zoneBoundaries.max_y, zoneBoundaries.max_x]  // Northeast corner [lat, lng]
+        ];
+        
+        console.log("📐 Zone boundary rectangle bounds:", bounds);
+        
+        // Create and style the boundary rectangle
+        const boundaryRect = L.rectangle(bounds, {
+          color: '#ff6b35',        // Orange color for visibility
+          weight: 3,               // Thick border
+          fillOpacity: 0.1,        // Very transparent fill
+          fillColor: '#ff6b35',    // Same as border
+          dashArray: '10, 5',      // Dashed line style
+          interactive: false       // Don't interfere with drawing
+        });
+        
+        // Add to map
+        boundaryRect.addTo(mapInstanceRef.current);
+        
+        // Add informative popup
+        boundaryRect.bindPopup(`
+          <div style="font-size: 12px;">
+            <h4 style="margin: 0 0 8px 0; color: #ff6b35;">Zone ${zoneBoundaries.zone_id} Boundaries</h4>
+            <div><strong>X Range:</strong> ${zoneBoundaries.min_x.toFixed(2)} to ${zoneBoundaries.max_x.toFixed(2)}</div>
+            <div><strong>Y Range:</strong> ${zoneBoundaries.min_y.toFixed(2)} to ${zoneBoundaries.max_y.toFixed(2)}</div>
+            <div><strong>Z Range:</strong> ${zoneBoundaries.min_z.toFixed(2)} to ${zoneBoundaries.max_z.toFixed(2)}</div>
+            <div style="margin-top: 8px; color: #666; font-style: italic;">
+              Draw triggers within this highlighted area
+            </div>
+          </div>
+        `, {
+          sticky: true  // Keep popup open when hovering
+        });
+        
+        // Store reference for cleanup
+        zoneBoundaryRectRef.current = boundaryRect;
+        
+        console.log("✅ Zone boundary rectangle created and added to map");
+        
+        // Optionally fit map view to include boundaries (with some padding)
+        const paddedBounds = [
+          [zoneBoundaries.min_y - 5, zoneBoundaries.min_x - 5], // Add padding
+          [zoneBoundaries.max_y + 5, zoneBoundaries.max_x + 5]
+        ];
+        
+        // Only auto-fit if this is drawing mode and no existing content
+        if (enableDrawing && Object.keys(tagsData).length === 0) {
+          setTimeout(() => {
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.fitBounds(paddedBounds, { 
+                padding: [20, 20],
+                maxZoom: 18  // Don't zoom in too much
+              });
+              console.log("📏 Map auto-fitted to zone boundaries");
+            }
+          }, 100); // Small delay to ensure rectangle is rendered
+        }
+        
+      } catch (error) {
+        console.error("❌ Error creating zone boundary rectangle:", error);
+      }
+    } else {
+      console.log("🎯 Zone boundary rectangle not shown:", {
+        showZoneBoundaries,
+        hasZoneBoundaries: !!zoneBoundaries
+      });
+    }
+
+  }, [useLeaflet, mapInitialized, showZoneBoundaries, zoneBoundaries, enableDrawing, Object.keys(tagsData).length]);
 
   /* ─────────── FIXED: Portable trigger PERMANENT persistence system ─────────── */
   useEffect(() => {
@@ -473,7 +579,7 @@ const NTV_index = ({
                   mapInstanceRef.current._controlCorners.topleft;
 
   // Debug logging
-  console.log("NTV_index DEBUG v0.2.9:", {
+  console.log("NTV_index DEBUG v0.1.1:", {
     mapId: mapId,
     triggers: triggers?.length || 0,
     existingTriggerPolygons: existingTriggerPolygons?.length || 0,
@@ -482,7 +588,11 @@ const NTV_index = ({
     showTriggerLabels,
     selectedZone: zones[0]?.i_zn,
     mapInitialized,
-    mapReady
+    mapReady,
+    // NEW: Zone boundary debug info
+    showZoneBoundaries,
+    hasZoneBoundaries: !!zoneBoundaries,
+    zoneBoundaryActive: !!zoneBoundaryRectRef.current
   });
 
   return (
@@ -495,7 +605,8 @@ const NTV_index = ({
         Tags: {activeTags.length} |
         Triggers: {existingTriggerPolygons?.length || 0} |
         Portable Circles: {Object.keys(portableTriggerCirclesRef.current).length} |
-        Labels: {showTriggerLabels ? "ON" : "OFF"}
+        Labels: {showTriggerLabels ? "ON" : "OFF"} |
+        Boundaries: {zoneBoundaryRectRef.current ? "✅ SHOWN" : "❌ HIDDEN"}
       </div>
 
       {useLeaflet ? (
