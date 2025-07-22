@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # Name: fastapi_speed_demo.py
-# Version: 0.1.1
+# Version: 0.1.0
 # Created: 250720
 # Modified: 250720
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
-# Description: FastAPI speed demonstration script for ParcoRTLS - Updated to use proper server config
+# Description: FastAPI speed demonstration script for ParcoRTLS
 # Location: /home/parcoadmin/parco_fastapi/app/tests
 # Role: Testing
 # Status: Active
@@ -17,31 +17,17 @@ FastAPI Speed Demonstration for ParcoRTLS
 
 This script demonstrates the speed and performance characteristics of the FastAPI backend.
 Tests various endpoints with different load patterns to show real-world performance.
-Uses database-driven configuration system from ParcoRTLS.
 """
 
 import asyncio
 import aiohttp
 import time
 import statistics
-import sys
-import os
 from datetime import datetime
 from typing import List, Dict, Any
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Import ParcoRTLS configuration
-try:
-    from server_config import SERVER_IP, SERVER_PORT_MAIN
-    DEFAULT_BASE_URL = f"http://{SERVER_IP}:{SERVER_PORT_MAIN}"
-except ImportError:
-    # Fallback if imports fail
-    DEFAULT_BASE_URL = "http://192.168.210.226:8000"
-
 class FastAPISpeedTester:
-    def __init__(self, base_url: str = DEFAULT_BASE_URL):
+    def __init__(self, base_url: str = "http://127.0.0.1:8000"):
         self.base_url = base_url
         self.results = {}
         
@@ -306,8 +292,7 @@ async def main():
                     print(f"❌ Server responded with status: {response.status}")
     except Exception as e:
         print(f"❌ Cannot connect to FastAPI server: {e}")
-        print(f"Please ensure the FastAPI server is running at {DEFAULT_BASE_URL}")
-        print("If using different host/port, modify server_config.py or run with custom URL")
+        print("Please ensure the FastAPI server is running at http://127.0.0.1:8000")
 
 
 if __name__ == "__main__":

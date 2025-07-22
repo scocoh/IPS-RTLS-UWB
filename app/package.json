@@ -20,7 +20,8 @@
     "react-leaflet": "^4.2.1",
     "react-leaflet-draw": "^0.20.6",
     "react-router-dom": "^7.3.0",
-    "react-scripts": "^5.0.0"
+    "react-scripts": "^5.0.0",
+    "three": "^0.178.0"
   },
   "devDependencies": {
     "http-proxy-middleware": "^2.0.6"

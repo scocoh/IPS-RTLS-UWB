@@ -1,7 +1,7 @@
 # Name: maps.py
-# Version: 0.1.13
+# Version: 0.1.15
 # Created: 971201
-# Modified: 250703
+# Modified: 250719
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin, TC and Nexus, Claude AI & AI Assistant
 # Description: Python script for ParcoRTLS backend with pure coordinate-based map cropping functionality - TBI-friendly - Updated to use centralized configuration
@@ -12,12 +12,10 @@
 
 """
 Maps management endpoints for ParcoRTLS FastAPI application.
-# CHANGED: Bumped version from 0.1.12 to 0.1.13
-# UPDATED: Replaced hardcoded IP addresses with centralized configuration
-# REMOVED: Zone creation logic from coordinate crop endpoint
-# REMOVED: _create_zone_hierarchy function (~75 lines)
-# ADDED: Simple coordinate update endpoints for TBI-friendly modularity
-# SIMPLIFIED: Pure image cropping only - no zones/regions complexity
+# CHANGED: Bumped version from 0.1.14 to 0.1.15
+# FIXED: Syntax errors - unclosed parenthesis on line 600 and incomplete decorator on line 845
+# REMOVED: Duplicate get_map_bounds_3d endpoint definition
+# CLEANED: Incomplete get_zone_vertices_direct endpoint
 #
 # ParcoRTLS Middletier Services, ParcoRTLS DLL, ParcoDatabases, ParcoMessaging, and other code
 # Copyright (C) 1999 - 2025 Affiliated Commercial Services Inc.
@@ -468,6 +466,134 @@ async def get_db_connection():
         password=maint_config['password'],
         database=maint_config['database']
     )
+
+@router.get(
+    "/get_map_bounds_3d/{map_id}",
+    summary="Retrieves complete 3D bounds (min_x, min_y, min_z, max_x, max_y, max_z) for a specific map",
+    description="Returns all 6 coordinate bounds for proper 3D coordinate system setup",
+    tags=["maps"]
+)
+async def get_map_bounds_3d(map_id: int):
+    try:
+        query = """
+            SELECT i_map, x_nm_map, min_x, min_y, min_z, max_x, max_y, max_z, 
+                   lat_origin, lon_origin, x_format
+            FROM maps WHERE i_map = $1;
+        """
+        result = await execute_raw_query("maint", query, map_id)
+        
+        if not result:
+            logger.warning(f"Map not found for map_id={map_id}")
+            raise HTTPException(status_code=404, detail=f"Map not found for map_id={map_id}")
+
+        map_data = result[0]
+        logger.info(f"Retrieved 3D bounds for map_id={map_id}: {map_data['x_nm_map']}")
+        
+        return {
+            "map_id": map_data["i_map"],
+            "map_name": map_data["x_nm_map"],
+            "bounds_3d": {
+                "min_x": map_data["min_x"] or 0.0,
+                "min_y": map_data["min_y"] or 0.0, 
+                "min_z": map_data["min_z"] or 0.0,
+                "max_x": map_data["max_x"] or 254.0,
+                "max_y": map_data["max_y"] or 304.0,
+                "max_z": map_data["max_z"] or 60.0
+            },
+            "origin": {
+                "lat_origin": map_data["lat_origin"],
+                "lon_origin": map_data["lon_origin"]
+            },
+            "format": map_data["x_format"]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error retrieving 3D bounds for map_id={map_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving 3D bounds: {str(e)}")
+    
+@router.get(
+    "/get_zone_vertices_3d/{zone_id}",
+    summary="Retrieves 3D vertices for a specific zone using database functions",
+    description="Returns vertices with x, y, z coordinates for 3D zone rendering via database functions",
+    tags=["maps"]
+)
+async def get_zone_vertices_3d(zone_id: int):
+    try:
+        # Get zone info first
+        zone_query = "SELECT * FROM usp_zone_select_by_id($1);"
+        zone_result = await execute_raw_query("maint", zone_query, zone_id)
+        if not zone_result:
+            logger.warning(f"Zone not found for zone_id={zone_id}")
+            raise HTTPException(status_code=404, detail=f"Zone not found for zone_id={zone_id}")
+        
+        zone_info = zone_result[0]
+        
+        # Get regions for this zone
+        regions_query = "SELECT * FROM usp_regions_select_by_zone($1);"
+        regions_result = await execute_raw_query("maint", regions_query, zone_id)
+        if not regions_result:
+            logger.warning(f"No regions found for zone_id={zone_id}")
+            return {
+                "zone_id": zone_id,
+                "zone_name": zone_info.get("x_nm_zn", "Unknown"),
+                "zone_type": zone_info.get("i_typ_zn", 0),
+                "regions": [],
+                "total_vertices": 0
+            }
+        
+        all_vertices = []
+        regions_data = []
+        
+        # Get vertices for each region
+        for region in regions_result:
+            region_id = region["i_rgn"]
+            vertices_query = "SELECT * FROM usp_zone_vertices_select_by_region($1);"
+            vertices_result = await execute_raw_query("maint", vertices_query, region_id)
+            
+            vertices = []
+            if vertices_result:
+                for vertex in vertices_result:
+                    vertices.append({
+                        "vertex_id": vertex.get("i_vtx"),
+                        "x": vertex.get("n_x"),
+                        "y": vertex.get("n_y"),
+                        "z": vertex.get("n_z") or 0.0,
+                        "order": vertex.get("n_ord"),
+                        "region_id": region_id
+                    })
+                all_vertices.extend(vertices)
+            
+            regions_data.append({
+                "region_id": region_id,
+                "region_name": region.get("x_nm_rgn", ""),
+                "bounds": {
+                    "min_x": region.get("n_min_x"),
+                    "min_y": region.get("n_min_y"),
+                    "min_z": region.get("n_min_z"),
+                    "max_x": region.get("n_max_x"),
+                    "max_y": region.get("n_max_y"),
+                    "max_z": region.get("n_max_z")
+                },
+                "vertex_count": len(vertices),
+                "vertices": vertices
+            })
+        
+        logger.info(f"Retrieved {len(all_vertices)} total vertices for zone {zone_id}: {zone_info.get('x_nm_zn')} across {len(regions_data)} regions")
+        
+        return {
+            "zone_id": zone_id,
+            "zone_name": zone_info.get("x_nm_zn", "Unknown"),
+            "zone_type": zone_info.get("i_typ_zn", 0),
+            "map_id": zone_info.get("i_map"),
+            "parent_zone_id": zone_info.get("i_pnt_zn"),
+            "regions": regions_data,
+            "total_vertices": len(all_vertices),
+            "all_vertices": all_vertices
+        }
+        
+    except Exception as e:
+        logger.error(f"Error retrieving vertices for zone_id={zone_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving zone vertices: {str(e)}")
 
 # SIMPLIFIED COORDINATE-BASED MAP CROPPING - IMAGE ONLY, NO ZONES
 

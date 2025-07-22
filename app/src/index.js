@@ -1,7 +1,7 @@
 /* Name: index.js */
-/* Version: 0.1.7 */
+/* Version: 0.1.8 */
 /* Created: 971201 */
-/* Modified: 250716 */
+/* Modified: 250719 */
 /* Creator: ParcoAdmin */
 /* Modified By: ParcoAdmin + Claude */
 /* Description: JavaScript file for ParcoRTLS frontend - Added ScalingManager */
@@ -10,7 +10,7 @@
 /* Status: Active */
 /* Dependent: TRUE */
 
-//
+// # Version 250719 adding in 3D visualization
 // # VERSION 250716 /home/parcoadmin/parco_fastapi/app/src/index.js 0.1.7
 // # CHANGED: Added ScalingManager button and view for conductor scaling management, bumped from 0.1.6
 // # Previous: Added Dashboard Manager button and view for backend manager control, bumped from 0.1.5
@@ -50,13 +50,14 @@ import SimulatorDemo from "./components/SimulatorDemo/sim_index";
 import DashboardDemo from './components/DashboardDemo/DashboardDemo';
 import DashboardManager from './components/DashboardManager/DashboardManager';
 import ScalingManager from './components/ScalingManager/SM_index';
+import ThreeDZoneViewer from './components/ThreeDZoneViewer/TDZ_index';
 
 const App = () => {
   const [view, setView] = useState("triggers");
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>ParcoRTLS Management 0.1.7</h1>
+      <h1>ParcoRTLS Management 0.1.8</h1>
 
       <div style={{ marginBottom: "20px" }}>
         <button onClick={() => setView("triggers")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px" }}>Trigger Management</button>
@@ -75,6 +76,7 @@ const App = () => {
         <button onClick={() => setView("dashboardDemo")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px", backgroundColor: "#667eea", color: "white" }}>Dashboard Demo</button>
         <button onClick={() => setView("dashboardManager")} style={{ marginRight: "10px", padding: "10px", fontSize: "16px", backgroundColor: "#28a745", color: "white" }}>Dashboard Manager</button>
         <button onClick={() => setView("scalingManager")} style={{ padding: "10px", fontSize: "16px", backgroundColor: "#fd7e14", color: "white" }}>🛠️ Scaling Manager</button>
+        <button onClick={() => setView("threeDZoneViewer")} style={{ padding: "10px", fontSize: "16px", backgroundColor: "#e91e63", color: "white", marginLeft: "10px" }}>🎮 3D Zone Viewer</button>
       </div>
 
       <hr />
@@ -96,6 +98,7 @@ const App = () => {
       {view === "dashboardDemo" && <DashboardDemo />}
       {view === "dashboardManager" && <DashboardManager />}
       {view === "scalingManager" && <ScalingManager />}
+      {view === "threeDZoneViewer" && <ThreeDZoneViewer />}
     </div>
   );
 };
