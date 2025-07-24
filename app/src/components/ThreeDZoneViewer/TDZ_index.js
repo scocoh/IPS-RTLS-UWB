@@ -1,23 +1,25 @@
 /* Name: TDZ_index.js */
-/* Version: 0.1.15 */
+/* Version: 0.1.17 */
 /* Created: 250719 */
 /* Modified: 250722 */
 /* Creator: ParcoAdmin + Claude */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: RESTORE CASCADE CHECKBOX - Added back missing cascade visibility checkbox in Zone Selection section */
+/* Description: ENHANCED TAG INTEGRATION - Updated to use tagRenderingUtils v0.1.2 with actual height and alltraq filtering */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/ThreeDZoneViewer */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 /* Changelog: */
-/* - 0.1.15: RESTORE CASCADE CHECKBOX - Added back missing "Cascade Visibility (Hide Parent → Hide Children)" checkbox */
-/* - 0.1.14: CAMPUS-FIRST SELECTION - Removed hardcoded 422, added campus dropdown, make zone loading campus-dependent */
-/* - 0.1.13: WIREFRAME FEATURE CONTROLS - Added showZoneLabels and showCornerMarkers toggles for v0.1.12/v0.1.28 compatibility */
+/* - 0.1.17: ENHANCED TAG INTEGRATION - Updated tagConfig with useActualHeight, enhanced alltraq support */
+/* - 0.1.16: REAL-TIME TAGS COMPLETE - Added useRealTimeTags hook, wired up all tag props, added UI controls */
+/* - 0.1.15: RESTORE CASCADE CHECKBOX - Added back missing cascade visibility checkbox in Zone Selection section */
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import Scene3D from './components/Scene3D';
 import ZoneControlsSidebar from './components/ZoneControlsSidebar';
 import useZoneData from './hooks/useZoneData';
+// Import enhanced real-time tags hook
+import { useRealTimeTags } from './hooks/useRealTimeTags';
 import {
   fetchCampusHierarchy,
   calculateHierarchyOpacity,
@@ -26,53 +28,112 @@ import {
   generateHierarchySettings,
   validateHierarchySettings
 } from './utils/hierarchyUtils';
+// Import enhanced tag utilities
+import { DEFAULT_TAG_CONFIG } from './utils/tagRenderingUtils';
 import './styles/ThreeDZoneViewer.css';
 
 const TDZ_index = () => {
-  // NEW v0.1.14: Campus selection first - no hardcoded defaults
-  const [selectedCampusId, setSelectedCampusId] = useState(null); // CHANGED: was 422
-  const [selectedCampusName, setSelectedCampusName] = useState(""); // NEW: for display
+  console.log(`🚀 TDZ_index v0.1.17: Initializing with enhanced tag support (actual height + alltraq)`);
+
+  // Campus selection first - no hardcoded defaults (existing v0.1.14)
+  const [selectedCampusId, setSelectedCampusId] = useState(null);
+  const [selectedCampusName, setSelectedCampusName] = useState("");
   
-  // Zone selection state - now dependent on campus selection
-  const [selectedZoneType, setSelectedZoneType] = useState(1); // Default to Campus
+  // Zone selection state - now dependent on campus selection (existing)
+  const [selectedZoneType, setSelectedZoneType] = useState(1);
   const [selectedZone, setSelectedZone] = useState("");
-  const [selectedMapId, setSelectedMapId] = useState(null); // CHANGED: was 39
+  const [selectedMapId, setSelectedMapId] = useState(null);
   const [showCampusZone, setShowCampusZone] = useState(false);
   const [checkedZones, setCheckedZones] = useState([]);
   
-  // Dynamic zone settings state - now starts empty
-  const [zoneSettings, setZoneSettings] = useState({}); // CHANGED: was hardcoded 422/427
+  // Dynamic zone settings state - now starts empty (existing)
+  const [zoneSettings, setZoneSettings] = useState({});
   
-  // Independent toggle states for UI elements
+  // Independent toggle states for UI elements (existing)
   const [showSidebar, setShowSidebar] = useState(true);
   const [showDebugOverlays, setShowDebugOverlays] = useState(true);
   const [showControlsHint, setShowControlsHint] = useState(true);
   
-  // Wireframe feature controls
+  // Wireframe feature controls (existing)
   const [showZoneLabels, setShowZoneLabels] = useState(false);
   const [showCornerMarkers, setShowCornerMarkers] = useState(false);
   
-  // Multi-map support state
+  // Multi-map support state (existing)
   const [selectedMapFilter, setSelectedMapFilter] = useState('all');
 
-  // Hierarchy controls state
+  // Hierarchy controls state (existing)
   const [useHierarchyTransparency, setUseHierarchyTransparency] = useState(true);
   const [useCascadeVisibility, setUseCascadeVisibility] = useState(true);
   
-  // Hierarchy data state
+  // Hierarchy data state (existing)
   const [hierarchyData, setHierarchyData] = useState(null);
   const [hierarchyLoading, setHierarchyLoading] = useState(false);
 
-  // NEW v0.1.14: Available campuses for dropdown
+  // Available campuses for dropdown (existing v0.1.14)
   const [availableCampuses, setAvailableCampuses] = useState([]);
   const [campusesLoading, setCampusesLoading] = useState(false);
 
-  // Calculate responsive dimensions for 3D scene
+  // ENHANCED v0.1.17: Real-time tag state with new features
+  const [tagConnectionEnabled, setTagConnectionEnabled] = useState(false);
+  const [tagConfig, setTagConfig] = useState({
+    ...DEFAULT_TAG_CONFIG,
+    showLabels: true,
+    showTrails: false,
+    sphereRadius: 3,
+    activeColor: '#00ff00',
+    // NEW v0.1.17: Enhanced height configuration
+    useActualHeight: true,        // Use real ParcoRTLS z-coordinates
+    minHeightAboveGround: 2,      // Safety margin above ground
+    // NEW v0.1.17: Alltraq-specific configuration
+    alltraqColor: '#ff4400',      // Orange for alltraq tags
+    campusColor: '#00ff00',       // Green for campus tags
+    showAlltraqSeparately: true   // Show alltraq tags with different styling
+  });
+  const [showTags, setShowTags] = useState(true);
+
+  // ENHANCED v0.1.17: Initialize enhanced real-time tags hook
+  const {
+    isConnected: tagIsConnected,
+    connectionStatus: tagConnectionStatus,
+    allTagsData,
+    displayTags,
+    tagHistory,
+    tagStats,
+    selectedTags,
+    // NEW v0.1.17: Enhanced zone-categorized data
+    alltraqTags,
+    campusTags,
+    otherTags,
+    displayAlltraqTags,
+    // Enhanced selection methods
+    toggleTagSelection,
+    selectAllTags,
+    selectAlltraqTags,
+    selectCampusTags,
+    clearTagSelection,
+    connect: connectTags,
+    disconnect: disconnectTags
+  } = useRealTimeTags({
+    selectedCampusId,
+    isEnabled: tagConnectionEnabled,
+    // NEW v0.1.17: Enhanced options
+    enableAlltraqFiltering: true,
+    showAlltraqSeparately: tagConfig.showAlltraqSeparately,
+    onConnectionChange: (connected, status) => {
+      console.log(`🔌 Tag connection changed: ${connected ? 'connected' : 'disconnected'} (${status})`);
+    },
+    onTagUpdate: (tagData) => {
+      console.log(`📍 Tag update: ${tagData.id} at (${tagData.x.toFixed(2)}, ${tagData.y.toFixed(2)}, ${tagData.z.toFixed(2)}) [${tagData.category}]`);
+    },
+    maxTagHistory: 20
+  });
+
+  // Calculate responsive dimensions for 3D scene (existing)
   const sceneWidth = useMemo(() => {
     return showSidebar ? 800 : 1000;
   }, [showSidebar]);
 
-  // NEW v0.1.14: Fetch zone data only when campus is selected
+  // Fetch zone data only when campus is selected (existing v0.1.14)
   const {
     campusData,
     mapData,
@@ -86,13 +147,13 @@ const TDZ_index = () => {
     campusCount,
     buildingCount
   } = useZoneData({
-    fetchCampuses: !!selectedCampusId, // Only fetch when campus selected
+    fetchCampuses: !!selectedCampusId,
     fetchMapData: !!selectedMapId,
     mapId: selectedMapId,
-    campusId: selectedCampusId // NEW: Pass campus ID to hook
+    campusId: selectedCampusId
   });
 
-  // NEW v0.1.14: Load available campuses on component mount
+  // Load available campuses on component mount (existing v0.1.14)
   useEffect(() => {
     const loadAvailableCampuses = async () => {
       setCampusesLoading(true);
@@ -107,9 +168,8 @@ const TDZ_index = () => {
         const data = await response.json();
         const campuses = data.campuses || [];
         
-        // Extract just campus-level zones (zone_type = 1) - they're already at the top level
         const campusZones = campuses
-          .filter(zone => zone.zone_type === 1 && zone.map_id) // Only campus-level with maps
+          .filter(zone => zone.zone_type === 1 && zone.map_id)
           .map(zone => ({
             zone_id: zone.zone_id,
             zone_name: zone.zone_name,
@@ -117,7 +177,6 @@ const TDZ_index = () => {
           }));
         
         setAvailableCampuses(campusZones);
-        
         console.log(`✅ Loaded ${campusZones.length} available campuses:`, campusZones);
         
       } catch (err) {
@@ -130,7 +189,7 @@ const TDZ_index = () => {
     loadAvailableCampuses();
   }, []);
 
-  // Zone type options
+  // Zone type options (existing)
   const zoneTypes = [
     { value: 1, label: "Campus", icon: "🏛️" },
     { value: 2, label: "Building", icon: "🏢" },
@@ -140,7 +199,7 @@ const TDZ_index = () => {
     { value: 5, label: "Room", icon: "🚪" }
   ];
 
-  // Get filtered zones based on selected type - only if campus selected
+  // Get filtered zones based on selected type (existing)
   const filteredZones = useMemo(() => {
     if (!selectedCampusId) return [];
     const zones = getAllZones();
@@ -148,21 +207,19 @@ const TDZ_index = () => {
     return zones.filter(z => z.zone_type === selectedZoneType);
   }, [getAllZones, selectedZoneType, selectedCampusId]);
 
-  // Get zones for current selection to pass to Scene3D
+  // Get zones for current selection to pass to Scene3D (existing)
   const currentZones = useMemo(() => {
     if (!selectedCampusId) return [];
     if (selectedZone) {
-      // If specific zone selected, get its hierarchy
       const allZones = getAllZones();
       const zone = allZones.find(z => z.zone_id === parseInt(selectedZone));
       return zone ? [zone] : [];
     } else {
-      // Otherwise show zones by type
       return getZonesByType(selectedZoneType);
     }
   }, [selectedZone, selectedZoneType, getAllZones, getZonesByType, selectedCampusId]);
 
-  // Get available zones for sidebar (zones that exist in data and have settings)
+  // Get available zones for sidebar (existing)
   const availableZonesForSidebar = useMemo(() => {
     if (!selectedCampusId) return [];
     const allZones = getAllZones();
@@ -170,7 +227,6 @@ const TDZ_index = () => {
       .map(zoneId => allZones.find(z => z.zone_id === parseInt(zoneId)))
       .filter(zone => zone !== undefined);
     
-    // Apply map filter if not 'all'
     if (selectedMapFilter === 'all') {
       return zonesWithSettings;
     } else {
@@ -178,7 +234,7 @@ const TDZ_index = () => {
     }
   }, [getAllZones, zoneSettings, selectedMapFilter, selectedCampusId]);
 
-  // Get available maps from current zones
+  // Get available maps from current zones (existing)
   const availableMaps = useMemo(() => {
     if (!selectedCampusId) return [];
     const zones = selectedZone ? currentZones : getCampusZones();
@@ -198,13 +254,12 @@ const TDZ_index = () => {
     return maps.sort((a, b) => a.id - b.id);
   }, [selectedZone, currentZones, getCampusZones, selectedCampusId]);
 
-  // NEW v0.1.14: Campus selection handler
+  // Campus selection handler (existing v0.1.14)
   const handleCampusChange = useCallback((newCampusId) => {
     const campusId = newCampusId ? parseInt(newCampusId) : null;
     setSelectedCampusId(campusId);
     
     if (campusId) {
-      // Find campus details
       const campus = availableCampuses.find(c => c.zone_id === campusId);
       if (campus) {
         setSelectedCampusName(campus.zone_name);
@@ -212,22 +267,85 @@ const TDZ_index = () => {
         console.log(`🏫 Campus selected: ${campus.zone_name} (ID: ${campusId}, Map: ${campus.map_id})`);
       }
     } else {
-      // Clear selection
       setSelectedCampusName("");
       setSelectedMapId(null);
       setZoneSettings({});
       setCheckedZones([]);
       setSelectedZone("");
+      // Disconnect tags when campus cleared
+      if (tagConnectionEnabled) {
+        setTagConnectionEnabled(false);
+      }
       console.log('🚫 Campus selection cleared');
     }
     
-    // Reset zone-related state
     setSelectedZoneType(1);
     setSelectedZone("");
     setCheckedZones([]);
-  }, [availableCampuses]);
+  }, [availableCampuses, tagConnectionEnabled]);
 
-  // Fetch hierarchy data and apply auto-transparency - only when campus selected
+  // ENHANCED v0.1.17: Tag connection toggle handler
+  const handleTagConnectionToggle = useCallback((enabled) => {
+    console.log(`🔌 Tag connection toggle: ${enabled ? 'connecting' : 'disconnecting'}`);
+    setTagConnectionEnabled(enabled);
+  }, []);
+
+  // ENHANCED v0.1.17: Tag selection change handler with zone categories
+  const handleTagSelectionChange = useCallback((action, data) => {
+    console.log(`✅ Tag selection change: ${action}`, data);
+    
+    if (action === 'selectAll' && Array.isArray(data)) {
+      selectAllTags();
+    } else if (action === 'selectAlltraq') {
+      selectAlltraqTags();
+    } else if (action === 'selectCampus') {
+      selectCampusTags();
+    } else if (action === 'selectNone') {
+      clearTagSelection();
+    } else if (typeof action === 'string') {
+      // Single tag toggle
+      toggleTagSelection(action);
+    }
+  }, [toggleTagSelection, selectAllTags, selectAlltraqTags, selectCampusTags, clearTagSelection]);
+
+  // ENHANCED v0.1.17: Tag configuration change handler with validation
+  const handleTagConfigChange = useCallback((configKey, value) => {
+    console.log(`🎨 Tag config change: ${configKey} = ${value}`);
+    setTagConfig(prev => {
+      const newConfig = {
+        ...prev,
+        [configKey]: value
+      };
+      
+      // VALIDATION: Ensure valid configuration
+      if (configKey === 'sphereRadius' && (value < 1 || value > 10)) {
+        console.warn(`⚠️ Invalid sphere radius: ${value}, keeping previous value`);
+        return prev;
+      }
+      
+      return newConfig;
+    });
+  }, []);
+
+  // ENHANCED v0.1.17: Tag click handler with zone information
+  const handleTagClick = useCallback((tagId, tagData) => {
+    console.log(`🖱️ Tag clicked: ${tagId}`, tagData);
+    
+    const zoneInfo = tagData.zone_id ? ` (Zone: ${tagData.zone_id})` : '';
+    const categoryInfo = tagData.category ? ` [${tagData.category}]` : '';
+    const heightInfo = tagConfig.useActualHeight ? 
+      `\nActual Height: ${tagData.z?.toFixed(2) || 'N/A'}` :
+      '\nUsing Fixed Height Offset';
+    
+    alert(
+      `Tag: ${tagId}${categoryInfo}${zoneInfo}\n` +
+      `Position: (${tagData.x.toFixed(2)}, ${tagData.y.toFixed(2)}, ${tagData.z?.toFixed(2) || 'N/A'})` +
+      heightInfo +
+      `\nSource: ${tagData.source || 'unknown'}`
+    );
+  }, [tagConfig.useActualHeight]);
+
+  // Fetch hierarchy data and apply auto-transparency (existing)
   useEffect(() => {
     const loadHierarchy = async () => {
       if (!useHierarchyTransparency || !selectedCampusId) return;
@@ -242,14 +360,11 @@ const TDZ_index = () => {
           console.log('🏗️ Generating hierarchy-based zone settings...');
           const hierarchySettings = generateHierarchySettings(hierarchyApiData);
           
-          // Apply hierarchy settings while preserving user visibility choices
           setZoneSettings(prev => {
             const newSettings = { ...hierarchySettings };
             Object.keys(prev).forEach(zoneId => {
               if (newSettings[zoneId]) {
-                // Preserve user's visibility choice
                 newSettings[zoneId].visible = prev[zoneId].visible;
-                // Preserve custom colors if user changed them
                 if (prev[zoneId].color !== getHierarchyColor(hierarchySettings[zoneId]?.zoneType || 1)) {
                   newSettings[zoneId].color = prev[zoneId].color;
                 }
@@ -268,19 +383,18 @@ const TDZ_index = () => {
     };
     
     loadHierarchy();
-  }, [useHierarchyTransparency, selectedCampusId]); // CHANGED: Added selectedCampusId dependency
+  }, [useHierarchyTransparency, selectedCampusId]);
 
-  // Handlers
+  // Existing handlers (unchanged)
   const handleZoneTypeChange = useCallback((newZoneType) => {
     setSelectedZoneType(parseInt(newZoneType));
-    setSelectedZone(""); // Reset zone selection
-    setCheckedZones([]); // Reset checked zones
+    setSelectedZone("");
+    setCheckedZones([]);
   }, []);
 
   const handleZoneChange = useCallback((newZone) => {
     setSelectedZone(newZone);
     
-    // Auto-select map for this zone
     const zones = getAllZones();
     const zone = zones.find(z => z.zone_id === parseInt(newZone));
     if (zone && zone.map_id) {
@@ -308,7 +422,7 @@ const TDZ_index = () => {
     }
   }, [currentZones]);
 
-  // Wireframe feature toggle handlers
+  // Wireframe feature toggle handlers (existing)
   const handleZoneLabelsToggle = useCallback((enabled) => {
     setShowZoneLabels(enabled);
     console.log(`📋 Zone labels ${enabled ? 'enabled' : 'disabled'}`);
@@ -319,13 +433,13 @@ const TDZ_index = () => {
     console.log(`🔴🔵 Corner markers ${enabled ? 'enabled' : 'disabled'}`);
   }, []);
 
-  // RESTORED v0.1.15: Cascade visibility toggle handler
+  // Cascade visibility toggle handler (existing v0.1.15)
   const handleCascadeVisibilityToggle = useCallback((enabled) => {
     setUseCascadeVisibility(enabled);
     console.log(`🔗 Cascade visibility ${enabled ? 'enabled' : 'disabled'}`);
   }, []);
 
-  // Zone settings handlers remain the same...
+  // Zone settings handlers (existing)
   const handleZoneSettingChange = useCallback((zoneId, settingName, value) => {
     setZoneSettings(prev => {
       let newSettings = {
@@ -336,10 +450,8 @@ const TDZ_index = () => {
         }
       };
       
-      // Handle cascade visibility if enabled
       if (settingName === 'visible' && useCascadeVisibility && hierarchyData) {
         if (!value) {
-          // Zone being hidden - hide all children
           const descendantIds = getCascadeHiddenZones([parseInt(zoneId)], hierarchyData);
           descendantIds.forEach(descendantId => {
             if (newSettings[descendantId]) {
@@ -356,18 +468,16 @@ const TDZ_index = () => {
     console.log(`🎛️ Zone ${zoneId} ${settingName} changed to:`, value);
   }, [useCascadeVisibility, hierarchyData]);
 
-  // Enhanced zone addition with HIERARCHY SUPPORT
+  // Enhanced zone addition with HIERARCHY SUPPORT (existing)
   const addZoneToSettings = useCallback((zoneId, zoneType, mapId) => {
     if (!zoneSettings[zoneId]) {
       let defaultOpacity, defaultColor;
       
       if (useHierarchyTransparency && hierarchyData) {
-        // Use hierarchy-based defaults
         defaultOpacity = calculateHierarchyOpacity(zoneId, hierarchyData);
         defaultColor = getHierarchyColor(zoneType);
         console.log(`➕ Adding zone ${zoneId} with hierarchy-based settings: opacity=${defaultOpacity.toFixed(2)}, color=${defaultColor}`);
       } else {
-        // Use manual defaults
         const defaultColors = {
           1: '#ff0000',   // Campus = Red
           2: '#00ff00',   // Building = Green  
@@ -391,7 +501,7 @@ const TDZ_index = () => {
     }
   }, [zoneSettings, useHierarchyTransparency, hierarchyData]);
 
-  console.log('🎮 TDZ_index v0.1.15 Debug (Cascade Checkbox Restored):', {
+  console.log('🎮 TDZ_index v0.1.17 Debug (Enhanced Tag Integration):', {
     selectedCampusId,
     selectedCampusName,
     selectedMapId,
@@ -405,16 +515,27 @@ const TDZ_index = () => {
     zoneSettings,
     showZoneLabels,
     showCornerMarkers,
-    useCascadeVisibility, // RESTORED: Now shows in debug
+    useCascadeVisibility,
+    // ENHANCED v0.1.17: Tag debugging
+    tagConnectionEnabled,
+    tagIsConnected,
+    tagConnectionStatus,
+    allTagsDataCount: Object.keys(allTagsData).length,
+    alltraqTagsCount: Object.keys(alltraqTags).length,
+    campusTagsCount: Object.keys(campusTags).length,
+    selectedTagsCount: selectedTags.size,
+    displayTagsCount: Object.keys(displayTags).length,
+    showTags,
+    tagConfigActualHeight: tagConfig.useActualHeight,
     loading,
     error
   });
 
   return (
     <div className="three-d-zone-viewer">
-      <h2>🎮 3D Zone Viewer v0.1.15 - Cascade Checkbox Restored</h2>
+      <h2>🎮 3D Zone Viewer v0.1.17 - Enhanced Tag Integration</h2>
       
-      {/* Status Panel */}
+      {/* Status Panel (updated with enhanced tag info) */}
       <div className="status-panel">
         <h3>📊 Status</h3>
         <div className="status-grid">
@@ -444,6 +565,34 @@ const TDZ_index = () => {
             <strong>Zone Settings:</strong>
             <span className="status-value">{Object.keys(zoneSettings).length} zones</span>
           </div>
+          {/* ENHANCED v0.1.17: Enhanced tag status items */}
+          <div className="status-item">
+            <strong>Real-Time Tags:</strong>
+            <span className="status-value">
+              {tagConnectionEnabled ? 
+                (tagIsConnected ? `🔗 ${Object.keys(displayTags).length} shown` : '⏳ Connecting') : 
+                '🚫 Disabled'
+              }
+            </span>
+          </div>
+          <div className="status-item">
+            <strong>Alltraq Tags:</strong>
+            <span className="status-value">
+              {tagConnectionEnabled ? `🎯 ${Object.keys(alltraqTags).length} detected` : '➖ N/A'}
+            </span>
+          </div>
+          <div className="status-item">
+            <strong>Tag Height Mode:</strong>
+            <span className="status-value">
+              {tagConfig.useActualHeight ? '📏 Actual Z-coord' : '🔧 Fixed Offset'}
+            </span>
+          </div>
+          <div className="status-item">
+            <strong>Tag Rate:</strong>
+            <span className="status-value">
+              {tagIsConnected ? `📈 ${tagStats.tagRate.toFixed(1)}/s` : '➖ N/A'}
+            </span>
+          </div>
           <div className="status-item">
             <strong>Zone Labels:</strong>
             <span className="status-value">{showZoneLabels ? '📋 ON' : '🚫 OFF'}</span>
@@ -465,12 +614,11 @@ const TDZ_index = () => {
         )}
       </div>
 
-      {/* STEP 1: Campus Selection - NEW v0.1.14 */}
+      {/* STEP 1: Campus Selection (existing v0.1.14) */}
       <div className="controls-panel">
         <h3>🏫 Campus Selection (Required First)</h3>
         <div className="controls-grid">
           
-          {/* Campus Dropdown */}
           <div className="control-group">
             <label>Select Campus:</label>
             <select 
@@ -502,19 +650,18 @@ const TDZ_index = () => {
               padding: '8px',
               marginTop: '10px'
             }}>
-              ⚠️ Please select a campus first to view zones and maps
+              ⚠️ Please select a campus first to view zones and real-time tags
             </div>
           )}
         </div>
       </div>
 
-      {/* STEP 2: Zone Selection - Only available after campus selection */}
+      {/* STEP 2: Zone Selection - Only available after campus selection (existing) */}
       {selectedCampusId && (
         <div className="controls-panel">
           <h3>🎛️ Zone Selection</h3>
           <div className="controls-grid">
             
-            {/* Zone Type Selection */}
             <div className="control-group">
               <label>Zone Type:</label>
               <select 
@@ -529,7 +676,6 @@ const TDZ_index = () => {
               </select>
             </div>
 
-            {/* Specific Zone Selection */}
             <div className="control-group">
               <label>Specific Zone:</label>
               <select 
@@ -548,7 +694,6 @@ const TDZ_index = () => {
               </select>
             </div>
 
-            {/* Map Selection */}
             <div className="control-group">
               <label>Map:</label>
               <select 
@@ -563,7 +708,6 @@ const TDZ_index = () => {
               </select>
             </div>
 
-            {/* Zone Visibility Toggle */}
             <div className="checkbox-control">
               <input 
                 type="checkbox" 
@@ -573,7 +717,6 @@ const TDZ_index = () => {
               <label>Show Zone Geometry</label>
             </div>
 
-            {/* Wireframe Feature Controls */}
             <div className="checkbox-control">
               <input 
                 type="checkbox" 
@@ -592,7 +735,6 @@ const TDZ_index = () => {
               <label>Show Corner Markers (Red/Blue Spheres)</label>
             </div>
 
-            {/* RESTORED v0.1.15: Cascade Visibility Checkbox */}
             <div className="checkbox-control">
               <input 
                 type="checkbox" 
@@ -601,9 +743,29 @@ const TDZ_index = () => {
               />
               <label>Cascade Visibility (Hide Parent → Hide Children)</label>
             </div>
+
+            {/* ENHANCED v0.1.17: Real-Time Tags Controls */}
+            <div className="checkbox-control">
+              <input 
+                type="checkbox" 
+                checked={showTags}
+                onChange={(e) => setShowTags(e.target.checked)}
+              />
+              <label>Show Real-Time Tags</label>
+            </div>
+            
+            {/* NEW v0.1.17: Height mode indicator */}
+            <div className="checkbox-control">
+              <input 
+                type="checkbox" 
+                checked={tagConfig.useActualHeight}
+                onChange={(e) => handleTagConfigChange('useActualHeight', e.target.checked)}
+              />
+              <label>Use Actual Tag Height (Z-coordinate)</label>
+            </div>
           </div>
 
-          {/* Zone Information Display */}
+          {/* Zone Information Display (enhanced with tag info) */}
           {currentZones.length > 0 && (
             <div className="zone-info-display" style={{
               marginTop: '15px',
@@ -648,13 +810,22 @@ const TDZ_index = () => {
                 💡 Use the sidebar controls to show/hide zones and adjust settings
                 <br />
                 🔗 Cascade Visibility: {useCascadeVisibility ? 'ON - Hiding parent zones will hide children' : 'OFF - Each zone independent'}
+                <br />
+                {/* ENHANCED v0.1.17: Enhanced tag status in zone info */}
+                🏷️ Real-Time Tags: {tagConnectionEnabled ? 
+                  (tagIsConnected ? 
+                    `Connected - ${Object.keys(displayTags).length} shown (${Object.keys(alltraqTags).length} alltraq, ${Object.keys(campusTags).length} campus)` : 
+                    'Connecting...') : 
+                  'Enable in sidebar to see live tag positions'}
+                <br />
+                📏 Height Mode: {tagConfig.useActualHeight ? 'Using actual ParcoRTLS Z-coordinates' : 'Using fixed height offset'}
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Debug and Hint Toggle Buttons - Always Available */}
+      {/* Debug and Hint Toggle Buttons (existing) */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'flex-end',
@@ -662,7 +833,6 @@ const TDZ_index = () => {
         marginBottom: '10px',
         gap: '8px'
       }}>
-        {/* Debug Overlays Toggle */}
         <button
           onClick={() => setShowDebugOverlays(!showDebugOverlays)}
           style={{
@@ -680,7 +850,6 @@ const TDZ_index = () => {
           {showDebugOverlays ? '🐛 Hide Debug' : '📊 Show Debug'}
         </button>
 
-        {/* Controls Hint Toggle */}
         <button
           onClick={() => setShowControlsHint(!showControlsHint)}
           style={{
@@ -699,7 +868,7 @@ const TDZ_index = () => {
         </button>
       </div>
 
-      {/* 3D Scene Container - Only show when campus is selected */}
+      {/* 3D Scene Container - Only show when campus is selected (ENHANCED tag integration) */}
       {selectedCampusId ? (
         <div className="visualization-container" style={{ position: 'relative' }}>
           <div style={{ 
@@ -721,9 +890,10 @@ const TDZ_index = () => {
             background: '#fafafa',
             position: 'relative'
           }}>
-            {/* Zone Controls Sidebar */}
+            {/* Zone Controls Sidebar (enhanced with tag props) */}
             {showSidebar && (
               <ZoneControlsSidebar
+                // Existing zone props (unchanged)
                 zoneSettings={zoneSettings}
                 availableZones={availableZonesForSidebar}
                 onZoneSettingChange={handleZoneSettingChange}
@@ -732,20 +902,37 @@ const TDZ_index = () => {
                 selectedMapFilter={selectedMapFilter}
                 onMapFilterChange={setSelectedMapFilter}
                 showMapInfo={true}
+                
+                // ENHANCED v0.1.17: Enhanced real-time tag props
+                tagConnectionEnabled={tagConnectionEnabled}
+                onTagConnectionToggle={handleTagConnectionToggle}
+                tagConnectionStatus={tagConnectionStatus}
+                allTagsData={allTagsData}
+                selectedTags={selectedTags}
+                onTagSelectionChange={handleTagSelectionChange}
+                tagStats={tagStats}
+                tagConfig={tagConfig}
+                onTagConfigChange={handleTagConfigChange}
+                // NEW v0.1.17: Zone-categorized tag data
+                alltraqTags={alltraqTags}
+                campusTags={campusTags}
+                otherTags={otherTags}
               />
             )}
             
-            {/* Scene3D */}
+            {/* Scene3D (enhanced with tag props) */}
             <div style={{ 
-              marginLeft: showSidebar ? '300px' : '0',
+              marginLeft: showSidebar ? '320px' : '0', // Slightly more space for wider sidebar
               transition: 'margin-left 0.3s ease'
             }}>
               {!loading ? (
                 <Scene3D 
+                  // Existing props (unchanged)
                   mapData={mapData}
                   zoneData={{ zones: checkedZones.length > 0 ? currentZones.filter(z => checkedZones.includes(z.zone_id)) : currentZones }}
                   showCampusZone={showCampusZone}
                   selectedCampusId={selectedCampusId}
+                  selectedCampusName={selectedCampusName}
                   selectedZoneType={selectedZoneType}
                   zoneSettings={zoneSettings}
                   height={500}
@@ -754,6 +941,17 @@ const TDZ_index = () => {
                   showControlsHint={showControlsHint}
                   showZoneLabels={showZoneLabels}
                   showCornerMarkers={showCornerMarkers}
+                  
+                  // ENHANCED v0.1.17: Enhanced real-time tag props
+                  displayTags={displayTags}
+                  tagHistory={tagHistory}
+                  tagConfig={tagConfig}
+                  showTags={showTags && tagConnectionEnabled}
+                  onTagClick={handleTagClick}
+                  // NEW v0.1.17: Zone-categorized tag display
+                  displayAlltraqTags={displayAlltraqTags}
+                  alltraqTags={alltraqTags}
+                  campusTags={campusTags}
                 />
               ) : (
                 <div style={{ 
@@ -778,10 +976,25 @@ const TDZ_index = () => {
             fontSize: '14px'
           }}>
             🖱️ <strong>Mouse Controls:</strong> Click and drag to rotate • Scroll to zoom • Right-click to pan
+            {/* ENHANCED v0.1.17: Enhanced tag interaction hint */}
+            {showTags && tagConnectionEnabled && Object.keys(displayTags).length > 0 && (
+              <span> • Click tags for details (with zone/height info)</span>
+            )}
             <br />
             🏫 <strong>Selected Campus:</strong> {selectedCampusName} (ID: {selectedCampusId})
             <br />
-            🎛️ <strong>v0.1.15 Features:</strong> Campus-First Selection • Zone Boundary Filter • Cascade Visibility Control
+            🎛️ <strong>v0.1.17 Features:</strong> Campus-First Selection • Zone Boundary Filter • Cascade Visibility Control • Enhanced Real-Time Tags
+            {/* ENHANCED v0.1.17: Enhanced tag status in footer */}
+            <br />
+            🏷️ <strong>Real-Time Tags:</strong> {tagConnectionEnabled ? 
+              (tagIsConnected ? 
+                `🔗 Connected - ${Object.keys(displayTags).length} shown (${Object.keys(alltraqTags).length} alltraq) at ${tagStats.tagRate.toFixed(1)}/s` : 
+                '⏳ Connecting...') : 
+              '🚫 Disabled (enable in sidebar)'
+            }
+            {tagConfig.useActualHeight && (
+              <span> • 📏 Using actual ParcoRTLS heights</span>
+            )}
           </div>
         </div>
       ) : (
@@ -796,6 +1009,8 @@ const TDZ_index = () => {
           <h3>🏫 Select Campus to Begin</h3>
           <p>Choose a campus from the dropdown above to view zones and 3D visualization.</p>
           <p><strong>Available:</strong> {availableCampuses.length} campuses loaded</p>
+          {/* ENHANCED v0.1.17: Enhanced tag capability hint */}
+          <p><em>Real-time tag visualization with actual height support and alltraq filtering will be available after campus selection.</em></p>
         </div>
       )}
     </div>

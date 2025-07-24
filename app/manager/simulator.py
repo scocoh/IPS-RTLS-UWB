@@ -1,10 +1,10 @@
 # Name: simulator.py
-# Version: 0.1.29
+# Version: 0.1.32
 # Created: 971201
-# Modified: 250705
+# Modified: 250723
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin + Claude
-# Description: Python script for ParcoRTLS simulator - Fixed smooth movement interpolation
+# Modified By: ParcoAdmin + Claude + Grok
+# Description: Python script for ParcoRTLS simulator - Fixed Pylance type errors in interpolate_positions return type and position inputs
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Simulator
 # Status: Active
@@ -13,6 +13,9 @@
 #!/usr/bin/env python3
 """
 ParcoRTLS Simulator - Generates test position data for RTLS development
+Version: 0.1.32 - Fixed Pylance type errors in interpolate_positions return type and position inputs, bumped from 0.1.31
+Version: 0.1.31 - Added speed-based interpolation, multi-segment paths, and movement behaviors for modes 2 and 4, bumped from 0.1.30
+Version: 0.1.30 - Modified tag ID generation for mode 3 to start at SIM10# (e.g., SIM101), bumped from 0.1.29
 Version: 0.1.29 - Fixed smooth movement interpolation for moving tags, bumped from 0.1.28
 Version: 0.1.28 - Restored proper sequence number management from v0.1.21, bumped from 0.1.27
 Version: 0.1.27 - Updated to use centralized IP configuration system, bumped from 0.1.26
@@ -21,6 +24,7 @@ Version: 0.1.27 - Updated to use centralized IP configuration system, bumped fro
 import asyncio
 import json
 import logging
+import math
 from logging.handlers import RotatingFileHandler
 import os
 import select
@@ -30,7 +34,7 @@ import traceback
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Any
 import websockets
 
 # Import centralized configuration
@@ -75,7 +79,8 @@ class TagConfig:
     tag_id: str
     positions: List[Tuple[float, float, float]]
     ping_rate: float = 0.25  # Hz
-    move_interval: float = 10.0  # seconds
+    speed_fps: float = 5.0  # Feet per second
+    movement_behavior: str = 'bounce'  # 'bounce', 'stop', 'restart'
     sleep_interval: float = 1.0
     sequence_number: int = 1  # Proper sequence number management
     
@@ -88,15 +93,74 @@ class TagConfig:
         if self.sequence_number > 200:
             self.sequence_number = 1
 
-def interpolate_positions(pos1: Tuple[float, float, float], 
-                         pos2: Tuple[float, float, float], 
-                         t: float) -> Tuple[float, float, float]:
-    """Linear interpolation between two positions"""
-    return (
-        pos1[0] + (pos2[0] - pos1[0]) * t,
-        pos1[1] + (pos2[1] - pos1[1]) * t,
-        pos1[2] + (pos2[2] - pos1[2]) * t
-    )
+def interpolate_positions(positions: List[Tuple[float, float, float]], 
+                         elapsed: float, 
+                         speed_fps: float,
+                         movement_behavior: str) -> Tuple[Tuple[float, float, float], dict[str, Any]]:
+    """Interpolate position along multi-segment path using speed (feet per second)"""
+    if not positions or len(positions) < 2 or speed_fps <= 0:
+        x, y, z = positions[0] if positions else (0.0, 0.0, 0.0)
+        return (x, y, z), {"segment_index": 0, "t": 0, "seg_dist": 0, "total_distance": 0}
+
+    # Calculate segment distances and total distance
+    distances = []
+    total_distance = 0
+    for i in range(len(positions) - 1):
+        dx = positions[i + 1][0] - positions[i][0]
+        dy = positions[i + 1][1] - positions[i][1]
+        dz = positions[i + 1][2] - positions[i][2]
+        dist = math.sqrt(dx*dx + dy*dy + dz*dz)
+        distances.append(dist)
+        total_distance += dist
+
+    # Total time for one full traversal
+    total_time = total_distance / speed_fps
+    if total_time == 0:
+        return positions[0], {"segment_index": 0, "t": 0, "seg_dist": 0, "total_distance": 0}
+
+    # Determine direction and time based on behavior
+    if movement_behavior == 'stop' and elapsed >= total_time:
+        # Stay at final position
+        x, y, z = positions[-1]
+        return (x, y, z), {"segment_index": len(positions) - 2, "t": 1, "seg_dist": distances[-1], "total_distance": total_distance}
+    elif movement_behavior == 'restart':
+        time_remaining = elapsed % total_time
+    else:  # bounce (default)
+        cycle_time = elapsed % (2 * total_time)
+        time_remaining = cycle_time if cycle_time < total_time else (2 * total_time - cycle_time)
+
+    # Find current segment
+    segment_index = 0
+    while segment_index < len(distances):
+        seg_time = distances[segment_index] / speed_fps
+        if time_remaining < seg_time:
+            break
+        time_remaining -= seg_time
+        segment_index += 1
+
+    # Handle boundary cases
+    start = positions[segment_index] if segment_index < len(positions) else positions[-2]
+    end = positions[segment_index + 1] if segment_index + 1 < len(positions) else positions[-1]
+    seg_dist = distances[segment_index] if segment_index < len(distances) else distances[-1]
+
+    # Calculate interpolation parameter
+    t = (time_remaining * speed_fps / seg_dist) if seg_dist > 0 else 0
+
+    # Linear interpolation
+    x = start[0] + (end[0] - start[0]) * t
+    y = start[1] + (end[1] - start[1]) * t
+    z = start[2] + (end[2] - start[2]) * t
+
+    debug = {
+        "segment_index": segment_index,
+        "t": round(t, 3),
+        "seg_dist": round(seg_dist, 2),
+        "total_distance": round(total_distance, 2),
+        "total_time": round(total_time, 2),
+        "speed_fps": speed_fps
+    }
+
+    return (x, y, z), debug
 
 async def receive_messages(websocket, running: List[bool], zone_id: int):
     """Handle messages from Control WebSocket"""
@@ -238,54 +302,29 @@ async def receive_stream_messages(websocket, running):
 
 async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool], 
                        duration: float, zone_id: int, start_time: float):
-    """Send position data for a single tag with smooth interpolation"""
+    """Send position data for a single tag with speed-based interpolation"""
     global stream_websocket, should_stop
     
     while (asyncio.get_event_loop().time() - start_time) < duration and running[0] and not should_stop:
         current_time = asyncio.get_event_loop().time()
         elapsed_time = current_time - start_time
         
-        # FIXED: Restored smooth movement interpolation from v0.1.21
-        if len(tag_config.positions) > 1 and tag_config.move_interval > 0:
-            # Calculate cycle time for back-and-forth movement
-            cycle_time = elapsed_time % (2 * tag_config.move_interval)
-            logger.debug(f"Cycle time for {tag_config.tag_id}: {cycle_time:.2f}, move_interval: {tag_config.move_interval}")
-            
-            if cycle_time < tag_config.move_interval:
-                # Moving from position 0 to position 1
-                t = cycle_time / tag_config.move_interval
-                start_pos = tag_config.positions[0]
-                end_pos = tag_config.positions[1]
-                logger.debug(f"Moving from {start_pos} to {end_pos}, t={t:.2f}")
-            else:
-                # Moving from position 1 back to position 0
-                t = (cycle_time - tag_config.move_interval) / tag_config.move_interval
-                start_pos = tag_config.positions[1]
-                end_pos = tag_config.positions[0]
-                logger.debug(f"Moving from {start_pos} to {end_pos}, t={t:.2f}")
-            
-            # Smooth interpolation between positions
-            x = start_pos[0] + t * (end_pos[0] - start_pos[0])
-            y = start_pos[1] + t * (end_pos[1] - start_pos[1])
-            z = start_pos[2] + t * (end_pos[2] - start_pos[2])
-            
-            # Round to 2 decimal places for smoother movement
-            x = round(x, 2)
-            y = round(y, 2)
-            z = round(z, 2)
-            
-            logger.debug(f"Interpolated position for {tag_config.tag_id}: t={t:.2f}, pos=({x:.2f}, {y:.2f}, {z:.2f})")
-            position = (x, y, z)
-        else:
-            # Stationary tag
-            position = tag_config.positions[0]
-            x, y, z = position
-            x = round(x, 2)
-            y = round(y, 2)
-            z = round(z, 2)
-            logger.debug(f"Stationary position for {tag_config.tag_id}: pos=({x:.2f}, {y:.2f}, {z:.2f})")
+        # Interpolate position using speed-based movement
+        (x, y, z), debug = interpolate_positions(
+            tag_config.positions, 
+            elapsed_time, 
+            tag_config.speed_fps,
+            tag_config.movement_behavior
+        )
         
-        # Send GISData message with correct format
+        # Round to 2 decimal places for consistency
+        x = round(x, 2)
+        y = round(y, 2)
+        z = round(z, 2)
+        
+        logger.debug(f"Interpolated position for {tag_config.tag_id}: segment={debug['segment_index']}, t={debug['t']:.2f}, pos=({x:.2f}, {y:.2f}, {z:.2f}), dist={debug['seg_dist']:.2f}/{debug['total_distance']:.2f}")
+        
+        # Send GISData message
         message = {
             "type": "GISData",
             "ID": tag_config.tag_id,
@@ -297,7 +336,7 @@ async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool],
             "Bat": 100,
             "CNF": 95.0,
             "GWID": "SIM-GW",
-            "Sequence": tag_config.sequence_number,  # Proper sequence field name
+            "Sequence": tag_config.sequence_number,
             "zone_id": zone_id
         }
         
@@ -305,7 +344,7 @@ async def send_tag_data(websocket, tag_config: TagConfig, running: List[bool],
         if target_websocket and target_websocket.state == websockets.State.OPEN:
             try:
                 await target_websocket.send(json.dumps(message))
-                tag_config.increment_sequence()  # Proper sequence increment
+                tag_config.increment_sequence()
                 target_type = "stream" if stream_websocket else "control"
                 logger.info(f"Sending GISData with zone_id {zone_id} for {tag_config.tag_id}: pos=({x:.2f}, {y:.2f}, {z:.2f})")
             except Exception as e:
@@ -365,9 +404,9 @@ async def simulator():
     global stream_receive_task
     global should_stop
     uri = f"ws://{WEBSOCKET_HOST}:{CONTROL_PORT}/ws/ControlManager"
-    print("Select simulation mode (v0.1.29):")
+    print("Select simulation mode (v0.1.32):")
     print("1. Single tag at a fixed point")
-    print("2. Single tag moving between two points (with linear interpolation)")
+    print("2. Single tag moving between points (with speed-based interpolation)")
     print("3. Multiple tags at fixed points")
     print("4. One tag stationary, one tag moving")
     print("5. Two tags with different ping rates")
@@ -389,56 +428,66 @@ async def simulator():
         tag_configs.append(TagConfig(tag_id, [(x, y, z)], ping_rate))
     elif mode == 2:
         tag_id = input("Enter Tag ID (default SIM1): ").strip() or "SIM1"
-        print("Enter first position (inside region):")
-        x1 = float(input("Enter X coordinate (default 5): ").strip() or 5)
-        y1 = float(input("Enter Y coordinate (default 5): ").strip() or 5)
-        z1 = float(input("Enter Z coordinate (default 5): ").strip() or 5)
-        print("Enter second position (outside region):")
-        x2 = float(input("Enter X coordinate (default -1): ").strip() or -1)
-        y2 = float(input("Enter Y coordinate (default -1): ").strip() or -1)
-        z2 = float(input("Enter Z coordinate (default 1): ").strip() or 1)
+        num_positions = int(input("Enter number of positions (minimum 2, default 2): ").strip() or 2)
+        if num_positions < 2:
+            num_positions = 2
+        positions = []
+        for i in range(num_positions):
+            print(f"Enter position {i+1}:")
+            x = float(input(f"Enter X coordinate (default {5.0 if i == 0 else -1.0}): ").strip() or (5.0 if i == 0 else -1.0))
+            y = float(input(f"Enter Y coordinate (default {5.0 if i == 0 else -1.0}): ").strip() or (5.0 if i == 0 else -1.0))
+            z = float(input(f"Enter Z coordinate (default {5.0 if i == 0 else 1.0}): ").strip() or (5.0 if i == 0 else 1.0))
+            positions.append((x, y, z))
         ping_rate = float(input("Enter ping rate in Hertz (default 0.25): ").strip() or 0.25)
-        move_interval = float(input("Enter move interval in seconds (default 10): ").strip() or 10)
-        tag_configs.append(TagConfig(tag_id, [(x1, y1, z1), (x2, y2, z2)], ping_rate, move_interval))
+        speed_fps = float(input("Enter speed in feet per second (default 5.0): ").strip() or 5.0)
+        movement_behavior = input("Enter movement behavior (bounce, stop, restart; default bounce): ").strip() or "bounce"
+        if movement_behavior not in ['bounce', 'stop', 'restart']:
+            movement_behavior = 'bounce'
+        tag_configs.append(TagConfig(tag_id, positions, ping_rate, speed_fps, movement_behavior))
     elif mode == 3:
         num_tags = int(input("Enter number of tags (default 2): ").strip() or 2)
         for i in range(num_tags):
-            tag_id = input(f"Enter Tag ID for tag {i+1} (default SIM{i+1}): ").strip() or f"SIM{i+1}"
-            x = float(input(f"Enter X coordinate for tag {i+1} (default {5 + i*10}): ").strip() or (5 + i*10))
-            y = float(input(f"Enter Y coordinate for tag {i+1} (default 5): ").strip() or 5)
-            z = float(input(f"Enter Z coordinate for tag {i+1} (default 5): ").strip() or 5)
+            tag_id = input(f"Enter Tag ID for tag {i+1} (default SIM10{i+1}): ").strip() or f"SIM10{i+1}"
+            x = float(input(f"Enter X coordinate for tag {i+1} (default {5 + i*10}): ").strip() or float(5 + i*10))
+            y = float(input(f"Enter Y coordinate for tag {i+1} (default 5): ").strip() or 5.0)
+            z = float(input(f"Enter Z coordinate for tag {i+1} (default 5): ").strip() or 5.0)
             ping_rate = float(input(f"Enter ping rate in Hertz for tag {i+1} (default 0.25): ").strip() or 0.25)
             tag_configs.append(TagConfig(tag_id, [(x, y, z)], ping_rate))
     elif mode == 4:
         tag_id1 = input("Enter Tag ID for stationary tag (default 23001): ").strip() or "23001"
-        x1 = float(input("Enter X coordinate for stationary tag (default 105): ").strip() or 105)
-        y1 = float(input("Enter Y coordinate for stationary tag (default 140): ").strip() or 140)
-        z1 = float(input("Enter Z coordinate for stationary tag (default 5): ").strip() or 5)
+        x1 = float(input("Enter X coordinate for stationary tag (default 105): ").strip() or 105.0)
+        y1 = float(input("Enter Y coordinate for stationary tag (default 140): ").strip() or 140.0)
+        z1 = float(input("Enter Z coordinate for stationary tag (default 5): ").strip() or 5.0)
         ping_rate1 = float(input("Enter ping rate in Hertz for stationary tag (default 0.1): ").strip() or 0.1)
         tag_configs.append(TagConfig(tag_id1, [(x1, y1, z1)], ping_rate1))
         tag_id2 = input("Enter Tag ID for moving tag (default 23002): ").strip() or "23002"
-        print("Enter first position for moving tag (inside region):")
-        x2a = float(input("Enter X coordinate (default 114): ").strip() or 114)
-        y2a = float(input("Enter Y coordinate (default 126): ").strip() or 126)
-        z2a = float(input("Enter Z coordinate (default 5): ").strip() or 5)
-        print("Enter second position for moving tag (outside region):")
-        x2b = float(input("Enter X coordinate (default 105): ").strip() or 105)
-        y2b = float(input("Enter Y coordinate (default 140): ").strip() or 140)
-        z2b = float(input("Enter Z coordinate (default 1): ").strip() or 1)
+        num_positions = int(input("Enter number of positions for moving tag (minimum 2, default 2): ").strip() or 2)
+        if num_positions < 2:
+            num_positions = 2
+        positions = []
+        for i in range(num_positions):
+            print(f"Enter position {i+1} for moving tag:")
+            x = float(input(f"Enter X coordinate (default {114.0 if i == 0 else 105.0}): ").strip() or (114.0 if i == 0 else 105.0))
+            y = float(input(f"Enter Y coordinate (default {126.0 if i == 0 else 140.0}): ").strip() or (126.0 if i == 0 else 140.0))
+            z = float(input(f"Enter Z coordinate (default {5.0 if i == 0 else 1.0}): ").strip() or (5.0 if i == 0 else 1.0))
+            positions.append((x, y, z))
         ping_rate2 = float(input("Enter ping rate in Hertz for moving tag (default 0.1): ").strip() or 0.1)
-        move_interval = float(input("Enter move interval in seconds for moving tag (default 0.1): ").strip() or 0.1)
-        tag_configs.append(TagConfig(tag_id2, [(x2a, y2a, z2a), (x2b, y2b, z2b)], ping_rate2, move_interval))
+        speed_fps = float(input("Enter speed in feet per second for moving tag (default 5.0): ").strip() or 5.0)
+        movement_behavior = input("Enter movement behavior for moving tag (bounce, stop, restart; default bounce): ").strip() or "bounce"
+        if movement_behavior not in ['bounce', 'stop', 'restart']:
+            movement_behavior = 'bounce'
+        tag_configs.append(TagConfig(tag_id2, positions, ping_rate2, speed_fps, movement_behavior))
     elif mode == 5:
         tag_id1 = input("Enter Tag ID for first tag (default SIM1): ").strip() or "SIM1"
-        x1 = float(input("Enter X coordinate for first tag (default 5): ").strip() or 5)
-        y1 = float(input("Enter Y coordinate for first tag (default 5): ").strip() or 5)
-        z1 = float(input("Enter Z coordinate for first tag (default 5): ").strip() or 5)
+        x1 = float(input("Enter X coordinate for first tag (default 5): ").strip() or 5.0)
+        y1 = float(input("Enter Y coordinate for first tag (default 5): ").strip() or 5.0)
+        z1 = float(input("Enter Z coordinate for first tag (default 5): ").strip() or 5.0)
         ping_rate1 = float(input("Enter ping rate in Hertz for first tag (default 0.25): ").strip() or 0.25)
         tag_configs.append(TagConfig(tag_id1, [(x1, y1, z1)], ping_rate1))
         tag_id2 = input("Enter Tag ID for second tag (default SIM2): ").strip() or "SIM2"
-        x2 = float(input("Enter X coordinate for second tag (default 5): ").strip() or 5)
-        y2 = float(input("Enter Y coordinate for second tag (default 5): ").strip() or 5)
-        z2 = float(input("Enter Z coordinate for second tag (default 5): ").strip() or 5)
+        x2 = float(input("Enter X coordinate for second tag (default 5): ").strip() or 5.0)
+        y2 = float(input("Enter Y coordinate for second tag (default 5): ").strip() or 5.0)
+        z2 = float(input("Enter Z coordinate for second tag (default 5): ").strip() or 5.0)
         ping_rate2 = float(input("Enter ping rate in Hertz for second tag (default 0.5): ").strip() or 0.5)
         tag_configs.append(TagConfig(tag_id2, [(x2, y2, z2)], ping_rate2))
     elif mode == 6:

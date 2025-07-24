@@ -1,17 +1,18 @@
 # Name: websocket_realtime.py
-# Version: 0.1.70
+# Version: 0.1.75
 # Created: 250512
-# Modified: 250716
+# Modified: 250723
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin + Claude & AI Assistant
-# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 - Added heartbeat integration for port monitoring and scaling - CLEAN RTLS ONLY with event bridge - Updated to use centralized configuration - Added message type tracking for heartbeat filtering
+# Description: Python script for ParcoRTLS RealTime WebSocket server on port 8002 - FIXED: Corrected Manager constructor calls to use zone_id=None for zone-agnostic behavior - FIXED: Made Manager zone-agnostic to handle all zones (L1-L6 hierarchy) - FIXED: Corrected heartbeat_id path lookup for nested data structure - FIXED: Removed problematic sdk_client.last_message_type assignment that was breaking heartbeats - Added heartbeat integration for port monitoring and scaling - CLEAN RTLS ONLY with event bridge - Updated to use centralized configuration
 # Location: /home/parcoadmin/parco_fastapi/app/manager
 # Role: Backend
 # Status: Active
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/websocket_realtime.py
-# Version: 0.1.70 - Added heartbeat integration for port monitoring and scaling, bumped from 0.1.69
+# Version: 0.1.75 - FIXED: Changed zone_id from None to 0 to satisfy type requirements while maintaining zone-agnostic behavior, bumped from 0.1.74
+# Version: 0.1.74 - FIXED: Corrected Manager constructor calls to use zone_id=None for zone-agnostic behavior, bumped from 0.1.73
 # Version: 0.1.69 - Added message type tracking for heartbeat filtering, bumped from 0.1.68
 # Version: 0.1.68 - Updated to use centralized configuration instead of hardcoded IP addresses, bumped from 0.1.67
 # Version: 0.1.67 - ROLLBACK: Removed TETSE contamination, added clean event bridge, bumped from 0.1.66
@@ -145,13 +146,13 @@ async def lifespan(app: FastAPI):
                     file_handler.flush()
                     manager_name = manager['x_nm_res']
                     if manager_name not in _MANAGER_INSTANCES:
-                        # Fix: Use default zone_id if None
-                        manager_instance = Manager(manager_name, zone_id=1)  # Default zone_id instead of None
+                        # Use zone_id=0 to indicate "handle all zones"
+                        manager_instance = Manager(manager_name, zone_id=0)  # 0 = handle all zones
                         _MANAGER_INSTANCES[manager_name] = manager_instance
                         logger.debug(f"Starting manager {manager_name}")
                         file_handler.flush()
                         await manager_instance.start()
-                        logger.debug(f"Manager {manager_name} started successfully")
+                        logger.debug(f"Manager {manager_name} started successfully - handles all zones")
                         file_handler.flush()
                         
                         # Register manager with heartbeat integration
@@ -215,8 +216,8 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                     logger.warning(f"Manager {manager_name} not found, creating default instance")
                     file_handler.flush()
                     if manager_name not in _MANAGER_INSTANCES:
-                        # Fix: Use default zone_id instead of None
-                        manager = Manager(manager_name, zone_id=1)  # Default zone_id
+                        # Use zone_id=0 to indicate "handle all zones"
+                        manager = Manager(manager_name, zone_id=0)  # 0 = handle all zones
                         _MANAGER_INSTANCES[manager_name] = manager
                         await manager.start()
                         
@@ -270,7 +271,6 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                 file_handler.flush()
                 json_data = json.loads(data)
                 msg_type = json_data.get("type", "")
-                sdk_client.last_message_type = msg_type  # Track last received message type for heartbeat filtering
 
                 if msg_type == "HeartBeat":
                     # Validate heartbeat with HeartbeatManager
@@ -293,7 +293,8 @@ async def websocket_endpoint_realtime(websocket: WebSocket, manager_name: str):
                             logger.debug(f"Sent warning to client {client_id} ({client_type}): Heartbeat too frequent")
                             file_handler.flush()
                     # Log legacy heartbeats (no heartbeat_id)
-                    if heartbeat_result is None and json_data.get("heartbeat_id") is None:
+                    heartbeat_id = json_data.get("heartbeat_id") or (json_data.get("data", {}).get("heartbeat_id") if json_data.get("data") else None)
+                    if heartbeat_result is None and heartbeat_id is None:
                         logger.warning(f"Ignored legacy HeartBeat TS: {json_data.get('ts', 'none')} from client {client_id} ({client_type}), no heartbeat_id")
                         file_handler.flush()
                     continue

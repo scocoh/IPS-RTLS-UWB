@@ -1,15 +1,16 @@
 /* Name: Scene3D.js */
-/* Version: 0.1.30 */
+/* Version: 0.1.31 */
 /* Created: 250719 */
 /* Modified: 250722 */
 /* Creator: ParcoAdmin + Claude */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: DUPLICATE TEXT FIX - Global instance tracking to prevent duplicate overlays */
+/* Description: REAL-TIME TAGS INTEGRATION - Added 3D tag rendering with real-time position updates */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/ThreeDZoneViewer/components */
 /* Role: Frontend */
 /* Status: Active */
 /* Dependent: TRUE */
 /* Changelog: */
+/* - 0.1.31: REAL-TIME TAGS INTEGRATION - Added tag rendering, real-time updates, tag trails, configurable appearance */
 /* - 0.1.30: DUPLICATE TEXT FIX - Added global instance tracking, only primary instance shows overlays */
 /* - 0.1.29: DYNAMIC CAMPUS SUPPORT - Removed hardcoded 422/Map 39 references, added selectedCampusId prop, dynamic campus info */
 
@@ -45,6 +46,18 @@ import {
   setupSceneHelpers
 } from '../utils/sceneUtilities';
 
+// NEW v0.1.31: Import tag rendering utilities
+import {
+  createTag3D,
+  updateTagPosition,
+  createTagTrail,
+  updateTagAppearance,
+  clearAllTags,
+  getAllTagsInScene,
+  isPositionWithinBounds,
+  DEFAULT_TAG_CONFIG
+} from '../utils/tagRenderingUtils';
+
 const OrbitControls = (() => {
   try {
     const { OrbitControls } = require('three/examples/jsm/controls/OrbitControls');
@@ -56,6 +69,7 @@ const OrbitControls = (() => {
 })();
 
 const Scene3D = ({ 
+  // Existing props (unchanged)
   mapData = null,
   zoneData = null,
   zoneSettings = {},
@@ -68,7 +82,14 @@ const Scene3D = ({
   showDebugOverlays = true,
   showControlsHint = true,
   showZoneLabels = false,
-  showCornerMarkers = false
+  showCornerMarkers = false,
+  
+  // NEW v0.1.31: Real-time tag props
+  displayTags = {},           // Tags to display in 3D scene
+  tagHistory = {},            // Tag movement history for trails
+  tagConfig = DEFAULT_TAG_CONFIG, // Tag appearance configuration
+  showTags = true,            // Master toggle for tag visibility
+  onTagClick = null           // Callback when tag is clicked
 }) => {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
@@ -79,10 +100,14 @@ const Scene3D = ({
   const [isInitialized, setIsInitialized] = useState(false);
   const [realZoneDataList, setRealZoneDataList] = useState([]);
   
-  // NEW v0.1.30: Unique instance ID and global tracking
+  // NEW v0.1.31: Tag rendering state
+  const [currentTagObjects, setCurrentTagObjects] = useState({}); // tagId -> Three.js group
+  const [currentTrailObjects, setCurrentTrailObjects] = useState({}); // tagId -> Three.js line
+  
+  // Instance tracking (existing v0.1.30)
   const instanceId = useRef(`scene3d_${Math.random().toString(36).substr(2, 9)}`);
 
-  // NEW v0.1.30: Global instance tracking to prevent duplicates
+  // Global instance tracking to prevent duplicates (existing v0.1.30)
   useEffect(() => {
     if (!window.scene3dInstances) window.scene3dInstances = new Set();
     window.scene3dInstances.add(instanceId.current);
@@ -97,7 +122,7 @@ const Scene3D = ({
     };
   }, []);
 
-  // NEW v0.1.30: Check if this is the primary instance (only one that shows overlays)
+  // Check if this is the primary instance (existing v0.1.30)
   const isPrimaryInstance = isInitialized && (
     !window.scene3dInstances || 
     window.scene3dInstances.size === 1 ||
@@ -108,16 +133,21 @@ const Scene3D = ({
     .filter(zoneId => zoneSettings[zoneId].visible)
     .map(zoneId => parseInt(zoneId));
 
-  console.log(`🎮 Scene3D v0.1.30 [${instanceId.current}] - Duplicate Fix:`, {
+  console.log(`🎮 Scene3D v0.1.31 [${instanceId.current}] - Real-Time Tags:`, {
     selectedCampusId,
     selectedCampusName,
     isPrimaryInstance,
     showDebugOverlays,
     showControlsHint,
-    totalInstances: window.scene3dInstances?.size || 0
+    totalInstances: window.scene3dInstances?.size || 0,
+    // NEW: Tag debugging
+    displayTags: Object.keys(displayTags).length,
+    showTags,
+    tagConfigShowLabels: tagConfig.showLabels,
+    tagConfigShowTrails: tagConfig.showTrails
   });
 
-  // Fetch zones when conditions are met
+  // Fetch zones when conditions are met (existing functionality)
   useEffect(() => {
     if (showCampusZone && selectedCampusId && realZoneDataList.length === 0) {
       console.log(`🎯 [${instanceId.current}] Loading zones for campus ${selectedCampusId}`);
@@ -151,7 +181,7 @@ const Scene3D = ({
     }
   }, [showCampusZone, selectedCampusId]);
 
-  // Initialize Three.js scene with double-render prevention
+  // Initialize Three.js scene with double-render prevention (existing functionality)
   useEffect(() => {
     if (!mountRef.current || isInitialized) return;
 
@@ -172,6 +202,38 @@ const Scene3D = ({
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
     renderer.shadowMap.enabled = false;
+
+    // NEW v0.1.31: Add mouse event handling for tag clicks
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    const handleClick = (event) => {
+      if (!onTagClick) return;
+
+      // Calculate mouse position in normalized device coordinates
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // Raycast from camera through mouse position
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(scene.children, true);
+
+      // Find clicked tag
+      for (let intersect of intersects) {
+        let object = intersect.object;
+        while (object && !object.userData.isTag) {
+          object = object.parent;
+        }
+        if (object && object.userData.isTag) {
+          console.log(`🖱️ Clicked tag: ${object.userData.tagId}`);
+          onTagClick(object.userData.tagId, object.userData.tagData);
+          break;
+        }
+      }
+    };
+
+    renderer.domElement.addEventListener('click', handleClick);
 
     mountRef.current.appendChild(renderer.domElement);
 
@@ -206,7 +268,7 @@ const Scene3D = ({
     controlsRef.current = controls;
 
     setIsInitialized(true);
-    console.log(`✅ [${instanceId.current}] Three.js scene initialized`);
+    console.log(`✅ [${instanceId.current}] Three.js scene initialized with tag support`);
 
     return () => {
       console.log(`🧹 [${instanceId.current}] Starting cleanup`);
@@ -219,6 +281,11 @@ const Scene3D = ({
         controlsRef.current.dispose();
       }
       
+      // NEW v0.1.31: Clean up event listeners
+      if (renderer?.domElement) {
+        renderer.domElement.removeEventListener('click', handleClick);
+      }
+      
       if (renderer?.domElement && mountRef.current?.contains(renderer.domElement)) {
         mountRef.current.removeChild(renderer.domElement);
       }
@@ -227,9 +294,9 @@ const Scene3D = ({
         renderer.dispose();
       }
     };
-  }, [width, height]);
+  }, [width, height, onTagClick]);
 
-  // Add map plane
+  // Add map plane (existing functionality)
   useEffect(() => {
     if (!isInitialized || !sceneRef.current || !mapData) return;
 
@@ -282,7 +349,7 @@ const Scene3D = ({
     }
   }, [isInitialized, mapData, mapOpacity]);
 
-  // Add zones
+  // Add zones (existing functionality)
   const zoneSettingsKey = JSON.stringify(zoneSettings);
   
   useEffect(() => {
@@ -339,6 +406,130 @@ const Scene3D = ({
 
   }, [isInitialized, mapData, realZoneDataList, showCampusZone, zoneSettingsKey, showZoneLabels, showCornerMarkers, selectedCampusId]);
 
+  // NEW v0.1.31: Render and update real-time tags
+  const displayTagsKey = JSON.stringify(displayTags);
+  const tagConfigKey = JSON.stringify(tagConfig);
+  
+  useEffect(() => {
+    if (!isInitialized || !sceneRef.current || !mapData || !showTags) {
+      // Clear all tags if conditions not met
+      if (isInitialized && sceneRef.current) {
+        console.log(`🧹 [${instanceId.current}] Clearing tags - conditions not met`);
+        clearAllTags(sceneRef.current);
+        setCurrentTagObjects({});
+        setCurrentTrailObjects({});
+      }
+      return;
+    }
+
+    console.log(`🏷️ [${instanceId.current}] Updating tags for campus ${selectedCampusId}:`, {
+      displayTags: Object.keys(displayTags).length,
+      showTags,
+      tagConfig: tagConfig
+    });
+
+    const mapBounds = getMapBounds(mapData);
+    const scene = sceneRef.current;
+
+    // Remove tags that are no longer selected
+    Object.keys(currentTagObjects).forEach(tagId => {
+      if (!displayTags[tagId]) {
+        console.log(`➖ [${instanceId.current}] Removing tag ${tagId}`);
+        const tagObject = currentTagObjects[tagId];
+        if (tagObject) {
+          scene.remove(tagObject);
+          // Dispose of geometries and materials
+          tagObject.traverse((child) => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+              if (child.material.map) child.material.map.dispose();
+              child.material.dispose();
+            }
+          });
+        }
+        
+        // Remove trail if exists
+        const trailObject = currentTrailObjects[tagId];
+        if (trailObject) {
+          scene.remove(trailObject);
+          if (trailObject.geometry) trailObject.geometry.dispose();
+          if (trailObject.material) trailObject.material.dispose();
+        }
+      }
+    });
+
+    // Update current objects state
+    const newTagObjects = {};
+    const newTrailObjects = {};
+
+    // Add or update tags that are selected
+    Object.entries(displayTags).forEach(([tagId, tagData]) => {
+      // Check if position is within map bounds
+      if (!isPositionWithinBounds(tagData.x, tagData.y, mapBounds)) {
+        console.warn(`⚠️ [${instanceId.current}] Tag ${tagId} position out of bounds: (${tagData.x}, ${tagData.y})`);
+        return;
+      }
+
+      const existingTag = currentTagObjects[tagId];
+      
+      if (existingTag) {
+        // Update existing tag position
+        console.log(`🔄 [${instanceId.current}] Updating tag ${tagId} position`);
+        updateTagPosition(existingTag, tagData, mapBounds, tagConfig);
+        newTagObjects[tagId] = existingTag;
+      } else {
+        // Create new tag
+        console.log(`➕ [${instanceId.current}] Creating new tag ${tagId}`);
+        const tagObject = createTag3D(tagData, mapBounds, tagConfig);
+        if (tagObject) {
+          scene.add(tagObject);
+          newTagObjects[tagId] = tagObject;
+        }
+      }
+
+      // Handle tag trails if enabled
+      if (tagConfig.showTrails && tagHistory[tagId] && tagHistory[tagId].length > 1) {
+        // Remove existing trail
+        const existingTrail = currentTrailObjects[tagId];
+        if (existingTrail) {
+          scene.remove(existingTrail);
+          if (existingTrail.geometry) existingTrail.geometry.dispose();
+          if (existingTrail.material) existingTrail.material.dispose();
+        }
+
+        // Create new trail
+        const trailObject = createTagTrail(tagHistory[tagId], mapBounds, tagConfig);
+        if (trailObject) {
+          scene.add(trailObject);
+          newTrailObjects[tagId] = trailObject;
+        }
+      }
+    });
+
+    // Update state
+    setCurrentTagObjects(newTagObjects);
+    setCurrentTrailObjects(newTrailObjects);
+
+    console.log(`✅ [${instanceId.current}] Tag update complete: ${Object.keys(newTagObjects).length} tags, ${Object.keys(newTrailObjects).length} trails`);
+
+  }, [isInitialized, mapData, showTags, displayTagsKey, tagConfigKey, tagHistory, selectedCampusId]);
+
+  // NEW v0.1.31: Update tag appearance when config changes
+  useEffect(() => {
+    if (!isInitialized || !sceneRef.current) return;
+
+    console.log(`🎨 [${instanceId.current}] Updating tag appearance:`, tagConfig);
+
+    Object.entries(currentTagObjects).forEach(([tagId, tagObject]) => {
+      updateTagAppearance(tagObject, {
+        color: new THREE.Color(tagConfig.activeColor).getHex(),
+        opacity: tagConfig.opacity || 0.8,
+        scale: tagConfig.sphereRadius / DEFAULT_TAG_CONFIG.sphereRadius
+      });
+    });
+
+  }, [isInitialized, tagConfig.activeColor, tagConfig.sphereRadius, currentTagObjects]);
+
   return (
     <div style={{ position: 'relative' }}>
       <div 
@@ -351,7 +542,7 @@ const Scene3D = ({
         }} 
       />
       
-      {/* NEW v0.1.30: Only PRIMARY instance shows overlays - eliminates duplicates */}
+      {/* Updated debug overlays - only PRIMARY instance shows overlays */}
       {showDebugOverlays && isPrimaryInstance && (
         <div style={{ 
           position: 'absolute', 
@@ -375,7 +566,11 @@ const Scene3D = ({
           <div>Campus Zone: {showCampusZone ? '👁️' : '🙈'}</div>
           <div>Zone Labels: {showZoneLabels ? '📋 ON' : '🚫 OFF'}</div>
           <div>Corner Markers: {showCornerMarkers ? '🔴🔵 ON' : '🚫 OFF'}</div>
-          <div>🆕 v0.1.30: Duplicate fix</div>
+          {/* NEW v0.1.31: Tag debugging info */}
+          <div>Real-Time Tags: {showTags ? `🏷️ ${Object.keys(displayTags).length} shown` : '🚫 OFF'}</div>
+          <div>Tag Labels: {tagConfig.showLabels ? '📋 ON' : '🚫 OFF'}</div>
+          <div>Tag Trails: {tagConfig.showTrails ? '🛤️ ON' : '🚫 OFF'}</div>
+          <div>🆕 v0.1.31: Real-time tags</div>
         </div>
       )}
 
@@ -392,8 +587,12 @@ const Scene3D = ({
           maxWidth: '350px'
         }}>
           🖱️ Drag to rotate • 🖲️ Scroll to zoom
+          {/* NEW v0.1.31: Tag interaction hints */}
+          {showTags && Object.keys(displayTags).length > 0 && (
+            <div>🏷️ Click tags for details</div>
+          )}
           <div>🏫 Campus: {selectedCampusId ? `${selectedCampusName} (${selectedCampusId})` : 'None'}</div>
-          <div>🆕 v0.1.30: Duplicate text fix</div>
+          <div>🆕 v0.1.31: Real-time tag support</div>
           <div>🔧 Instance: [{instanceId.current}]</div>
         </div>
       )}
