@@ -1,7 +1,7 @@
 # Name: trigger.py
 # Version: 0.1.0
 # Created: 971201
-# Modified: 250502
+# Modified: 250724
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin
 # Description: Python script for ParcoRTLS backend
@@ -11,8 +11,8 @@
 # Dependent: TRUE
 
 # /home/parcoadmin/parco_fastapi/app/manager/trigger.py
-# Version: 1.0.21-250430 - Forced logging output for debugging, bumped from 1.0.20
-from typing import Dict, List, Optional, Callable
+# Version: 1.0.22-250724 - Fixed Pylance errors: async/await, type annotations, bumped from 1.0.21
+from typing import Dict, List, Optional, Callable, Union, Awaitable
 from .enums import TriggerDirections, TriggerState
 from .models import Tag
 from .region import Region3DCollection  # Kept for compatibility; using vertex data instead
@@ -20,6 +20,7 @@ from .events import StreamDataEventArgs
 from .utils import MQTT_BROKER
 import paho.mqtt.publish as publish
 import logging
+import asyncio
 
 # Force logging configuration for this module
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ class TagState:
     def __init__(self, tag_id: str, state: TriggerState):
         self.id = tag_id    # Tag identifier
         self.state = state  # Current state (NotKnown, InSide, OutSide)
-        self.cross_sequence = None  # For OnCross: tracks sequence (None, "Started", "Inside")
+        self.cross_sequence: Optional[str] = None  # For OnCross: tracks sequence (None, "Started", "Inside")
 
 class Trigger:
     def __init__(self, i_trg: int = 0, name: str = "", direction: TriggerDirections = TriggerDirections.NotSet, 
@@ -53,11 +54,23 @@ class Trigger:
         self.ignore_unknowns = ignore_unknowns    # Ignore tags not in self.tags
         self.raise_event_on_first_encounter = True # Fire event on first state check
         self.states: Dict[str, TagState] = {}     # State tracking for tags
-        self.trigger_callback: Optional[Callable[[StreamDataEventArgs], None]] = None # Event callback
+        self.trigger_callback: Optional[Callable[[StreamDataEventArgs], Union[None, Awaitable[None]]]] = None # Event callback
+        self._zone_validated = False              # Track if zone validation completed
 
-        # Validate that the trigger is inside its zone (for non-portable triggers)
+        # Schedule zone validation if needed (will be called by event loop)
         if not self.is_portable and self.zone_id:
-            self.validate_trigger_within_zone()
+            asyncio.create_task(self._auto_validate_zone())
+
+    async def _auto_validate_zone(self):
+        """Automatically validate trigger within zone - called during initialization."""
+        try:
+            await self.validate_trigger_within_zone()
+            self._zone_validated = True
+            logger.debug(f"Auto zone validation completed for trigger {self.name}")
+        except Exception as e:
+            logger.error(f"Auto zone validation failed for trigger {self.name}: {e}")
+            # Don't raise - let the trigger exist but mark validation failure
+            self._zone_validated = False
 
     def validate(self) -> bool:
         # Check if trigger has at least one region
@@ -142,21 +155,21 @@ class Trigger:
         logger.debug(f"Point ({x}, {y}, {z}) is outside all regions for trigger {self.name} (ID: {self.i_trg})")
         return False
 
-    def move_by(self, delta_x: float, delta_y: float, delta_z: float):
+    async def move_by(self, delta_x: float, delta_y: float, delta_z: float):
         # Shift trigger regions by specified deltas
         if self.regions.count() >= 1:
             self.regions.move_by(delta_x, delta_y, delta_z)
             # Re-validate if non-portable
             if not self.is_portable and self.zone_id:
-                self.validate_trigger_within_zone()
+                await self.validate_trigger_within_zone()
 
-    def move_to(self, absolute_x: float, absolute_y: float, delta_z: float):
+    async def move_to(self, absolute_x: float, absolute_y: float, delta_z: float):
         # Move trigger regions to absolute coordinates
         if self.regions.count() >= 1:
             self.regions.move_to(absolute_x, absolute_y, delta_z)
             # Re-validate if non-portable
             if not self.is_portable and self.zone_id:
-                self.validate_trigger_within_zone()
+                await self.validate_trigger_within_zone()
 
     async def check_trigger(self, tag: Tag) -> bool:
         # Log entry for debugging trigger evaluation
@@ -172,9 +185,9 @@ class Trigger:
             logger.debug(f"Tag {tag.id} ignored by trigger {self.name} due to ignore_unknowns")
             return False
 
-        # Get tag’s current position
+        # Get tag's current position
         pt_x, pt_y, pt_z = tag.x, tag.y, tag.z
-        # Retrieve or initialize tag’s previous state
+        # Retrieve or initialize tag's previous state
         s = self.get_state(tag.id)
         # Determine current state (InSide or OutSide) based on position
         new_state = self.point_state(pt_x, pt_y, pt_z)
@@ -240,7 +253,9 @@ class Trigger:
             logger.info(f"Event firing for trigger {self.name} (ID: {self.i_trg}) for tag {tag.id}")
             # Call callback if set (e.g., for Manager to send to WebSocket clients)
             if self.trigger_callback:
-                await self.trigger_callback(StreamDataEventArgs(tag=tag))
+                callback_result = self.trigger_callback(StreamDataEventArgs(tag=tag))
+                if asyncio.iscoroutine(callback_result):
+                    await callback_result
             # Publish event to MQTT (full stream)
             try:
                 publish.single("home/rtls/trigger", self.name, hostname=MQTT_BROKER)

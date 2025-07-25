@@ -1,10 +1,10 @@
 /* Name: ThreeDZoneViewer.css */
-/* Version: 0.1.0 */
+/* Version: 0.1.1 */
 /* Created: 250719 */
-/* Modified: 250719 */
+/* Modified: 250725 */
 /* Creator: ParcoAdmin + Claude */
 /* Modified By: ParcoAdmin + Claude */
-/* Description: Styles for 3D Zone Viewer component */
+/* Description: Styles for 3D Zone Viewer component - Added debug panel animations */
 /* Location: /home/parcoadmin/parco_fastapi/app/src/components/ThreeDZoneViewer/styles */
 /* Role: Frontend */
 /* Status: Active */
@@ -77,6 +77,12 @@
 .status-value {
   font-size: 16px;
   font-weight: 600;
+}
+
+/* NEW v0.1.1: Debug panel button hover effects */
+.status-value button:hover {
+  transform: scale(1.05);
+  transition: transform 0.1s ease;
 }
 
 .error-message {
@@ -206,6 +212,28 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* NEW v0.1.1: Smooth slide-down animation for debug panel */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+    transform: translateY(0);
+  }
+}
+
+/* NEW v0.1.1: Debug panel toggle hover effects */
+.debug-panel-toggle:hover {
+  background-color: #e7f3ff !important;
+  border-color: #007bff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,123,255,0.2);
 }
 
 /* Debug panel */

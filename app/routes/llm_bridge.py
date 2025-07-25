@@ -1,7 +1,9 @@
 # Name: llm_bridge.py
-# Version: 0.2.0
+# Version: 0.2.1
 # Created: 250617
+# Modified: 250724
 # Author: ParcoAdmin + QuantumSage AI
+# Modified By: ParcoAdmin
 # Purpose: Restores construct_prompt() for WebSocket Event AI
 
 import os
@@ -51,7 +53,13 @@ async def ask_openai(prompt: str, model: str = "gpt-4", temperature: float = 0.7
             ],
             temperature=temperature
         )
-        content = response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+        if content is None:
+            error_msg = "❌ OpenAI returned empty content"
+            logger.error(error_msg)
+            return error_msg
+        
+        content = content.strip()
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
             content = json_match.group(0)

@@ -1,10 +1,10 @@
 # Name: alltraq_service.py
-# Version: 0.1.2
+# Version: 0.1.3
 # Created: 250713
-# Modified: 250713
+# Modified: 250724
 # Creator: ParcoAdmin
 # Modified By: ParcoAdmin + Claude
-# Description: AllTraq API polling service - Connects to AllTraq WebSocket server on port 18002 - Fixed WebSocket .closed attribute error
+# Description: AllTraq API polling service - Connects to AllTraq WebSocket server on port 18002 - Added floor-based Z-coordinate calculation
 # Location: /home/parcoadmin/parco_fastapi/app/DataSources/AllTraqAppAPI
 # Role: Service
 # Status: Active
@@ -220,7 +220,7 @@ class AllTraqService:
             return None
     
     def transform_alltraq_data(self, alltraq_data: Dict) -> Optional[Dict]:
-        """Transform AllTraq API response to ParcoRTLS GIS format"""
+        """Transform AllTraq API response to ParcoRTLS GIS format with floor-based Z-coordinate"""
         try:
             # Extract data from AllTraq response
             serial_number = alltraq_data.get("serialNumber")
@@ -237,20 +237,37 @@ class AllTraqService:
                 return None
             
             try:
-                # AllTraq coordinates format: "74.28,33.03" 
+                # Handle both 2D (X,Y) and 3D (X,Y,Z) coordinate formats from AllTraq
                 coord_parts = coordinates.split(",")
-                if len(coord_parts) != 2:
+                if len(coord_parts) < 2:
                     logger.warning(f"Invalid coordinate format for {serial_number}: {coordinates}")
                     return None
-                    
+                
                 x = float(coord_parts[0])
                 y = float(coord_parts[1])
+                
+                # Determine Z coordinate
+                if len(coord_parts) >= 3:
+                    # Use Z coordinate from AllTraq if available
+                    z = float(coord_parts[2])
+                    logger.debug(f"Using Z coordinate from AllTraq for {serial_number}: {z}")
+                else:
+                    # Calculate Z based on floor number (3 feet per floor)
+                    floor_number = tracking_location.get("floorNumber", 1)
+                    z = float(floor_number) * 3.0
+                    logger.debug(f"Calculated Z coordinate for {serial_number} from floor {floor_number}: {z} feet")
+                    
             except (ValueError, IndexError) as e:
                 logger.warning(f"Failed to parse coordinates for {serial_number}: {coordinates} - {str(e)}")
                 return None
             
             # Get timestamp
             updated_on = tracking_location.get("updatedOn", datetime.now().isoformat())
+            
+            # Get additional floor information for logging
+            floor_id = tracking_location.get("floorId")
+            floor_name = tracking_location.get("floorName", "")
+            floor_number = tracking_location.get("floorNumber", 1)
             
             # Transform to ParcoRTLS GIS format
             gis_data = {
@@ -260,13 +277,15 @@ class AllTraqService:
                 "TS": updated_on,
                 "X": x,
                 "Y": y,
-                "Z": 0.0,
+                "Z": z,
                 "Bat": 100,  # AllTraq doesn't provide battery info
                 "CNF": 95.0, # Confidence level
                 "GWID": "AllTraq-API",
                 "Sequence": int(time.time() % 1000),
                 "zone_id": DEFAULT_ZONE_ID
             }
+            
+            logger.debug(f"Transformed data for {serial_number}: Floor {floor_number} ({floor_name}), X={x}, Y={y}, Z={z}")
             
             return gis_data
             

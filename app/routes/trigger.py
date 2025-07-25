@@ -1,10 +1,12 @@
 # /home/parcoadmin/parco_fastapi/app/routes/trigger.py
 # Name: trigger.py
-# Version: 0.1.68
+# Version: 0.1.70
 # Created: 971201
-# Modified: 250718
+# Modified: 250725
 # Creator: ParcoAdmin
-# Modified By: ParcoAdmin & Temporal Claude
+# Modified By: ParcoAdmin & Claude AI
+# Version 0.1.70 Fixed trigger coordinate precision by replacing raw trigger queries with stored procedure calls for 6 decimal place rounding on radius_ft, z_min, z_max
+# Version 0.1.69 Fixed coordinate precision by replacing raw vertex queries with stored procedure calls for 6 decimal place rounding
 # Version 0.1.68 Enhanced error messages for boundary violations with detailed coordinate information
 # Version 0.1.67 updated add_trigger endpoint for z coordinate bug on 250718
 # Version: 0.1.66 - Uses dynamic bounding box calculation from vertices (like get_zone_bounding_box)
@@ -130,23 +132,18 @@ async def get_zone_bounding_box(zone_id: int):
 
         region_id = region_result[0]["i_rgn"]
 
-        # Fetch vertices for the zone's region
-        vertices_query = """
-            SELECT n_x AS x, n_y AS y, COALESCE(n_z, 0.0) AS z
-            FROM vertices
-            WHERE i_rgn = $1
-        """
-        vertices = await execute_raw_query("maint", vertices_query, region_id)
+        # Use stored procedure for rounded coordinates instead of raw query
+        vertices = await call_stored_procedure("maint", "usp_zone_vertices_select_by_region", region_id)
         if not vertices or len(vertices) < 3:
             raise HTTPException(status_code=400, detail=f"Zone ID {zone_id} has insufficient vertices")
 
-        # Calculate bounding box
-        min_x = min(v["x"] for v in vertices)
-        max_x = max(v["x"] for v in vertices)
-        min_y = min(v["y"] for v in vertices)
-        max_y = max(v["y"] for v in vertices)
-        min_z = min(v["z"] for v in vertices)
-        max_z = max(v["z"] for v in vertices)
+        # Calculate bounding box from rounded coordinates
+        min_x = min(float(v["n_x"]) for v in vertices)
+        max_x = max(float(v["n_x"]) for v in vertices)
+        min_y = min(float(v["n_y"]) for v in vertices)
+        max_y = max(float(v["n_y"]) for v in vertices)
+        min_z = min(float(v["n_z"]) for v in vertices)
+        max_z = max(float(v["n_z"]) for v in vertices)
 
         return {
             "min_x": min_x, "max_x": max_x,
@@ -501,15 +498,20 @@ async def get_trigger_details(trigger_id: int):
             raise HTTPException(status_code=404, detail=f"No region found for trigger ID {trigger_id}")
         region_id = region[0]["i_rgn"]
 
-        # Fetch the vertices for the region
-        vertices_query = """
-            SELECT n_x AS x, n_y AS y, COALESCE(n_z, 0.0) AS z, n_ord
-            FROM vertices
-            WHERE i_rgn = $1
-            ORDER BY n_ord
-        """
-        vertices = await execute_raw_query("maint", vertices_query, region_id)
-        return {"vertices": vertices}
+        # Use stored procedure for rounded coordinates instead of raw query
+        vertices = await call_stored_procedure("maint", "usp_zone_vertices_select_by_region", region_id)
+        
+        # Convert stored procedure result to expected format
+        formatted_vertices = []
+        for vertex in vertices:
+            formatted_vertices.append({
+                "x": float(vertex["n_x"]),
+                "y": float(vertex["n_y"]),
+                "z": float(vertex["n_z"]),
+                "n_ord": vertex["n_ord"]
+            })
+        
+        return {"vertices": formatted_vertices}
     except Exception as e:
         logger.error(f"Error fetching trigger details for ID {trigger_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching trigger details: {str(e)}")
@@ -627,22 +629,8 @@ async def get_triggers_by_zone(zone_id: int):
 )
 async def get_triggers_by_zone_with_id(zone_id: int):
     try:
-        query = """
-            SELECT 
-                t.i_trg AS trigger_id, 
-                t.x_nm_trg AS name, 
-                t.i_dir AS direction_id, 
-                COALESCE(r.i_zn, t.i_zn) AS zone_id,
-                t.is_portable,
-                t.assigned_tag_id,
-                t.radius_ft,
-                t.z_min,
-                t.z_max
-            FROM public.triggers t
-            LEFT JOIN public.regions r ON t.i_trg = r.i_trg
-            WHERE COALESCE(r.i_zn, t.i_zn) = $1 OR t.is_portable = true
-        """
-        result = await execute_raw_query("maint", query, zone_id)
+        # Use stored procedure for rounded coordinates instead of raw query
+        result = await call_stored_procedure("maint", "usp_triggers_select_by_zone_with_rounded_coords", zone_id)
         if not result:
             return []
         logger.info(f"Fetched {len(result)} triggers for zone {zone_id} with direction_id")
@@ -663,16 +651,8 @@ async def get_triggers_by_zone_with_id(zone_id: int):
 )
 async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float = None): # type: ignore
     try:
-        # Fetch trigger data
-        query = """
-            SELECT 
-                t.i_trg, t.x_nm_trg, t.i_dir, t.is_portable, t.assigned_tag_id,
-                t.radius_ft, t.z_min, t.z_max, t.i_zn AS zone_id
-            FROM triggers t
-            WHERE t.i_trg = $1
-        """
-        logger.debug(f"Executing query for trigger {trigger_id}: {query}")
-        trigger_data = await execute_raw_query("maint", query, trigger_id)
+        # Use stored procedure for rounded coordinates instead of raw query for trigger data
+        trigger_data = await call_stored_procedure("maint", "usp_trigger_select_with_rounded_coords", trigger_id)
         logger.debug(f"Trigger data result: {trigger_data}")
         if not trigger_data:
             logger.error(f"Trigger {trigger_id} not found in triggers table")
@@ -695,37 +675,31 @@ async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float =
             # The WebSocket server provides x, y, z as the tag's position (e.g., SIM1's position)
             # For portable triggers, this position is the center of the trigger
             center_x, center_y, center_z = x, y, z if z is not None else 0
-            radius = trigger["radius_ft"]
+            radius = float(trigger["radius_ft"])
             
             # Fetch the zone's vertices to determine a reference point to check against
             # We'll use the centroid of the zone as the point to check
-            zone_id = trigger["zone_id"]
+            zone_id = trigger["i_zn"]
             if not zone_id:
                 logger.error(f"Portable trigger {trigger_id} missing zone ID")
                 raise HTTPException(status_code=400, detail="Portable trigger missing zone ID")
             
-            zone_query = """
-                SELECT v.n_x AS x, v.n_y AS y, COALESCE(v.n_z, 0.0) AS z
-                FROM vertices v
-                JOIN regions r ON v.i_rgn = r.i_rgn
-                WHERE r.i_zn = $1 AND r.i_trg IS NULL
-                ORDER BY v.n_ord
-            """
-            zone_vertices = await execute_raw_query("maint", zone_query, zone_id)
+            # Use stored procedure for rounded coordinates
+            zone_vertices = await call_stored_procedure("maint", "usp_zone_vertices_select_by_region", zone_id)
             if not zone_vertices:
                 logger.error(f"No vertices found for zone {zone_id} of trigger {trigger_id}")
                 return {"contains": False}
             
             # Calculate the centroid of the zone as the point to check
-            avg_x = sum(v["x"] for v in zone_vertices) / len(zone_vertices)
-            avg_y = sum(v["y"] for v in zone_vertices) / len(zone_vertices)
-            avg_z = sum(v["z"] for v in zone_vertices) / len(zone_vertices)
+            avg_x = sum(float(v["n_x"]) for v in zone_vertices) / len(zone_vertices)
+            avg_y = sum(float(v["n_y"]) for v in zone_vertices) / len(zone_vertices)
+            avg_z = sum(float(v["n_z"]) for v in zone_vertices) / len(zone_vertices)
             
             # Check if the zone centroid is within the trigger's radius centered at the tag's position
             distance = ((avg_x - center_x) ** 2 + (avg_y - center_y) ** 2) ** 0.5
             logger.debug(f"Portable trigger {trigger_id}: distance from zone centroid [{avg_x}, {avg_y}] to tag position [{center_x}, {center_y}] = {distance}, radius = {radius}")
             if z is not None:
-                if not (trigger["z_min"] <= z <= trigger["z_max"]):
+                if not (float(trigger["z_min"]) <= z <= float(trigger["z_max"])):
                     logger.debug(f"Portable trigger {trigger_id}: z={z} outside bounds [{trigger['z_min']}, {trigger['z_max']}]")
                     return {"contains": False}
             contains = distance <= radius
@@ -742,22 +716,17 @@ async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float =
                 raise HTTPException(status_code=404, detail=f"No region found for trigger {trigger_id}")
             region_id = region[0]["i_rgn"]
             
-            vertices_query = """
-                SELECT n_x AS x, n_y AS y, COALESCE(n_z, 0.0) AS z, n_ord
-                FROM vertices
-                WHERE i_rgn = $1
-                ORDER BY n_ord
-            """
-            vertices = await execute_raw_query("maint", vertices_query, region_id)
+            # Use stored procedure for rounded coordinates
+            vertices = await call_stored_procedure("maint", "usp_zone_vertices_select_by_region", region_id)
             if len(vertices) < 3:
                 logger.error(f"Region for trigger {trigger_id} has insufficient vertices: {len(vertices)}")
                 raise HTTPException(status_code=400, detail="Region has insufficient vertices")
             
             # NEW: Create region with vertices for hybrid containment
             regions = Region3DCollection()
-            x_coords = [v["x"] for v in vertices]
-            y_coords = [v["y"] for v in vertices]
-            z_coords = [v["z"] for v in vertices]
+            x_coords = [float(v["n_x"]) for v in vertices]
+            y_coords = [float(v["n_y"]) for v in vertices]
+            z_coords = [float(v["n_z"]) for v in vertices]
             
             # Create Region3D with vertices for polygon containment
             region_3d = Region3D(
@@ -767,7 +736,7 @@ async def trigger_contains_point(trigger_id: int, x: float, y: float, z: float =
                 max_y=max(y_coords),
                 min_z=min(z_coords),
                 max_z=max(z_coords),
-                vertices=[(float(v["x"]), float(v["y"]), float(v["z"])) for v in vertices]  # NEW: Pass vertices as tuples for polygon containment
+                vertices=[(float(v["n_x"]), float(v["n_y"]), float(v["n_z"])) for v in vertices]  # NEW: Pass vertices as tuples for polygon containment
             )
             regions.add(region_3d)
             
@@ -830,23 +799,18 @@ async def zones_by_point(x: float, y: float, z: float, zone_type: int = 0):
                 
                 region_id = region_result[0]["i_rgn"]
                 
-                # Fetch vertices and calculate dynamic bounding box
-                vertices_query = """
-                    SELECT n_x AS x, n_y AS y, COALESCE(n_z, 0.0) AS z
-                    FROM vertices
-                    WHERE i_rgn = $1
-                """
-                vertices = await execute_raw_query("maint", vertices_query, region_id)
+                # Use stored procedure for rounded coordinates
+                vertices = await call_stored_procedure("maint", "usp_zone_vertices_select_by_region", region_id)
                 if not vertices or len(vertices) < 3:
                     continue  # Skip zones with insufficient vertices
                 
-                # Calculate dynamic bounding box
-                min_x = min(v["x"] for v in vertices)
-                max_x = max(v["x"] for v in vertices)
-                min_y = min(v["y"] for v in vertices)
-                max_y = max(v["y"] for v in vertices)
-                min_z = min(v["z"] for v in vertices)
-                max_z = max(v["z"] for v in vertices)
+                # Calculate dynamic bounding box from rounded coordinates
+                min_x = min(float(v["n_x"]) for v in vertices)
+                max_x = max(float(v["n_x"]) for v in vertices)
+                min_y = min(float(v["n_y"]) for v in vertices)
+                max_y = max(float(v["n_y"]) for v in vertices)
+                min_z = min(float(v["n_z"]) for v in vertices)
+                max_z = max(float(v["n_z"]) for v in vertices)
                 
                 # Check if point is within calculated bounding box
                 contains = (
@@ -926,18 +890,13 @@ async def triggers_by_point(x: float, y: float, z: float):
                 region = await execute_raw_query("maint", region_query, trigger["i_trg"])
                 if region:
                     region_id = region[0]["i_rgn"]
-                    vertices_query = """
-                        SELECT n_x AS x, n_y AS y, COALESCE(n_z, 0.0) AS z, n_ord
-                        FROM vertices
-                        WHERE i_rgn = $1
-                        ORDER BY n_ord
-                    """
-                    vertices = await execute_raw_query("maint", vertices_query, region_id)
+                    # Use stored procedure for rounded coordinates
+                    vertices = await call_stored_procedure("maint", "usp_zone_vertices_select_by_region", region_id)
                     if len(vertices) >= 3:
                         regions = Region3DCollection()
-                        x_coords = [v["x"] for v in vertices]
-                        y_coords = [v["y"] for v in vertices]
-                        z_coords = [v["z"] for v in vertices]
+                        x_coords = [float(v["n_x"]) for v in vertices]
+                        y_coords = [float(v["n_y"]) for v in vertices]
+                        z_coords = [float(v["n_z"]) for v in vertices]
                         # NEW: Create Region3D with vertices for hybrid containment
                         region_3d = Region3D(
                             min_x=min(x_coords),
@@ -946,7 +905,7 @@ async def triggers_by_point(x: float, y: float, z: float):
                             max_y=max(y_coords),
                             min_z=min(z_coords),
                             max_z=max(z_coords),
-                           vertices=[(float(v["x"]), float(v["y"]), float(v["z"])) for v in vertices]  # This passes tuples  # NEW: Pass vertices for polygon containment
+                           vertices=[(float(v["n_x"]), float(v["n_y"]), float(v["n_z"])) for v in vertices]  # This passes tuples  # NEW: Pass vertices for polygon containment
                         )
                         regions.add(region_3d)
                         # NEW: Use hybrid containment instead of basic bounding box
@@ -1014,15 +973,20 @@ async def add_trigger_from_zone(
         if not zone_exists:
             raise HTTPException(status_code=400, detail=f"Zone {zone_id} does not exist")
         
-        # Step 2: Fetch zone vertices
-        vertices_query = """
-            SELECT v.n_x AS x, v.n_y AS y, COALESCE(v.n_z, 0.0) AS z, v.n_ord
-            FROM vertices v
-            JOIN regions r ON v.i_rgn = r.i_rgn
+        # Step 2: Fetch zone region ID
+        region_query = """
+            SELECT r.i_rgn
+            FROM regions r
             WHERE r.i_zn = $1 AND r.i_trg IS NULL
-            ORDER BY v.n_ord
         """
-        vertices = await execute_raw_query("maint", vertices_query, zone_id)
+        region_result = await execute_raw_query("maint", region_query, zone_id)
+        if not region_result:
+            raise HTTPException(status_code=404, detail=f"No region found for zone {zone_id}")
+        
+        region_id = region_result[0]["i_rgn"]
+        
+        # Step 3: Use stored procedure for rounded coordinates
+        vertices = await call_stored_procedure("maint", "usp_zone_vertices_select_by_region", region_id)
         
         if not vertices:
             raise HTTPException(status_code=404, detail=f"No vertices found for zone {zone_id}")
@@ -1032,19 +996,19 @@ async def add_trigger_from_zone(
         
         logger.info(f"Found {len(vertices)} vertices for zone {zone_id}")
         
-        # Step 3: Create trigger request using existing TriggerAddRequest model
+        # Step 4: Create trigger request using existing TriggerAddRequest model
         trigger_request = TriggerAddRequest(
             name=str(name),
             direction=int(direction),
             zone_id=int(zone_id),
             ignore=bool(ignore),
-            vertices=[{"x": float(v["x"]), "y": float(v["y"]), "z": float(v["z"])} for v in vertices]
+            vertices=[{"x": float(v["n_x"]), "y": float(v["n_y"]), "z": float(v["n_z"])} for v in vertices]
         )
         
-        # Step 4: Use existing add_trigger logic
+        # Step 5: Use existing add_trigger logic
         result = await add_trigger(trigger_request)
         
-        # Step 5: Enhance response with vertex count
+        # Step 6: Enhance response with vertex count
         if isinstance(result, dict) and "trigger_id" in result:
             result["vertices_count"] = len(vertices)
             result["message"] = "Trigger created successfully from zone vertices"
